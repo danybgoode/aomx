@@ -3,7 +3,7 @@ epic: prove-rts-core
 sprint: 1
 title: "A1 Command a worker"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S1.1
@@ -12,11 +12,11 @@ stories:
     i_want: "to select a worker and issue a move order"
     so_that: "I can tell whether the game obeyed or rejected my command"
     risk: low
-    status: planned
+    status: in-progress
 ---
 # Prove the RTS core — Sprint 1: A1 Command a worker
 
-**Status:** ⬜ not started
+**Status:** Local headless checks and rendered walkthrough passed; independent fresh-checkout review and merge pending. Run commands: [game/README.md](../../../game/README.md).
 
 ## Stories
 

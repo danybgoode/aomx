@@ -3,7 +3,7 @@ epic: prove-rts-core
 sprint: 3
 title: "A3 Build and replay"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,18 +12,18 @@ stories:
     i_want: "to place and construct one useful structure"
     so_that: "my economic work changes the map"
     risk: low
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Replay the prototype and review the engine"
     as_a: "product owner"
     i_want: "a repeatable run and measured prototype limits"
     so_that: "I can decide whether to continue into the solo skirmish"
     risk: low
-    status: planned
+    status: in-progress
 ---
 # Prove the RTS core — Sprint 3: A3 Build and replay
 
-**Status:** ⬜ not started
+**Status:** Local headless checks and rendered walkthrough passed; independent fresh-checkout review and merge pending. Run commands: [game/README.md](../../../game/README.md).
 
 ## Stories
 

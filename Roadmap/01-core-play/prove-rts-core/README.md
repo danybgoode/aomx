@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: prove-rts-core
 title: "Prove the RTS core"
@@ -39,6 +39,10 @@ build_order: 2       # integer position in the ONE global build sequence — the
 # Epic: Prove the RTS core
 
 > **Area:** 01-core-play · **Risk:** low · **Class:** Feature · **Scope seed:** [`00-ideas/seeds/prove-rts-core.md`](../../00-ideas/seeds/prove-rts-core.md)
+
+## Build progress · 2026-10-14
+
+A Godot 4.7.2 project now runs the approved one-worker, one-resource, one-structure loop. Headless checks pass for move rejection, conservation, interruption/resume, placement cost and replay. The rendered window was walked through for selection, movement, unreachable feedback, gathering and completed construction. [Run commands and measured limits](../../../game/README.md) are recorded. Independent fresh-checkout verification, owner engine review and merge remain open; this is not a shipped match or deployed game.
 
 ## Why
 

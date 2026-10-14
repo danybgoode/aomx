@@ -1,5 +1,10 @@
 # Prove the RTS core — Retrospective
 
+## In-progress evidence · 2026-10-14
+
+The Godot 4.7.2 worker/resource/structure prototype passed local headless rules and a rendered walkthrough. See [game commands](../../../game/README.md) and [ADR 001](../../../docs/architecture-decisions/001-engine-selection.md). Independent checkout, owner engine decision, PR review and merge remain open. No match completion or release has occurred. Keep this retrospective open.
+
+
 _Closed: <date>_
 _Intent: yes | mostly | no_
 <!-- Did we build what the product owner meant? One word, THEIR answer: yes, mostly or no. Required by `epic-dod` only
