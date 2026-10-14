@@ -98,10 +98,11 @@ publisher refuses to silently replace it. Run
 
 ## Restricted itch.io distribution
 
-The creator project is `danybgoode/battle-for-la-roma`. Keep it **Draft**
-while testing the export. Then set **Restricted**, use individual itch.io
-download keys for approved testers, and verify access from a second account.
-Do not share the draft secret URL; it bypasses the intended per-tester gate.
+The creator project is `danybgoode/battle-for-la-roma`. It is **Restricted**;
+the owner account can download the preview. Use individual itch.io download
+keys for approved testers after the invitation gate, and verify access from a
+second account before distribution. Do not share a draft secret URL if the
+page is returned to Draft; it bypasses the intended per-tester gate.
 The macOS Butler CLI can upload the versioned ZIP with:
 
 ```sh

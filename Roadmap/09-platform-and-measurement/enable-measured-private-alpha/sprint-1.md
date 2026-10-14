@@ -24,7 +24,7 @@ stories:
 
 # Enable a measured private alpha — Sprint 1: Package the first desktop build
 
-**Status:** Building. Godot 4.7.2 headless and contract checks passed; the preview ZIP uploaded through Butler to the Draft itch.io page. A fresh extraction launched headlessly on the builder Mac. A downloaded, played and restarted build on a second Mac remains open. No invitations issued.
+**Status:** Building. Godot 4.7.2 headless and contract checks passed; the preview ZIP uploaded through Butler to the Restricted itch.io page. The owner downloaded it, and the app files matched the fresh local export. A downloaded, played and restarted build on a second Mac remains open. No invitations issued.
 
 ## Stories
 
