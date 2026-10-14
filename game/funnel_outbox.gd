@@ -1,13 +1,14 @@
 extends RefCounted
 
-# This prototype deliberately emits only test-account traffic. A real match start
-# belongs to the funded solo-skirmish client once a playable match exists.
+# This local client deliberately emits only test-account traffic.
 const SCHEMA_VERSION := 1
 const GAME_VERSION := "godot-4.7.2-prototype-1"
 const CONTENT_VERSION := "original-map-1"
 
 var filename: String
 var state: Dictionary
+var game_version := GAME_VERSION
+var content_version := CONTENT_VERSION
 
 func _init(path: String = "user://funnel-outbox.json") -> void:
 	filename = path
@@ -22,21 +23,42 @@ func _init(path: String = "user://funnel-outbox.json") -> void:
 	if not _save(state):
 		state = {}
 
-func queue(type: String, match_id: String = "") -> Dictionary:
-	if state.is_empty() or type not in ["game_opened", "match_started"]:
+func queue_open_for_launch() -> Dictionary:
+	if state.is_empty():
+		return {"ok": false, "reason": "outbox_unavailable"}
+	var last_open: Dictionary = {}
+	for item in state.events:
+		if item.event.type == "game_opened":
+			last_open = item.event
+	var today := Time.get_date_string_from_system(true)
+	if not last_open.is_empty() and last_open.claimed_at.substr(0, 10) == today:
+		return {"ok": true, "event": last_open, "existing": true}
+	return queue("game_opened", "", "", not last_open.is_empty() and today > last_open.claimed_at.substr(0, 10))
+
+func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false) -> Dictionary:
+	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed"]:
 		return {"ok": false, "reason": "outbox_unavailable"}
 	for item in state.events:
-		if item.event.type == type and (type == "game_opened" or item.event.get("match_id", "") == match_id):
+		if item.event.type == type and (type == "game_opened" and not new_session or type != "game_opened" and item.event.get("match_id", "") == match_id):
 			return {"ok": true, "event": item.event, "existing": true}
-	if type == "match_started" and match_id.is_empty():
+	if type != "game_opened" and match_id.is_empty():
 		return {"ok": false, "reason": "missing_match_id"}
+	if type == "match_completed" and result not in ["win", "loss", "draw"]:
+		return {"ok": false, "reason": "invalid_result"}
+	if type != "match_completed" and not result.is_empty():
+		return {"ok": false, "reason": "unexpected_result"}
+	if type == "match_completed" and not state.events.any(func(item: Dictionary) -> bool:
+		return item.event.type == "match_started" and item.event.get("match_id", "") == match_id):
+		return {"ok": false, "reason": "missing_match_start"}
 	var utc := Time.get_datetime_string_from_system(true) + ".000Z"
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
 		"player_id": state.player_id, "claimed_at": utc, "local_sequence": state.next_sequence,
-		"game_version": GAME_VERSION, "content_version": CONTENT_VERSION,
+		"game_version": game_version, "content_version": content_version,
 		"mode": "solo", "faction": "neutral", "test_account": true, "bot": false}
-	if type == "match_started":
+	if type != "game_opened":
 		event.match_id = match_id
+	if type == "match_completed":
+		event.result = result
 	var next: Dictionary = state.duplicate(true)
 	next.events.append({"event": event, "status": "pending", "receipt": null})
 	next.next_sequence += 1
@@ -49,6 +71,8 @@ func first_pending() -> Dictionary:
 	if state.is_empty():
 		return {}
 	for item in state.events:
+		if item.status == "needs_attention":
+			return {}
 		if item.status == "pending":
 			return item.event
 	return {}

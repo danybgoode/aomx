@@ -9,7 +9,8 @@
     "funnel:report": "node scripts/funnel-report.mjs",
     "funnel:observe-day": "node scripts/funnel-observe-day.mjs",
     "funnel:publish": "node scripts/funnel-publish.mjs",
-    "funnel:evaluations": "node scripts/funnel-evaluations.mjs"
+    "funnel:evaluations": "node scripts/funnel-evaluations.mjs",
+    "skirmish:contract": "node scripts/skirmish-contract-check.mjs"
   },
   "dependencies": {
     "@golden-frijoles/sdk": "1.1.0"

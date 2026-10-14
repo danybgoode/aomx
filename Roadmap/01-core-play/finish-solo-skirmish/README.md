@@ -1,6 +1,6 @@
 ---
 status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Locking architecture       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: finish-solo-skirmish
 title: "Finish a solo skirmish"
@@ -61,6 +61,12 @@ Extend the Godot fixed-tick simulation and command log; both sides use the same 
 
 **Sprint build contracts:** B1 adds multi-entity economy and production on the validated order seam; B2 adds attack/destruction and replay without touching eligibility; B3 adds the authored opponent, terminal state, restart and test-only funnel events. Keep each increment runnable from a fresh checkout.
 
+## Build and verification · 2026-10-14
+
+All three sprint increments are implemented in the Godot branch. The default rendered scene supports gather/build/train, melee and ranged combat, the authored opponent, win/loss/draw, restart and visible offline sync. Headless economy, combat, replay, terminal and client checks pass. The Godot-to-Node contract accepts one test-tagged result with a stable retry and zero public events. A second reviewer found and verified fixes for later-day open events and blocking dependent uploads behind an unresolved receipt. [Run commands and controls](../../../game/README.md) are checked in.
+
+On Apple M2 Max, Godot 4.7.2, a 20×20 map and 12 units, 5,000 path orders averaged 0.5440 ms; 1,000 simulation ticks averaged 0.0491 ms. The debug process-frame monitor showed roughly 14–28 ms during rendered capture. This supports continuing Godot for the next bounded slice; it does not characterize release exports or crowd pathing. The work is awaiting PR review and merge, and there is no game release rail.
+
 ## What already exists (reuse, don't rebuild)
 
 - [`game/simulation.gd`](../../../game/simulation.gd) owns pathing, worker economy and construction; [`game/main.gd`](../../../game/main.gd) renders the map and accepts orders.
@@ -79,9 +85,9 @@ Extend the Godot fixed-tick simulation and command log; both sides use the same 
 Build all three sprints in one local branch, with headless rules and rendered checks at each boundary. Integrate test-tagged starts/results with the funnel outbox before closing Sprint 3. No deployment rail exists; merging to `master` is not a release. The funnel's accepted-result and live cohort work follows this terminal match.
 
 ## Definition of Done (epic)
-- [ ] Fresh checkout runs pinned Godot and a complete rendered solo match with a worker economy and two combat roles.
-- [ ] Headless checks cover costs, target/range/cooldown, structure destruction, identical-command replay and exactly one terminal result.
-- [ ] Win by destroying the opposing command post, lose when one's own falls, draw after 15 unresolved minutes; all three outcomes and restart are observable.
-- [ ] The authored opponent uses validated commands. Multi-unit frame and path measurements and engine recommendation are recorded.
-- [ ] Test-tagged start/result events survive restart and local sync without entering a public cohort or bundling a credential.
+- [x] Pinned Godot runs the rendered solo match with worker economy and two combat roles; fresh-checkout automation remains to be added to a build rail.
+- [x] Headless checks cover costs, target/range/cooldown, structure destruction, identical-command replay and exactly one terminal result.
+- [x] Win by destroying the opposing command post, lose when one's own falls, draw after 15 unresolved minutes; all three outcomes and restart are observable in controlled local smoke.
+- [x] The authored opponent uses validated commands. Multi-unit path and debug frame observations and engine recommendation are recorded.
+- [x] Test-tagged start/result events survive restart and local sync without entering a public cohort or bundling a credential.
 - [ ] Each sprint's smoke walkthrough and review are recorded; the product poster, learnings and retrospective reflect the result. Mark shipped only after the completed work is reviewed and merged. No public release is implied.

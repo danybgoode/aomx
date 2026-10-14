@@ -1,26 +1,26 @@
-# RTS core prototype
+# Local Godot solo skirmish
 
-This is the approved E1 worker/resource/structure proof on an original 20×20 isometric map. It uses Godot **4.7.2.stable.official.ed1daf0bf**. It is not a finishable match and emits no launch-funnel event; all replay command metadata are test tagged.
+The default scene is an original 20×20 isometric solo RTS match on **Godot 4.7.2.stable.official.ed1daf0bf**. A human and authored computer opponent each have a command post, worker and finite resource. Gather, build one recruitment post, produce melee and ranged units, and destroy the opposing command post. Losing your post loses; an unresolved match draws at 15 minutes. The earlier worker prototype remains in `main.tscn`.
 
-From the repository root, set `GODOT_BIN` to the downloaded Godot executable (on this Mac it is `/Users/cosmo/Downloads/Godot.app/Contents/MacOS/Godot`), then run:
+Set `GODOT_BIN` to a Godot 4.7.2 executable. On the development Mac it is `/Users/cosmo/Downloads/Godot.app/Contents/MacOS/Godot`. From the repository root:
 
 ```sh
 "$GODOT_BIN" --headless --path game --import
 "$GODOT_BIN" --headless --path game --script res://tests/simulation_test.gd
-"$GODOT_BIN" --headless --path game --script res://tests/benchmark.gd
+"$GODOT_BIN" --headless --path game --script res://tests/outbox_test.gd
+"$GODOT_BIN" --headless --path game --script res://tests/skirmish_test.gd
+"$GODOT_BIN" --headless --path game --script res://tests/skirmish_client_test.gd
+"$GODOT_BIN" --headless --path game --script res://tests/skirmish_benchmark.gd
+GODOT_BIN="$GODOT_BIN" npm run skirmish:contract
 "$GODOT_BIN" --path game
 ```
 
-In the window, left-click the blue worker, right-click a reachable tile to move, and right-click the gold resource to gather. The worker carries four, returns to the tan drop-off, and increases stockpile once per delivery. Press **B** to preview a 2×2 structure; click clear ground when stockpile is at least six. The worker constructs it, after which its footprint blocks movement. Press **R** to reset. The four dark tiles around a small pocket at the lower half of the map make an unreachable-order fixture; a right-click inside the pocket produces visible feedback.
+Click a blue unit or building to select it. Right-click a tile to move, the gold resource to gather with a worker, or a red unit or building to attack with a combat unit. Select a worker and press **B**, then click a clear 2×2 area to build the recruitment post. Select the command post and press **1** to queue a worker. Select a completed recruitment post and press **2** or **3** to queue melee or ranged. **R** restarts with a new match ID; **F** retries local event sync. The HUD shows resource, source supply, unit counts, selected health, command-post health, order feedback and result. The computer gathers, builds, recruits a mixed group and starts attacking at 01:20; it replaces lost units while it has resources.
 
-The funnel prototype writes a test-tagged `game_opened` event to `user://funnel-outbox.json` before showing the client. Press **T** to save a new test `match_started` for a prototype run. This is a contract exercise, not an eligible match. The client retries pending events in order every five seconds against the local loopback ingest on `127.0.0.1:8787`; **F** retries immediately. Start ingest from the repo root with `npm ci && npm run funnel:serve`. The HUD distinguishes saved pending events, synced test events and events needing attention. Close and reopen the client to inspect the persisted IDs and receipt states. The game has no Golden Frijoles credential. Run the Godot outbox check with:
+For controlled local result smoke, set `SKIRMISH_SMOKE_SCENARIO=win`, `loss` or `draw` before launching a debug Godot build. These fixtures set up a terminal state immediately or at the 15-minute boundary. They do not appear in release exports.
 
-```sh
-"$GODOT_BIN" --headless --path game --script res://tests/outbox_test.gd
-```
+The client writes test-tagged first-open, later-day open, match-start and match-completed events to `user://funnel-outbox.json` before reporting them saved. It retries pending events in order every five seconds against local loopback ingest at `127.0.0.1:8787`. To exercise sync, run `npm ci && npm run funnel:serve` separately. Start the game with ingest offline, complete a controlled result, reopen the client, then start ingest and press **F**. The HUD distinguishes saved pending, synced test events and events needing attention. An unresolved earlier event holds later uploads. The local audit excludes every game event from public cohorts because `test_account` is true; no Golden Frijoles key is bundled.
 
-Godot writes a temporary JSON file, flushes it and renames it into place before reporting an event saved. Its API does not expose a directory fsync, so sudden power loss at the rename boundary remains unproven. The outbox does not yet create a real eligible match start or terminal result; those follow the funded solo skirmish.
+Godot flushes a temporary JSON file and renames it into place. Its API does not expose directory fsync, so sudden power loss at that boundary remains unproven. The local ingest has no hosted authentication or release rail. This debug match is a complete local play loop and a contract exercise, not an eligible launch cohort.
 
-The simulation owns integer tile positions, costs, source and carry accounting, pathing and construction. The scene draws it and accepts input. A fixed 0.1-second tick drives rules; rendered frame delta only schedules ticks. The test script checks rejection, resource conservation, interruption/resume, placement, footprint blocking and replay equality. No proprietary assets or external services are required.
-
-Performance evidence on Apple M2 Max, Godot 4.7.2, one worker and a 20×20 map: 1,000 route orders averaged **1.497 ms** each; 10,000 fixed ticks averaged **0.00110 ms** each. The debug window showed a process-frame monitor between roughly 18 and 35 ms during automated capture, which is not a representative game benchmark. More workers, larger maps and a release export remain unmeasured. The builder recommends continuing with Godot for the next small slice while measuring the first multi-unit skirmish before treating performance as settled.
+Rules use a fixed 0.1-second tick, integer tile positions, validated commands and stable IDs. Frame delta schedules ticks but does not decide outcomes. The test suite checks costs, production, range, damage, destruction, terminal states and same-command state hashes. On Apple M2 Max with a 20×20 map and 12 units, 5,000 route attempts averaged **0.5440 ms** each and 1,000 ticks averaged **0.0491 ms** each in a headless debug run. A rendered debug window showed roughly **14–28 ms** process-frame values during capture; that is an observation, not a release-build frame benchmark. Units can overlap during movement; crowd routing and larger-scale performance remain future work. Continue with Godot for the next bounded slice.

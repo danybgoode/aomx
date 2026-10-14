@@ -1,25 +1,24 @@
 # Finish a solo skirmish — Retrospective
 
-_Closed: <date>_
-_Intent: yes | mostly | no_
-<!-- Did we build what the product owner meant? One word, THEIR answer: yes, mostly or no. Required by `epic-dod` only
-     when the epic's seed or README carries a numeric `intent_match:` (intent-match D17); the calibration learns from
-     it. Keep the line and leave exactly one of the three words between `_Intent: ` and the closing underscore. -->
-_Quote vs actual: <quote $lo–hi (basis), or "not quoted"> → <actual ≈$n> (<Δ% vs the quote's top, or "—">)_
-<!-- The actual is STAMPED, never typed: `node scripts/epic-actuals.mjs --epic <slug> --write` writes actual_* into
-     the README (finops S2.5); copy its numbers here. -->
-_Crew (actual): <each model and its ≈$, from actual_models> · reviewers <from the PR's review records> · prose <who wrote it> — <one line: where it differed from the plan, and why>_
-<!-- The models are STAMPED, never typed: `node scripts/epic-actuals.mjs --epic <slug> --write` writes actual_models
-     into the README (why-as-a-story D6). Codex, agy, Devin and other outside tools are not in the transcripts; name
-     them from the PR's review records. -->
+_Open: implementation awaits PR review and merge; no game release rail exists._
+_Intent: owner review of the built match pending._
+_Quote vs actual: $20–$120 API estimate; actual unavailable from local transcript accounting._
+_Crew: Codex builder; independent agent reviewed the funnel event path. No GitHub review recorded yet._
 
-## What shipped
-<!-- The capability now live, by sprint, with commit/PR refs. -->
+## What is built locally
+
+- Sprint 1: mirrored economy, recruitment building and worker/melee/ranged production.
+- Sprint 2: validated combat orders, deterministic damage and command-post destruction.
+- Sprint 3: authored opponent, win/loss/draw, restart and test-tagged offline start/result events.
 
 ## What went well
 
+The fixed-tick simulation and existing outbox made the result path testable without a hosted backend. The Godot-to-Node check keeps test traffic out of public cohorts.
+
 ## What we learned
-<!-- Promote the durable, generalizable items to Roadmap/LEARNINGS.md (one-liner + why + date). Dedupe. -->
+
+Later-day opens need a new event ID; unresolved earlier receipts must stop ordered upload. The 12-unit route and tick measurements support continuing Godot for another bounded slice.
 
 ## Gaps / follow-ups
-<!-- Smoke gaps owed to the product owner, deferred slices, known limitations. -->
+
+Review and merge the game branch. Establish a release/export rail, measure crowd movement and release-build frame time, and finish the separate funnel epic's hosted authenticated ingest and real cohort reconciliation. No launch baseline exists.

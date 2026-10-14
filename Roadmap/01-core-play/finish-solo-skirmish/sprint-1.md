@@ -3,7 +3,7 @@ epic: finish-solo-skirmish
 sprint: 1
 title: "Recruit an army"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S1.1
@@ -12,12 +12,12 @@ stories:
     i_want: "to gather, construct and recruit worker, melee and ranged units"
     so_that: "I can choose when to invest in my economy or army"
     risk: low
-    status: planned
+    status: in-progress
 ---
 
 # Finish a solo skirmish — Sprint 1: Recruit an army
 
-**Status:** Planned after the approved 2026-10-14 scope.
+**Status:** Implemented locally. Headless economy/production checks pass; rendered smoke showed gathering, construction, melee and ranged recruitment. Pending PR review and merge.
 
 ### Story 1.1 — Produce a small army from the economy
 

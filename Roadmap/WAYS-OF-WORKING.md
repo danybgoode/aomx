@@ -46,7 +46,7 @@ Agents may inspect and edit this repo, prepare branches and pull requests, and r
 
 ## Automated QA
 
-The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. The Godot 4.7.2 RTS prototype has [run and headless check commands](../game/README.md); its rendered worker, gathering and construction paths were checked locally. There is no terminal match or release build; add export and hosted smoke commands when those exist.
+The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. The Godot 4.7.2 solo skirmish has [run, headless and contract check commands](../game/README.md); rendered economy, combat and terminal states were checked locally. There is no release build; add export and hosted smoke commands when those exist.
 
 ## Documentation map
 
