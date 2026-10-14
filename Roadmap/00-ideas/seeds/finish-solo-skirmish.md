@@ -1,17 +1,17 @@
 ---
 title: "Finish a solo skirmish"
 slug: finish-solo-skirmish
-status: ready
+status: scaffolded
 area: "01"
 type: feature
 appetite: M
-underwritten_by: null
+underwritten_by: wave-2026-10
 risk: low
-epic: null
+epic: "01-core-play/finish-solo-skirmish"
 build_order: 3
 updated: 2026-10-14
 intent_ask: proxy
-hypothesis: "Classic RTS players cannot judge the strategy or return to play until a battle can end. A small solo skirmish with a readable economy, two counterable combat roles and an authored opponent will let them finish and understand a match. We'll know when a fresh Godot checkout produces a win, loss and draw with exactly one test-tagged terminal result each."
+hypothesis: "Classic RTS players need a complete battle to judge the game. A small solo skirmish with an authored opponent lets them test its economy and combat. We'll know when a fresh Godot checkout produces a win, loss and draw with one test-tagged terminal result each."
 persona: "A classic RTS player trying a complete solo match against the computer."
 grounded: false
 grounded_reason: "First-match completion has no observed baseline and this internal match remains test traffic until the launch funnel is released."

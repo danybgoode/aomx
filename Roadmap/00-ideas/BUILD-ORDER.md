@@ -20,18 +20,19 @@ _seeds with no pitch yet._
 - [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #7 · 02 · seed · Feature · risk: Low · _docs: status raw_
 - [Add more ways to play](seeds/add-more-ways-to-play.md) — #8 · 03 · seed · Feature · risk: Low · _docs: status raw_
 
-## Refining (1)
+## Refining (0)
 
 _a pitch is waiting at the approval gate._
 
-- [Finish a solo skirmish](seeds/finish-solo-skirmish.md) — #3 · 01 Core Play · seed · Feature · risk: Low · appetite M · _docs: status ready_
+_None._
 
-## Ready (2)
+## Ready (3)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
 - [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status in-progress_
 - [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 0/3 stories · risk: Low · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 
