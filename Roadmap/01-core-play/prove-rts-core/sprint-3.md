@@ -12,14 +12,14 @@ stories:
     i_want: "to place and construct one useful structure"
     so_that: "my economic work changes the map"
     risk: low
-    status: in-progress
+    status: done
   - id: S3.2
     title: "Replay the prototype and review the engine"
     as_a: "product owner"
     i_want: "a repeatable run and measured prototype limits"
     so_that: "I can decide whether to continue into the solo skirmish"
     risk: low
-    status: in-progress
+    status: done
 ---
 # Prove the RTS core — Sprint 3: A3 Build and replay
 
@@ -27,7 +27,7 @@ stories:
 
 ## Stories
 
-### Story 3.1 — Spend stockpile on a structure
+### ✅ Story 3.1 — Spend stockpile on a structure
 
 **As a** classic RTS player, **I want** to place and construct one useful structure, **so that** my economic work changes the map.
 
@@ -35,7 +35,7 @@ stories:
 
 **Risk:** low
 
-### Story 3.2 — Replay the prototype and review the engine
+### ✅ Story 3.2 — Replay the prototype and review the engine
 
 **As a** product owner, **I want** a repeatable run and measured prototype limits, **so that** I can decide whether to continue into the solo skirmish.
 

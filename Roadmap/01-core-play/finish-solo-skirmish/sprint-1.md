@@ -12,14 +12,14 @@ stories:
     i_want: "to gather, construct and recruit worker, melee and ranged units"
     so_that: "I can choose when to invest in my economy or army"
     risk: low
-    status: in-progress
+    status: done
 ---
 
 # Finish a solo skirmish — Sprint 1: Recruit an army
 
 **Status:** Implemented locally. Headless economy/production checks pass; rendered smoke showed gathering, construction, melee and ranged recruitment. Pending PR review and merge.
 
-### Story 1.1 — Produce a small army from the economy
+### ✅ Story 1.1 — Produce a small army from the economy
 
 **As a** solo RTS player, **I want** to gather, construct and recruit worker, melee and ranged units, **so that** I can choose when to invest in my economy or army.
 

@@ -12,7 +12,7 @@ stories:
     i_want: "my worker to gather and deliver a resource"
     so_that: "I can turn a map choice into a visible economic gain"
     risk: low
-    status: in-progress
+    status: done
 ---
 # Prove the RTS core — Sprint 2: A2 Gather and deliver
 
@@ -20,7 +20,7 @@ stories:
 
 ## Stories
 
-### Story 2.1 — Gather and bank one resource
+### ✅ Story 2.1 — Gather and bank one resource
 
 **As a** classic RTS player, **I want** my worker to gather and deliver a resource, **so that** I can turn a map choice into a visible economic gain.
 

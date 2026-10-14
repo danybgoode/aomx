@@ -40,7 +40,7 @@ build_order: 1       # integer position in the ONE global build sequence — the
 
 ## Build progress · 2026-10-14
 
-The fixture-tested contract, local ingest, outbox reference, audit report and dry-run publisher are in draft PR #1. The Godot branch now has a finishable local solo skirmish with test-tagged first-open, later-day open, match-start and terminal-result events. A real Godot-to-Node contract check confirms stable retry and zero public events. The epic remains in progress: hosted authenticated ingest, an eligible released client, approved publish-key identity, a first mature real cohort and the four hosted readings are still required.
+The fixture-tested contract, local ingest, outbox reference, audit report and dry-run publisher are in draft PR #6. Draft PR #10 supplies a finishable local Godot solo skirmish with test-tagged first-open, later-day open, match-start and terminal-result events. A real Godot-to-Node contract check confirms stable retry and zero public events. The epic remains in progress: hosted authenticated ingest, an eligible released client, approved publish-key identity, a first mature real cohort and the four hosted readings are still required.
 
 > **Area:** 09-platform-and-measurement · **Risk:** high · **Class:** Feature · **Scope seed:** [`00-ideas/seeds/track-launch-play-funnel.md`](../../00-ideas/seeds/track-launch-play-funnel.md)
 

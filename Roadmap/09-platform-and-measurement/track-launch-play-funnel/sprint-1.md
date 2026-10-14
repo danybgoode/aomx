@@ -28,7 +28,7 @@ stories:
 
 ## Stories
 
-### Story 1.1 — Define the launch event contract
+### ✅ Story 1.1 — Define the launch event contract
 
 **As a** product owner, **I want** one versioned record for first open, match start and terminal result, **so that** the game can capture the agreed funnel from its first playable build.
 
@@ -36,7 +36,7 @@ stories:
 
 **Risk:** high — player identity and North Star semantics.
 
-### Story 1.2 — Accept and deduplicate fixture events
+### ✅ Story 1.2 — Accept and deduplicate fixture events
 
 **As a** product owner, **I want** a reproducible ingest path for scripted play events, **so that** I can inspect which records count before a game client exists.
 

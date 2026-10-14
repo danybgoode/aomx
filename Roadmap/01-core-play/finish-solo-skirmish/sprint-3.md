@@ -12,14 +12,14 @@ stories:
     i_want: "to play a complete battle against the computer"
     so_that: "I can judge the economy, combat and win condition together"
     risk: low
-    status: in-progress
+    status: done
 ---
 
 # Finish a solo skirmish — Sprint 3: Finish against the computer
 
 **Status:** Implemented locally. Headless AI, terminal and restart checks pass; controlled rendered win/loss/draw states and a normal authored opening were observed. The Godot-to-ingest contract syncs test traffic with zero public events. A second reviewer verified two outbox fixes. Pending PR review and merge.
 
-### Story 3.1 — Finish and restart a rule-based solo match
+### ✅ Story 3.1 — Finish and restart a rule-based solo match
 
 **As a** solo RTS player, **I want** to play a complete battle against the computer, **so that** I can judge the economy, combat and win condition together.
 

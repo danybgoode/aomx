@@ -30,9 +30,9 @@ _None._
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
-- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status in-progress_
-- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status in-progress_
-- [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 0/3 stories · risk: Low · appetite M · _docs: status scaffolded_
+- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 2/7 stories · risk: High · appetite L · _docs: status in-progress_
+- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 3/3 stories · risk: Low · appetite M · _docs: status in-progress_
 
 ## Building — live only
 
