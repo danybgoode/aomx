@@ -1,9 +1,11 @@
 # aomx alpha deployment
 
-This is a **prepared** deployment for the existing Oracle VM. It has not been
-started or routed publicly. The VM's panfleto stack owns Caddy; aomx gets a
+This deployment runs on the existing Oracle VM. The VM's panfleto stack owns Caddy; aomx gets a
 separate compose project, database, networks, secrets and resource limits.
 Never join aomx to the panfleto default network, which contains its database.
+`aomx_db` keeps ingest traffic internal; `aomx_ops` lets the database publish
+only to VM loopback for private backup/report commands. Docker does not honor
+a published host port when the container has only an `internal: true` network.
 
 ## Preconditions
 
@@ -13,7 +15,7 @@ Never join aomx to the panfleto default network, which contains its database.
    with distinct random administrator and ingest passwords (mode 600). The
    aomx Postgres container is separate from panfleto and publishes only on
    VM loopback for backup/restore. Its init script creates a limited ingest
-   role. Apply both migrations as `aomx_admin` before starting ingest.
+   role. Apply all three migrations as `aomx_admin` before starting ingest.
 3. Confirm daily OCI backup and disposable restore, DNS ownership, TLS, and a
    second security/data review. Keep the Golden Frijoles flag off.
 
@@ -34,6 +36,8 @@ docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/001_alpha_audit.sql
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/002_ingest_grants.sql
+docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/003_publication_reading_hash.sql
 AOMX_IMAGE_TAG="$SHA" docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build
 ```
 
@@ -43,6 +47,13 @@ retaining its existing default network. Add the reviewed site from
 certificate before pointing a game build at the route. Do not edit panfleto's
 Postgres, backup retention, or other site blocks. `GET /healthz` is the only
 public read route; `/v1/audit` and `/v1/report` return 404 in public mode.
+The current restricted preview site is live at
+`alpha-api.159.54.158.4.sslip.io`; access is limited to the operator's
+current `/32`. The live Caddyfile and network attachment were applied
+manually. Panfleto's `update.sh` resets tracked configuration, so
+`danybgoode/justread#29` must be reviewed, merged and deployed before this
+route is considered durable. Recheck panfleto sites and the alpha route after
+that update.
 
 The running image tag is the reviewed commit. To roll back, set
 `AOMX_IMAGE_TAG` to a previously built tag and run the same `compose up` command.
@@ -64,6 +75,12 @@ with the VM's systemd journal. The game outbox retries after an outage.
 Install an isolated Node 24 binary at `/opt/aomx/node` and run `npm ci
 --omit=dev` inside `/opt/aomx/repo`. Put operator-only connection details in
 `/opt/aomx/operator.env` (example in this directory; mode 600, owner ubuntu).
+Set `AOMX_PG_DOCKER_CONTAINER=aomx-postgres-1` so backup and restore use the
+matching Postgres 17 client in that container; the VM's package client may be
+older than the database.
+Set `AOMX_INGEST_DOCKER_CONTAINER=aomx-ingest-1` for the VM's internal health
+timer; test HTTPS externally during release smoke because the staging site
+allowlist intentionally excludes the VM's outbound address.
 Install `aomx-{backup,health,report}.{service,timer}` into
 `/etc/systemd/system/`, then `sudo systemctl daemon-reload` and enable the
 three timers. Run each service manually once and inspect the journal before

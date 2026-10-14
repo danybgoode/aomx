@@ -15,6 +15,7 @@ services:
     cpus: 0.5
     networks:
       - aomx_db
+      - aomx_ops
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U aomx_admin -d aomx"]
       interval: 10s
@@ -53,3 +54,4 @@ networks:
     external: true
   aomx_db:
     internal: true
+  aomx_ops:

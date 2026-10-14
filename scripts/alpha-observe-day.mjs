@@ -11,8 +11,17 @@ if (!process.env.AOMX_DATABASE_URL || !process.env.AOMX_COVERAGE_NOTE?.trim()) {
 }
 const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL);
 try {
-  await funnel.pool.query(`insert into alpha_private.observed_days(day,complete,note)
-    values ($1,true,$2) on conflict(day) do update set complete=true,note=excluded.note,attested_at=now()`,
-  [day, process.env.AOMX_COVERAGE_NOTE]);
+  const client = await funnel.pool.connect();
+  try {
+    await client.query('begin');
+    await client.query('select pg_advisory_xact_lock(601103, 1)');
+    await client.query(`insert into alpha_private.observed_days(day,complete,note)
+      values ($1,true,$2) on conflict(day) do update set complete=true,note=excluded.note,attested_at=now()`,
+    [day, process.env.AOMX_COVERAGE_NOTE]);
+    await client.query('commit');
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally { client.release(); }
   process.stdout.write(`Coverage attested for ${day}; report remains subject to late-upload reconciliation.\n`);
 } finally { await funnel.close(); }

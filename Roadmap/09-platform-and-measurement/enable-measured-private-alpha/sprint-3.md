@@ -12,7 +12,7 @@ stories:
     i_want: "auditable Golden Frijoles readings from accepted events"
     so_that: "the first cohort is not distorted by retries or test play"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Invite and read the first real cohort"
     as_a: "invited player and product owner"

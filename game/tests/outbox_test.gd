@@ -37,7 +37,7 @@ func _initialize() -> void:
 	check(after.summary().contains("clock_reversal"), "persisted attention reason survives restart")
 	var completed: Dictionary = after.queue("match_completed", "prototype_match_0001", "win")
 	check(completed.ok and completed.event.result == "win", "terminal result saved with match ID")
-	check(after.first_pending().is_empty(), "unresolved predecessor holds later result upload")
+	check(after.first_pending().event_id == completed.event.event_id, "later pending events continue after a rejected predecessor")
 	check(after.queue("match_completed", "prototype_match_0001", "loss").event.event_id == completed.event.event_id, "second local terminal result reuses first event")
 	check(not after.queue("match_completed", "prototype_match_0002", "unknown").ok, "invalid terminal result rejected")
 	check(Outbox.new(path).state.events.size() == 4, "terminal result survives restart once")

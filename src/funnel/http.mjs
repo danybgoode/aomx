@@ -1,8 +1,9 @@
 import http from 'node:http';
+import { createHash } from 'node:crypto';
 import { makeReport } from './report.mjs';
 
 export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = false,
-  requestsPerMinute = 30 } = {}) {
+  requestsPerMinute = 30, globalRequestsPerMinute = 300 } = {}) {
   const traffic = new Map();
   const server = http.createServer(async (req, res) => {
     res.setHeader('content-type', 'application/json');
@@ -21,12 +22,20 @@ export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = fa
       try {
         if (publicMode) {
           const ip = req.socket.remoteAddress ?? 'unknown';
+          const invite = req.headers['x-aomx-invite-code'];
+          const key = typeof invite === 'string' && /^[A-Za-z0-9_-]{24,80}$/.test(invite) ?
+            `invite:${createHash('sha256').update(invite).digest('hex')}` : `ip:${ip}`;
           const minute = Math.floor(Date.now() / 60_000);
-          const bucket = traffic.get(ip);
-          const count = bucket?.minute === minute ? bucket.count + 1 : 1;
-          traffic.set(ip, { minute, count });
+          const bump = k => {
+            const bucket = traffic.get(k);
+            const count = bucket?.minute === minute ? bucket.count + 1 : 1;
+            traffic.set(k, { minute, count });
+            return count;
+          };
+          const count = bump(key);
+          const globalCount = bump('global');
           if (traffic.size > 10000) for (const [key, value] of traffic) if (value.minute < minute) traffic.delete(key);
-          if (count > requestsPerMinute) {
+          if (count > requestsPerMinute || globalCount > globalRequestsPerMinute) {
             res.statusCode = 429;
             res.end(JSON.stringify({ error: 'rate_limited' }));
             return;

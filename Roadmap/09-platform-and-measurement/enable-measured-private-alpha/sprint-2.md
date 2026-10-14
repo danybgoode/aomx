@@ -12,26 +12,26 @@ stories:
     i_want: "a separate durable aomx event audit"
     so_that: "offline retries cannot inflate or erase a cohort"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Serve the ingest through HTTPS"
     as_a: "invited player"
     i_want: "my saved events to sync to an available endpoint"
     so_that: "a finished match is eligible after accepted upload"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.3
     title: "Recover and monitor the isolated database"
     as_a: "measurement operator"
     i_want: "a verified independent backup and outage response"
     so_that: "a free-tier pause or storage failure does not silently lose the cohort"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Enable a measured private alpha — Sprint 2: Host accepted ingest and durable audit
 
-**Status:** Building. The transactional adapter, migrations, service, backup and monitoring commands passed local contract checks. VM staging, HTTPS and restore evidence remain open.
+**Status:** Building. The isolated VM Postgres and ingest containers are healthy behind allowlisted HTTPS. Daily OCI backup, health and report timers ran once; a restore after internal smoke matched all counts. The sibling Caddy durability PR, external alert destination, game outage rehearsal and independent review remain open.
 
 ## Stories
 

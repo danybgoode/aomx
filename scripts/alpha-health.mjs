@@ -21,8 +21,15 @@ try {
   } finally { await db.end().catch(() => {}); }
 } catch { issues.push('database_unavailable'); }
 try {
-  const response = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
-  if (!response.ok || !(await response.json()).ok) issues.push('ingest_unavailable');
+  if (process.env.AOMX_INGEST_DOCKER_CONTAINER) {
+    const result = spawnSync('docker', ['exec', process.env.AOMX_INGEST_DOCKER_CONTAINER,
+      'node', '-e', "fetch('http://127.0.0.1:8787/healthz').then(async r => process.exit(r.ok && (await r.json()).ok ? 0 : 1)).catch(() => process.exit(1))"],
+    { encoding: 'utf8', timeout: 5000 });
+    if (result.status !== 0) issues.push('ingest_unavailable');
+  } else {
+    const response = await fetch(endpoint, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok || !(await response.json()).ok) issues.push('ingest_unavailable');
+  }
 } catch { issues.push('ingest_unavailable'); }
 try {
   const auth = process.env.AOMX_OCI_AUTH ?? 'instance_principal';
@@ -31,7 +38,7 @@ try {
   const result = spawnSync('oci', ['os', 'object', 'list', '--auth', auth, '--namespace', ns,
     '--bucket-name', bucket, '--prefix', 'aomx/db/', '--all'], { encoding: 'utf8' });
   if (result.status !== 0) throw new Error('oci_list_failed');
-  const objects = JSON.parse(result.stdout).data?.objects ?? [];
+  const objects = JSON.parse(result.stdout).data ?? [];
   const manifests = objects.filter(o => o.name?.endsWith('.dump.json'));
   const latest = manifests.sort((a, b) => Date.parse(b['time-created']) - Date.parse(a['time-created']))[0];
   output.last_backup_at = latest?.['time-created'] ?? null;

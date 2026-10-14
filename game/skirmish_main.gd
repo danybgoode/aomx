@@ -222,6 +222,7 @@ func _on_request_completed(result_code: int, response_code: int, _headers: Packe
 		_send_next()
 	else:
 		sync_note = "Needs attention: %s. Local copy retained." % receipt.get("reason", "rejected")
+		_send_next()
 	_update_hud()
 
 func _save_invite_code() -> void:

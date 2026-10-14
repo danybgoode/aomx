@@ -18,6 +18,7 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
   end $$`);
   await admin.query(fs.readFileSync(new URL('../db/001_alpha_audit.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/002_ingest_grants.sql', import.meta.url), 'utf8'));
+  await admin.query(fs.readFileSync(new URL('../db/003_publication_reading_hash.sql', import.meta.url), 'utf8'));
   const grants = await admin.query(`select
     has_table_privilege('aomx_ingest','alpha_private.audit_events','INSERT') as audit_insert,
     has_table_privilege('aomx_ingest','alpha_private.report_history','SELECT') as report_select,
@@ -53,6 +54,12 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
   await assert.rejects(invited.accept(secondOpen), { message: 'invite_required' });
   const badOpen = { ...secondOpen, event_id: 'event_beta_bad_01', schema_version: 99 };
   assert.equal((await invited.accept(badOpen, { inviteToken: code })).status, 'rejected');
+  assert.equal((await restarted.pool.query(`select player_id from alpha_private.invite_tokens where token_hash=$1`, [hash])).rows[0].player_id, null);
+  const unsupportedOpen = { ...secondOpen, event_id: 'event_beta_bad_02', game_version: 'unknown' };
+  assert.equal((await invited.accept(unsupportedOpen, { inviteToken: code })).reason, 'unsupported_game_version');
+  assert.equal((await restarted.pool.query(`select player_id from alpha_private.invite_tokens where token_hash=$1`, [hash])).rows[0].player_id, null);
+  const futureOpen = { ...secondOpen, event_id: 'event_beta_bad_03', claimed_at: '2026-10-21T12:00:00.000Z' };
+  assert.equal((await invited.accept(futureOpen, { inviteToken: code })).reason, 'clock_ahead');
   assert.equal((await restarted.pool.query(`select player_id from alpha_private.invite_tokens where token_hash=$1`, [hash])).rows[0].player_id, null);
   assert.equal((await invited.accept(secondOpen, { inviteToken: code })).status, 'accepted');
   assert.equal((await restarted.pool.query(`select player_id from alpha_private.invite_tokens where token_hash=$1`, [hash])).rows[0].player_id, secondOpen.player_id);

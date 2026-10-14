@@ -12,19 +12,19 @@ stories:
     i_want: "a versioned macOS export from a fresh checkout"
     so_that: "the invited build has known rules and passes the solo-match checks"
     risk: low
-    status: planned
+    status: in-progress
   - id: S1.2
     title: "Prepare an installable restricted build"
     as_a: "invited player"
     i_want: "a restricted download that installs and restarts on my Mac"
     so_that: "I can play again without a developer present"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Enable a measured private alpha — Sprint 1: Package the first desktop build
 
-**Status:** Building. The local versioned ZIP and draft itch.io page exist; fresh-export install, Butler upload and second-Mac checks remain open. No invitations issued.
+**Status:** Building. Godot 4.7.2 headless and contract checks passed; the preview ZIP uploaded through Butler to the Draft itch.io page. A fresh extraction launched headlessly on the builder Mac. A downloaded, played and restarted build on a second Mac remains open. No invitations issued.
 
 ## Stories
 

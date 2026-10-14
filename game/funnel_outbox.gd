@@ -72,8 +72,6 @@ func first_pending() -> Dictionary:
 	if state.is_empty():
 		return {}
 	for item in state.events:
-		if item.status == "needs_attention":
-			return {}
 		if item.status == "pending":
 			return item.event
 	return {}
@@ -115,7 +113,7 @@ func summary() -> String:
 					attention_reason = item.receipt.get("reason", "sync error")
 	if attention > 0:
 		var action := "Check your device clock" if attention_reason in ["clock_ahead", "clock_reversal"] else "Check the local audit or contact support"
-		return "%d event(s) need attention: %s. %s; local copy retained." % [attention, attention_reason, action]
+		return "%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync." % [attention, attention_reason, action, pending]
 	if pending > 0:
 		return "%d event(s) saved on this device. Pending sync." % pending
 	return "%d event(s) synced. %s" % [accepted, "Test play is not counted." if test_account else "Accepted play will appear after cohort review."]

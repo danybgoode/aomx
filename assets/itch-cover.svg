@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="630" height="500" viewBox="0 0 630 500">
+  <rect width="630" height="500" fill="#201c1b"/>
+  <circle cx="510" cy="85" r="170" fill="#ba522f" opacity=".32"/>
+  <circle cx="78" cy="406" r="185" fill="#134e64" opacity=".35"/>
+  <path d="M0 388 312 230 630 388 315 500Z" fill="#594337"/>
+  <path d="M0 388 312 230 630 388 315 500Z" fill="none" stroke="#d8a56a" stroke-width="3"/>
+  <g stroke="#b48a5e" stroke-width="2" opacity=".45">
+    <path d="m64 420 311-157M128 452l311-158M192 484l311-158M256 500l311-158"/>
+    <path d="M63 357 378 500M126 325 441 468M189 293 504 436M252 261 567 404"/>
+  </g>
+  <path d="m132 385 64-34 58 30-64 34Z" fill="#195a75" stroke="#90c8ce" stroke-width="3"/>
+  <path d="m164 356 28-14 27 14-27 14Z" fill="#94c9c7"/>
+  <path d="m164 356 28 14v31l-28-14Z" fill="#3688a0"/>
+  <path d="m192 370 27-14v31l-27 14Z" fill="#246880"/>
+  <path d="m409 388 54-28 50 26-54 28Z" fill="#8d3d36" stroke="#f1a169" stroke-width="3"/>
+  <path d="m437 365 24-12 23 12-23 12Z" fill="#efa16d"/>
+  <path d="m437 365 24 12v30l-24-12Z" fill="#c16348"/>
+  <path d="m461 377 23-12v30l-23 12Z" fill="#9b493d"/>
+  <rect x="26" y="25" width="578" height="174" fill="#201c1b" opacity=".82"/>
+  <text x="43" y="76" fill="#e9d9bb" font-family="Arial, sans-serif" font-size="22" font-weight="bold" letter-spacing="2">BATTLE FOR</text>
+  <text x="38" y="150" fill="#f8d49b" font-family="Arial, sans-serif" font-size="58" font-weight="bold">LA ROMA</text>
+  <text x="43" y="184" fill="#a4c7c6" font-family="Arial, sans-serif" font-size="13" letter-spacing="2">PRIVATE ALPHA · macOS</text>
+</svg>
