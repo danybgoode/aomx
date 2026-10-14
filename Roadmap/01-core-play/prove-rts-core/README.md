@@ -3,6 +3,7 @@ status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-pro
 phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: prove-rts-core
+destination: complete-solo-battle
 title: "Prove the RTS core"
 area: 01-core-play
 risk: low

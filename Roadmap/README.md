@@ -4,6 +4,8 @@
 
 This folder is the product source of truth. The [strategy](00-strategy/pmf-narrative.md), [North Star](00-strategy/north-star.md), and [risk validation](00-strategy/risk-validation.md) are agreed starting points. Claims marked as assumptions still need evidence.
 
+The [Horizon](horizon.md) names the end states each epic advances. Epic `destination:` fields link to those declarations for the Golden Frijoles Horizon view.
+
 ## Current state
 
 - **Stage:** A finishable local Godot solo skirmish and launch-funnel prototype are under review; no deployed backend or public game release exists.

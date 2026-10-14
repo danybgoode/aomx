@@ -3,6 +3,7 @@ status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-pro
 phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: track-launch-play-funnel
+destination: trusted-launch-measurement
 title: "Track the launch play funnel"
 area: 09-platform-and-measurement
 risk: high
