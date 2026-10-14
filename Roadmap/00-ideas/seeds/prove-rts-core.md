@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "01-core-play/prove-rts-core"
-build_order: 1
+build_order: 2
 updated: 2026-10-13
 intent_ask: verbatim
 hypothesis: "Classic RTS players cannot yet judge the game through play. Give them a worker to move, a resource to gather and a structure to build, so we can test controls and engine before combat. We'll know when a fresh checkout runs those loops and replays the same commands to the same state."
@@ -51,7 +51,7 @@ Moves: `first_match_completion` · Tests: Value proposition, at the level of RTS
 
 ## Problem
 
-There is no game project or playable RTS loop. The design bible and Godot recommendation cannot establish whether selection, commands, movement, gathering and construction work together. Building combat or a funnel service before testing this core would commit to an unproven simulation boundary.
+There is no game project or playable RTS loop. The design bible and Godot recommendation cannot establish whether selection, commands, movement, gathering and construction work together. The launch funnel's fixture-tested event contract comes first; building combat before testing this core would commit to an unproven simulation boundary.
 
 ## Appetite
 
@@ -81,7 +81,7 @@ A tester can open an original-content Godot build, select and command one worker
 
 **In this epic:** The three iterations in [E1's epic and sprint files](../../01-core-play/prove-rts-core/README.md). Pin and document one exact Godot version. Build one original symmetric test map, one worker, one resource and one constructible structure. Select and move the worker; visibly reject unreachable orders. Gather, carry/deliver, deplete, interrupt and resume. Preview, place, pay for and construct a structure; reject blocked or unaffordable placement and update pathing. Use a fixed-tick command/state simulation, replay known commands to the same state on the pinned build, and record versioned local test metadata with stable IDs and test flags. Run headless rule checks and a rendered input smoke. Measure prototype frame time and pathing at a declared small scale before the engine review.
 
-**Out of this epic:** Combat, unit production, opponent AI, terminal match results, public cohort events, Golden Frijoles ingest, full economy and age progression, faction differences, district objective, multiplayer, final assets and balance. E2 owns the finishable match; E4 owns accepted offline sync and reporting. No ingest key ships in a client.
+**Out of this epic:** Combat, unit production, opponent AI, terminal match results, public cohort events, Golden Frijoles ingest, full economy and age progression, faction differences, district objective, multiplayer, final assets and balance. The solo skirmish owns the finishable match; the launch funnel epic owns accepted offline sync and reporting. No ingest key ships in a client.
 
 ## Rabbit holes
 
@@ -94,7 +94,7 @@ A tester can open an original-content Godot build, select and command one worker
 
 - [Full design bible](../../../docs/design-prework/README.md): confirmed combat and tone, proposed economy/factions/modes and the scope principle.
 - [Engine ADR](../../../docs/architecture-decisions/001-engine-selection.md) and [prototype plan](../../../docs/prototype-plan.md): provisional Godot choice, command/state boundary and worker/gather/build checks.
-- [North Star](../../00-strategy/north-star.md) and [funnel idea](track-launch-play-funnel.md): agreed names and cohort rules; offline acceptance still needs an amendment before real playtests.
+- [North Star](../../00-strategy/north-star.md) and [funnel epic](../../09-platform-and-measurement/track-launch-play-funnel/README.md): agreed names and cohort rules; offline acceptance still needs an amendment before real playtests.
 - Golden Frijoles product `aomx` and ignored local credentials. There is no SDK to integrate into E1.
 
 ## Visuals
@@ -126,5 +126,5 @@ flowchart LR
 ## Open risks / research
 
 - Pin an exact Godot release at A1 and record the editor, headless and export commands. The [Godot archive](https://godotengine.org/download/archive/) and [command-line guide](https://docs.godotengine.org/en/stable/tutorials/editor/command_line_tutorial.html) are the source for current releases and CLI behavior.
-- [Godot physics documentation](https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html) warns that physics is not deterministic. Cross-device replay and offline result acceptance remain E4 decisions.
+- [Godot physics documentation](https://docs.godotengine.org/en/stable/tutorials/physics/physics_introduction.html) warns that physics is not deterministic. Cross-device replay and offline result acceptance remain launch-funnel decisions.
 - The event contract starts with IDs, version and test tagging, but E1 produces no eligible `match_started` or `match_completed` event.

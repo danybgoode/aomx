@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: null
+build_order: 3
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "A classic RTS player needs a complete battle to judge Battle for La Roma's economy and combat. A small solo skirmish against an authored computer opponent should expose whether the core choices and win condition are satisfying."
@@ -47,6 +47,6 @@ A human can gather, build, produce and command units, win or lose against a rule
 - Use E1's measured engine and replay result to set the match architecture and appetite.
 - Define the first conquest defeat rule, stalemate behavior and opponent opening plan.
 - Select the minimal resource and age subset and the two combat roles without treating proposed design-bible numbers as final balance.
-- Keep local match records compatible with the [North Star](../../00-strategy/north-star.md) while leaving accepted offline sync to E4.
+- Keep local match records compatible with the [North Star](../../00-strategy/north-star.md) and the [approved launch funnel](../../09-platform-and-measurement/track-launch-play-funnel/README.md); its completed-result sprint follows this match's terminal outcome.
 
 This idea stays in the [generated build order](../BUILD-ORDER.md) as a raw seed until E1's engine review informs its scope and the owner approves a specific bet.

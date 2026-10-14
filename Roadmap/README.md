@@ -9,9 +9,9 @@ This folder is the product source of truth. The [strategy](00-strategy/pmf-narra
 - **Stage:** New project; no playable build or game code yet.
 - **North Star:** Players completing matches on two different days in a week (`returning_commanders`).
 - **Launch goal:** Provisional 15% of first-match completers finish a match on a later day, measured after a sufficiently mature first cohort. The baseline is unknown until real play data arrives.
-- **Backlog ideas:** The generated board lists all raw seeds. The next candidates are [solo skirmish](00-ideas/seeds/finish-solo-skirmish.md), [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md), and [offline launch funnel](00-ideas/seeds/track-launch-play-funnel.md); `refine` shapes them after the preceding evidence gate.
+- **Backlog ideas:** The generated board orders the raw seeds after the two approved epics. [Solo skirmish](00-ideas/seeds/finish-solo-skirmish.md) is the next idea to refine after the RTS engine review; [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md) follows a finishable match.
 - **Build order:** [Generated board](00-ideas/BUILD-ORDER.md). Update source seed or epic status and regenerate the board; do not edit it by hand.
-- **First approved epic:** [Prove the RTS core](01-core-play/prove-rts-core/README.md), with three sprint files and a review before the solo skirmish.
+- **First build:** [Track the launch play funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) Sprint 1 establishes the event contract with fixtures. [Prove the RTS core](01-core-play/prove-rts-core/README.md) follows as the first game implementation; the later funnel sprints integrate with its client and the solo skirmish's terminal result.
 
 ## Product areas
 
@@ -26,7 +26,7 @@ The areas below are provisional until the first epics are shaped.
 
 ## Feature map
 
-No features have shipped. The RTS core epic is ready to build. Later work lives in raw seeds until `refine` shapes and funds it; the generated board shows the current queue.
+No features have shipped. The funnel and RTS core epics are approved and ready to build in the execution sequence above. Later ideas remain raw until `refine` shapes and funds them; the generated board shows their proposed order.
 
 ## Working together
 

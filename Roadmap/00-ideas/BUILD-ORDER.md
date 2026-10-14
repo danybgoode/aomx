@@ -10,17 +10,16 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (7)
+## Backlog (6)
 
 _seeds with no pitch yet._
 
-- [Add more ways to play](seeds/add-more-ways-to-play.md) — 03 · seed · Feature · risk: Low · _docs: status raw_
-- [Deepen strategic play](seeds/deepen-strategic-play.md) — 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
-- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — 02 · seed · Feature · risk: Low · _docs: status raw_
-- [Finish a solo skirmish](seeds/finish-solo-skirmish.md) — 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
-- [Prepare a release candidate](seeds/prepare-release-candidate.md) — 09 · seed · Feature · risk: Low · _docs: status raw_
-- [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — 02 · seed · Feature · risk: Low · _docs: status raw_
-- [Track the launch play funnel](seeds/track-launch-play-funnel.md) — 09 · seed · Feature · risk: High · _docs: status raw_
+- [Finish a solo skirmish](seeds/finish-solo-skirmish.md) — #3 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — #4 · 02 · seed · Feature · risk: Low · _docs: status raw_
+- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #5 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
+- [Deepen strategic play](seeds/deepen-strategic-play.md) — #6 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #7 · 02 · seed · Feature · risk: Low · _docs: status raw_
+- [Add more ways to play](seeds/add-more-ways-to-play.md) — #8 · 03 · seed · Feature · risk: Low · _docs: status raw_
 
 ## Refining (0)
 
@@ -28,11 +27,12 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (1)
+## Ready (2)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
-- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #1 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status scaffolded_
+- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status scaffolded_
+- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 

@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: null
+build_order: 4
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "A generic skirmish cannot show why players would choose Battle for La Roma. Two meaningful faction prototypes and a contested district should make the setting affect decisions while keeping the rules clear to players unfamiliar with Mexican references."
@@ -46,6 +46,6 @@ Two faction prototypes lead to meaningfully different, counterable strategies. A
 - Choose faction mechanics from [the design prework](../../../docs/design-prework/civilizations/04-factions.md) after checking balance, comprehension and cultural portrayal.
 - Define what contesting or winning a district changes in the match without overloading the first skirmish.
 - Set a small playtest sample and comprehension checks for players with and without the cultural context.
-- Coordinate with E4 so invited testers have complete, accepted funnel data.
+- Coordinate with the [approved launch funnel](../../09-platform-and-measurement/track-launch-play-funnel/README.md) so invited testers have complete, accepted funnel data.
 
 This idea stays in the [generated build order](../BUILD-ORDER.md) as a raw seed until E2's finishable match informs its scope and the owner approves a specific bet.

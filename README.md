@@ -9,14 +9,14 @@ The project is at the planning stage. There is no game client or backend yet. Cu
 - [Product roadmap](Roadmap/README.md)
 - [Approved strategy](Roadmap/00-strategy/pmf-narrative.md)
 - [North Star and launch measurement plan](Roadmap/00-strategy/north-star.md)
-- [Golden Frijoles build order](Roadmap/00-ideas/BUILD-ORDER.md) and [launch funnel idea](Roadmap/00-ideas/seeds/track-launch-play-funnel.md)
+- [Golden Frijoles build order](Roadmap/00-ideas/BUILD-ORDER.md) and [first approved build: launch funnel](Roadmap/09-platform-and-measurement/track-launch-play-funnel/README.md)
 - [Engine feasibility investigation](docs/technical-feasibility.md) and [engine decision](docs/architecture-decisions/001-engine-selection.md)
-- [First approved epic: prove the RTS core](Roadmap/01-core-play/prove-rts-core/README.md)
+- [Next game epic: prove the RTS core](Roadmap/01-core-play/prove-rts-core/README.md)
 
 ## Golden Frijoles
 
 This repository is connected to the **aomx** product. The project scoped agent skills are in `.agents/skills/`, with their source recorded in `skills-lock.json`. The shared project settings are in `golden-frijoles.config.json`; local credentials and event ingest keys are in the ignored `.env.local`.
 
-The North Star and roadmap are registered in [the aomx console](https://goldenfrijoles.com/app?project=aomx). The console is waiting for the first event. Once a playable build exists, instrument the funnel in the North Star plan and verify a real event arrives before inviting players.
+The North Star and roadmap are registered in [the aomx console](https://goldenfrijoles.com/app?project=aomx). The console is waiting for the first event. Establish the funnel contract before game implementation, then connect real events from a playable build and verify the readings before inviting players.
 
-Use `npx -y @golden-frijoles/cli@1.5.1 status` to check the connection. For new product work, follow the local `refine` skill, starting with the launch funnel seed.
+Use `npx -y @golden-frijoles/cli@1.5.1 status` to check the connection. Build the launch funnel's event-contract sprint first, then the RTS core; the later funnel sprints connect to the game as its client and terminal match become available.

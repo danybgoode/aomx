@@ -31,7 +31,7 @@ adopted_event: null
 retained_event: null
 retention_days: null
 satisfied_event: null
-build_order: 1       # integer position in the ONE global build sequence — the SSOT once the epic
+build_order: 2       # integer position in the ONE global build sequence — the SSOT once the epic
                      # exists (the seed's value is only a fallback). Fill it in at the betting
                      # table; plain integers, no "#2a" suffixes. See 00-ideas/README.md → Ordering.
 ---
@@ -52,8 +52,8 @@ There is no game runtime to reuse. Keep one command/state simulation as the sour
 
 - [Design prework](../../../docs/design-prework/README.md) and [prototype plan](../../../docs/prototype-plan.md) describe the worker, resource and structure proof.
 - [Engine ADR](../../../docs/architecture-decisions/001-engine-selection.md) recommends Godot provisionally and records the openage spike.
-- [North Star](../../00-strategy/north-star.md) and [funnel idea](../../00-ideas/seeds/track-launch-play-funnel.md) define later match events and test exclusions.
-- [Build order](../../00-ideas/BUILD-ORDER.md) is the generated roadmap; [solo skirmish](../../00-ideas/seeds/finish-solo-skirmish.md) and [offline funnel](../../00-ideas/seeds/track-launch-play-funnel.md) are later backlog ideas.
+- [North Star](../../00-strategy/north-star.md) and [approved funnel epic](../../09-platform-and-measurement/track-launch-play-funnel/README.md) define event fields, later match events and test exclusions. Complete its fixture-tested Sprint 1 contract before this epic starts.
+- [Build order](../../00-ideas/BUILD-ORDER.md) is the generated roadmap; [solo skirmish](../../00-ideas/seeds/finish-solo-skirmish.md) remains the next raw game idea.
 
 ## Scope — stories
 
@@ -67,7 +67,7 @@ One worker, one resource, one structure and one original test map are enough. Co
 
 ## Deploy order
 
-There is no deployment rail. Build and review each sprint locally from a fresh checkout on a feature branch. Merge to `master` only after its headless checks and rendered client walkthrough pass; a merge is not a game release. Review Godot, replay and small-scale performance evidence after sprint 3 before shaping E2.
+There is no deployment rail. Start after the launch funnel's fixture-tested event contract, then build and review each RTS sprint locally from a fresh checkout on a feature branch. Merge to `master` only after its headless checks and rendered client walkthrough pass; a merge is not a game release. Integrate the funnel's offline client sprint when the Godot client is usable. Review Godot, replay and small-scale performance evidence after RTS sprint 3 before shaping the solo skirmish.
 
 ## Definition of Done (epic)
 

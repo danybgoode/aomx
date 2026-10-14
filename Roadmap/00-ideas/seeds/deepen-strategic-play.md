@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: null
+build_order: 6
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "Players who enjoy the first skirmish may want richer economy, scouting and combat decisions across repeated matches."

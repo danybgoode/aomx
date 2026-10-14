@@ -26,7 +26,7 @@ appetite: null                       # S | M | L — the budget, set at shaping;
 underwritten_by: null                # the cycle that PAID for it (Roadmap/bets/<cycle>.md, bare name) — fund.mjs
 risk: low                            # low | high
 epic: null                           # path to the scaffolded epic, or null until scaffolded
-build_order: null                    # integer position in the one global sequence — fund.mjs places it
+build_order: null                    # integer priority; raw seeds may hold intent, fund.mjs places approved work
 updated: <date>
 ---
 ```

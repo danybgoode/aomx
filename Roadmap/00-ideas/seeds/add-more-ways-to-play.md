@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: null
+build_order: 8
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "Once the core solo match earns repeat play, additional modes and shared play may give players more reasons to return."
