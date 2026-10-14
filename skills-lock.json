@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "refine": {
+      "source": "golden-frijoles/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/golden-frijoles/skills/refine/SKILL.md",
+      "computedHash": "fb09e7047a93a7619484241b823922aa6422bfc23aa54282bea29bba87e726e3"
+    },
+    "report": {
+      "source": "golden-frijoles/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/golden-frijoles/skills/report/SKILL.md",
+      "computedHash": "c3de08ae628323d56def088eb491a049259cf09d82d8119ec8b88180c57a1962"
+    },
+    "setup": {
+      "source": "golden-frijoles/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/golden-frijoles/skills/setup/SKILL.md",
+      "computedHash": "94602edc6b8bde8944ef4a3247d062d124d1e100c1bfbf2a87712343181516e3"
+    },
+    "smoke": {
+      "source": "golden-frijoles/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/golden-frijoles/skills/smoke/SKILL.md",
+      "computedHash": "4dcce2099991326c4fe45e823bd42344d5c68995cc0624a854e30a7a6550a26e"
+    },
+    "strategy": {
+      "source": "golden-frijoles/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/golden-frijoles/skills/strategy/SKILL.md",
+      "computedHash": "787ff3aadde6e2d5680a027fd7ae5473b3484fc34bb091eb787b6a49594ebf43"
+    }
+  }
+}

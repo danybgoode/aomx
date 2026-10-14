@@ -1,67 +1,36 @@
-# <TEMPLATE FILL-IN: Project Name> — Product Roadmap & Feature Poster
+# Battle for La Roma — product roadmap
 
-> **Mission:** <TEMPLATE FILL-IN: one or two sentences — what this product does and for whom.>
+> **Mission:** Make a deep, approachable real-time strategy game about regional civilizations competing for control of a fictional Mexico City, with La Roma as the ultimate prize.
 
-This folder is the **product source of truth**. It speaks in plain product language for product,
-design, and business — **no engineering or tech specs here** (those live in `tasks/` and team memory).
+This folder is the product source of truth. The [strategy](00-strategy/pmf-narrative.md), [North Star](00-strategy/north-star.md), and [risk validation](00-strategy/risk-validation.md) are agreed starting points. Claims marked as assumptions still need evidence.
 
----
+## Current state
 
-## How this roadmap is organized
+- **Stage:** New project; no playable build or game code yet.
+- **North Star:** Players completing matches on two different days in a week (`returning_commanders`).
+- **Launch goal:** Provisional 15% of first-match completers finish a match on a later day, measured after a sufficiently mature first cohort. The baseline is unknown until real play data arrives.
+- **First backlog idea:** [Track the launch play funnel](00-ideas/seeds/track-launch-play-funnel.md), so the team can see where players start, finish, return, and drop out.
+- **Build order:** [Generated board](00-ideas/BUILD-ORDER.md). Update source seed or epic status and regenerate the board; do not edit it by hand.
 
-```
-Roadmap/
-├── README.md                ← you are here · the product poster (all features)
-├── WAYS-OF-WORKING.md       ← how we plan, build, ship (scrum cadence) + tooling
-├── LEARNINGS.md             ← the cross-cutting retro digest, read at every session start
-├── SESSION-KICKOFFS.md      ← thin-pointer prompt cheat sheet for starting a session
-├── 00-ideas/                ← the idea funnel (seeds, audits, the generated BUILD-ORDER.md)
-└── <Macro-section>/         ← a product domain (a journey, not a component)
-    ├── README.md            ← what this area is, for whom, current features
-    └── <Epic>/              ← a meaningful body of work
-        ├── README.md        ← the epic's product overview
-        ├── sprint-N.md      ← the sprint's user stories (As a… I want… so that…)
-        └── RETROSPECTIVE.md ← what we learned
-```
+## Product areas
 
-**Levels:** `Roadmap → Macro-section → Epic → Sprint → User Story`. Each user story is a small,
-independently shippable slice of value.
+The areas below are provisional until the first epics are shaped.
 
----
-
-## The macro-sections (product domains)
-
-<!-- TEMPLATE FILL-IN: list your project's product domains here, one per macro-section folder
-     (e.g. `01-onboarding-and-auth`, `02-core-workflow`, ...). Number them so BUILD-ORDER.md and
-     epic paths sort predictably. One macro-section should be reserved for platform/infra work
-     that isn't user-facing product — see the convention below. -->
-
-| # | Macro-section | Covers |
-|---|---|---|
-| 01 | <TEMPLATE FILL-IN> | <TEMPLATE FILL-IN> |
-| 09 | Platform & Infra | Engineering/observability work that isn't a user-facing product domain — deploy pipeline, dev tooling, cross-cutting process (this convention — reserving `09` for platform/infra — is a deliberate carry-over from the origin project; keep the number stable so tooling that reads it doesn't need per-project config). |
-
----
+| Area | Scope |
+| --- | --- |
+| 01 · Core play | Gathering, settlements, economy, ages, units, and battles. |
+| 02 · Civilizations and world | Regional factions, Mexico City neighborhoods, art, writing, and accessibility of cultural references. |
+| 03 · Multiplayer and retention | Matchmaking, completed matches, return play, and social play. |
+| 09 · Platform and measurement | Build tooling, delivery, telemetry, and the launch funnel. |
 
 ## Feature map
 
-<!-- TEMPLATE FILL-IN: one `### <NN> · <Macro-section name>` heading per row above, each listing
-     shipped/in-progress features with a status marker. Convention: ✅ means enforced in code, not
-     merely intended — partial/aspirational is 🚧. Don't let this page lag a shipped epic; updating
-     it is part of the epic Definition of Done (see WAYS-OF-WORKING.md). -->
+No features have shipped. The launch funnel is in the backlog; implementation begins after a playable slice is defined.
 
-### 01 · <TEMPLATE FILL-IN: macro-section name>
-- 🚧 <TEMPLATE FILL-IN: first feature/epic, one line>
+## Working together
 
----
-
-## Recent highlights
-
-<!-- TEMPLATE FILL-IN: newest-first log of shipped epics, one bullet each, dated. Added at every
-     epic close (WAYS-OF-WORKING.md's epic Definition of Done). Example shape:
-- **2026-01-01** — `<epic-slug>` shipped: <one-line what changed and why it matters>.
--->
+[Ways of Working](WAYS-OF-WORKING.md) records this project's current process. [Learnings](LEARNINGS.md) records project-specific discoveries. The `refine` skill turns a backlog seed into an approved, sliced plan.
 
 ## License
 
-<TEMPLATE FILL-IN: if this repo is private/internal, say so; otherwise state the license.>
+No license has been selected yet.
