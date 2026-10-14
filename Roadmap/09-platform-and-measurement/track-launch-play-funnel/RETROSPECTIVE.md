@@ -8,6 +8,8 @@ The planned uninterrupted epic could not close because the repo still lacks the 
 
 The 2026-10-14 second code review found and verified fixes for return-rate cohort eligibility, restart first-open deduplication, impossible UTC dates, rejected-payload privacy, flag-transition eligibility, per-environment evaluation attribution, and observed zero-day counts. Live pushes were disabled because the available SDK route does not prove the bearer key's product identity. The later Godot/client and hosted-reporting review remains open.
 
+An independent fresh checkout of commit `afdcc9b` passed offline install, 11 tests and two identical fixture runs. Its six audit rows were four test exclusions and two named rejections; the report showed no public cohort or observed baseline. Sprint 1 is ready for PR review and merge.
+
 _Closed: <date>_
 _Intent: yes | mostly | no_
 <!-- Did we build what the product owner meant? One word, THEIR answer: yes, mostly or no. Required by `epic-dod` only
