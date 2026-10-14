@@ -9,9 +9,9 @@ This folder is the product source of truth. The [strategy](00-strategy/pmf-narra
 - **Stage:** New project; no playable build or game code yet.
 - **North Star:** Players completing matches on two different days in a week (`returning_commanders`).
 - **Launch goal:** Provisional 15% of first-match completers finish a match on a later day, measured after a sufficiently mature first cohort. The baseline is unknown until real play data arrives.
-- **First backlog idea:** [Track the launch play funnel](00-ideas/seeds/track-launch-play-funnel.md), so the team can see where players start, finish, return, and drop out.
+- **Backlog ideas:** The generated board lists all raw seeds. The next candidates are [solo skirmish](00-ideas/seeds/finish-solo-skirmish.md), [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md), and [offline launch funnel](00-ideas/seeds/track-launch-play-funnel.md); `refine` shapes them after the preceding evidence gate.
 - **Build order:** [Generated board](00-ideas/BUILD-ORDER.md). Update source seed or epic status and regenerate the board; do not edit it by hand.
-- **Delivery roadmap:** [Ordered playable increments and sprint candidates](DELIVERY-ROADMAP.md); the first epic is [Prove the RTS core](01-core-play/prove-rts-core/README.md).
+- **First approved epic:** [Prove the RTS core](01-core-play/prove-rts-core/README.md), with three sprint files and a review before the solo skirmish.
 
 ## Product areas
 
@@ -26,7 +26,7 @@ The areas below are provisional until the first epics are shaped.
 
 ## Feature map
 
-No features have shipped. The RTS core epic is ready to build. The launch funnel remains in the backlog until the match result and offline acceptance approach are proven.
+No features have shipped. The RTS core epic is ready to build. Later work lives in raw seeds until `refine` shapes and funds it; the generated board shows the current queue.
 
 ## Working together
 

@@ -28,7 +28,9 @@ satisfied_event: null
 intent_match: null
 ---
 
-# Pitch — Track the launch play funnel
+# Idea — Track the launch play funnel (E4 candidate)
+
+This is the raw offline measurement and closed-cohort idea. Refine it after the solo match has a terminal result; implementation can overlap faction playtesting, but the first measured invitation waits for both the playable experience and accepted offline results.
 
 Moves: `return_to_match` · Tests: Value proposition.
 

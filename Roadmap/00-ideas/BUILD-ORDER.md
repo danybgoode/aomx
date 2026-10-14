@@ -10,10 +10,16 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (1)
+## Backlog (7)
 
 _seeds with no pitch yet._
 
+- [Add more ways to play](seeds/add-more-ways-to-play.md) — 03 · seed · Feature · risk: Low · _docs: status raw_
+- [Deepen strategic play](seeds/deepen-strategic-play.md) — 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — 02 · seed · Feature · risk: Low · _docs: status raw_
+- [Finish a solo skirmish](seeds/finish-solo-skirmish.md) — 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Prepare a release candidate](seeds/prepare-release-candidate.md) — 09 · seed · Feature · risk: Low · _docs: status raw_
+- [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — 02 · seed · Feature · risk: Low · _docs: status raw_
 - [Track the launch play funnel](seeds/track-launch-play-funnel.md) — 09 · seed · Feature · risk: High · _docs: status raw_
 
 ## Refining (0)
@@ -43,4 +49,4 @@ _merged, deployed and closed._
 _None._
 
 ---
-_2 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_8 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._

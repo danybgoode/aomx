@@ -53,7 +53,7 @@ There is no game runtime to reuse. Keep one command/state simulation as the sour
 - [Design prework](../../../docs/design-prework/README.md) and [prototype plan](../../../docs/prototype-plan.md) describe the worker, resource and structure proof.
 - [Engine ADR](../../../docs/architecture-decisions/001-engine-selection.md) recommends Godot provisionally and records the openage spike.
 - [North Star](../../00-strategy/north-star.md) and [funnel idea](../../00-ideas/seeds/track-launch-play-funnel.md) define later match events and test exclusions.
-- [Delivery roadmap](../../DELIVERY-ROADMAP.md) places this epic before the solo skirmish and offline cohort.
+- [Build order](../../00-ideas/BUILD-ORDER.md) is the generated roadmap; [solo skirmish](../../00-ideas/seeds/finish-solo-skirmish.md) and [offline funnel](../../00-ideas/seeds/track-launch-play-funnel.md) are later backlog ideas.
 
 ## Scope — stories
 
