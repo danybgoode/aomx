@@ -14,25 +14,26 @@
 
 _seeds with no pitch yet._
 
-- [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — #4 · 02 · seed · Feature · risk: Low · _docs: status raw_
-- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #5 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
-- [Deepen strategic play](seeds/deepen-strategic-play.md) — #6 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
-- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #7 · 02 · seed · Feature · risk: Low · _docs: status raw_
-- [Add more ways to play](seeds/add-more-ways-to-play.md) — #8 · 03 · seed · Feature · risk: Low · _docs: status raw_
+- [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — #5 · 02 · seed · Feature · risk: Low · _docs: status raw_
+- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #6 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
+- [Deepen strategic play](seeds/deepen-strategic-play.md) — #7 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #8 · 02 · seed · Feature · risk: Low · _docs: status raw_
+- [Add more ways to play](seeds/add-more-ways-to-play.md) — #9 · 03 · seed · Feature · risk: Low · _docs: status raw_
 
-## Refining (1)
+## Refining (0)
 
 _a pitch is waiting at the approval gate._
 
-- [Enable a measured private alpha](seeds/enable-measured-private-alpha.md) — 09 Platform And Measurement · seed · Feature · risk: High · appetite M · _docs: status ready_
+_None._
 
-## Ready (3)
+## Ready (4)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
 - [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 2/7 stories · risk: High · appetite L · _docs: status in-progress_
 - [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 3/3 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #4 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 

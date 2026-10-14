@@ -1,21 +1,21 @@
 ---
 title: "Enable a measured private alpha"
 slug: enable-measured-private-alpha
-status: ready
+status: scaffolded
 area: "09"
 type: feature
 appetite: M
-underwritten_by: null
+underwritten_by: wave-2026-10
 risk: high
-epic: null
-build_order: null
+epic: "09-platform-and-measurement/enable-measured-private-alpha"
+build_order: 4
 updated: 2026-10-14
 intent_ask: verbatim
-hypothesis: "Classic RTS players need an installable, finishable build whose offline results reach a trustworthy cohort before their feedback can guide the next game bet. An invited alpha will prove this when a downloaded match, later-day return and rejected or duplicate paths reconcile in Golden Frijoles without test traffic entering the cohort."
+hypothesis: "Invited RTS players need an installable solo match whose offline results form a trustworthy cohort. We will know this works when a downloaded match, later-day return, duplicate and rejected path reconcile in Golden Frijoles, with test traffic excluded."
 persona: "An invited classic RTS player installing and finishing a solo match, and the operator checking the first cohort."
 grounded: false
 grounded_reason: "This enables the agreed North Star inputs, but no eligible cohort or observed baseline exists from which to set an improvement target."
-target_metric: return_to_match
+target_metric: null
 target_from: null
 target_to: null
 read_date: null
@@ -39,14 +39,16 @@ Moves: `return_to_match` measurement · Tests: whether a finishable solo match c
 > sounds good except for render, specially for postgres, cant we use supabase? i also have a free tier oracle vm we can use at will.
 >
 > The suggested refinement is approved.
+>
+> cant we use supabase free for real cohort data? yes they do suspend it, but do we anticipate lots of traffic? and we can always keep it alive through other means no? thats my only challenge to it all. But open to your suggestions. Other than that is approved across the board.
 
 ### Claims
 
 1. Shape a measured private alpha before starting release infrastructure.
-2. Evaluate Supabase for Postgres and the available Oracle VM for the ingest service instead of Render.
+2. Use Supabase Free for the first real cohort, with safeguards for pausing, storage and recovery, and evaluate the available Oracle VM for the ingest service.
 3. Keep Golden Frijoles as the flag, measurement and roadmap provider.
 
-**Teach-back:** pending — a narrow, installable invited alpha should turn real offline solo matches into an auditable first cohort using the infrastructure the owner already has.
+**Teach-back:** yes, with Supabase Free for real cohort data — a narrow, installable invited alpha should turn offline solo matches into an auditable first cohort using the infrastructure the owner already has.
 
 ## Problem
 
@@ -72,20 +74,22 @@ An invited tester downloads a release build, finishes a solo match offline or on
 | --- | --- |
 | Reproducible Godot export and restricted download | Give invited testers a known build to install and revisit. |
 | HTTPS ingest on the existing Oracle VM, subject to capacity and isolation checks | Reuse the owner's VM and existing Caddy/Docker operating pattern. |
-| Dedicated Supabase Postgres project | Persist accepted events, receipts, flag decisions and report history away from one VM's disk. |
+| Dedicated Supabase Free Postgres project | Persist accepted events, receipts, flag decisions and report history away from one VM's disk without a paid database plan for the first cohort. |
+| Independent daily backup and availability check | Keep the free project's pause and missing included-backup risks visible and recoverable. |
 | Server-side Golden Frijoles flag and scheduled cohort publisher | Keep client secrets out of the game and publish only reconciled mature readings. |
 | Release and reconciliation walkthrough | Prove one real, excluded, duplicate, delayed and later-day path before widening invitations. |
 
 ## Scope
 
-**In v1:** One initial desktop target selected at the plan gate; a restricted invited build; versioned endpoint configuration; a durable append-only audit and idempotent receipts; a server-only flag evaluation; a verified aomx-scoped publisher; a small invited cohort and operator runbook; CI/export checks and a second security/data-integrity review.
+**In v1:** macOS first for invited classic RTS players; a restricted invited build; versioned endpoint configuration; a durable append-only audit and idempotent receipts in a dedicated Supabase Free project; a server-only flag evaluation; a verified aomx-scoped publisher; a small invited cohort and operator runbook; daily off-project backup with a tested restore; availability and storage checks; CI/export checks and a second security/data-integrity review.
 
 **Out of v1 (no-gos):** Public storefront launch, payments, multiplayer, new faction or district mechanics, analytics SDK embedded in the client, Supabase Auth or direct browser/client database access, migrating unrelated projects, and claiming the 15% goal was met before a mature cohort exists. The broader [release-candidate idea](prepare-release-candidate.md) retains localization, settings, crash reporting and community polish.
 
 ## Rabbit holes
 
 - The Oracle VM already hosts panfleto on a single Arm instance. Check live CPU, memory, storage, backup and Caddy routing before colocating aomx. Give the game its own service, credentials and resource limits; do not borrow the newspaper's database or change its backup retention by accident. A capacity failure sends the API-host choice back to the owner.
-- Supabase Free is suitable for a technical rehearsal but can pause after low activity and lacks included database backups. Decide whether the invited real cohort uses Pro or a documented independent backup and recovery process before launch. Keep aomx in its own Supabase project, even if the owner uses Supabase for another product.
+- Supabase Free is approved for the first real cohort. Its 500 MB database-size limit can make writes read-only, and low activity can pause a project. We do not have a measured event-volume baseline; the initial invited cohort is unlikely to approach 500 MB, but the operator must watch size and pause warnings instead of assuming. A daily cohort/health read is legitimate project activity and may help keep it active; the provider does not guarantee a particular query schedule prevents suspension. Preserve the client outbox through an outage, alert on missed ingest/backup, and have a documented resume-and-reconcile procedure.
+- Free lacks included downloadable backups. Before any real invitation, prove a daily logical export to the owner's OCI Object Storage bucket and a restore to a disposable database; retain an off-project copy. Supabase recommends a direct connection for `pg_dump`, while the Oracle VM may need the IPv4 session pooler, so verify the chosen backup path rather than assuming it works. Keep aomx in its own Supabase project and database role.
 - Offline integrity still needs the approved accepted-result policy, clock checks and correction/backfill path. The current publisher is deliberately dry-run only because its write credential cannot yet be verified as aomx-scoped.
 - Apple signing and notarization affect the first macOS download. Pick the first tester platform and installation support expectation before implementing export automation.
 
@@ -142,18 +146,18 @@ Reuse `telemetry.play_funnel_enabled` as the server-side eligibility gate, evalu
 | Slice | Risk | Acceptance and QA stage |
 | --- | --- | --- |
 | 1. Package the first desktop build | Low for export code; high for external release | A fresh checkout runs the existing tests, exports a versioned build and can install/play it on the chosen target machine. Review the restricted download and signing path before invitations. |
-| 2. Host accepted ingest and durable audit | High: shared VM, player data and database migration | A separate aomx API accepts ordered offline uploads over HTTPS, returns stable receipts on retry, persists records across restart and restore, and rejects test, duplicate, malformed and unresolved-clock paths correctly. Node integration tests plus a live staging smoke prove this. |
+| 2. Host accepted ingest and durable audit | High: shared VM, player data and database migration | A separate aomx API accepts ordered offline uploads over HTTPS, returns stable receipts on retry, persists records across restart and restore, and rejects test, duplicate, malformed and unresolved-clock paths correctly. A daily off-project export and disposable restore pass; alerts cover missed backups, write failures, pause warnings and 50%/80% of the 500 MB quota. Node integration tests plus a live staging smoke prove this. |
 | 3. Reconcile and invite a small cohort | High: privacy, flag, reporting and external release | The aomx key identity is verified; mature readings match raw accepted records for the documented test paths; the served flag state is checked per environment; the owner-approved notice and invitation are used; the first real cohort remains pending until its window closes. Second reviewer checks data and security, then the operator records a real-build smoke and later cohort read. |
 
-## Open decisions at the plan gate
+## Approved plan decisions
 
-1. First tester platform and audience: propose macOS invited classic RTS players, with other desktop platforms after the first export path works.
-2. Supabase plan for real invited data: propose a dedicated Pro project for included backups and no inactivity pause; Free can rehearse the pipeline. This is a spending decision, not part of the $20–120 agent quote.
-3. Sequence: propose this work next after the current draft stack is reviewed and merged, ahead of the distinctive La Roma playtest; invite real players only after the playtest build demonstrates its objective and the funnel passes. This pushes the broader release-candidate work later.
+1. Start with macOS invited classic RTS players; add other desktop targets after the first export path works.
+2. Use a dedicated Supabase Free project for real invited data, backed up independently and monitored. Revisit a paid plan only if the quota, pausing or recovery burden affects the cohort; no paid upgrade is authorized by this bet.
+3. Build this next after the current draft stack is reviewed and merged, ahead of the distinctive La Roma playtest. Invite real players only after that playtest build demonstrates its objective and the funnel passes; the broader release candidate waits.
 
 ## Open risks / research
 
-- [Supabase Free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing), [database limits](https://supabase.com/docs/guides/platform/database-size), [production backups](https://supabase.com/docs/guides/deployment/going-into-prod).
+- [Supabase Free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing), [database limits](https://supabase.com/docs/guides/platform/database-size), [production backups](https://supabase.com/docs/guides/deployment/going-into-prod), and [connection modes for a persistent VM and backup](https://supabase.com/docs/guides/database/connecting-to-postgres).
 - [Oracle Always Free Arm allowance](https://www.oracle.com/cloud/free/) and the owner's existing `fluxonline/deploy/README.md` deployment notes; live capacity is still unmeasured.
 - [Godot macOS export and notarization](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_macos.html); [itch.io restricted access](https://itch.io/docs/creators/access-control).
 

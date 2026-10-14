@@ -11,7 +11,7 @@ The [Horizon](horizon.md) names the end states each epic advances. Epic `destina
 - **Stage:** A finishable local Godot solo skirmish and launch-funnel prototype are under review; no deployed backend or public game release exists.
 - **North Star:** Players completing matches on two different days in a week (`returning_commanders`).
 - **Launch goal:** Provisional 15% of first-match completers finish a match on a later day, measured after a sufficiently mature first cohort. The baseline is unknown until real play data arrives.
-- **Backlog ideas:** [Solo skirmish](01-core-play/finish-solo-skirmish/README.md) is funded and under review. [Measured private alpha](00-ideas/seeds/enable-measured-private-alpha.md) is refined and awaiting a plan decision. [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md) follows a verified local match and funnel reconciliation.
+- **Backlog ideas:** [Solo skirmish](01-core-play/finish-solo-skirmish/README.md) is funded and under review. [Measured private alpha](09-platform-and-measurement/enable-measured-private-alpha/README.md) is funded next, using a dedicated Supabase Free project and the available Oracle VM after capacity checks. [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md) follows the platform build; its distinctive objective is required before the first external alpha invitation.
 - **Build order:** [Generated board](00-ideas/BUILD-ORDER.md) records the docs-only order. The Golden Frijoles Hub board also reads live branches and PRs; see the [sync runbook](WAYS-OF-WORKING.md#golden-frijoles-roadmap-sync). Update source seed or epic status and regenerate the file; do not edit it by hand.
 - **First build:** [Track the launch play funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) has a local event contract, fixture ingest, Godot outbox and cohort report. [Prove the RTS core](01-core-play/prove-rts-core/README.md) and [finish a solo skirmish](01-core-play/finish-solo-skirmish/README.md) now provide a local client with a terminal result. The public funnel still needs hosted ingest and a first mature real cohort.
 
@@ -28,7 +28,7 @@ The areas below are provisional until the first epics are shaped.
 
 ## Feature map
 
-No features have shipped. The live provider extract shows the funnel (2/7 locally verified stories), RTS core (4/4) and solo skirmish (3/3) in **Building** on draft PRs; review, merge and a game release are still pending. Later ideas remain raw until `refine` shapes and funds them; the generated board shows their proposed order.
+No features have shipped. The live provider extract shows the funnel (2/7 locally verified stories), RTS core (4/4) and solo skirmish (3/3) in **Building** on draft PRs; review, merge and a game release are still pending. The measured private alpha is funded and scaffolded at #4. Later ideas remain raw until `refine` shapes and funds them; the generated board shows their proposed order.
 
 ## Working together
 
