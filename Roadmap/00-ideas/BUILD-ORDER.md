@@ -20,11 +20,11 @@ _seeds with no pitch yet._
 - [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #7 · 02 · seed · Feature · risk: Low · _docs: status raw_
 - [Add more ways to play](seeds/add-more-ways-to-play.md) — #8 · 03 · seed · Feature · risk: Low · _docs: status raw_
 
-## Refining (0)
+## Refining (1)
 
 _a pitch is waiting at the approval gate._
 
-_None._
+- [Enable a measured private alpha](seeds/enable-measured-private-alpha.md) — 09 Platform And Measurement · seed · Feature · risk: High · appetite M · _docs: status ready_
 
 ## Ready (3)
 
@@ -49,4 +49,4 @@ _merged, deployed and closed._
 _None._
 
 ---
-_8 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_9 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
