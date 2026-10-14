@@ -53,6 +53,19 @@ func _initialize() -> void:
 	check(session_open.ok and session_open.event.event_id != first_return_open.event.event_id, "later UTC day launch emits return open")
 	check(next_day.queue_open_for_launch().event.event_id == session_open.event.event_id, "same-day relaunch reuses return open")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(return_path))
+	var clock_path := "user://funnel-clock-check-%d.json" % Time.get_ticks_usec()
+	var clock_outbox = Outbox.new(clock_path)
+	var quarantined_open: Dictionary = clock_outbox.queue_open_for_launch().event
+	check(clock_outbox.apply_receipt({"event_id": quarantined_open.event_id,
+		"receipt_id": "receipt_clock_0001", "received_at": "2026-10-14T00:00:00.000Z",
+		"status": "quarantined", "reason": "clock_ahead"}), "clock anomaly retained")
+	var recovered_open: Dictionary = clock_outbox.queue_open_for_launch().event
+	check(recovered_open.event_id != quarantined_open.event_id and recovered_open.local_sequence == 2,
+		"same-day restart can create a fresh open after clock correction")
+	check(Outbox.new(clock_path).first_pending().event_id == recovered_open.event_id,
+		"recovered open survives restart and can sync")
+	check(clock_outbox.summary().contains("restart the app"), "clock recovery guidance is visible")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(clock_path))
 	if not failed:
 		print("Godot outbox checks passed: durable open/start, restart, sequence, receipts, attention")
 	quit(1 if failed else 0)

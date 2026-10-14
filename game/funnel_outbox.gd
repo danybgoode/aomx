@@ -28,13 +28,15 @@ func queue_open_for_launch() -> Dictionary:
 	if state.is_empty():
 		return {"ok": false, "reason": "outbox_unavailable"}
 	var last_open: Dictionary = {}
+	var last_open_status := ""
 	for item in state.events:
 		if item.event.type == "game_opened":
 			last_open = item.event
+			last_open_status = item.status
 	var today := Time.get_date_string_from_system(true)
-	if not last_open.is_empty() and last_open.claimed_at.substr(0, 10) == today:
+	if not last_open.is_empty() and last_open.claimed_at.substr(0, 10) == today and last_open_status != "needs_attention":
 		return {"ok": true, "event": last_open, "existing": true}
-	return queue("game_opened", "", "", not last_open.is_empty() and today > last_open.claimed_at.substr(0, 10))
+	return queue("game_opened", "", "", not last_open.is_empty())
 
 func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false) -> Dictionary:
 	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed"]:
@@ -112,7 +114,7 @@ func summary() -> String:
 				if attention_reason.is_empty():
 					attention_reason = item.receipt.get("reason", "sync error")
 	if attention > 0:
-		var action := "Check your device clock" if attention_reason in ["clock_ahead", "clock_reversal"] else "Check the local audit or contact support"
+		var action := "Correct your device clock, then restart the app" if attention_reason in ["clock_ahead", "clock_reversal"] else "Check the local audit or contact support"
 		return "%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync." % [attention, attention_reason, action, pending]
 	if pending > 0:
 		return "%d event(s) saved on this device. Pending sync." % pending

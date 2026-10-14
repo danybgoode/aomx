@@ -47,7 +47,10 @@ try {
     }
     // The operator records the key fingerprint from the aomx project in a
     // different channel before enabling send; SDK writes do not identify project.
-    const client = createGrowthEngineClient({ apiKey: key, baseUrl: process.env.GOLDEN_FRIJOLES_URL });
+    // One deadline bounds the entire batch while the ingest lock is held.
+    const deadline = AbortSignal.timeout(20_000);
+    const client = createGrowthEngineClient({ apiKey: key, baseUrl: process.env.GOLDEN_FRIJOLES_URL,
+      fetchImpl: (url, options) => fetch(url, { ...options, signal: deadline }) });
     for (const item of pending) {
       const result = await client.pushInputValues(item.key, [{ occurredOn: item.occurredOn, value: item.value }]);
       if (!result.ok || result.mismatchedDuplicates?.length) throw new Error(`Publish conflict for ${item.key}:${item.occurredOn}`);
