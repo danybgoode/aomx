@@ -1,6 +1,6 @@
 # Launch funnel event contract (v1)
 
-The product boundary is a loopback Node service with a durable JSONL audit log. It accepts fixture events and is the intended boundary for a future Godot client upload. Golden Frijoles holds the enablement flag and four derived daily input readings; the game never receives those credentials. This local service is **not a deployable player backend**: it has no authentication, replay verification, multi-process locking, or hosted storage.
+The product boundary is a loopback Node service with a durable JSONL audit log. It accepts fixture events and test-tagged uploads from the Godot prototype's offline outbox. Golden Frijoles holds the enablement flag and four derived daily input readings; the game never receives those credentials. This local service is **not a deployable player backend**: it has no authentication, replay verification, multi-process locking, or hosted storage.
 
 ## Record
 
