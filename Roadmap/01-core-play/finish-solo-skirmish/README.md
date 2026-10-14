@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Locking architecture       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: finish-solo-skirmish
 title: "Finish a solo skirmish"
@@ -47,6 +47,19 @@ A classic RTS player needs a battle that can end before they can judge the game'
 ## Platform-first note
 
 Extend the Godot fixed-tick simulation and command log; both sides use the same validation path. The client persists test-tagged match events through the existing offline outbox. The funnel service alone decides which uploads enter player cohorts, and its Golden Frijoles flag stays off during internal play.
+
+## Architecture lock · 2026-10-14
+
+- **D1 · Runtime:** Pin Godot 4.7.2 and its 0.1-second fixed simulation tick. Keep rules in a headless GDScript model and render/input in a scene. E1's one-worker prototype and headless checks remain runnable.
+- **D2 · Map and economy:** Reuse the original 20×20 map and grid pathing approach. Give each side a mirrored command post, worker and one finite source. One stockpile pays for a 2×2 recruitment building and unit production. All costs debit once on accepted commands.
+- **D3 · Orders:** Human input and authored opponent call one `issue(side, kind, actor_id, target)` validation path. Entity IDs and command sequences are stable within a run. Invalid ownership, targets, costs and paths produce a named reason without mutating state.
+- **D4 · Combat:** Fixed-tick range, damage, cooldown and health determine outcomes. Melee closes to adjacent range; ranged attacks from distance but has lower health. Units and buildings occupy tiles until destruction; destroyed footprints become traversable. Resolve simultaneous command-post destruction as a draw.
+- **D5 · Terminal rule:** The approved command-post conquest decides win/loss. If neither has fallen by 9,000 ticks (15 minutes), draw. Terminal state freezes further commands and emits exactly one result.
+- **D6 · Measurement:** A run starts one test-tagged `match_started` and ends with one test-tagged `match_completed` in the existing durable outbox. Its match ID survives event retry/restart. The local loopback ingest excludes it from public cohorts; no key enters the client.
+- **D7 · Visual and language:** Use original geometric placeholders, readable team colors plus shape/text, visible health/orders/result feedback, and plain copy. Do not make cultural stereotypes mechanics.
+- **D8 · Verification:** Each sprint has headless rules and rendered walkthroughs. Sprint 3 records replay and multi-unit route/frame evidence on a named device. There is no build/deploy rail, so a merge is not a release.
+
+**Sprint build contracts:** B1 adds multi-entity economy and production on the validated order seam; B2 adds attack/destruction and replay without touching eligibility; B3 adds the authored opponent, terminal state, restart and test-only funnel events. Keep each increment runnable from a fresh checkout.
 
 ## What already exists (reuse, don't rebuild)
 
