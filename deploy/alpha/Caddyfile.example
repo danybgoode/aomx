@@ -1,0 +1,11 @@
+# Add this site to panfleto's Caddyfile only after its Caddy service is also
+# attached to the separate aomx_proxy network. Replace the hostname first.
+alpha-api.example.com {
+  encode zstd gzip
+  reverse_proxy aomx-ingest:8787
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "no-referrer"
+  }
+}

@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: enable-measured-private-alpha
 destination: trusted-launch-measurement
@@ -47,7 +47,33 @@ An invited classic RTS player needs a complete game they can install and revisit
 
 ## Platform-first note
 
-Golden Frijoles remains the flag, roadmap and input-reading destination. The game owns the offline outbox; the aomx service owns accepted-event decisions and durable receipts in a dedicated Supabase Free Postgres project. The existing Oracle VM is the proposed HTTPS service host, subject to a live capacity and isolation check. No Supabase credential or Golden Frijoles secret enters a game export.
+Golden Frijoles remains the flag, roadmap and input-reading destination. The game owns the offline outbox; the aomx service owns accepted-event decisions and durable receipts in a dedicated Postgres container on the existing Oracle VM. Its networks, credentials, storage, backup bucket and resource limits are separate from panfleto. No database credential or Golden Frijoles secret enters a game export.
+
+## Architecture lock — 2026-10-14
+
+The approved bet is still valid, but the live repository disproves parts of the generated builder kickoff: the default branch is `master`, a merge has no deploy effect, and `session-resume.mjs`, `epic-phase.mjs`, `intent-reader.mjs`, and `review-route.mjs` are not installed here. The existing local JSONL service is synchronous, loopback-only and exposes audit/report routes without authentication. These must not be put on a public interface. This lock records the build contracts in their place; any later kit sync must preserve these decisions.
+
+| Decision | Contract and evidence |
+| --- | --- |
+| D1 · Keep one event policy | Reuse `src/funnel/ingest.mjs` validation and `src/funnel/report.mjs` derivation. The hosted adapter serializes decisions in a Postgres transaction and persists the same rows/receipts. DB constraints enforce event and match uniqueness; no divergent acceptance implementation. |
+| D2 · Keep credentials server-side | The game export contains only a versioned HTTPS ingest URL and a public build channel. The hosted service alone holds Postgres and Golden Frijoles credentials. Public HTTP exposes event upload and a non-sensitive health result; operator audit and reports remain private commands. |
+| D3 · Release identity and eligibility | Internal/debug builds remain test-tagged. A release build may emit eligible events only after the server flag is enabled for that player. Stable installation identity, event IDs and sequence persist through offline retry. Supported rule/content versions are explicit server configuration. |
+| D4 · Recovery precedes invitation | An isolated VM Postgres container, least-privilege role, Oracle capacity check, HTTPS route, independent daily logical backup, disposable restore, disk alerts and second data/security review are gates before any real invitation. The owner changed the database choice on 2026-10-14 after Supabase refused a third active Free project. |
+| D5 · Publishing is append-only | Final, covered days are reconciled from the durable audit before a verified aomx-scoped push. A late mismatch stops publication and enters a reviewed correction/backfill record; immature days remain pending. No fixture values enter production. |
+| D6 · External release waits | The approved bet explicitly places first invitations after the La Roma objective playtest and owner approval of notice, invitation and production flag. Building the service does not authorize those external changes. |
+
+### Execution log — 2026-10-14
+
+- Supabase refused a third active Free project. The owner chose isolated VM Postgres; an aomx-specific private OCI backup bucket was provisioned. No Supabase project or paid upgrade was made.
+- The existing Oracle VM had about 10 GB available memory and 45 GB free `/data` space before aomx services. Panfleto occupies its own compose project. The aomx service is being staged as a separate project and network.
+- The official Godot 4.7.2 export template SHA-256 matched the release digest `f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011`. Headless game and Node tests passed locally, including a disposable Postgres invite/receipt test. A preview ZIP was produced; fresh-install and second-Mac verification are still owed.
+- Butler 15.32.0 runs on macOS. The `danybgoode/battle-for-la-roma` itch.io project was created as **Draft** with a development status and AI-code disclosure. No player access key, invitation or production flag change was issued.
+
+### Sprint build contracts
+
+1. **S1:** Pin Godot 4.7.2 and templates; export a versioned macOS ZIP with manifest/checksum and no credentials; run headless and fresh-export checks. Prepare installation/support and restricted distribution instructions. Another Mac and actual restricted download remain required evidence.
+2. **S2:** Add transactional Postgres persistence, safe public HTTP, isolated Docker/Caddy deployment assets, environment-specific client endpoint and backup/restore/monitoring commands. Exercise deterministic and disposable-DB checks locally; verify live capacity and staging before deployment.
+3. **S3:** Reconcile mature covered cohorts and verify aomx project identity before any numeric push. Provide operator commands and a correction stop path. Real cohort and external invitation remain gated by the approved product sequence and live review.
 
 ## What already exists (reuse, don't rebuild)
 
@@ -55,12 +81,12 @@ Golden Frijoles remains the flag, roadmap and input-reading destination. The gam
 - [`src/funnel/ingest.mjs`](../../../src/funnel/ingest.mjs), [`src/funnel/http.mjs`](../../../src/funnel/http.mjs) and [`scripts/funnel-report.mjs`](../../../scripts/funnel-report.mjs) provide validation, local receipts and cohort logic.
 - The [funnel contract](../../../docs/launch-funnel-contract.md) and [North Star](../../00-strategy/north-star.md) define event eligibility, deduplication and mature readings.
 - `telemetry.play_funnel_enabled` already exists in Golden Frijoles `aomx`, serving off in all environments.
-- The owner's sibling `fluxonline/deploy/` demonstrates Oracle VM, Docker, Caddy and OCI object backup operations; `editorial-panfleto/` demonstrates Supabase Postgres use. This epic creates isolated aomx resources.
+- The owner's sibling `fluxonline/deploy/` demonstrates Oracle VM, Docker, Caddy and OCI object backup operations. This epic creates isolated aomx resources on that VM.
 
 ## Approved boundaries
 
 - **Audience and order:** Start with invited macOS classic RTS players. Build this after the current funnel/core/skirmish draft stack, before the distinctive La Roma playtest; invite testers only when the game objective and measurement walkthrough are ready.
-- **Database:** Use a dedicated Supabase Free project for the first real cohort. Monitor its 500 MB database quota and inactivity warnings. Run a meaningful daily cohort or health read, but treat this as activity rather than a guarantee against pausing. Keep the outbox retryable through outages.
+- **Database:** Use dedicated VM Postgres with a private aomx network and loopback-only operator port. Monitor the agreed 500 MB alpha planning quota and VM disk. Keep the outbox retryable through outages.
 - **Recovery:** Before real invitation, prove daily logical export to OCI Object Storage and a restore into a disposable database. A missed backup, pause warning, sustained ingest failure or 80% quota use stops new invitations until an operator resolves it. Alert at 50% quota use.
 - **Spend:** No paid database upgrade is authorized by this bet. Revisit the plan if capacity, pause or recovery burden affects the cohort.
 - **Trust:** The server validates version, identity, sequence, match transition, time confidence and available integrity evidence. Until replay validation exists, accepted results are labeled `client_reported`; test, bot, tutorial, quarantined and rejected traffic stays out of public cohorts.
@@ -76,13 +102,13 @@ Golden Frijoles remains the flag, roadmap and input-reading destination. The gam
 
 ## Deploy order
 
-Keep `telemetry.play_funnel_enabled` off while building and rehearsing. First make and inspect a reproducible macOS export, without inviting players. Then migrate the audit to Supabase Free, establish backups/restore and start the isolated VM service behind HTTPS. Point a test-tagged build at staging and prove offline retry and exclusions. Sprints 1–2 and Story 3.1 can finish before the [La Roma playtest](../../00-ideas/seeds/prove-la-roma-promise.md); Story 3.2's invitation waits for that distinctive objective. This is the per-sprint dependency exception to epic-mode execution. Only after a second data/security review, approved participant notice, aomx key verification and release smoke should the owner authorize invitations and the production flag switch. The cohort read follows its real seven-day maturity; pending is not zero.
+Keep `telemetry.play_funnel_enabled` off while building and rehearsing. First make and inspect a reproducible macOS export, without inviting players. Then migrate the audit to isolated VM Postgres, establish backups/restore and start the isolated service behind HTTPS. Point a test-tagged build at staging and prove offline retry and exclusions. Sprints 1–2 and Story 3.1 can finish before the [La Roma playtest](../../00-ideas/seeds/prove-la-roma-promise.md); Story 3.2's invitation waits for that distinctive objective. This is the per-sprint dependency exception to epic-mode execution. Only after a second data/security review, approved participant notice, aomx key verification and release smoke should the owner authorize invitations and the production flag switch. The cohort read follows its real seven-day maturity; pending is not zero.
 
 ## Definition of Done (epic)
 
 - [ ] All seven stories pass their acceptance checks, CI/headless checks and sprint smoke walkthroughs, with commit refs recorded in each sprint.
 - [ ] A downloaded macOS build installs, completes and restarts a solo match; its offline events survive restart and sync with stable receipts. No project secret is bundled.
-- [ ] The separate aomx service and Supabase Free audit survive restart; a daily off-project backup and disposable restore pass. Capacity, quota, write failure, pause and backup alerts have a named operator response.
+- [ ] The separate aomx service and VM Postgres audit survive restart; a daily off-project backup and disposable restore pass. Capacity, quota, write failure and backup alerts have a named operator response.
 - [ ] Duplicates, test accounts, bots, unsupported versions, incomplete matches and clock anomalies are excluded or quarantined according to the agreed contract; only accepted paths count.
 - [ ] The aomx publisher key is verified, a second reviewer checks player data and reporting integrity, and four mature readings reconcile with raw events. Immature cohorts remain pending; the first observed baseline is reported only when real windows mature.
 - [ ] The served Golden Frijoles flag state is checked in every environment; production eligibility changes only after the approved walkthrough. The owner approves the participant notice and external invitation.

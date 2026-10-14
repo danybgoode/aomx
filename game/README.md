@@ -23,4 +23,24 @@ The client writes test-tagged first-open, later-day open, match-start and match-
 
 Godot flushes a temporary JSON file and renames it into place. Its API does not expose directory fsync, so sudden power loss at that boundary remains unproven. The local ingest has no hosted authentication or release rail. This debug match is a complete local play loop and a contract exercise, not an eligible launch cohort.
 
+## Private alpha export
+
+The source tree is test-tagged and points to loopback. `npm run alpha:export`
+copies it to a disposable directory, inserts a pinned HTTPS endpoint and build
+channel, runs the Node/Godot contract checks, then writes a versioned macOS ZIP
+and SHA-256 manifest in ignored `dist/alpha/`. It requires the matching Godot
+4.7.2 macOS export template. For a staging export:
+
+```sh
+GODOT_BIN=/path/to/Godot AOMX_BUILD_CHANNEL=preview \
+  AOMX_INGEST_URL=https://alpha-api.example.test/v1/events npm run alpha:export
+```
+
+Preview builds set `test_account=true`. Production builds set it false, but
+the service still excludes events while the Golden Frijoles flag is off.
+Alpha builds ask for an individual invite code and save it in the app's
+`user://` directory so offline events can sync after restart. An invalid or
+missing code leaves events in the outbox. Do not bundle any database, Butler,
+OCI, or Golden Frijoles credential into the export.
+
 Rules use a fixed 0.1-second tick, integer tile positions, validated commands and stable IDs. Frame delta schedules ticks but does not decide outcomes. The test suite checks costs, production, range, damage, destruction, terminal states and same-command state hashes. On Apple M2 Max with a 20×20 map and 12 units, 5,000 route attempts averaged **0.5440 ms** each and 1,000 ticks averaged **0.0491 ms** each in a headless debug run. A rendered debug window showed roughly **14–28 ms** process-frame values during capture; that is an observation, not a release-build frame benchmark. Units can overlap during movement; crowd routing and larger-scale performance remain future work. Continue with Godot for the next bounded slice.

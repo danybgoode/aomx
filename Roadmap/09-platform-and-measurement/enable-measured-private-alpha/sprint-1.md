@@ -3,7 +3,7 @@ epic: enable-measured-private-alpha
 sprint: 1
 title: "Package the first desktop build"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S1.1
@@ -24,7 +24,7 @@ stories:
 
 # Enable a measured private alpha — Sprint 1: Package the first desktop build
 
-**Status:** ⬜ not started. No invitations in this sprint.
+**Status:** Building. The local versioned ZIP and draft itch.io page exist; fresh-export install, Butler upload and second-Mac checks remain open. No invitations issued.
 
 ## Stories
 
@@ -32,7 +32,7 @@ stories:
 
 **As a** builder, **I want** a versioned macOS export from a fresh checkout, **so that** the invited build has known rules and passes the solo-match checks.
 
-**Acceptance:** Pin Godot and export templates. CI or a repeatable local command runs the existing headless economy, combat, replay, terminal and client tests, creates a release ZIP, records commit/game/content versions and a checksum, and proves a fresh exported copy can finish and restart a match. The export contains no `.env.local`, Golden Frijoles key or Supabase credential.
+**Acceptance:** Pin Godot and export templates. CI or a repeatable local command runs the existing headless economy, combat, replay, terminal and client tests, creates a release ZIP, records commit/game/content versions and a checksum, and proves a fresh exported copy can finish and restart a match. The export contains no `.env.local`, Golden Frijoles key or database credential.
 
 **Risk:** low for export code; a release artifact still requires a high-risk review before distribution.
 

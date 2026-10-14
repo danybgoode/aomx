@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file:
+      - /opt/aomx/db.env
+    volumes:
+      - /data/aomx/postgres:/var/lib/postgresql/data
+      - ./init-role.sh:/docker-entrypoint-initdb.d/01-init-role.sh:ro
+    ports:
+      - "127.0.0.1:55433:5432"
+    command: >
+      postgres -c shared_buffers=128MB -c max_connections=30
+    mem_limit: 512m
+    cpus: 0.5
+    networks:
+      - aomx_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aomx_admin -d aomx"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  ingest:
+    image: aomx-ingest:${AOMX_IMAGE_TAG:?pin an image built from a reviewed commit}
+    restart: unless-stopped
+    env_file:
+      - /opt/aomx/ingest.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 0.25
+    networks:
+      aomx_proxy:
+        aliases:
+          - aomx-ingest
+      aomx_db:
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+networks:
+  aomx_proxy:
+    external: true
+  aomx_db:
+    internal: true

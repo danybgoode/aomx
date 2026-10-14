@@ -1,6 +1,6 @@
 extends RefCounted
 
-# This local client deliberately emits only test-account traffic.
+const AlphaConfig = preload("res://alpha_config.gd")
 const SCHEMA_VERSION := 1
 const GAME_VERSION := "godot-4.7.2-prototype-1"
 const CONTENT_VERSION := "original-map-1"
@@ -9,6 +9,7 @@ var filename: String
 var state: Dictionary
 var game_version := GAME_VERSION
 var content_version := CONTENT_VERSION
+var test_account := AlphaConfig.TEST_ACCOUNT
 
 func _init(path: String = "user://funnel-outbox.json") -> void:
 	filename = path
@@ -54,7 +55,7 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
 		"player_id": state.player_id, "claimed_at": utc, "local_sequence": state.next_sequence,
 		"game_version": game_version, "content_version": content_version,
-		"mode": "solo", "faction": "neutral", "test_account": true, "bot": false}
+		"mode": "solo", "faction": "neutral", "test_account": test_account, "bot": false}
 	if type != "game_opened":
 		event.match_id = match_id
 	if type == "match_completed":
@@ -117,7 +118,7 @@ func summary() -> String:
 		return "%d event(s) need attention: %s. %s; local copy retained." % [attention, attention_reason, action]
 	if pending > 0:
 		return "%d event(s) saved on this device. Pending sync." % pending
-	return "%d test event(s) synced. Test play is not counted." % accepted
+	return "%d event(s) synced. %s" % [accepted, "Test play is not counted." if test_account else "Accepted play will appear after cohort review."]
 
 func _save(next: Dictionary) -> bool:
 	var absolute := ProjectSettings.globalize_path(filename)

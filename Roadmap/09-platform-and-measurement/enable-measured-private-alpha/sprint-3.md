@@ -3,7 +3,7 @@ epic: enable-measured-private-alpha
 sprint: 3
 title: "Reconcile and invite a small cohort"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S3.1
@@ -24,7 +24,7 @@ stories:
 
 # Enable a measured private alpha — Sprint 3: Reconcile and invite a small cohort
 
-**Status:** ⬜ not started.
+**Status:** Building the private report/publisher path. Real invitations and a mature cohort remain gated by the La Roma objective and owner approval.
 
 ## Stories
 
