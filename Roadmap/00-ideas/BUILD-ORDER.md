@@ -14,7 +14,7 @@
 
 _seeds with no pitch yet._
 
-- [Track the launch play funnel](seeds/track-launch-play-funnel.md) — 01 · seed · Feature · risk: Low · _docs: status raw_
+- [Track the launch play funnel](seeds/track-launch-play-funnel.md) — 09 · seed · Feature · risk: High · _docs: status raw_
 
 ## Refining (0)
 
@@ -22,11 +22,11 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (0)
+## Ready (1)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
-_None._
+- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #1 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 
@@ -43,4 +43,4 @@ _merged, deployed and closed._
 _None._
 
 ---
-_1 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_2 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
