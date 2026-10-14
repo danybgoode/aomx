@@ -1,0 +1,17 @@
+{
+  "name": "battle-for-la-roma",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "funnel:fixtures": "node scripts/funnel-fixtures.mjs",
+    "funnel:serve": "node scripts/funnel-server.mjs",
+    "funnel:report": "node scripts/funnel-report.mjs",
+    "funnel:observe-day": "node scripts/funnel-observe-day.mjs",
+    "funnel:publish": "node scripts/funnel-publish.mjs",
+    "funnel:evaluations": "node scripts/funnel-evaluations.mjs"
+  },
+  "dependencies": {
+    "@golden-frijoles/sdk": "1.1.0"
+  }
+}

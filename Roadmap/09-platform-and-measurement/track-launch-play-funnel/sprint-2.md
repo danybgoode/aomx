@@ -3,7 +3,7 @@ epic: track-launch-play-funnel
 sprint: 2
 title: "Offline client outbox"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,7 +12,7 @@ stories:
     i_want: "my first session saved even when I have no connection"
     so_that: "my play can be counted after it syncs"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Show and retry pending sync"
     as_a: "solo player"
@@ -24,7 +24,7 @@ stories:
 
 # Track the launch play funnel — Sprint 2: Offline client outbox
 
-**Status:** ⬜ not started · **Dependency:** the [RTS core](../../01-core-play/prove-rts-core/README.md) has a usable Godot client and a reviewed event-field contract.
+**Status:** Partial implementation: `src/funnel/outbox.mjs` verifies durable write, restart, ordered retry and status messages in headless tests. The [RTS core](../../01-core-play/prove-rts-core/README.md) has no Godot client, so neither story can pass its rendered walkthrough. Run `npm ci && npm test`; a client run command does not exist yet.
 
 ## Stories
 

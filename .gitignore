@@ -8,6 +8,7 @@
 
 # Golden Frijoles local cache (the shared config and skills are committed)
 .golden-frijoles/
+.funnel-local/
 
 # Operating system and editor files
 .DS_Store

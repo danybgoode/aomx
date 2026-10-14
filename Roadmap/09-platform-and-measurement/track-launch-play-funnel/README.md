@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: track-launch-play-funnel
 title: "Track the launch play funnel"
@@ -43,6 +43,12 @@ build_order: 1       # integer position in the ONE global build sequence — the
 ## Why
 
 The launch funnel is the **first build**. New players must be measurable from their first open, including a solo match played offline and synced later. Without this path, the first invited cohort would be lost and the agreed Returning commanders metric could not be audited. This epic establishes the event contract first, then connects it to the game and verifies completed-match cohorts before any external invitation.
+
+## Build progress · 2026-10-14
+
+Sprint 1's versioned event contract, durable local ingest, test-tagged fixture runner, stable retry receipts and audit checks are implemented. A Node outbox reference, cohort report with correction history, and dry-run Golden Frijoles input publisher cover parts of Sprints 2–3. The aomx `telemetry.play_funnel_enabled` flag exists and was verified serving **off** in development, preview and production. The [contract and commands](../../../docs/launch-funnel-contract.md) document the local boundary.
+
+This is **not epic completion**. E1 has no Godot client, E2 has no finishable solo match, and there is no deployed authenticated ingest. No rendered client walkthrough, real mature cohort, hosted four-reading reconciliation or release has occurred. A second code review found and verified fixes to cohort, timestamp, flag transition and privacy handling; a later review of the real client and hosted reporting is still needed. The publisher is dry run only until a key can be verified as aomx scoped; no synthetic reading was sent to aomx. The first observed baseline remains unknown. The requested one-run build reached the dependency boundary without treating a fixture or button press as a real match.
 
 ## Platform-first note
 
