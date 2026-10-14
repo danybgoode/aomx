@@ -114,12 +114,13 @@ butler status danybgoode/battle-for-la-roma
 ```
 
 The page and channel are not an invitation by themselves. Confirm its
-visibility and install the downloaded build on another Mac before any keys
-are distributed. Butler marks a completed push downloadable immediately to
-people with access, so check page restriction before uploading.
+visibility and complete the [local download QA walkthrough](../../docs/alpha-local-qa.md)
+before any keys are distributed. The owner waived a separate-Mac check.
+Butler marks a completed push downloadable immediately to people with access,
+so check page restriction before uploading.
 
 ## Release and invitation gate
 
-The restricted download page, second-Mac install, participant notice, La Roma
+The restricted download page, owner-Mac download QA, participant notice, La Roma
 objective, data review, production flag decision and owner-approved first
 invitation are separate required evidence. A merge to `master` is not a deploy.

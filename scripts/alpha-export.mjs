@@ -37,6 +37,14 @@ try {
   const archive = path.join(out, `battle-for-la-roma-${buildId}-macos.zip`);
   run(godot, ['--headless', '--path', game, '--import']);
   run(godot, ['--headless', '--path', game, '--export-release', 'macOS', archive]);
+  if (process.platform === 'darwin') {
+    const extracted = path.join(work, 'signed-export');
+    fs.mkdirSync(extracted);
+    run('ditto', ['-x', '-k', archive, extracted]);
+    const apps = fs.readdirSync(extracted).filter(name => name.endsWith('.app'));
+    if (apps.length !== 1) throw new Error(`Expected one macOS app in export, found ${apps.length}`);
+    run('codesign', ['--verify', '--deep', '--strict', '--verbose=2', path.join(extracted, apps[0])]);
+  }
   const checksum = createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
   const manifest = { build_id: buildId, channel, commit: sha, godot: '4.7.2',
     game_version: 'godot-4.7.2-skirmish-1', content_version: 'original-skirmish-map-1',

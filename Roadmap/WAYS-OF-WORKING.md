@@ -46,7 +46,7 @@ Agents may inspect and edit this repo, prepare branches and pull requests, and r
 
 ## Automated QA
 
-The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. The Godot 4.7.2 solo skirmish has [run, headless and contract check commands](../game/README.md). The private alpha branch adds `npm run alpha:export` and the [staging and restricted-download runbook](../deploy/alpha/README.md); a preview export or draft upload is not a released build. Rendered economy, combat and terminal states were checked locally; a second-Mac downloaded alpha play remains owed.
+The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. The Godot 4.7.2 solo skirmish has [run, headless and contract check commands](../game/README.md). The private alpha branch adds `npm run alpha:export`, the [staging and restricted-download runbook](../deploy/alpha/README.md), and a [local download QA walkthrough](../docs/alpha-local-qa.md); a preview export or upload is not a released build. Rendered economy, combat and terminal states were checked locally. The owner waived the separate-Mac check on 2026-10-14; downloaded-build QA on the owner Mac remains required.
 
 ## Golden Frijoles roadmap sync
 

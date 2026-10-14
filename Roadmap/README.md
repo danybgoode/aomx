@@ -8,7 +8,7 @@ The [Horizon](horizon.md) names the end states each epic advances. Epic `destina
 
 ## Current state
 
-- **Stage:** A finishable local Godot solo skirmish and launch-funnel prototype are under review; no deployed backend or public game release exists.
+- **Stage:** A finishable Godot solo skirmish and launch-funnel prototype are under review. Isolated alpha ingest is staged on the Oracle VM; no public game release exists.
 - **North Star:** Players completing matches on two different days in a week (`returning_commanders`).
 - **Launch goal:** Provisional 15% of first-match completers finish a match on a later day, measured after a sufficiently mature first cohort. The baseline is unknown until real play data arrives.
 - **Backlog ideas:** [Solo skirmish](01-core-play/finish-solo-skirmish/README.md) is funded and under review. [Measured private alpha](09-platform-and-measurement/enable-measured-private-alpha/README.md) is building in a draft PR, with isolated Oracle VM Postgres staging, off-project restore evidence and a Restricted macOS download for the owner. [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md) follows the platform build; its distinctive objective is required before the first external alpha invitation.
