@@ -21,16 +21,18 @@ a published host port when the container has only an `internal: true` network.
 
 ## Prepare and start
 
-On the VM, after copying a reviewed aomx checkout to `/opt/aomx/repo`:
+On the VM, after copying the reviewed aomx commit (checkout or archive) to
+`/opt/aomx/repo`, set its short commit ID explicitly. An archive has no `.git`
+directory, and Compose needs the image tag even when starting only Postgres.
 
 ```sh
 sudo install -d -m 700 -o ubuntu -g ubuntu /opt/aomx
 sudo install -d -m 700 -o ubuntu -g ubuntu /data/aomx/postgres
-docker network create aomx_proxy
+docker network inspect aomx_proxy >/dev/null 2>&1 || docker network create aomx_proxy
 cd /opt/aomx/repo
-SHA=$(git rev-parse --short=12 HEAD)
-docker build -f deploy/alpha/Dockerfile -t "aomx-ingest:$SHA" .
-AOMX_IMAGE_TAG="$SHA" docker compose -p aomx -f deploy/alpha/compose.yml up -d postgres
+export AOMX_IMAGE_TAG=REVIEWED_COMMIT_SHORT_SHA
+docker build -f deploy/alpha/Dockerfile -t "aomx-ingest:$AOMX_IMAGE_TAG" .
+docker compose -p aomx -f deploy/alpha/compose.yml up -d postgres
 # Apply the migration with the administrator, then start the service.
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/001_alpha_audit.sql
@@ -38,7 +40,7 @@ docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/002_ingest_grants.sql
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/003_publication_reading_hash.sql
-AOMX_IMAGE_TAG="$SHA" docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build
+docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build
 ```
 
 The Caddy service must join `aomx_proxy` *in its own compose file* while
