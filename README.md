@@ -10,6 +10,8 @@ The project is at the planning stage. There is no game client or backend yet. Cu
 - [Approved strategy](Roadmap/00-strategy/pmf-narrative.md)
 - [North Star and launch measurement plan](Roadmap/00-strategy/north-star.md)
 - [First backlog idea: track the launch play funnel](Roadmap/00-ideas/seeds/track-launch-play-funnel.md)
+- [Engine feasibility investigation](docs/technical-feasibility.md) and [engine decision](docs/architecture-decisions/001-engine-selection.md)
+- [First approved epic: prove the RTS core](Roadmap/01-core-play/prove-rts-core/README.md)
 
 ## Golden Frijoles
 
