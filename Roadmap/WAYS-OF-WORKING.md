@@ -30,6 +30,16 @@ The owner approves scope and what it displaces. A raw backlog seed is not funded
 
 Review code, game behavior, and measurements against the approved acceptance checks. Use a second reviewer for changes that affect player data, security, payments, or the integrity of North Star reporting. Verify the working tree and tests before merge. A merge to `master` does not imply a deployment until a deploy process is established.
 
+### Landing stacked PRs
+
+A PR merged into another feature branch has only joined that branch. It has not
+landed on `master`, even if GitHub labels the PR **Merged**. For a stack, merge
+the bottom PR into `master`, retarget the next PR to `master`, verify its diff and
+required checks, then merge it; repeat upward. A single integration PR from the
+fully assembled top tree to `master` is also acceptable when its full diff is
+reviewed and checked. Confirm the final commit is reachable from `origin/master`
+before recording the stack as landed. Neither path deploys a game build.
+
 ## Escalate, don't guess
 
 Ask the product owner when a decision changes core game rules, audience, cultural portrayal, privacy, spending, deployment, or the agreed North Star. Document the decision where future work will find it. Routine implementation details can be resolved by the builder.
