@@ -3,7 +3,7 @@ epic: track-launch-play-funnel
 sprint: 1
 title: "Event contract and fixture ingest"
 risk: high
-phase: Shaping
+phase: In review
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,19 +12,19 @@ stories:
     i_want: "one versioned record for first open, match start and terminal result"
     so_that: "the game can capture the agreed funnel from its first playable build"
     risk: high
-    status: planned
+    status: done
   - id: S1.2
     title: "Accept and deduplicate fixture events"
     as_a: "product owner"
     i_want: "a reproducible ingest path for scripted play events"
     so_that: "I can inspect which records count before a game client exists"
     risk: high
-    status: planned
+    status: done
 ---
 
 # Track the launch play funnel — Sprint 1: Event contract and fixture ingest
 
-**Status:** ⬜ not started · **Build this sprint first, before RTS core implementation.**
+**Status:** Verified locally and in an independent fresh checkout on 2026-10-14; ready for PR review and merge. The reviewer ran `npm ci --offline`, `npm test` (11/11), and `npm run funnel:fixtures` twice with identical receipts and no extra rows. The fixture report had zero accepted public events, no cohort readings and no observed baseline. Inspect `.funnel-local/fixture-audit.jsonl` and [the contract](../../../docs/launch-funnel-contract.md). No game client exists for this sprint.
 
 ## Stories
 

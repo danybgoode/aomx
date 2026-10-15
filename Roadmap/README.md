@@ -6,12 +6,12 @@ This folder is the product source of truth. The [strategy](00-strategy/pmf-narra
 
 ## Current state
 
-- **Stage:** New project; no playable build or game code yet.
+- **Stage:** Local launch-funnel prototype exists; no playable game build or deployed backend yet.
 - **North Star:** Players completing matches on two different days in a week (`returning_commanders`).
 - **Launch goal:** Provisional 15% of first-match completers finish a match on a later day, measured after a sufficiently mature first cohort. The baseline is unknown until real play data arrives.
 - **Backlog ideas:** The generated board orders the raw seeds after the two approved epics. [Solo skirmish](00-ideas/seeds/finish-solo-skirmish.md) is the next idea to refine after the RTS engine review; [La Roma playtest](00-ideas/seeds/prove-la-roma-promise.md) follows a finishable match.
 - **Build order:** [Generated board](00-ideas/BUILD-ORDER.md). Update source seed or epic status and regenerate the board; do not edit it by hand.
-- **First build:** [Track the launch play funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) Sprint 1 establishes the event contract with fixtures. [Prove the RTS core](01-core-play/prove-rts-core/README.md) follows as the first game implementation; the later funnel sprints integrate with its client and the solo skirmish's terminal result.
+- **First build:** [Track the launch play funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) has a local event contract, fixture ingest, outbox reference and cohort report. [Prove the RTS core](01-core-play/prove-rts-core/README.md) remains the first game implementation; later funnel checks depend on its client and a finishable solo skirmish.
 
 ## Product areas
 

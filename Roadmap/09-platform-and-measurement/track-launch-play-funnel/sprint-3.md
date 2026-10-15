@@ -3,7 +3,7 @@ epic: track-launch-play-funnel
 sprint: 3
 title: "Accepted result and cohort read"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 3
 stories:
   - id: S3.1
@@ -12,14 +12,14 @@ stories:
     i_want: "my finished match counted after I reconnect"
     so_that: "an offline win or loss can contribute to the launch goal"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Reconcile mature launch cohorts"
     as_a: "product owner"
     i_want: "stage counts and rates derived from accepted events"
     so_that: "I can see where players stop and whether they return"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.3
     title: "Publish the agreed Golden Frijoles readings"
     as_a: "product owner"
@@ -31,7 +31,7 @@ stories:
 
 # Track the launch play funnel — Sprint 3: Accepted result and cohort read
 
-**Status:** ⬜ not started · **Dependency:** the [solo skirmish](../../00-ideas/seeds/finish-solo-skirmish.md) can produce one terminal match result, and the agreed North Star's offline-authority wording has been amended before external play.
+**Status:** Partial implementation: local cohort and correction checks, an amended offline acceptance definition, a dry-run input publisher, and the aomx flag serving off in all three environments. The [solo skirmish](../../00-ideas/seeds/finish-solo-skirmish.md) has no terminal match; the Godot and hosted-reading walkthroughs remain open. Run `npm ci && npm test && npm run funnel:report && npm run funnel:publish` for local evidence.
 
 ## Stories
 

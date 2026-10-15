@@ -46,7 +46,7 @@ Agents may inspect and edit this repo, prepare branches and pull requests, and r
 
 ## Automated QA
 
-There is no game toolchain yet. Once a runtime is chosen, add the smallest useful build, lint, and test commands, then document how to run them here. Browser or game-client checks should verify rendered behavior where appropriate.
+The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. There is still no game client or rendered game check; add Godot build and smoke commands when the RTS core creates one. Browser or game-client checks should verify rendered behavior where appropriate.
 
 ## Documentation map
 
