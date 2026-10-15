@@ -15,7 +15,7 @@ GODOT_BIN="$GODOT_BIN" npm run skirmish:contract
 "$GODOT_BIN" --path game
 ```
 
-Click a blue unit or building to select it. Right-click a tile to move, the gold source to gather with a worker, or a red unit or building to attack with a combat unit. The stockpile starts at 0; the worker gathers four resource per delivery to the command post. At 6 or more stockpile, select a worker and press **B**, then click a clear 2×2 area to build the recruitment post. The game gives a gather hint if B is pressed too early. Select the command post and press **1** to queue a worker. Select a completed recruitment post and press **2** or **3** to queue melee or ranged. **R** restarts with a new match ID; **F** retries local event sync. The HUD shows stockpile, gold left at the source, unit counts, selected health, command-post health, order feedback and result. The computer gathers, builds, recruits a mixed group and starts attacking at 01:20; it replaces lost units while it has resources.
+Click a blue unit or building to select it. Right-click a tile to move, the gold source to gather with a worker, or a red unit or building to attack with a combat unit. The stockpile starts at 0; the worker gathers four resource per delivery to the command post. At 6 or more stockpile, select a worker and press **B**, then click a clear 2×2 area to build the recruitment post. The game gives a gather hint if B is pressed too early. Select the command post and press **1** to queue a worker. Select a completed recruitment post and press **2** or **3** to queue melee or ranged. **+**/**-** or the mouse wheel zooms the board, **0** resets zoom, and **G** toggles fullscreen. **R** restarts with a new match ID; **F** retries local event sync. The HUD shows stockpile, gold left at the source, unit counts, selected health, command-post health, the last order and its result. A short colored marker confirms or rejects orders on the board. The computer gathers, builds, recruits a mixed group and starts attacking at 01:20; it replaces lost units while it has resources.
 
 For controlled local result smoke, set `SKIRMISH_SMOKE_SCENARIO=win`, `loss` or `draw` before launching a debug Godot build. These fixtures set up a terminal state immediately or at the 15-minute boundary. They do not appear in release exports.
 
@@ -36,8 +36,8 @@ GODOT_BIN=/path/to/Godot AOMX_BUILD_CHANNEL=preview \
   AOMX_INGEST_URL=https://alpha-api.example.test/v1/events npm run alpha:export
 ```
 
-Preview builds set `test_account=true`. Production builds set it false, but
-the service still excludes events while the Golden Frijoles flag is off.
+Preview builds set `test_account=true`. Production builds set it false; release
+eligibility still depends on the served Golden Frijoles flag and server policy.
 Alpha builds ask for an individual invite code and save it in the app's
 `user://` directory so offline events can sync after restart. An invalid or
 missing code leaves events in the outbox. Do not bundle any database, Butler,

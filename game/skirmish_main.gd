@@ -6,7 +6,11 @@ const AlphaConfig = preload("res://alpha_config.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
+const BOARD_CENTER := Vector2(640, 305)
 const TICK_SECONDS := 0.1
+const ZOOM_MIN := 1.0
+const ZOOM_MAX := 1.25
+const ZOOM_STEP := 0.1
 
 var sim = Skirmish.new()
 var outbox = FunnelOutbox.new()
@@ -15,6 +19,11 @@ var completion_queued := false
 var selected_id := -1
 var placing := false
 var marker := Vector2i(-1, -1)
+var board_zoom := 1.1
+var order_flash_tile := Vector2i(-1, -1)
+var order_flash_text := ""
+var order_flash_seconds := 0.0
+var order_flash_ok := true
 var accumulator := 0.0
 var syncing := false
 var sync_note := ""
@@ -46,28 +55,32 @@ func _ready() -> void:
 			invite_code = FileAccess.get_file_as_string(invite_path).strip_edges()
 		invite_input = LineEdit.new()
 		invite_input.position = Vector2(22, 16)
-		invite_input.size = Vector2(270, 34)
+		invite_input.size = Vector2(300, 42)
+		invite_input.add_theme_font_size_override("font_size", 18)
 		invite_input.placeholder_text = "Enter private alpha invite code"
 		invite_input.secret = true
 		layer.add_child(invite_input)
 		var invite_button := Button.new()
 		invite_button.text = "Save invite code"
-		invite_button.position = Vector2(302, 16)
+		invite_button.position = Vector2(335, 16)
+		invite_button.add_theme_font_size_override("font_size", 18)
 		invite_button.pressed.connect(_save_invite_code)
 		layer.add_child(invite_button)
 		var support_button := Button.new()
 		support_button.text = "Copy support ID"
-		support_button.position = Vector2(22, 56)
+		support_button.position = Vector2(22, 65)
+		support_button.add_theme_font_size_override("font_size", 18)
 		support_button.pressed.connect(_copy_support_id)
 		layer.add_child(support_button)
 	hud = Label.new()
-	hud.position = Vector2(22, 598)
-	hud.add_theme_font_size_override("font_size", 17)
+	hud.position = Vector2(22, 600)
+	hud.size = Vector2(1236, 140)
+	hud.add_theme_font_size_override("font_size", 20)
 	layer.add_child(hud)
 	instructions = Label.new()
-	instructions.position = Vector2(22, 755)
-	instructions.add_theme_font_size_override("font_size", 16)
-	instructions.text = "Click own unit/building · Right-click move/gather/attack · B build · 1 worker · 2 melee · 3 ranged · R restart · F sync"
+	instructions.position = Vector2(22, 756)
+	instructions.add_theme_font_size_override("font_size", 18)
+	instructions.text = "Click blue unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R restart · F sync"
 	layer.add_child(instructions)
 	_update_hud()
 
@@ -78,6 +91,7 @@ func _start_match() -> void:
 	selected_id = -1
 	placing = false
 	marker = Vector2i(-1, -1)
+	order_flash_seconds = 0.0
 	var saved: Dictionary = outbox.queue("match_started", match_id)
 	sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
 	if OS.is_debug_build():
@@ -90,6 +104,9 @@ func _start_match() -> void:
 				sim.tick_number = Skirmish.DRAW_TICK - 1
 
 func _process(delta: float) -> void:
+	if order_flash_seconds > 0.0:
+		order_flash_seconds = maxf(0.0, order_flash_seconds - delta)
+		queue_redraw()
 	accumulator += delta
 	var advanced := false
 	while accumulator >= TICK_SECONDS:
@@ -108,14 +125,25 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
+			KEY_EQUAL, KEY_PLUS, KEY_KP_ADD:
+				_change_zoom(ZOOM_STEP)
+			KEY_MINUS, KEY_KP_SUBTRACT:
+				_change_zoom(-ZOOM_STEP)
+			KEY_0:
+				board_zoom = 1.1
+				sim.feedback = "Board zoom reset to 110%."
+			KEY_G:
+				get_window().mode = Window.MODE_WINDOWED if get_window().mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
 			KEY_B:
 				if _selected_kind() == "worker":
 					if sim.stockpile[Skirmish.HUMAN] < Skirmish.COST.barracks:
 						placing = false
-						sim.feedback = "Need 6 resource. Right-click gold with a worker to gather."
+						_flash_order(sim.entities[selected_id].pos, "Need 6 gold. Gather first.", false)
 					else:
 						placing = true
-						sim.feedback = "Choose a clear 2 by 2 footprint. Cost: 6."
+						_flash_order(sim.entities[selected_id].pos, "Choose a clear 2x2 site. Cost: 6.", true)
+				else:
+					sim.feedback = "Select a worker to build."
 			KEY_ESCAPE:
 				placing = false
 			KEY_1:
@@ -129,28 +157,42 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_F:
 				_send_next()
 	elif event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_change_zoom(ZOOM_STEP)
+			_update_hud()
+			queue_redraw()
+			return
+		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_change_zoom(-ZOOM_STEP)
+			_update_hud()
+			queue_redraw()
+			return
 		var tile := _screen_to_tile(event.position)
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if placing and selected_id != -1:
-				var placed: Dictionary = sim.issue(Skirmish.HUMAN, "build", selected_id, tile)
+				var placed: Dictionary = _issue_order("build", tile, tile)
 				if placed.ok:
 					placing = false
 			else:
 				var id: int = sim.entity_at(tile)
 				selected_id = id if id != -1 and sim.entities[id].side == Skirmish.HUMAN else -1
 				if selected_id != -1:
-					sim.feedback = "%s selected" % sim.entities[selected_id].kind.replace("_", " ")
+					_flash_order(tile, "%s selected" % sim.entities[selected_id].kind.replace("_", " "), true)
+				else:
+					sim.feedback = "Select a blue unit or building."
 		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_id != -1 and sim.entities.has(selected_id):
 			var selected: Dictionary = sim.entities[selected_id]
 			var target_id: int = sim.entity_at(tile)
 			if selected.kind == "worker" and tile == sim.sources[Skirmish.HUMAN].pos:
-				sim.issue(Skirmish.HUMAN, "gather", selected_id, tile)
+				_issue_order("gather", tile, tile)
 			elif selected.kind in ["melee", "ranged"] and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER:
-				sim.issue(Skirmish.HUMAN, "attack", selected_id, target_id)
+				_issue_order("attack", target_id, tile)
 			elif selected.kind in ["worker", "melee", "ranged"]:
-				var moved: Dictionary = sim.issue(Skirmish.HUMAN, "move", selected_id, tile)
+				var moved: Dictionary = _issue_order("move", tile, tile)
 				if moved.ok:
 					marker = tile
+			else:
+				_flash_order(selected.pos, "Select a unit to give an order.", false)
 	_update_hud()
 	queue_redraw()
 
@@ -158,7 +200,41 @@ func _train(role: String) -> void:
 	if selected_id == -1 or not sim.entities.has(selected_id):
 		sim.feedback = "Select a production building."
 		return
-	sim.issue(Skirmish.HUMAN, "train", selected_id, role)
+	_issue_order("train", role, sim.entities[selected_id].pos)
+
+func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
+	var result: Dictionary = sim.issue(Skirmish.HUMAN, kind, selected_id, target)
+	_flash_order(tile, _order_message(kind, target, result), result.ok)
+	return result
+
+func _order_message(kind: String, target: Variant, result: Dictionary) -> String:
+	if result.ok:
+		match kind:
+			"move": return "Moving here."
+			"gather": return "Gathering gold."
+			"build": return "Building a recruitment post."
+			"train": return "%s queued." % str(target).capitalize()
+			"attack": return "Attacking target."
+	match str(result.get("reason", "invalid_order")):
+		"insufficient_stockpile": return "Not enough gold in stockpile."
+		"blocked_footprint": return "This 2x2 site is blocked."
+		"blocked_or_invalid_tile": return "Cannot move onto this tile."
+		"unreachable_tile", "building_unreachable", "target_unreachable", "resource_unreachable": return "No route to target."
+		"building_incomplete": return "Wait for construction to finish."
+		"queue_full": return "Production queue is full."
+		"match_finished": return "Match finished. Press R to restart."
+	return str(result.get("reason", "Order failed.")).replace("_", " ").capitalize() + "."
+
+func _flash_order(tile: Vector2i, message: String, ok: bool) -> void:
+	order_flash_tile = tile
+	order_flash_text = message
+	order_flash_ok = ok
+	order_flash_seconds = 1.6
+	sim.feedback = message
+
+func _change_zoom(delta: float) -> void:
+	board_zoom = clampf(snappedf(board_zoom + delta, 0.05), ZOOM_MIN, ZOOM_MAX)
+	sim.feedback = "Board zoom: %d%%. 0 resets." % roundi(board_zoom * 100.0)
 
 func _selected_kind() -> String:
 	return sim.entities[selected_id].kind if sim.entities.has(selected_id) else ""
@@ -175,12 +251,12 @@ func _update_hud() -> void:
 	var chosen := "none" if selected_id == -1 else "%s #%d (%d HP)" % [sim.entities[selected_id].kind.replace("_", " "), selected_id, sim.entities[selected_id].hp]
 	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
 	var opponent_note := "Opponent attacks at 01:20." if sim.tick_number < Skirmish.AI_ATTACK_TICK else "Opponent attacking."
-	hud.text = "Battle for La Roma · %s · %s\nStockpile: %d   Gold left: %d   Our units: %d   Opponent units: %d   Time: %02d:%02d   Frame process: %.1f ms\nSelected: %s   Command posts: %d / %d HP\n%s   %s\n%s %s" % [
+	hud.text = "Battle for La Roma · %s · %s\nStockpile %d · Gold left %d · Our units %d · Opponent %d · Time %02d:%02d · %s\nSelected: %s · Command posts %d / %d HP\nLast action: %s\nSync: %s %s" % [
 		AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
 		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
 		sim._count_units(Skirmish.HUMAN), sim._count_units(Skirmish.COMPUTER),
-		floori(float(total_seconds) / 60.0), total_seconds % 60, Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
-		chosen, own_hp, enemy_hp, sim.feedback.capitalize(), "Result: %s. Press R to restart." % sim.result if sim.result != "" else opponent_note,
+		floori(float(total_seconds) / 60.0), total_seconds % 60, "Result: %s. Press R to restart." % sim.result if sim.result != "" else opponent_note,
+		chosen, own_hp, enemy_hp, sim.feedback,
 		outbox.summary(), sync_note]
 
 func _send_next() -> void:
@@ -258,6 +334,7 @@ func _tile_to_screen(tile: Vector2i) -> Vector2:
 	return ORIGIN + Vector2((tile.x - tile.y) * TILE_W * 0.5, (tile.x + tile.y) * TILE_H * 0.5)
 
 func _screen_to_tile(screen: Vector2) -> Vector2i:
+	screen = BOARD_CENTER + (screen - BOARD_CENTER) / board_zoom
 	var dx := (screen.x - ORIGIN.x) / (TILE_W * 0.5)
 	var dy := (screen.y - ORIGIN.y) / (TILE_H * 0.5)
 	return Vector2i(roundi((dx + dy) * 0.5), roundi((dy - dx) * 0.5))
@@ -268,6 +345,7 @@ func _diamond(center: Vector2) -> PackedVector2Array:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, get_viewport_rect().size), Color("17212a"))
+	draw_set_transform(BOARD_CENTER * (1.0 - board_zoom), 0.0, Vector2.ONE * board_zoom)
 	for y in range(Skirmish.HEIGHT):
 		for x in range(Skirmish.WIDTH):
 			var tile := Vector2i(x, y)
@@ -323,3 +401,9 @@ func _draw() -> void:
 			for ox in range(2):
 				draw_colored_polygon(_diamond(_tile_to_screen(preview_tile + Vector2i(ox, oy))),
 					Color(0.8, 0.9, 0.3, 0.55) if valid else Color(0.9, 0.25, 0.2, 0.55))
+	if order_flash_seconds > 0.0 and order_flash_tile.x >= 0:
+		var flash_center := _tile_to_screen(order_flash_tile)
+		var flash_color := Color("82e7d0") if order_flash_ok else Color("ff8b7e")
+		draw_arc(flash_center, 22, 0, TAU, 32, flash_color, 3.0)
+		draw_string(ThemeDB.fallback_font, flash_center + Vector2(-100, -26), order_flash_text,
+			HORIZONTAL_ALIGNMENT_CENTER, 200, 18, flash_color)

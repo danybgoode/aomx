@@ -9,7 +9,7 @@ area: 01-core-play
 risk: low
 type: feature
 sprints_total: 3
-stories_total: 3   # the sum of every sprint's stories_total — keep it in step when a story is added
+stories_total: 4   # the sum of every sprint's stories_total — keep it in step when a story is added
 intent_match: null   # copied from the seed by scaffold-epic (intent-match); the reader at the lock may update it
 quote_low_usd: 20    # ≈ API $ — copied from the seed's `quote:` by scaffold-epic (finops); null = not quoted, never 0
 quote_high_usd: 120
@@ -79,7 +79,7 @@ On Apple M2 Max, Godot 4.7.2, a 20×20 map and 12 units, 5,000 path orders avera
 |---|---|---|
 | [1](sprint-1.md) | Gather, construct a recruitment building and produce melee/ranged units. | low |
 | [2](sprint-2.md) | Order units to attack, see damage and destroyed structures alter paths. | low |
-| [3](sprint-3.md) | Play an authored opponent to one win/loss/draw result and restart. | low |
+| [3](sprint-3.md) | Play an authored opponent to one win/loss/draw result and restart; make the board readable and orders visible. | low |
 
 ## Deploy order
 
