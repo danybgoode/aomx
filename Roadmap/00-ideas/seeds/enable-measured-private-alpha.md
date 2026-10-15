@@ -98,7 +98,7 @@ An invited tester downloads a release build, finishes a solo match offline or on
 - [`game/skirmish_main.gd`](../../../game/skirmish_main.gd) and [`game/funnel_outbox.gd`](../../../game/funnel_outbox.gd): finishable local solo game and ordered offline event persistence.
 - [`src/funnel/ingest.mjs`](../../../src/funnel/ingest.mjs), [`src/funnel/http.mjs`](../../../src/funnel/http.mjs), [`scripts/funnel-report.mjs`](../../../scripts/funnel-report.mjs): validation, local receipts and cohort derivation.
 - [`docs/launch-funnel-contract.md`](../../../docs/launch-funnel-contract.md) and the [agreed North Star](../../00-strategy/north-star.md): event and eligibility definitions.
-- Golden Frijoles `aomx` already has `telemetry.play_funnel_enabled`, serving off in development, preview and production. Reuse it; keep it off until the live reconciliation passes.
+- Golden Frijoles `aomx` already has `telemetry.play_funnel_enabled`. The original plan kept it off until live reconciliation; the owner enabled it in all three environments on 2026-10-15. Reuse this flag, check its served state before invitations, and keep internal builds test-tagged.
 - The owner's sibling `fluxonline/deploy/` contains an Oracle VM/Caddy/Docker/OCI-backup pattern. It is a reference implementation, not a shared aomx datastore.
 
 ## Visuals
