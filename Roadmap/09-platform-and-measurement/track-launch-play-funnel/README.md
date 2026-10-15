@@ -38,6 +38,10 @@ build_order: 1       # integer position in the ONE global build sequence — the
 
 # Epic: Track the launch play funnel
 
+## Build progress · 2026-10-14
+
+The fixture-tested contract, local ingest, outbox reference, audit report and dry-run publisher are in draft PR #1. A Godot client prototype in draft PR #2 now supplies the offline surface. Its test-tagged first-open/start queue and visible sync states are being integrated in a stacked branch; two local uploads were excluded as test traffic, as intended. The epic remains in progress. A finishable solo match, hosted authenticated ingest, approved publish-key identity and a mature real cohort are still required for completion.
+
 > **Area:** 09-platform-and-measurement · **Risk:** high · **Class:** Feature · **Scope seed:** [`00-ideas/seeds/track-launch-play-funnel.md`](../../00-ideas/seeds/track-launch-play-funnel.md)
 
 ## Why
