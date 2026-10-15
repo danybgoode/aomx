@@ -17,7 +17,7 @@ stories:
 
 # Finish a solo skirmish — Sprint 3: Finish against the computer
 
-**Status:** Implemented locally. Headless AI, terminal and restart checks pass; controlled rendered win/loss/draw states and a normal authored opening were observed. The Godot-to-ingest contract syncs test traffic with zero public events. A second reviewer verified two outbox fixes. Pending PR review and merge.
+**Status:** Implemented on `master`. Headless AI, terminal and restart checks pass; controlled rendered win/loss/draw states and a normal authored opening were observed. The Godot-to-ingest contract syncs test traffic with zero public events. A second reviewer verified two outbox fixes. On 2026-10-15 the owner reported completing a downloaded preview match and seeing the pending-sync prompt. The board and instructions were too small on the owner's screen and had no zoom control; this readability defect and the remaining owner sync evidence keep close-out open.
 
 ### ✅ Story 3.1 — Finish and restart a rule-based solo match
 

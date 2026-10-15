@@ -17,7 +17,7 @@ stories:
 
 # Finish a solo skirmish — Sprint 2: Fight for the command post
 
-**Status:** Implemented locally. Headless combat, destruction, range and deterministic replay checks pass; rendered client shows unit and command-post damage. Pending PR review and merge.
+**Status:** Implemented on `master` through integration PR #12. Headless combat, destruction, range and deterministic replay checks pass; rendered client shows unit and command-post damage. Owner display-readability feedback remains open in Sprint 3.
 
 ### ✅ Story 2.1 — Command literal unit and structure combat
 
