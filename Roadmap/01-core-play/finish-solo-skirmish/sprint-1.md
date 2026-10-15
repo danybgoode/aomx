@@ -17,7 +17,7 @@ stories:
 
 # Finish a solo skirmish — Sprint 1: Recruit an army
 
-**Status:** Implemented locally. Headless economy/production checks pass; rendered smoke showed gathering, construction, melee and ranged recruitment. Pending PR review and merge.
+**Status:** Implemented on `master` through integration PR #12. Headless economy/production checks pass; rendered smoke showed gathering, construction, melee and ranged recruitment. Owner display-readability feedback remains open in Sprint 3.
 
 ### ✅ Story 1.1 — Produce a small army from the economy
 

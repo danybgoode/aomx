@@ -2,7 +2,7 @@
 
 ## In-progress evidence · 2026-10-14
 
-The Godot 4.7.2 worker/resource/structure prototype passed local headless rules and a rendered walkthrough. See [game commands](../../../game/README.md) and [ADR 001](../../../docs/architecture-decisions/001-engine-selection.md). Independent checkout, owner engine decision, PR review and merge remain open. No match completion or release has occurred. Keep this retrospective open.
+The Godot 4.7.2 worker/resource/structure prototype passed local headless rules and a rendered walkthrough. See [game commands](../../../game/README.md) and [ADR 001](../../../docs/architecture-decisions/001-engine-selection.md). The implementation reached `master` through integration PR #12; the full owner walkthrough and epic close-out remain open. The later solo-skirmish epic supplies match completion. No public release has occurred. Keep this retrospective open.
 
 
 _Closed: <date>_

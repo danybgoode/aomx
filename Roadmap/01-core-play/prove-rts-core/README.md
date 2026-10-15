@@ -43,7 +43,7 @@ build_order: 2       # integer position in the ONE global build sequence — the
 
 ## Build progress · 2026-10-14
 
-A Godot 4.7.2 project now runs the approved one-worker, one-resource, one-structure loop. Headless checks pass for move rejection, conservation, interruption/resume, placement cost and replay. The rendered window was walked through for selection, movement, unreachable feedback, gathering and completed construction. [Run commands and measured limits](../../../game/README.md) are recorded. Independent fresh-checkout verification, owner engine review and merge remain open; this is not a shipped match or deployed game.
+A Godot 4.7.2 project now runs the approved one-worker, one-resource, one-structure loop. Headless checks pass for move rejection, conservation, interruption/resume, placement cost and replay. The rendered window was walked through for selection, movement, unreachable feedback, gathering and completed construction. [Run commands and measured limits](../../../game/README.md) are recorded. The implementation reached `master` through integration PR #12; epic close-out and the full owner walkthrough remain open. This is not a public game release.
 
 ## Why
 
@@ -58,7 +58,7 @@ There is no game runtime to reuse. Keep one command/state simulation as the sour
 - [Design prework](../../../docs/design-prework/README.md) and [prototype plan](../../../docs/prototype-plan.md) describe the worker, resource and structure proof.
 - [Engine ADR](../../../docs/architecture-decisions/001-engine-selection.md) recommends Godot provisionally and records the openage spike.
 - [North Star](../../00-strategy/north-star.md) and [approved funnel epic](../../09-platform-and-measurement/track-launch-play-funnel/README.md) define event fields, later match events and test exclusions. Complete its fixture-tested Sprint 1 contract before this epic starts.
-- [Build order](../../00-ideas/BUILD-ORDER.md) is the generated roadmap; [solo skirmish](../../00-ideas/seeds/finish-solo-skirmish.md) remains the next raw game idea.
+- [Build order](../../00-ideas/BUILD-ORDER.md) is the generated roadmap; [solo skirmish](../finish-solo-skirmish/README.md) was subsequently funded and built.
 
 ## Scope — stories
 

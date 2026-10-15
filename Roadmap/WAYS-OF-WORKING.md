@@ -62,6 +62,8 @@ The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funn
 
 The epic README and sprint files are the source of truth. `Roadmap/horizon.md` declares destinations; each epic links to one with `destination:` in frontmatter. The kit's live board combines those docs with remote Git branches and PR state. Use `feat/<epic-slug>` and optional `-sN` for work branches; `codex/` is not a recognized branch prefix. A draft PR appears as **Building**, a ready PR as **QA**. The committed `Roadmap/00-ideas/BUILD-ORDER.md` is generated from docs alone and can say Ready while the live board says Building. Story progress comes from `✅` on story headings, so keep headings and frontmatter `stories[].status` in sync with verified behavior.
 
+Read the columns as workflow signals, not claims that a game feature shipped. **Backlog** holds raw seeds that need `refine`; **Refining** holds a scope pitch awaiting a decision. **Ready** can hold a scaffolded epic or a fixed-scope seed, including unfinished follow-on work for an epic whose earlier code already reached `master`. **QA** means GitHub has a review-ready or merged PR associated with the epic and close-out remains; it does not mean an owner playthrough or every acceptance check passed. The epic README's `status:` remains authoritative for completion. A merged PR can therefore appear in QA while its README says `in-progress`. Close or re-scope the epic only after its own Definition of Done is checked. The live extractor may also print a derived shipped status from GitHub while the authoritative README remains in progress; do not copy that derived value into the roadmap without the outcome evidence.
+
 From a checkout with the latest roadmap files, run the pinned provider tools headlessly:
 
 ```sh

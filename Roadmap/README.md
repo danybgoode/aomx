@@ -30,6 +30,18 @@ The areas below are provisional until the first epics are shaped.
 
 No game feature has been publicly released. The funnel has 2/7 locally verified stories; RTS core has 4/4 and solo skirmish 3/3. The measured private alpha is funded at #4, with its owner QA and invitation gates still open. The live board may show merged PRs as complete even when a game build has not been released. Later ideas remain raw until `refine` shapes and funds them; the generated board shows their proposed order.
 
+## Suggested next work · 2026-10-15
+
+This is the practical sequence across the existing epics and raw seeds. The [generated build order](00-ideas/BUILD-ORDER.md) keeps initiative priority, while the live board also reflects GitHub PR state; neither automatically orders the unfinished steps inside an epic.
+
+1. **Finish internal play QA and readability.** Close the recorded checks in [RTS core](01-core-play/prove-rts-core/README.md) and [solo skirmish](01-core-play/finish-solo-skirmish/README.md), and the owner's downloaded-build walkthrough in [private alpha](09-platform-and-measurement/enable-measured-private-alpha/README.md). Fix the small board/instructions and provide usable zoom or display scaling; then verify restart, offline persistence and one test-tagged sync receipt. Do not mark an epic shipped from a PR merge alone.
+2. **Finish the pre-invitation measurement path.** Continue [launch funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) and [private alpha](09-platform-and-measurement/enable-measured-private-alpha/README.md): make the restricted route durable and reachable from the owner Mac, verify independent keyed download, test exclusions and stable receipts, then verify the aomx-scoped publisher identity. Keep real invitations closed.
+3. **Refine, fund and scaffold [Prove the La Roma promise](00-ideas/seeds/prove-la-roma-promise.md).** It is a raw seed today. Shape the smallest readable district objective and two meaningfully different faction prototypes, with playtest criteria that work for people unfamiliar with Mexican references.
+4. **Build and test the La Roma slice.** Use the epic created at step 3. The objective and strategic difference are required before inviting an external alpha cohort.
+5. **Invite a small private alpha cohort, then read the mature funnel.** Finish [private alpha](09-platform-and-measurement/enable-measured-private-alpha/README.md) and [launch funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) with approved participant notice, release checks, accepted events and reconciled readings after the seven-day windows close. Report the observed baseline; the 15% target remains provisional.
+6. **Refine, fund and build [Prepare a release candidate](00-ideas/seeds/prepare-release-candidate.md).** That raw seed covers distribution quality, onboarding, settings, accessibility, performance, support and a wider release decision informed by alpha evidence.
+7. Revisit the later raw seeds after playtest evidence: [Deepen strategic play](00-ideas/seeds/deepen-strategic-play.md), [Expand civilizations and world](00-ideas/seeds/expand-civilizations-and-world.md), then [Add more ways to play](00-ideas/seeds/add-more-ways-to-play.md). Each needs its own refinement and approval before building.
+
 ## Working together
 
 [Ways of Working](WAYS-OF-WORKING.md) records this project's current process. [Learnings](LEARNINGS.md) records project-specific discoveries. The `refine` skill turns a backlog seed into an approved, sliced plan.

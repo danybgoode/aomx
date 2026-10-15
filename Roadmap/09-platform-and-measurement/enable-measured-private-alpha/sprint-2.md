@@ -31,7 +31,7 @@ stories:
 
 # Enable a measured private alpha — Sprint 2: Host accepted ingest and durable audit
 
-**Status:** Building. The isolated VM Postgres and ingest containers are healthy behind allowlisted HTTPS. Daily OCI backup, health and report timers ran once; an off-project download restored with matching counts after an isolated ingest outage and outbox retry rehearsal. The sibling Caddy durability PR and external alert destination remain open. Independent code review and recheck passed; final deployment review remains required.
+**Status:** Building. The isolated VM Postgres and ingest containers are healthy behind allowlisted HTTPS. Daily OCI backup, health and report timers ran once; an off-project download restored with matching counts after an isolated ingest outage and outbox retry rehearsal. The alert destination is active and a test email arrived. The sibling Caddy durability PR remains open, and the owner Mac's current IP receives HTTP 403 until its route change is reviewed and deployed. Independent code review and recheck passed; final deployment review remains required.
 
 ## Stories
 
