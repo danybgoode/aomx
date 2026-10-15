@@ -21,6 +21,7 @@ Thumbs.db
 
 # Dependencies, build output, and local tooling
 node_modules/
+.godot/
 .next/
 .nuxt/
 .output/

@@ -28,3 +28,9 @@ Godot is [MIT licensed](https://godotengine.org/license/); openage is [GPLv3 or 
 ## Revisit triggers
 
 Reassess if the Godot prototype misses the acceptance checks, representative unit-count pathfinding or frame-time targets, or if original-content openage demonstrates a substantially simpler complete loop. Record benchmark devices, unit counts and map sizes before changing the engine decision. A later multiplayer choice must be tested with repeatable state hashes and a real server/client session.
+
+## Prototype review · 2026-10-14
+
+Godot 4.7.2 (`ed1daf0bf`) ran the original 20×20 isometric worker/resource/structure prototype on Apple M2 Max. Headless rules passed move rejection, resource conservation, interrupted gathering, one-time construction cost, footprint pathing and replay equality. In the rendered client, selection, movement, unreachable feedback, gathering/delivery and construction were visible. A 1,000-order route benchmark averaged 1.497 ms per order; 10,000 fixed ticks averaged 0.00110 ms per tick. The debug process-frame monitor ranged roughly 18–35 ms during automated capture, so this is not evidence about representative unit-count frame time.
+
+**Builder recommendation:** Continue with Godot for the next bounded slice. Keep this recommendation provisional until the owner reviews it and a multi-unit solo skirmish supplies representative pathing and frame evidence. This prototype does not produce a terminal match or launch cohort.
