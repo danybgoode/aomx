@@ -77,6 +77,13 @@ it also sends one recovery notice. Monitor VM disk and database growth. A failed
 Check a missed timer
 with the VM's systemd journal. The game outbox retries after an outage.
 
+The current alert topic lives in the dedicated `aomx-alpha-alerts` OCI
+compartment; the VM dynamic group's publish grant is scoped to that
+compartment. The owner email subscription is ACTIVE and a test publish was
+accepted. Confirm receipt in the owner's inbox before treating email delivery
+as verified. Keep invite codes in mode-600 operator files and revoke the
+internal QA code after the owner's sync walkthrough.
+
 Install an isolated Node 24 binary at `/opt/aomx/node` and run `npm ci
 --omit=dev` inside `/opt/aomx/repo`. Put operator-only connection details in
 `/opt/aomx/operator.env` (example in this directory; mode 600, owner ubuntu).

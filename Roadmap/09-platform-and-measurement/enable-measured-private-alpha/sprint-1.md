@@ -24,7 +24,7 @@ stories:
 
 # Enable a measured private alpha — Sprint 1: Package the first desktop build
 
-**Status:** Building. Godot 4.7.2 headless and contract checks passed. The replacement ad hoc signed ZIP (`preview-1cf1e6843e3b`, Butler `#2129045`) was uploaded to the Restricted itch.io page; the downloaded app passed signature verification, matched the export and opened on the owner's Mac. The owner is playing through the economy/combat walkthrough. A terminal result, restart, offline outbox persistence and second-account keyed access remain to be checked. The owner waived a separate-Mac check. No invitations issued.
+**Status:** Building. Godot 4.7.2 headless and contract checks passed. The ad hoc signed ZIP `preview-1cf1e6843e3b` was downloaded, verified and opened on the owner's Mac. First-play feedback improved the build-cost hint; replacement `preview-9692d809fd9b` passed checks and is processed as Butler `#2130146` on the Restricted channel. An owner download of this candidate, terminal result, restart, offline outbox persistence and second-account keyed access remain to be checked. The owner waived a separate-Mac check. Only an internal, test-only owner QA invite exists; no external invitations issued.
 
 ## Stories
 
