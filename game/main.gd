@@ -137,6 +137,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		_send_next()
 	else:
 		sync_note = "Needs attention: %s. Local copy retained." % receipt.get("reason", "rejected")
+		_send_next()
 	_update_hud()
 
 func _tile_to_screen(tile: Vector2i) -> Vector2:

@@ -1,0 +1,13 @@
+[Unit]
+Description=aomx private alpha database backup to OCI
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/aomx/repo
+Environment=PATH=/opt/aomx/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/opt/aomx/operator.env
+ExecStart=/opt/aomx/node/bin/node scripts/alpha-backup.mjs
+TimeoutStartSec=300

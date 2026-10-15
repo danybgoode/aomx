@@ -158,6 +158,10 @@ test('publisher sends only mature numeric readings to aomx and surfaces backfill
     { key: 'return_to_match', day: '2026-10-01', status: 'pending', value: null }
   ] };
   assert.deepEqual(publishPlan(report).find(x => x.key === 'new_players').values, [{ occurredOn: '2026-10-01', value: 1 }]);
+  assert.deepEqual(publishPlan({ ...report, observed_days: [] }, { requireCoverage: true })
+    .find(x => x.key === 'new_players').values, []);
+  assert.deepEqual(publishPlan({ ...report, observed_days: ['2026-10-01'] }, { requireCoverage: true })
+    .find(x => x.key === 'new_players').values, [{ occurredOn: '2026-10-01', value: 1 }]);
   const called = [];
   const client = { pushInputValues: async (key, values) => { called.push([key, values]); return { ok: true, mismatchedDuplicates: [] }; } };
   await assert.rejects(() => publish(report, client, 'wrong'), /wrong_project/);

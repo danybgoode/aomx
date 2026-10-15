@@ -1,0 +1,13 @@
+[Unit]
+Description=Record daily aomx alpha cohort report
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/aomx/repo
+Environment=PATH=/opt/aomx/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/opt/aomx/operator.env
+ExecStart=/opt/aomx/node/bin/node scripts/alpha-report.mjs --record
+TimeoutStartSec=60

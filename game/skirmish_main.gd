@@ -2,6 +2,7 @@ extends Node2D
 
 const Skirmish = preload("res://skirmish.gd")
 const FunnelOutbox = preload("res://funnel_outbox.gd")
+const AlphaConfig = preload("res://alpha_config.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -20,6 +21,8 @@ var sync_note := ""
 var hud: Label
 var instructions: Label
 var request: HTTPRequest
+var invite_code := ""
+var invite_input: LineEdit
 
 func _ready() -> void:
 	outbox.game_version = Skirmish.GAME_VERSION
@@ -37,9 +40,29 @@ func _ready() -> void:
 	add_child(retry_timer)
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	if AlphaConfig.CHANNEL != "development":
+		var invite_path := "user://alpha-invite-code.txt"
+		if FileAccess.file_exists(invite_path):
+			invite_code = FileAccess.get_file_as_string(invite_path).strip_edges()
+		invite_input = LineEdit.new()
+		invite_input.position = Vector2(22, 16)
+		invite_input.size = Vector2(270, 34)
+		invite_input.placeholder_text = "Enter private alpha invite code"
+		invite_input.secret = true
+		layer.add_child(invite_input)
+		var invite_button := Button.new()
+		invite_button.text = "Save invite code"
+		invite_button.position = Vector2(302, 16)
+		invite_button.pressed.connect(_save_invite_code)
+		layer.add_child(invite_button)
+		var support_button := Button.new()
+		support_button.text = "Copy support ID"
+		support_button.position = Vector2(22, 56)
+		support_button.pressed.connect(_copy_support_id)
+		layer.add_child(support_button)
 	hud = Label.new()
-	hud.position = Vector2(22, 622)
-	hud.add_theme_font_size_override("font_size", 18)
+	hud.position = Vector2(22, 598)
+	hud.add_theme_font_size_override("font_size", 17)
 	layer.add_child(hud)
 	instructions = Label.new()
 	instructions.position = Vector2(22, 755)
@@ -56,7 +79,7 @@ func _start_match() -> void:
 	placing = false
 	marker = Vector2i(-1, -1)
 	var saved: Dictionary = outbox.queue("match_started", match_id)
-	sync_note = "Test match start saved." if saved.ok else "Match start could not be saved; check device storage."
+	sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
 	if OS.is_debug_build():
 		match OS.get_environment("SKIRMISH_SMOKE_SCENARIO"):
 			"win":
@@ -87,8 +110,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		match event.keycode:
 			KEY_B:
 				if _selected_kind() == "worker":
-					placing = true
-					sim.feedback = "Choose a clear 2 by 2 footprint. Cost: 6."
+					if sim.stockpile[Skirmish.HUMAN] < Skirmish.COST.barracks:
+						placing = false
+						sim.feedback = "Need 6 resource. Right-click gold with a worker to gather."
+					else:
+						placing = true
+						sim.feedback = "Choose a clear 2 by 2 footprint. Cost: 6."
 			KEY_ESCAPE:
 				placing = false
 			KEY_1:
@@ -148,7 +175,8 @@ func _update_hud() -> void:
 	var chosen := "none" if selected_id == -1 else "%s #%d (%d HP)" % [sim.entities[selected_id].kind.replace("_", " "), selected_id, sim.entities[selected_id].hp]
 	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
 	var opponent_note := "Opponent attacks at 01:20." if sim.tick_number < Skirmish.AI_ATTACK_TICK else "Opponent attacking."
-	hud.text = "Resource: %d   Source: %d   Our units: %d   Opponent units: %d   Time: %02d:%02d   Frame process: %.1f ms\nSelected: %s   Command posts: %d / %d HP\n%s   %s\n%s %s" % [
+	hud.text = "Battle for La Roma · %s · %s\nStockpile: %d   Gold left: %d   Our units: %d   Opponent units: %d   Time: %02d:%02d   Frame process: %.1f ms\nSelected: %s   Command posts: %d / %d HP\n%s   %s\n%s %s" % [
+		AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
 		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
 		sim._count_units(Skirmish.HUMAN), sim._count_units(Skirmish.COMPUTER),
 		floori(float(total_seconds) / 60.0), total_seconds % 60, Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
@@ -158,13 +186,20 @@ func _update_hud() -> void:
 func _send_next() -> void:
 	if syncing:
 		return
+	if AlphaConfig.CHANNEL != "development" and invite_code.is_empty():
+		sync_note = "Enter the private alpha invite code to sync saved play."
+		_update_hud()
+		return
 	var event: Dictionary = outbox.first_pending()
 	if event.is_empty():
 		sync_note = "" if outbox.summary().contains("need attention") else "Nothing pending."
 		_update_hud()
 		return
 	syncing = true
-	var error := request.request("http://127.0.0.1:8787/v1/events", ["Content-Type: application/json"],
+	var headers := ["Content-Type: application/json"]
+	if AlphaConfig.CHANNEL != "development":
+		headers.append("X-Aomx-Invite-Code: " + invite_code)
+	var error := request.request(AlphaConfig.ENDPOINT, headers,
 		HTTPClient.METHOD_POST, JSON.stringify(event))
 	if error != OK:
 		syncing = false
@@ -173,6 +208,10 @@ func _send_next() -> void:
 
 func _on_request_completed(result_code: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	syncing = false
+	if response_code == 401:
+		sync_note = "Invite code was not accepted. Re-enter it; saved play is still pending."
+		_update_hud()
+		return
 	if result_code != HTTPRequest.RESULT_SUCCESS or response_code not in [200, 422]:
 		sync_note = "Service unavailable. Events remain saved on this device."
 		_update_hud()
@@ -183,11 +222,37 @@ func _on_request_completed(result_code: int, response_code: int, _headers: Packe
 		_update_hud()
 		return
 	if receipt.status in ["accepted", "excluded"]:
-		sync_note = "Test event synced to the local audit."
+		sync_note = "Event synced to the audit."
 		_send_next()
 	else:
 		sync_note = "Needs attention: %s. Local copy retained." % receipt.get("reason", "rejected")
+		_send_next()
 	_update_hud()
+
+func _save_invite_code() -> void:
+	var candidate := invite_input.text.strip_edges()
+	if candidate.length() < 24 or candidate.length() > 80:
+		sync_note = "Check the invite code and try again."
+		_update_hud()
+		return
+	var file := FileAccess.open("user://alpha-invite-code.txt", FileAccess.WRITE)
+	if file == null:
+		sync_note = "Could not save the invite code. Check device storage."
+		_update_hud()
+		return
+	file.store_string(candidate)
+	file.flush()
+	file.close()
+	invite_code = candidate
+	invite_input.clear()
+	sync_note = "Invite code saved. Saved play will sync when online."
+	_send_next()
+
+func _copy_support_id() -> void:
+	if outbox.state.has("player_id"):
+		DisplayServer.clipboard_set(str(outbox.state.player_id))
+		sync_note = "Support ID copied. Share it only with the alpha operator for help or deletion."
+		_update_hud()
 
 func _tile_to_screen(tile: Vector2i) -> Vector2:
 	return ORIGIN + Vector2((tile.x - tile.y) * TILE_W * 0.5, (tile.x + tile.y) * TILE_H * 0.5)

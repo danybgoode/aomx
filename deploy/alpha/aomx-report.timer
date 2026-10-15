@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily aomx alpha cohort report
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 UTC
+Persistent=true
+Unit=aomx-report.service
+
+[Install]
+WantedBy=timers.target

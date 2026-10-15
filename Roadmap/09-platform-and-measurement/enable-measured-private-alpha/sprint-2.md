@@ -3,7 +3,7 @@ epic: enable-measured-private-alpha
 sprint: 2
 title: "Host accepted ingest and durable audit"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 3
 stories:
   - id: S2.1
@@ -12,26 +12,26 @@ stories:
     i_want: "a separate durable aomx event audit"
     so_that: "offline retries cannot inflate or erase a cohort"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Serve the ingest through HTTPS"
     as_a: "invited player"
     i_want: "my saved events to sync to an available endpoint"
     so_that: "a finished match is eligible after accepted upload"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.3
-    title: "Recover and monitor the free database"
+    title: "Recover and monitor the isolated database"
     as_a: "measurement operator"
     i_want: "a verified independent backup and outage response"
     so_that: "a free-tier pause or storage failure does not silently lose the cohort"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Enable a measured private alpha — Sprint 2: Host accepted ingest and durable audit
 
-**Status:** ⬜ not started.
+**Status:** Building. The isolated VM Postgres and ingest containers are healthy behind allowlisted HTTPS. Daily OCI backup, health and report timers ran once; an off-project download restored with matching counts after an isolated ingest outage and outbox retry rehearsal. The sibling Caddy durability PR and external alert destination remain open. Independent code review and recheck passed; final deployment review remains required.
 
 ## Stories
 
@@ -39,7 +39,7 @@ stories:
 
 **As a** measurement operator, **I want** a separate durable aomx event audit, **so that** offline retries cannot inflate or erase a cohort.
 
-**Acceptance:** Create a dedicated Supabase Free project and least-privilege server role. Move the accepted/rejected audit, stable receipt, flag decision and report history off JSONL without changing the event contract. Unique event ID plus player/match/type constraints make retry idempotent. Restart the service, resend an event and observe the original receipt and unchanged eligible count. Test, bot, tutorial, invalid-transition and unresolved-clock events remain excluded or quarantined.
+**Acceptance:** Create a dedicated Postgres container on the Oracle VM and least-privilege server role, separate from panfleto's database and network. Move the accepted/rejected audit, stable receipt, flag decision and report history off JSONL without changing the event contract. Unique event ID plus player/match/type constraints make retry idempotent. Restart the service, resend an event and observe the original receipt and unchanged eligible count. Test, bot, tutorial, invalid-transition and unresolved-clock events remain excluded or quarantined.
 
 **Risk:** high: player data, database migration and reporting integrity.
 
@@ -51,11 +51,11 @@ stories:
 
 **Risk:** high: shared VM and public ingest boundary. If capacity or isolation fails, return the host choice to the owner before deployment.
 
-### Story 2.3 — Recover and monitor the free database
+### Story 2.3 — Recover and monitor the isolated database
 
 **As a** measurement operator, **I want** a verified independent backup and outage response, **so that** a free-tier pause or storage failure does not silently lose the cohort.
 
-**Acceptance:** Run a daily logical export into an aomx-specific OCI Object Storage path, retain off-project copies, alert on missed backups and prove a restore to a disposable database. Verify the actual Oracle-to-Supabase connection path for export; do not assume direct IPv6 or session-pooler behavior. Run a daily cohort/health read that serves a real operator purpose, monitor Supabase pause emails and database size, alert at 50% of 500 MB and stop new invitations at 80% or on write failure. A pause/resume rehearsal preserves client outbox events, and the operator can reconcile after service recovery.
+**Acceptance:** Run a daily logical export into an aomx-specific OCI Object Storage bucket, retain off-project copies, alert on missed backups and prove a restore to a disposable database. Verify the loopback backup connection and isolated volume. Run a daily cohort/health read that serves a real operator purpose, monitor VM disk and database size, alert at 50% of the 500 MB alpha planning quota and stop new invitations at 80% or on write failure. An outage/recovery rehearsal preserves client outbox events, and the operator can reconcile after service recovery.
 
 **Risk:** high: recovery and shared infrastructure.
 
@@ -67,7 +67,7 @@ stories:
 
 ## Sprint 2 — Smoke walkthrough
 
-Environment: staging game build, isolated aomx HTTPS ingest, dedicated Supabase Free project and disposable restore target. Record real endpoints in the execution log when provisioned.
+Environment: staging game build, isolated aomx HTTPS ingest, dedicated VM Postgres and disposable restore target. Record real endpoints in the execution log when provisioned.
 
 1. Start ingest unavailable, finish a test-tagged match, then restore it. The saved event ID receives one stable receipt; a retry leaves the accepted count unchanged.
 2. Send duplicate, bot, unsupported-version, incomplete-match and clock-anomaly fixtures. Each has the expected excluded, rejected or quarantined state and changes no public cohort count.

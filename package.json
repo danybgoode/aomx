@@ -10,9 +10,19 @@
     "funnel:observe-day": "node scripts/funnel-observe-day.mjs",
     "funnel:publish": "node scripts/funnel-publish.mjs",
     "funnel:evaluations": "node scripts/funnel-evaluations.mjs",
-    "skirmish:contract": "node scripts/skirmish-contract-check.mjs"
+    "skirmish:contract": "node scripts/skirmish-contract-check.mjs",
+    "alpha:export": "node scripts/alpha-export.mjs",
+    "alpha:serve": "node scripts/alpha-server.mjs",
+    "alpha:observe-day": "node scripts/alpha-observe-day.mjs",
+    "alpha:report": "node scripts/alpha-report.mjs",
+    "alpha:smoke": "node scripts/alpha-smoke.mjs",
+    "alpha:backup": "node scripts/alpha-backup.mjs",
+    "alpha:health": "node scripts/alpha-health.mjs",
+    "alpha:invite": "node scripts/alpha-invite.mjs",
+    "alpha:publish": "node scripts/alpha-publish.mjs"
   },
   "dependencies": {
-    "@golden-frijoles/sdk": "1.1.0"
+    "@golden-frijoles/sdk": "1.1.0",
+    "pg": "8.16.3"
   }
 }

@@ -1,6 +1,6 @@
 extends RefCounted
 
-# This local client deliberately emits only test-account traffic.
+const AlphaConfig = preload("res://alpha_config.gd")
 const SCHEMA_VERSION := 1
 const GAME_VERSION := "godot-4.7.2-prototype-1"
 const CONTENT_VERSION := "original-map-1"
@@ -9,6 +9,7 @@ var filename: String
 var state: Dictionary
 var game_version := GAME_VERSION
 var content_version := CONTENT_VERSION
+var test_account := AlphaConfig.TEST_ACCOUNT
 
 func _init(path: String = "user://funnel-outbox.json") -> void:
 	filename = path
@@ -27,13 +28,15 @@ func queue_open_for_launch() -> Dictionary:
 	if state.is_empty():
 		return {"ok": false, "reason": "outbox_unavailable"}
 	var last_open: Dictionary = {}
+	var last_open_status := ""
 	for item in state.events:
 		if item.event.type == "game_opened":
 			last_open = item.event
+			last_open_status = item.status
 	var today := Time.get_date_string_from_system(true)
-	if not last_open.is_empty() and last_open.claimed_at.substr(0, 10) == today:
+	if not last_open.is_empty() and last_open.claimed_at.substr(0, 10) == today and last_open_status != "needs_attention":
 		return {"ok": true, "event": last_open, "existing": true}
-	return queue("game_opened", "", "", not last_open.is_empty() and today > last_open.claimed_at.substr(0, 10))
+	return queue("game_opened", "", "", not last_open.is_empty())
 
 func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false) -> Dictionary:
 	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed"]:
@@ -54,7 +57,7 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
 		"player_id": state.player_id, "claimed_at": utc, "local_sequence": state.next_sequence,
 		"game_version": game_version, "content_version": content_version,
-		"mode": "solo", "faction": "neutral", "test_account": true, "bot": false}
+		"mode": "solo", "faction": "neutral", "test_account": test_account, "bot": false}
 	if type != "game_opened":
 		event.match_id = match_id
 	if type == "match_completed":
@@ -71,8 +74,6 @@ func first_pending() -> Dictionary:
 	if state.is_empty():
 		return {}
 	for item in state.events:
-		if item.status == "needs_attention":
-			return {}
 		if item.status == "pending":
 			return item.event
 	return {}
@@ -113,11 +114,11 @@ func summary() -> String:
 				if attention_reason.is_empty():
 					attention_reason = item.receipt.get("reason", "sync error")
 	if attention > 0:
-		var action := "Check your device clock" if attention_reason in ["clock_ahead", "clock_reversal"] else "Check the local audit or contact support"
-		return "%d event(s) need attention: %s. %s; local copy retained." % [attention, attention_reason, action]
+		var action := "Correct your device clock, then restart the app" if attention_reason in ["clock_ahead", "clock_reversal"] else "Check the local audit or contact support"
+		return "%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync." % [attention, attention_reason, action, pending]
 	if pending > 0:
 		return "%d event(s) saved on this device. Pending sync." % pending
-	return "%d test event(s) synced. Test play is not counted." % accepted
+	return "%d event(s) synced. %s" % [accepted, "Test play is not counted." if test_account else "Accepted play will appear after cohort review."]
 
 func _save(next: Dictionary) -> bool:
 	var absolute := ProjectSettings.globalize_path(filename)
