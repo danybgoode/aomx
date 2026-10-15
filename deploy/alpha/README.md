@@ -53,11 +53,12 @@ Postgres, backup retention, or other site blocks. `GET /healthz` is the only
 public read route; `/v1/audit` and `/v1/report` return 404 in public mode.
 The current restricted preview site is live at
 `alpha-api.159.54.158.4.sslip.io`; access is limited to the operator's
-current `/32`. The live Caddyfile and network attachment were applied
-manually. Panfleto's `update.sh` resets tracked configuration, so
-`danybgoode/justread#29` must be reviewed, merged and deployed before this
-route is considered durable. Recheck panfleto sites and the alpha route after
-that update.
+current `/32`. The Caddyfile and `aomx_proxy` attachment are tracked in
+`danybgoode/justread#29`, merged and deployed through panfleto's `update.sh`
+on 2026-10-15. The operator must update the `/32` when the residential IP
+rotates. After the deploy, both panfleto sites returned 200, alpha `/healthz`
+returned `{"ok":true}` from the allowlisted Mac, a missing invite returned
+401, and public audit/report routes returned 404.
 
 The running image tag is the reviewed commit. To roll back, set
 `AOMX_IMAGE_TAG` to a previously built tag and run the same `compose up` command.
@@ -82,8 +83,10 @@ with the VM's systemd journal. The game outbox retries after an outage.
 The current alert topic lives in the dedicated `aomx-alpha-alerts` OCI
 compartment; the VM dynamic group's publish grant is scoped to that
 compartment. The owner email subscription is ACTIVE, a test publish was
-accepted, and the owner confirmed inbox receipt on 2026-10-14. Keep invite codes in mode-600 operator files and revoke the
-internal QA code after the owner's sync walkthrough.
+accepted, and the owner confirmed inbox receipt on 2026-10-14. The one-use
+`owner_qa_20261014` code synced 18 test events on 2026-10-15, then was
+revoked; its plaintext files were removed. Create a distinct scoped code for
+any later internal walkthrough. Keep invite codes in mode-600 operator files.
 
 Install an isolated Node 24 binary at `/opt/aomx/node` and run `npm ci
 --omit=dev` inside `/opt/aomx/repo`. Put operator-only connection details in

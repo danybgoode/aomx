@@ -1,6 +1,6 @@
 # Finish a solo skirmish — Retrospective
 
-_Open: implementation reached `master` through integration PR #12; the follow-up readability slice and downloaded-build sync check are being finished. A public game release remains open._
+_Open: implementation and the readability slice reached `master`; the downloaded new-preview readability check remains. A public game release remains open._
 _Intent: owner completed a solo match and reported that the game works well; readability and action feedback needed refinement._
 _Quote vs actual: $20–$120 API estimate; actual unavailable from local transcript accounting._
 _Crew: Codex builder; independent agent reviewed the funnel event path. No GitHub review recorded yet._
@@ -23,4 +23,4 @@ Readable controls and visible order outcomes are part of the playable loop; pass
 
 ## Gaps / follow-ups
 
-Check the new downloaded build on the owner's display and sync a test-tagged result through the private invite. Establish a public release rail, measure crowd movement and release-build frame time, and finish the separate funnel epic's real cohort reconciliation. An isolated authenticated ingest is staged on the VM. No launch baseline exists.
+Check the new downloaded build on the owner's display. The older downloaded build synced 18 test-tagged events through the private invite with stable excluded receipts and no public readings; that code was revoked. Establish a public release rail, measure crowd movement and release-build frame time, and finish the separate funnel epic's real cohort reconciliation. An isolated authenticated ingest is staged on the VM. No launch baseline exists.

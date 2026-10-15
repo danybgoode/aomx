@@ -24,7 +24,7 @@ stories:
 
 # Finish a solo skirmish — Sprint 3: Finish against the computer
 
-**Status:** The owner completed a downloaded preview match and saw the pending-sync prompt on 2026-10-15. The follow-up client slice adds board zoom, window scaling, larger HUD/instructions and visible order feedback. Local rendered selection, gathering, zoom and fullscreen checks passed, as did the four Godot suites, Node tests and Godot-to-ingest contract. A new downloaded preview and owner sync receipt remain epic close-out evidence.
+**Status:** The owner completed a downloaded preview match on 2026-10-15. Its 18 saved test events then synced through the deployed HTTPS route with stable excluded receipts and no public readings; the QA invite was revoked. The follow-up client slice adds board zoom, window scaling, larger HUD/instructions and visible order feedback. Local rendered selection, gathering, zoom and fullscreen checks passed, as did the four Godot suites, Node tests and Godot-to-ingest contract. The newer downloaded preview and the owner's functional readability/feel check remain epic close-out evidence.
 
 ### ✅ Story 3.1 — Finish and restart a rule-based solo match
 
