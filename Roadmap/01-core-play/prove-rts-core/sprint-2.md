@@ -3,7 +3,7 @@ epic: prove-rts-core
 sprint: 2
 title: "A2 Gather and deliver"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S2.1
@@ -12,15 +12,15 @@ stories:
     i_want: "my worker to gather and deliver a resource"
     so_that: "I can turn a map choice into a visible economic gain"
     risk: low
-    status: planned
+    status: done
 ---
 # Prove the RTS core — Sprint 2: A2 Gather and deliver
 
-**Status:** ⬜ not started
+**Status:** Local headless checks and rendered walkthrough passed; independent fresh-checkout review and merge pending. Run commands: [game/README.md](../../../game/README.md).
 
 ## Stories
 
-### Story 2.1 — Gather and bank one resource
+### ✅ Story 2.1 — Gather and bank one resource
 
 **As a** classic RTS player, **I want** my worker to gather and deliver a resource, **so that** I can turn a map choice into a visible economic gain.
 

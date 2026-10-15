@@ -1,0 +1,11 @@
+[Unit]
+Description=Periodic aomx alpha health check
+
+[Timer]
+OnBootSec=5m
+OnUnitActiveSec=15m
+Persistent=true
+Unit=aomx-health.service
+
+[Install]
+WantedBy=timers.target

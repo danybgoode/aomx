@@ -3,6 +3,7 @@ status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-pro
 phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: track-launch-play-funnel
+destination: trusted-launch-measurement
 title: "Track the launch play funnel"
 area: 09-platform-and-measurement
 risk: high
@@ -38,6 +39,10 @@ build_order: 1       # integer position in the ONE global build sequence — the
 
 # Epic: Track the launch play funnel
 
+## Build progress · 2026-10-14
+
+The fixture-tested contract, local ingest, outbox reference, audit report and dry-run publisher are in draft PR #6. Draft PR #10 supplies a finishable local Godot solo skirmish with test-tagged first-open, later-day open, match-start and terminal-result events. A real Godot-to-Node contract check confirms stable retry and zero public events. The epic remains in progress: hosted authenticated ingest, an eligible released client, approved publish-key identity, a first mature real cohort and the four hosted readings are still required.
+
 > **Area:** 09-platform-and-measurement · **Risk:** high · **Class:** Feature · **Scope seed:** [`00-ideas/seeds/track-launch-play-funnel.md`](../../00-ideas/seeds/track-launch-play-funnel.md)
 
 ## Why
@@ -48,7 +53,7 @@ The launch funnel is the **first build**. New players must be measurable from th
 
 Sprint 1's versioned event contract, durable local ingest, test-tagged fixture runner, stable retry receipts and audit checks are implemented and passed an independent fresh-checkout review. A Node outbox reference, cohort report with correction history, and dry-run Golden Frijoles input publisher cover parts of Sprints 2–3. The aomx `telemetry.play_funnel_enabled` flag exists and was verified serving **off** in development, preview and production. The [contract and commands](../../../docs/launch-funnel-contract.md) document the local boundary.
 
-This is **not epic completion**. E1 has no Godot client, E2 has no finishable solo match, and there is no deployed authenticated ingest. No rendered client walkthrough, real mature cohort, hosted four-reading reconciliation or release has occurred. A second code review found and verified fixes to cohort, timestamp, flag transition and privacy handling; a later review of the real client and hosted reporting is still needed. The publisher is dry run only until a key can be verified as aomx scoped; no synthetic reading was sent to aomx. The first observed baseline remains unknown. The requested one-run build reached the dependency boundary without treating a fixture or button press as a real match.
+The solo skirmish now supplies a real local terminal state, but no deployed authenticated ingest, real mature cohort, hosted four-reading reconciliation or release has occurred. The second review of the Godot client found and verified fixes to later-day opens and ordered upload blocking. The publisher is dry run only until a key can be verified as aomx scoped; no synthetic reading was sent to aomx. The first observed baseline remains unknown.
 
 ## Platform-first note
 
@@ -58,8 +63,8 @@ Golden Frijoles is the aomx roadmap, flag and input-metric destination. The game
 
 - The agreed [North Star](../../00-strategy/north-star.md) defines six funnel stages, eligibility, seven-day windows, deduplication and the four input readings.
 - The [approved pitch](../../00-ideas/seeds/track-launch-play-funnel.md) records the offline acceptance, identity, clock and flag decisions.
-- The [RTS core epic](../../01-core-play/prove-rts-core/README.md) will supply the first Godot client and local command metadata. The [solo-skirmish idea](../../00-ideas/seeds/finish-solo-skirmish.md) will supply a terminal match result.
-- There is currently no game client, service route, event store, analytics dashboard or deployment rail.
+- The [RTS core epic](../../01-core-play/prove-rts-core/README.md) supplies the first Godot client and local command metadata. The [funded solo-skirmish epic](../../01-core-play/finish-solo-skirmish/README.md) supplies a local terminal match result.
+- A local client, service route, event store and report now exist. There is no hosted authenticated service or game deployment rail.
 
 ## Scope — stories
 

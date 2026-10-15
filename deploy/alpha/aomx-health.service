@@ -1,0 +1,13 @@
+[Unit]
+Description=Check aomx alpha ingest, database and backup age
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/aomx/repo
+Environment=PATH=/opt/aomx/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/opt/aomx/operator.env
+ExecStart=/opt/aomx/node/bin/node scripts/alpha-health.mjs
+TimeoutStartSec=60

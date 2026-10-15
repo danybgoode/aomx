@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 7
+build_order: 8
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "If two faction prototypes make the first match more distinctive, additional approved factions, maps and presentation can support varied match stories."

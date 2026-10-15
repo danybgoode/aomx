@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 5
+build_order: 6
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "Players will need a reliable way to install, learn, play, return and report problems before a wider release."

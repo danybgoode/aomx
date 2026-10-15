@@ -19,12 +19,12 @@ stories:
     i_want: "to see whether my saved play has synced"
     so_that: "I know when it is pending or needs attention"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Track the launch play funnel — Sprint 2: Offline client outbox
 
-**Status:** Partial implementation: `src/funnel/outbox.mjs` verifies durable write, restart, ordered retry and status messages in headless tests. The [RTS core](../../01-core-play/prove-rts-core/README.md) has no Godot client, so neither story can pass its rendered walkthrough. Run `npm ci && npm test`; a client run command does not exist yet.
+**Status:** The finishable Godot skirmish now saves test-tagged first-open, later-day open and real local match-start events, survives restart, retries automatically after loopback ingest returns and shows pending/synced states. The Godot-to-ingest check excludes test traffic with stable IDs and no public cohort count. The second review fixed later-day open omission and blocked upload behind an unresolved earlier receipt. Both stories remain in progress: there is no eligible released client or deployable authenticated ingest, and the rejected/quarantined rendered state still needs a walkthrough.
 
 ## Stories
 
@@ -52,14 +52,14 @@ stories:
 
 ## Sprint 2 — Smoke walkthrough (do these in order)
 
-Env: local Godot client using the run command recorded by E1; local ingest from Sprint 1.
+Env: local Godot skirmish using [these run commands](../../../game/README.md); local ingest from Sprint 1. A match start is saved automatically; press **F** to sync. An eligible public start waits for a release and hosted authenticated ingest.
 
 1. Disconnect, start the game from a clean installation and start an eligible solo match.
    → The game stays playable and shows that the session is saved and pending sync.
 2. Close and reopen the game while still offline.
    → The same installation and event IDs remain queued; no second first open appears.
 3. Reconnect and let sync retry, then inspect the ingest audit output.
-   → The client shows accepted; the audit has one first open and one match start.
+   → The client shows synced test traffic; the audit has the first open and test start from that run. An eligible start waits for the release boundary.
 4. Exercise the rejected or quarantined fixture response.
    → The client shows needs attention and retains the local event.
 

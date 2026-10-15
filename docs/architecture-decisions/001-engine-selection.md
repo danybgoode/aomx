@@ -28,3 +28,15 @@ Godot is [MIT licensed](https://godotengine.org/license/); openage is [GPLv3 or 
 ## Revisit triggers
 
 Reassess if the Godot prototype misses the acceptance checks, representative unit-count pathfinding or frame-time targets, or if original-content openage demonstrates a substantially simpler complete loop. Record benchmark devices, unit counts and map sizes before changing the engine decision. A later multiplayer choice must be tested with repeatable state hashes and a real server/client session.
+
+## Prototype review · 2026-10-14
+
+Godot 4.7.2 (`ed1daf0bf`) ran the original 20×20 isometric worker/resource/structure prototype on Apple M2 Max. Headless rules passed move rejection, resource conservation, interrupted gathering, one-time construction cost, footprint pathing and replay equality. In the rendered client, selection, movement, unreachable feedback, gathering/delivery and construction were visible. A 1,000-order route benchmark averaged 1.497 ms per order; 10,000 fixed ticks averaged 0.00110 ms per tick. The debug process-frame monitor ranged roughly 18–35 ms during automated capture, so this is not evidence about representative unit-count frame time.
+
+**Builder recommendation:** Continue with Godot for the next bounded slice. Keep this recommendation provisional until the owner reviews it and a multi-unit solo skirmish supplies representative pathing and frame evidence. This prototype does not produce a terminal match or launch cohort.
+
+## Solo-skirmish review · 2026-10-14
+
+The owner approved Godot 4.7.2 for the small solo-skirmish plan. A local 20×20 match now has worker economy, a production building, melee/ranged combat, an authored opponent, command-post win/loss, 15-minute draw and restart. Headless state replay and rendered debug outcome checks passed. On Apple M2 Max at 12 units, 5,000 path orders averaged 0.5440 ms and 1,000 fixed ticks averaged 0.0491 ms. During rendered debug capture the process-frame monitor showed roughly 14–28 ms; this is not a release-build frame budget. Units may overlap during movement, and crowd routing and larger maps have not been measured.
+
+**Decision:** Continue with pinned Godot 4.7.2 for the next bounded gameplay slice. Revisit if crowd behavior, larger representative unit counts, export or frame measurements miss their acceptance checks. The local match is test traffic, with no public release or launch cohort.

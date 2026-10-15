@@ -54,11 +54,12 @@ const exclusion = e => e.test_account ? 'test_account' : e.bot ? 'bot' : e.mode 
 
 export class Ingest {
   constructor(store, { now = () => new Date(), maxFutureMs = 5 * 60_000,
-    resolveFlag = () => ({ value: false, reason: 'provider_not_ready' }) } = {}) {
+    resolveFlag = () => ({ value: false, reason: 'provider_not_ready' }), supportedVersions = null } = {}) {
     this.store = store;
     this.now = now;
     this.maxFutureMs = maxFutureMs;
     this.resolveFlag = resolveFlag;
+    this.supportedVersions = supportedVersions;
   }
 
   accept(event) {
@@ -68,6 +69,8 @@ export class Ingest {
     if (prior) return prior.receipt;
 
     let reason = validate(event);
+    if (!reason && this.supportedVersions && !this.supportedVersions.some(v =>
+      v.game === event.game_version && v.content === event.content_version)) reason = 'unsupported_game_version';
     let status = 'accepted';
     let flag = null;
     if (reason) status = 'rejected';
