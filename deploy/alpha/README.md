@@ -68,8 +68,11 @@ URL and OCI instance-principal authentication, and `npm run alpha:health` after
 it. Use an aomx-specific Object Storage bucket
 and `aomx/db/` prefix. At least one backup must pass
 `npm run alpha:backup -- --restore-test` against a distinct disposable database
-before invitation. Set `AOMX_ALERT_WEBHOOK_URL` for health alerts and monitor
-VM disk and database growth. A failed backup, unavailable ingest/database or
+before invitation. Set `AOMX_ALERT_TOPIC_ID` and `AOMX_ALERT_STATE_PATH` for
+OCI email alerts (or use `AOMX_ALERT_WEBHOOK_URL` with the same state path) and
+confirm the subscription before relying on delivery. The health timer sends
+on issue changes and at most one reminder per 24 hours while an issue persists;
+it also sends one recovery notice. Monitor VM disk and database growth. A failed backup, unavailable ingest/database or
 80% of the configured 500 MB alpha quota stops new invitations; 50% warns.
 Check a missed timer
 with the VM's systemd journal. The game outbox retries after an outage.
