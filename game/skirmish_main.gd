@@ -110,8 +110,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		match event.keycode:
 			KEY_B:
 				if _selected_kind() == "worker":
-					placing = true
-					sim.feedback = "Choose a clear 2 by 2 footprint. Cost: 6."
+					if sim.stockpile[Skirmish.HUMAN] < Skirmish.COST.barracks:
+						placing = false
+						sim.feedback = "Need 6 resource. Right-click gold with a worker to gather."
+					else:
+						placing = true
+						sim.feedback = "Choose a clear 2 by 2 footprint. Cost: 6."
 			KEY_ESCAPE:
 				placing = false
 			KEY_1:
@@ -171,7 +175,7 @@ func _update_hud() -> void:
 	var chosen := "none" if selected_id == -1 else "%s #%d (%d HP)" % [sim.entities[selected_id].kind.replace("_", " "), selected_id, sim.entities[selected_id].hp]
 	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
 	var opponent_note := "Opponent attacks at 01:20." if sim.tick_number < Skirmish.AI_ATTACK_TICK else "Opponent attacking."
-	hud.text = "Battle for La Roma · %s · %s\nResource: %d   Source: %d   Our units: %d   Opponent units: %d   Time: %02d:%02d   Frame process: %.1f ms\nSelected: %s   Command posts: %d / %d HP\n%s   %s\n%s %s" % [
+	hud.text = "Battle for La Roma · %s · %s\nStockpile: %d   Gold left: %d   Our units: %d   Opponent units: %d   Time: %02d:%02d   Frame process: %.1f ms\nSelected: %s   Command posts: %d / %d HP\n%s   %s\n%s %s" % [
 		AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
 		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
 		sim._count_units(Skirmish.HUMAN), sim._count_units(Skirmish.COMPUTER),
