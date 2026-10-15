@@ -41,7 +41,7 @@ build_order: 1       # integer position in the ONE global build sequence — the
 
 ## Build progress · 2026-10-14
 
-The fixture-tested contract, local ingest, outbox reference, audit report and dry-run publisher are in draft PR #6. Draft PR #10 supplies a finishable local Godot solo skirmish with test-tagged first-open, later-day open, match-start and terminal-result events. A real Godot-to-Node contract check confirms stable retry and zero public events. The epic remains in progress: hosted authenticated ingest, an eligible released client, approved publish-key identity, a first mature real cohort and the four hosted readings are still required.
+The fixture-tested contract, local ingest, outbox reference, audit report and dry-run publisher are on `master`, along with a finishable local Godot solo skirmish and its test-tagged first-open, later-day open, match-start and terminal-result events. A real Godot-to-Node contract check confirms stable retry and zero public events. The epic remains in progress: the isolated hosted ingest is staged, while an eligible released client, approved publish-key identity, a first mature real cohort and the four hosted readings are still required.
 
 > **Area:** 09-platform-and-measurement · **Risk:** high · **Class:** Feature · **Scope seed:** [`00-ideas/seeds/track-launch-play-funnel.md`](../../00-ideas/seeds/track-launch-play-funnel.md)
 
@@ -51,9 +51,9 @@ The launch funnel is the **first build**. New players must be measurable from th
 
 ## Build progress · 2026-10-14
 
-Sprint 1's versioned event contract, durable local ingest, test-tagged fixture runner, stable retry receipts and audit checks are implemented and passed an independent fresh-checkout review. A Node outbox reference, cohort report with correction history, and dry-run Golden Frijoles input publisher cover parts of Sprints 2–3. The aomx `telemetry.play_funnel_enabled` flag exists and was verified serving **off** in development, preview and production. The [contract and commands](../../../docs/launch-funnel-contract.md) document the local boundary.
+Sprint 1's versioned event contract, durable local ingest, test-tagged fixture runner, stable retry receipts and audit checks are implemented and passed an independent fresh-checkout review. A Node outbox reference, cohort report with correction history, and dry-run Golden Frijoles input publisher cover parts of Sprints 2–3. The aomx `telemetry.play_funnel_enabled` flag serves **off** in development and preview; the owner enabled production on 2026-10-15. The staged VM uses preview and its build is test-tagged. The [contract and commands](../../../docs/launch-funnel-contract.md) document the local boundary.
 
-The solo skirmish now supplies a real local terminal state, but no deployed authenticated ingest, real mature cohort, hosted four-reading reconciliation or release has occurred. The second review of the Godot client found and verified fixes to later-day opens and ordered upload blocking. The publisher is dry run only until a key can be verified as aomx scoped; no synthetic reading was sent to aomx. The first observed baseline remains unknown.
+The solo skirmish now supplies a real local terminal state and an isolated authenticated ingest is staged on the VM, but no eligible released client, real mature cohort, hosted four-reading reconciliation or public release has occurred. The second review of the Godot client found and verified fixes to later-day opens and ordered upload blocking. The publisher is dry run only until a key can be verified as aomx scoped; no synthetic reading was sent to aomx. The first observed baseline remains unknown.
 
 ## Platform-first note
 
@@ -64,7 +64,7 @@ Golden Frijoles is the aomx roadmap, flag and input-metric destination. The game
 - The agreed [North Star](../../00-strategy/north-star.md) defines six funnel stages, eligibility, seven-day windows, deduplication and the four input readings.
 - The [approved pitch](../../00-ideas/seeds/track-launch-play-funnel.md) records the offline acceptance, identity, clock and flag decisions.
 - The [RTS core epic](../../01-core-play/prove-rts-core/README.md) supplies the first Godot client and local command metadata. The [funded solo-skirmish epic](../../01-core-play/finish-solo-skirmish/README.md) supplies a local terminal match result.
-- A local client, service route, event store and report now exist. There is no hosted authenticated service or game deployment rail.
+- A local client, staged authenticated VM service route, event store and report now exist. There is no public game release rail.
 
 ## Scope — stories
 

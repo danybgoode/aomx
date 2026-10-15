@@ -1,6 +1,6 @@
 # Finish a solo skirmish — Retrospective
 
-_Open: implementation awaits PR review and merge; no game release rail exists._
+_Open: implementation reached `master` through integration PR #12; owner gameplay QA and a public game release remain open._
 _Intent: owner review of the built match pending._
 _Quote vs actual: $20–$120 API estimate; actual unavailable from local transcript accounting._
 _Crew: Codex builder; independent agent reviewed the funnel event path. No GitHub review recorded yet._
@@ -21,4 +21,4 @@ Later-day opens need a new event ID; unresolved earlier receipts must stop order
 
 ## Gaps / follow-ups
 
-Review and merge the game branch. Establish a release/export rail, measure crowd movement and release-build frame time, and finish the separate funnel epic's hosted authenticated ingest and real cohort reconciliation. No launch baseline exists.
+Complete owner gameplay QA, establish a public release rail, measure crowd movement and release-build frame time, and finish the separate funnel epic's real cohort reconciliation. An isolated authenticated ingest is staged on the VM. No launch baseline exists.
