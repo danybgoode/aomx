@@ -10,11 +10,10 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (6)
+## Backlog (5)
 
 _seeds with no pitch yet._
 
-- [Finish a solo skirmish](seeds/finish-solo-skirmish.md) — #3 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — #4 · 02 · seed · Feature · risk: Low · _docs: status raw_
 - [Prepare a release candidate](seeds/prepare-release-candidate.md) — #5 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
 - [Deepen strategic play](seeds/deepen-strategic-play.md) — #6 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
@@ -27,12 +26,13 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (2)
+## Ready (3)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
-- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status scaffolded_
-- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status scaffolded_
+- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status in-progress_
+- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 0/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 0/3 stories · risk: Low · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 
