@@ -96,7 +96,7 @@ The approved bet is still valid, but the live repository disproves parts of the 
 - [`game/skirmish_main.gd`](../../../game/skirmish_main.gd) and [`game/funnel_outbox.gd`](../../../game/funnel_outbox.gd) provide a finishable local match and ordered offline events.
 - [`src/funnel/ingest.mjs`](../../../src/funnel/ingest.mjs), [`src/funnel/http.mjs`](../../../src/funnel/http.mjs) and [`scripts/funnel-report.mjs`](../../../scripts/funnel-report.mjs) provide validation, local receipts and cohort logic.
 - The [funnel contract](../../../docs/launch-funnel-contract.md) and [North Star](../../00-strategy/north-star.md) define event eligibility, deduplication and mature readings.
-- `telemetry.play_funnel_enabled` already exists in Golden Frijoles `aomx`, serving off in all environments.
+- `telemetry.play_funnel_enabled` exists in Golden Frijoles `aomx`. On 2026-10-15 the owner switched **production on**; development and preview still serve off. The staged VM ingest uses preview, and its available build is test-tagged. Golden Frijoles still has no first product event or observed baseline.
 - The owner's sibling `fluxonline/deploy/` demonstrates Oracle VM, Docker, Caddy and OCI object backup operations. This epic creates isolated aomx resources on that VM.
 
 ## Approved boundaries
@@ -118,7 +118,7 @@ The approved bet is still valid, but the live repository disproves parts of the 
 
 ## Deploy order
 
-Keep `telemetry.play_funnel_enabled` off while building and rehearsing. First make and inspect a reproducible macOS export, without inviting players. Then migrate the audit to isolated VM Postgres, establish backups/restore and start the isolated service behind HTTPS. Point a test-tagged build at staging and prove offline retry and exclusions. Sprints 1–2 and Story 3.1 can finish before the [La Roma playtest](../../00-ideas/seeds/prove-la-roma-promise.md); Story 3.2's invitation waits for that distinctive objective. This is the per-sprint dependency exception to epic-mode execution. Only after a second data/security review, approved participant notice, aomx key verification and release smoke should the owner authorize invitations and the production flag switch. The cohort read follows its real seven-day maturity; pending is not zero.
+Keep **preview** serving off while building and rehearsing. The owner has switched the production flag on, but that switch does not authorize an external invitation or production client release. First make and inspect a reproducible macOS export, without inviting players. Then migrate the audit to isolated VM Postgres, establish backups/restore and start the isolated service behind HTTPS. Point a test-tagged build at staging and prove offline retry and exclusions. Sprints 1–2 and Story 3.1 can finish before the [La Roma playtest](../../00-ideas/seeds/prove-la-roma-promise.md); Story 3.2's invitation waits for that distinctive objective. This is the per-sprint dependency exception to epic-mode execution. Before external invitation, complete the second data/security review, approved participant notice, aomx key verification and release smoke, then confirm the served flag state again. The cohort read follows its real seven-day maturity; pending is not zero.
 
 ## Definition of Done (epic)
 

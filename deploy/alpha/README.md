@@ -17,7 +17,8 @@ a published host port when the container has only an `internal: true` network.
    VM loopback for backup/restore. Its init script creates a limited ingest
    role. Apply all three migrations as `aomx_admin` before starting ingest.
 3. Confirm daily OCI backup and disposable restore, DNS ownership, TLS, and a
-   second security/data review. Keep the Golden Frijoles flag off.
+   second security/data review. Keep the preview Golden Frijoles flag off during
+   internal QA; verify the production switch separately before any release.
 
 ## Prepare and start
 

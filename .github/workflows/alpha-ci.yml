@@ -1,12 +1,16 @@
-name: Private alpha contract
+name: Project checks
 on:
   pull_request:
   push:
-    branches: [master, 'feat/enable-measured-private-alpha*']
+    branches: [master]
+
+permissions:
+  contents: read
 
 jobs:
-  alpha-contract:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17-alpine

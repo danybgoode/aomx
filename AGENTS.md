@@ -1,6 +1,6 @@
 # Project guidance
 
-Battle for La Roma is a new RTS game project with a local Godot solo skirmish and Golden Frijoles planning and funnel prototypes under review. There is no public game release or real play cohort yet.
+Battle for La Roma is a new RTS game project with a local Godot solo skirmish and Golden Frijoles planning and funnel prototypes. There is no public game release or real play cohort yet.
 
 - Read `README.md`, `Roadmap/README.md`, `Roadmap/WAYS-OF-WORKING.md`, and the relevant strategy or seed before planning or building.
 - Use the project scoped Golden Frijoles skills in `.agents/skills/`. Start with `setup` for connection questions and `refine` for the next product slice. Use the pinned Golden Frijoles CLI and kit for project status and roadmap sync; verify a failed command before claiming network access is unavailable. Do not substitute a browser visit for a CLI or headless check.

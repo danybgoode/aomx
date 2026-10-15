@@ -1,6 +1,6 @@
 # Private alpha: local macOS download QA
 
-Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The `mac-private-alpha` build is a **preview**: its events are test traffic, and the Golden Frijoles flag stays off. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine.
+Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The `mac-private-alpha` build is a **preview**: its events are test traffic, and the **preview** Golden Frijoles flag stays off. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine.
 
 ## Install the current build
 
