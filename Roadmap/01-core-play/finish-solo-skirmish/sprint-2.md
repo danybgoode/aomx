@@ -3,7 +3,7 @@ epic: finish-solo-skirmish
 sprint: 2
 title: "Fight for the command post"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S2.1
@@ -12,14 +12,14 @@ stories:
     i_want: "to attack with two readable combat roles"
     so_that: "I can make a tactical choice and see its effect"
     risk: low
-    status: planned
+    status: done
 ---
 
 # Finish a solo skirmish — Sprint 2: Fight for the command post
 
-**Status:** Planned after Sprint 1 production passes.
+**Status:** Implemented locally. Headless combat, destruction, range and deterministic replay checks pass; rendered client shows unit and command-post damage. Pending PR review and merge.
 
-### Story 2.1 — Command literal unit and structure combat
+### ✅ Story 2.1 — Command literal unit and structure combat
 
 **As a** solo RTS player, **I want** to attack with two readable combat roles, **so that** I can make a tactical choice and see its effect.
 

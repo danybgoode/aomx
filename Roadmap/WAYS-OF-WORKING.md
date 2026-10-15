@@ -46,11 +46,28 @@ Agents may inspect and edit this repo, prepare branches and pull requests, and r
 
 ## Automated QA
 
-The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. The Godot 4.7.2 RTS prototype has [run and headless check commands](../game/README.md); its rendered worker, gathering and construction paths were checked locally. There is no terminal match or release build; add export and hosted smoke commands when those exist.
+The local funnel prototype uses Node 24: run `npm ci`, `npm test`, `npm run funnel:fixtures`, and `npm run funnel:report`. Its [event contract and audit walkthrough](../docs/launch-funnel-contract.md) explain the output. The Godot 4.7.2 solo skirmish has [run, headless and contract check commands](../game/README.md); rendered economy, combat and terminal states were checked locally. There is no release build; add export and hosted smoke commands when those exist.
+
+## Golden Frijoles roadmap sync
+
+The epic README and sprint files are the source of truth. `Roadmap/horizon.md` declares destinations; each epic links to one with `destination:` in frontmatter. The kit's live board combines those docs with remote Git branches and PR state. Use `feat/<epic-slug>` and optional `-sN` for work branches; `codex/` is not a recognized branch prefix. A draft PR appears as **Building**, a ready PR as **QA**. The committed `Roadmap/00-ideas/BUILD-ORDER.md` is generated from docs alone and can say Ready while the live board says Building. Story progress comes from `✅` on story headings, so keep headings and frontmatter `stories[].status` in sync with verified behavior.
+
+From a checkout with the latest roadmap files, run the pinned provider tools headlessly:
+
+```sh
+npx -y @golden-frijoles/cli@1.5.1 whoami --json
+npx -y @golden-frijoles/kit@1.9.2 preflight
+npx -y @golden-frijoles/kit@1.9.2 roadmap-extract --live --require-live
+AOMX_ENV_FILE=/absolute/path/to/the/connected/checkout/.env.local
+npx -y @golden-frijoles/kit@1.9.2 roadmap-push --dry-run --env-file "$AOMX_ENV_FILE"
+npx -y @golden-frijoles/kit@1.9.2 roadmap-push --env-file "$AOMX_ENV_FILE"
+```
+
+The push requires this project's ignored ingest key (`GROWTH_ENGINE_API_KEY` or `SELF_PROJECT_API_KEY`) and reports an artifact version. It is a clean **skip** without a key, so an exit code of zero alone is not proof of sync. Check the output for `✓ roadmap pushed`. Kit 1.9.2 or later is required to carry Horizon declarations and epic destinations. The `setup` skill's `npx skills` install has no automatic build-view hook or verifier agent; run the live extract and sync deliberately after a change. If a headless connection fails, run `npx -y @golden-frijoles/cli@1.5.1 doctor --json` and report the failing check. Do not switch to a browser as a workaround.
 
 ## Documentation map
 
-`Roadmap/README.md` is the product poster. `00-strategy/` holds agreed strategy and assumptions. `00-ideas/seeds/` holds raw ideas; `BUILD-ORDER.md` is generated from source status. Epic and sprint documents will record funded work. `LEARNINGS.md` holds only findings relevant to this project.
+`Roadmap/README.md` is the product poster. `horizon.md` names declared destinations. `00-strategy/` holds agreed strategy and assumptions. `00-ideas/seeds/` holds raw ideas; `BUILD-ORDER.md` is generated from source status. Epic and sprint documents record funded work. `LEARNINGS.md` holds only findings relevant to this project.
 
 ## Conventions
 

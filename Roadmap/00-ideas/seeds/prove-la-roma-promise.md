@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 4
+build_order: 5
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "A generic skirmish cannot show why players would choose Battle for La Roma. Two meaningful faction prototypes and a contested district should make the setting affect decisions while keeping the rules clear to players unfamiliar with Mexican references."

@@ -12,7 +12,7 @@ stories:
     i_want: "to select a worker and issue a move order"
     so_that: "I can tell whether the game obeyed or rejected my command"
     risk: low
-    status: in-progress
+    status: done
 ---
 # Prove the RTS core — Sprint 1: A1 Command a worker
 
@@ -20,7 +20,7 @@ stories:
 
 ## Stories
 
-### Story 1.1 — Select and move a worker
+### ✅ Story 1.1 — Select and move a worker
 
 **As a** classic RTS player, **I want** to select a worker and issue a move order, **so that** I can tell whether the game obeyed or rejected my command.
 
