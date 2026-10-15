@@ -66,7 +66,7 @@ Extend the Godot fixed-tick simulation and command log; both sides use the same 
 
 All three sprint increments are implemented in the Godot branch. The default rendered scene supports gather/build/train, melee and ranged combat, the authored opponent, win/loss/draw, restart and visible offline sync. Headless economy, combat, replay, terminal and client checks pass. The Godot-to-Node contract accepts one test-tagged result with a stable retry and zero public events. A second reviewer found and verified fixes for later-day open events and blocking dependent uploads behind an unresolved receipt. [Run commands and controls](../../../game/README.md) are checked in.
 
-On Apple M2 Max, Godot 4.7.2, a 20×20 map and 12 units, 5,000 path orders averaged 0.5440 ms; 1,000 simulation ticks averaged 0.0491 ms. The debug process-frame monitor showed roughly 14–28 ms during rendered capture. This supports continuing Godot for the next bounded slice; it does not characterize release exports or crowd pathing. The work is awaiting PR review and merge, and there is no game release rail.
+On Apple M2 Max, Godot 4.7.2, a 20×20 map and 12 units, 5,000 path orders averaged 0.5440 ms; 1,000 simulation ticks averaged 0.0491 ms. The debug process-frame monitor showed roughly 14–28 ms during rendered capture. This supports continuing Godot for the next bounded slice; it does not characterize release exports or crowd pathing. The implementation reached `master` through integration PR #12; owner gameplay QA and a public game release remain open.
 
 ## What already exists (reuse, don't rebuild)
 
