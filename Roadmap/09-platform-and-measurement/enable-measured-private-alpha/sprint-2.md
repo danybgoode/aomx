@@ -74,4 +74,4 @@ Environment: staging game build, isolated aomx HTTPS ingest, dedicated VM Postgr
 3. Trigger a logical backup and restore it into the disposable database. Event and receipt counts match; the original database remains untouched.
 4. Simulate an unavailable database and resume it. Client events remain pending, then reconcile after recovery; the health alert and runbook name the failure.
 
-If any step fails, keep the production flag off and do not issue invitations.
+If any step fails, do not issue invitations or release an eligible client. The owner enabled the flag in all environments on 2026-10-15; confirm its served state again before a release decision.

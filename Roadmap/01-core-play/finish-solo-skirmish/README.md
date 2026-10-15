@@ -47,7 +47,7 @@ A classic RTS player needs a battle that can end before they can judge the game'
 
 ## Platform-first note
 
-Extend the Godot fixed-tick simulation and command log; both sides use the same validation path. The client persists test-tagged match events through the existing offline outbox. The funnel service alone decides which uploads enter player cohorts, and its Golden Frijoles flag stays off during internal play.
+Extend the Godot fixed-tick simulation and command log; both sides use the same validation path. The client persists test-tagged match events through the existing offline outbox. The funnel service alone decides which uploads enter player cohorts; internal builds stay test-tagged regardless of the Golden Frijoles flag state.
 
 ## Architecture lock · 2026-10-14
 

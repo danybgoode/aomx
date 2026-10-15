@@ -31,7 +31,7 @@ stories:
 
 # Track the launch play funnel — Sprint 3: Accepted result and cohort read
 
-**Status:** Partial implementation: the [solo skirmish](../../01-core-play/finish-solo-skirmish/README.md) has a local terminal match and saves one test-tagged result. The Godot-to-Node ingest check passes with stable retry and zero public completions. Local cohort/correction checks, an amended offline acceptance definition, a dry-run input publisher and the aomx flag serving off in all three environments also exist. Eligible client trust, hosted ingest, real cohort and hosted-reading walkthroughs remain open. Run `npm ci && npm test && npm run skirmish:contract && npm run funnel:report && npm run funnel:publish` for local evidence; `skirmish:contract` also needs `GODOT_BIN`.
+**Status:** Partial implementation: the [solo skirmish](../../01-core-play/finish-solo-skirmish/README.md) has a local terminal match and saves one test-tagged result. The Godot-to-Node ingest check passes with stable retry and zero public completions. Local cohort/correction checks, an amended offline acceptance definition and a dry-run input publisher exist. The owner enabled the aomx flag in all three environments on 2026-10-15. Eligible client trust, a real cohort and hosted-reading walkthroughs remain open; isolated authenticated ingest is staged on the VM. Run `npm ci && npm test && npm run skirmish:contract && npm run funnel:report && npm run funnel:publish` for local evidence; `skirmish:contract` also needs `GODOT_BIN`.
 
 ## Stories
 
