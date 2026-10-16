@@ -1,14 +1,14 @@
-# UI component specification — later HUD milestone
+# UI component specification — current desktop HUD and later controls
 
 ## Implemented today
 
-The skirmish creates a CanvasLayer in game/skirmish_main.gd with a Label for match/HUD text and a Label for keyboard instructions. A PanelContainer, two faction Buttons, invite-code LineEdit and support Button are created in code. The board itself draws selection rings, numeric HP, placement preview and order feedback. There is no minimap, multi-selection, contextual command panel, camera pan, touch command system or responsive layout. The 1280×800 viewport uses canvas_items stretch.
+The skirmish creates a CanvasLayer in `game/skirmish_main.gd` with three desktop panels: match status, selection and contextual orders. Buttons use the existing validated `issue()` route, while board right click and keyboard commands remain available. A target prompt and cancel action cover move, gather, build and attack. The status panel reads real match and outbox state; the selection panel uses existing art and actor data. The board draws selection rings, numeric HP, placement preview and order feedback. The faction panel, invite-code LineEdit and support Button remain separate. There is no minimap, multi-selection, camera pan or touch command system. The 1280×800 viewport uses `canvas_items` stretch and was also checked locally at 1024×700.
 
 The approved concept JPG is a visual direction, not a feature inventory. Its food/wood/stone, population, ages, multiple selection, building cards, minimap and mobile controls are not implemented in the current simulation. The current match has one gold stockpile, one source per side, command/recruitment posts, worker/melee/ranged and two win routes.
 
-## Reusable Godot Control plan
+## Reusable Godot Control boundary
 
-A later desktop/touch HUD should use one shared command adapter that sends existing validated issue() intents, then separate responsive Control layouts:
+The desktop panels read state and send commands through the existing simulation; a later touch layout can reuse the same command route:
 
 | Component | Reads | Responsibility |
 | --- | --- | --- |
@@ -23,4 +23,4 @@ A later desktop/touch HUD should use one shared command adapter that sends exist
 
 Use anchors/containers for layout, focus states for keyboard access and usable tap targets for touch. Keep world pixel sprites separate from UI typography and scalable panels. Dark charcoal/stone panels, bronze trim and warm light type can express the concept without flattening the entire HUD into a bitmap. Selection and warning must remain understandable without blue/red alone.
 
-No HUD implementation is in the v0.1 art epic beyond maintaining the current information and procedural feedback.
+The HUD implementation belongs to the separate readable-battlefield-hud epic. The art pack provides the selection portraits and battlefield sprites.

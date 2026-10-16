@@ -105,6 +105,27 @@ func _run() -> void:
 	check(client.sim.entities[post_id].queue.size() == 1 and client.sim.stockpile[Skirmish.HUMAN] == gold_before - client.sim._cost(Skirmish.HUMAN, "worker"),
 		"recruit button uses actual cost and production queue")
 	check(client.selection_details.text.contains("Queue 1"), "selection panel reports the real queue")
+	client.selected_id = worker_id
+	client._update_hud()
+	client._activate_command("build")
+	check(client.target_mode == "build" and client.placing, "build button arms the existing placement preview")
+	client._complete_target_order(Vector2.ZERO, Skirmish.BARRACKS_POS[Skirmish.HUMAN])
+	check(client.sim._find(Skirmish.HUMAN, "barracks") != -1 and client.target_mode.is_empty(),
+		"build button places a post through the validated simulation order")
+	client.sim.entities.erase(worker_id)
+	client._process(0.1)
+	check(client.selected_id == -1 and client.selection_title.text == "NO SELECTION", "lost actor clears the selection panel")
+	var fighter_id: int = client.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 2))
+	var target_id: int = client.sim._add_entity(Skirmish.COMPUTER, "melee", Vector2i(5, 2))
+	client.selected_id = fighter_id
+	client._activate_command("attack")
+	client._activate_command("cancel")
+	check(client.target_mode.is_empty(), "attack target flow can be canceled")
+	client._activate_command("attack")
+	var enemy_screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(Vector2i(5, 2)) - Vector2(640, 305)) * client.board_zoom
+	client._complete_target_order(enemy_screen, Vector2i(5, 2))
+	check(client.sim.entities[fighter_id].job == "attack" and client.sim.entities[fighter_id].target_id == target_id,
+		"attack button targets a visible enemy through the existing order path")
 	client.sim.entities[client.sim._find(Skirmish.COMPUTER, "command_post")].hp = 0
 	client._process(0.1)
 	check(client.outbox.state.events.size() == 5 and client.outbox.state.events[4].event.faction == Skirmish.POBLANOS,

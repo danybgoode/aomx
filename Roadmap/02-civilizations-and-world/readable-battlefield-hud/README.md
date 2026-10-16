@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: readable-battlefield-hud
 title: "Readable battlefield HUD"
@@ -79,10 +79,14 @@ First-time players should see what they have selected, what the current match ne
 ## Deploy order
 Build on `feat/readable-battlefield-hud` after the art-pack branch. Each sprint is a review and rollback boundary in one orchestrated run. Verify headless Godot behavior and rendered local desktop states before merging. A reviewed merge to `master` is separate from a signed Restricted owner preview; update that channel only under its existing runbook. Owner and blind playthrough evidence remain needed before this epic is marked shipped.
 
+## Builder result · 2026-10-16
+
+Commit `54a0875` adds the match, selection and contextual order panels and the client checks. The Godot rules/client suite, event contract, art manifest and Node tests pass. Rendered local checks at 1280×800 and 1024×700, including 120% board zoom, show readable panels and intact board picking. An isolated preview-channel copy shows the invite and support controls alongside the HUD. This is local builder evidence; the Restricted download and uncoached human tasks remain open.
+
 ## Definition of Done (epic)
-- [ ] Five story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
-- [ ] Existing rules, selection/picking, offline outbox and content versions pass their checks.
-- [ ] The current desktop HUD works at normal and supported zoom/window sizes, including private invite controls.
+- [x] Five story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
+- [x] Existing rules, selection/picking, offline outbox and content versions pass their checks.
+- [x] The current desktop HUD works at normal and supported zoom/window sizes, including private invite controls in a local preview-channel copy.
 - [ ] Owner and two arranged blind reviewers attempt the uncoached command tasks; record results without inventing a retention lift.
 - [ ] Reviewed code lands on `master`; any Restricted preview is verified separately.
 - [ ] Retrospective, product poster, useful learnings and generated board reflect the observed outcome. Mark `status: shipped` only after these checks.
