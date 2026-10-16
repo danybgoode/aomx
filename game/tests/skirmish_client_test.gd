@@ -39,16 +39,35 @@ func _run() -> void:
 	check(client.outbox.state.events.size() == 4 and client.match_id != start.match_id, "new faction choice creates a new match start")
 	check(client.outbox.state.events[3].event.faction == Skirmish.POBLANOS, "restart can choose other faction")
 	check(client.sim.result.is_empty(), "restart clears terminal state")
+	client.board_pan = Vector2.ZERO
 	for zoom in [1.0, 1.1, 1.25]:
 		client.board_zoom = zoom
 		for tile in [Vector2i(4, 2), Vector2i(6, 4), Vector2i(13, 15)]:
-			var screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(tile) - Vector2(640, 305)) * zoom
+			var screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(tile) - Vector2(640, 305)) * zoom + client._board_view_offset()
 			check(client._screen_to_tile(screen) == tile, "board hit testing matches visible tile at zoom %.2f" % zoom)
 	client.board_zoom = 1.1
+	client._navigate_minimap(Vector2i(10, 10))
+	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 10) and client.board_pan != Vector2.ZERO,
+		"minimap navigation moves the existing battlefield camera")
+	var map_click := InputEventMouseButton.new()
+	map_click.button_index = MOUSE_BUTTON_LEFT
+	map_click.position = Vector2(7, 7) + (client.hud_ui.minimap.size - Vector2(14, 14)) * Vector2(0.375, 0.325)
+	map_click.pressed = true
+	client.hud_ui.minimap._gui_input(map_click)
+	check(client.hud_ui.minimap.camera_tile == Vector2i(7, 6), "clicking the minimap moves the camera")
+	client._toggle_pause()
+	var paused_tick: int = client.sim.tick_number
+	client._process(0.5)
+	check(client.sim.tick_number == paused_tick and client.paused, "pause control holds simulation time")
+	client._toggle_pause()
+	client._toggle_diagnostics()
+	check(client.hud_ui.diagnostics.visible and client.invite_input != null, "menu exposes preserved alpha diagnostics")
+	client._toggle_diagnostics()
+	client.board_pan = Vector2.ZERO
 	var worker_id: int = client.sim._find(Skirmish.HUMAN, "worker")
 	var worker_tile: Vector2i = client.sim.entities[worker_id].pos
 	var worker_body: Vector2 = client._tile_to_screen(worker_tile) + Vector2(0, -27)
-	var worker_screen: Vector2 = Vector2(640, 305) + (worker_body - Vector2(640, 305)) * client.board_zoom
+	var worker_screen: Vector2 = Vector2(640, 305) + (worker_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
 	check(client._screen_to_tile(worker_screen) != worker_tile, "worker body overhangs its simulation tile")
 	check(client._pick_visual_entity(worker_screen, Skirmish.HUMAN) == worker_id, "visible worker body is pickable")
 	var select_click := InputEventMouseButton.new()
@@ -57,7 +76,7 @@ func _run() -> void:
 	select_click.pressed = true
 	client._unhandled_input(select_click)
 	check(client.selected_id == worker_id, "clicking the worker body selects it")
-	check(client.selection_title.text.contains("Worker") and client.selection_portrait.texture != null and client.selection_details.text.contains("HP"),
+	check(client.selection_title.text.contains("Worker") and client.selection_portrait.texture != null and client.hud_ui.selection_hp_label.text.contains("HP"),
 		"selection panel follows the active board actor")
 	check(client.command_buttons["gather"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
 		"worker sees only relevant commands")
@@ -70,7 +89,7 @@ func _run() -> void:
 	check(client.target_mode.is_empty() and not client.placing, "cancel returns to ordinary selection")
 	var gold_tile: Vector2i = Skirmish.RESOURCE_POS[Skirmish.HUMAN]
 	var cart_body: Vector2 = client._tile_to_screen(gold_tile) + Vector2(0, -20)
-	var cart_screen: Vector2 = Vector2(640, 305) + (cart_body - Vector2(640, 305)) * client.board_zoom
+	var cart_screen: Vector2 = Vector2(640, 305) + (cart_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
 	check(client._screen_to_tile(cart_screen) != gold_tile, "cart body overhangs its resource tile")
 	check(client._pick_visual_source(cart_screen) == Skirmish.HUMAN, "visible cart body is targetable")
 	client._activate_command("gather")
@@ -92,11 +111,13 @@ func _run() -> void:
 	check(gather.ok and client.order_flash_ok and client.order_flash_tile == gold_tile and client.sim.feedback == "Gathering gold.", "accepted gather has visible target feedback")
 	var rejected: Dictionary = client._issue_order("build", Vector2i(10, 2), Vector2i(10, 2))
 	check(not rejected.ok and not client.order_flash_ok and client.sim.feedback != "", "rejected build has distinct readable feedback")
-	check(client.command_buttons["build"].disabled and client.command_buttons["build"].text.contains("Need"),
+	check(client.command_buttons["build"].disabled and client.command_buttons["build"].tooltip_text.contains("Need"),
 		"unaffordable build explains its cost")
 	client.sim.stockpile[Skirmish.HUMAN] = 10
 	var post_id: int = client.sim._find(Skirmish.HUMAN, "command_post")
 	client.selected_id = post_id
+	client.selected_ids.clear()
+	client.selected_ids.append(post_id)
 	client._update_hud()
 	check(client.command_buttons["train_worker"].visible and not client.command_buttons["gather"].visible,
 		"command post shows its own recruitment order")
@@ -104,8 +125,10 @@ func _run() -> void:
 	client._activate_command("train_worker")
 	check(client.sim.entities[post_id].queue.size() == 1 and client.sim.stockpile[Skirmish.HUMAN] == gold_before - client.sim._cost(Skirmish.HUMAN, "worker"),
 		"recruit button uses actual cost and production queue")
-	check(client.selection_details.text.contains("Queue 1"), "selection panel reports the real queue")
+	check(client.hud_ui.selection_stats.text.contains("Queue 1"), "selection panel reports the real queue")
 	client.selected_id = worker_id
+	client.selected_ids.clear()
+	client.selected_ids.append(worker_id)
 	client._update_hud()
 	client._activate_command("build")
 	check(client.target_mode == "build" and client.placing, "build button arms the existing placement preview")
@@ -118,14 +141,44 @@ func _run() -> void:
 	var fighter_id: int = client.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 2))
 	var target_id: int = client.sim._add_entity(Skirmish.COMPUTER, "melee", Vector2i(5, 2))
 	client.selected_id = fighter_id
+	client.selected_ids.clear()
+	client.selected_ids.append(fighter_id)
 	client._activate_command("attack")
 	client._activate_command("cancel")
 	check(client.target_mode.is_empty(), "attack target flow can be canceled")
 	client._activate_command("attack")
-	var enemy_screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(Vector2i(5, 2)) - Vector2(640, 305)) * client.board_zoom
+	var enemy_screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(Vector2i(5, 2)) - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
 	client._complete_target_order(enemy_screen, Vector2i(5, 2))
 	check(client.sim.entities[fighter_id].job == "attack" and client.sim.entities[fighter_id].target_id == target_id,
 		"attack button targets a visible enemy through the existing order path")
+	var wing_id: int = client.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 3))
+	var group_center: Vector2 = Vector2(640, 305) + (client._tile_to_screen(Vector2i(4, 2)) - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
+	client._select_drag(Rect2(group_center - Vector2(40, 25), Vector2(80, 70)), false)
+	check(client.selected_ids.size() == 2 and client.selection_title.text.contains("2 UNITS") and client.hud_ui.group_grid.visible,
+		"drag selection builds a clickable portrait group")
+	var group_log_size: int = client.sim.command_log.size()
+	client._issue_order("attack", target_id, Vector2i(5, 2))
+	check(client.sim.command_log.size() == group_log_size + 2 and client.sim.entities[wing_id].target_id == target_id,
+		"group attack dispatches validated simulation commands for each fighter")
+	client._select_subset(wing_id)
+	check(client.selected_ids == [wing_id] and not client.hud_ui.group_grid.visible,
+		"portrait subset returns to one unit")
+	client.hud_ui.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	for viewport_size in [Vector2(1536, 960), Vector2(1920, 1080), Vector2(844, 390), Vector2(390, 844)]:
+		client.hud_ui.size = viewport_size
+		client.hud_ui._layout()
+		var bar: Panel = client.hud_ui.bottom
+		var map: Control = client.hud_ui.minimap
+		check(bar.position.x >= 0 and bar.position.y >= 0 and bar.position.x + bar.size.x <= viewport_size.x and bar.position.y + bar.size.y <= viewport_size.y,
+			"bottom HUD stays inside %s viewport" % viewport_size)
+		check(map.position.x >= 0 and map.position.y >= 0 and map.position.x + map.size.x <= viewport_size.x and map.position.y + map.size.y <= viewport_size.y,
+			"minimap stays inside %s viewport" % viewport_size)
+		if viewport_size.x < 950:
+			for button in client.command_buttons.values():
+				if button.visible:
+					check(button.size.y >= 44, "mobile command touch target is at least 44 pixels high")
+	client.hud_ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	client.hud_ui._layout()
 	client.sim.entities[client.sim._find(Skirmish.COMPUTER, "command_post")].hp = 0
 	client._process(0.1)
 	check(client.outbox.state.events.size() == 5 and client.outbox.state.events[4].event.faction == Skirmish.POBLANOS,

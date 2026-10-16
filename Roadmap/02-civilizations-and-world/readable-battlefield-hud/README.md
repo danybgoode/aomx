@@ -8,8 +8,8 @@ area: 02-civilizations-and-world
 destination: fight-for-la-roma
 risk: low
 type: feature
-sprints_total: 2
-stories_total: 5
+sprints_total: 3
+stories_total: 6
 intent_match: null   # copied from the seed by scaffold-epic (intent-match); the reader at the lock may update it
 quote_low_usd: 20    # ≈ API $ — copied from the seed's `quote:` by scaffold-epic (finops); null = not quoted, never 0
 quote_high_usd: 120
@@ -60,7 +60,7 @@ First-time players should see what they have selected, what the current match ne
 - `game/skirmish.gd` remains the only authority for resources, actions, targets, health, queue and outcomes. HUD state is a read-only projection; buttons issue the same existing commands as keys and pointer input.
 - Keep the board's sprite alpha picking, selection ring, tile coordinates and camera zoom. UI panels may not steal pointer input intended for the board.
 - Build reusable Godot `Control` components with anchors/containers, scalable text and focus states. Use existing art for portraits where suitable; do not make a single flattened HUD texture.
-- Show only current mechanics: one gold stockpile, district hold, selected actor, real build/train actions, last order, result and sync state. Keep private invite controls visible in alpha builds.
+- Show only current mechanics: one gold stockpile, district hold, selected actors, real build/train actions, last order, result and sync state. Keep private invite and support controls in a visible-on-demand alpha menu.
 - No new telemetry schema or enablement flag in this slice; existing test-tagged match events and North Star definition remain authoritative. A real cohort baseline is still unknown.
 
 ## What already exists (reuse, don't rebuild)
@@ -75,9 +75,10 @@ First-time players should see what they have selected, what the current match ne
 |---|---|---|
 | 1 · Understand the match | S1.1, S1.2 | A clear status area and selection panel for the real match. | low |
 | 2 · Give contextual commands | S2.1, S2.2, S2.3 | Visible legal orders, confirmation and desktop layout QA. | low |
+| 3 · Visual RTS HUD | S3.1 | Approved reference hierarchy, responsive icon commands, minimap, objective and support areas. | low |
 
 ## Deploy order
-Build on `feat/readable-battlefield-hud` after the art-pack branch. Each sprint is a review and rollback boundary in one orchestrated run. Verify headless Godot behavior and rendered local desktop states before merging. A reviewed merge to `master` is separate from a signed Restricted owner preview; update that channel only under its existing runbook. Owner and blind playthrough evidence remain needed before this epic is marked shipped.
+The first two sprints were merged on `feat/readable-battlefield-hud`. Sprint 3 is the follow-up on `feat/readable-battlefield-hud-s3`. Verify rules, HUD interactions, exports and rendered desktop/mobile states before merging. A merge to `master` is separate from a signed Restricted owner preview; update that channel under its existing runbook. Owner and blind playthrough evidence remain needed before this epic is marked shipped.
 
 ## Builder result · 2026-10-16
 
@@ -85,10 +86,14 @@ Commit `54a0875` adds the match, selection and contextual order panels and the c
 
 The merged `master` commit `b453e05` was exported separately as `preview-b453e0523b1d` (source ZIP SHA-256 `16d72fb177f65a29e6c0b59aefef798e3b49ad2ee2a5a9ddb05b75018b97ca3b`) and uploaded to the Restricted owner itch channel as build `#2141043`. The extracted signed app launched locally and showed that exact build ID with the new HUD. Follow [the owner download QA](../../../docs/alpha-local-qa.md) after Butler marks the upload ready; the owner will share it with two blind reviewers later. No owner or reviewer task result has been recorded yet.
 
+## Visual redesign follow-up · 2026-10-16
+
+Owner feedback accepted the isometric battlefield and requested the gameplay interface match the [approved HUD direction](../../../references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg). Sprint 3 implements the [Godot component design](../../../docs/art/ui-component-spec.md) and [four actual captures](../../../docs/screenshots/readable-hud/README.md). Only supported simulation resources and actions appear. Alpha invite and diagnostics remain available in the menu. The native Godot HUD test covers selection, group orders, minimap navigation, pause, contextual commands, building placement and the four viewport bounds. A single-threaded Web export loaded to the gameplay screen in Chrome. Owner download QA and two uncoached reviews remain unrecorded.
+
 ## Definition of Done (epic)
-- [x] Five story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
+- [ ] Six story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
 - [x] Existing rules, selection/picking, offline outbox and content versions pass their checks.
-- [x] The current desktop HUD works at normal and supported zoom/window sizes, including private invite controls in a local preview-channel copy.
+- [x] The redesigned desktop and mobile HUD is captured at the four requested sizes; private invite controls remain in the alpha support menu.
 - [ ] Owner and two arranged blind reviewers attempt the uncoached command tasks; record results without inventing a retention lift.
 - [ ] Reviewed code lands on `master`; any Restricted preview is verified separately.
 - [ ] Retrospective, product poster, useful learnings and generated board reflect the observed outcome. Mark `status: shipped` only after these checks.

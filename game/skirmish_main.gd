@@ -4,13 +4,14 @@ const Skirmish = preload("res://skirmish.gd")
 const FunnelOutbox = preload("res://funnel_outbox.gd")
 const AlphaConfig = preload("res://alpha_config.gd")
 const ArtCatalog = preload("res://art_catalog.gd")
+const BattleHud = preload("res://ui/battle_hud.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
 const BOARD_CENTER := Vector2(640, 305)
 const TICK_SECONDS := 0.1
 const ZOOM_MIN := 1.0
-const ZOOM_MAX := 1.25
+const ZOOM_MAX := 1.55
 const ZOOM_STEP := 0.1
 const UNIT_ART_SCALE := 0.75
 
@@ -20,15 +21,32 @@ var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_panel: PanelContainer
 var setup_goal: Label
+var setup_regios: Button
+var setup_poblanos: Button
+var setup_note: Label
 var match_id := ""
 var completion_queued := false
 var selected_id := -1
+var selected_ids: Array[int] = []
+var drag_start := Vector2.ZERO
+var drag_current := Vector2.ZERO
+var drag_active := false
 var hovered_entity_id := -1
 var hovered_source_side := -1
 var placing := false
 var target_mode := ""
 var marker := Vector2i(-1, -1)
 var board_zoom := 1.1
+var board_pan := Vector2.ZERO
+var hud_ui: Control
+var paused := false
+var last_ui_signature := ""
+var last_group_signature := ""
+var last_event_entities: Dictionary = {}
+var last_district_state := "neutral"
+var last_attack_notice_tick := -1000
+var last_selected_hp := -1
+var last_alert_state := ""
 var order_flash_tile := Vector2i(-1, -1)
 var order_flash_text := ""
 var order_flash_seconds := 0.0
@@ -42,7 +60,7 @@ var selection_details: Label
 var selection_portrait: TextureRect
 var command_help: Label
 var command_buttons: Dictionary = {}
-var command_panel: PanelContainer
+var command_panel: Panel
 var instructions: Label
 var hover_hint: Label
 var request: HTTPRequest
@@ -68,131 +86,69 @@ func _ready() -> void:
 	add_child(retry_timer)
 	var layer := CanvasLayer.new()
 	add_child(layer)
-	if AlphaConfig.CHANNEL != "development":
-		var invite_path := "user://alpha-invite-code.txt"
-		if FileAccess.file_exists(invite_path):
-			invite_code = FileAccess.get_file_as_string(invite_path).strip_edges()
-		invite_input = LineEdit.new()
-		invite_input.position = Vector2(22, 16)
-		invite_input.size = Vector2(300, 42)
-		invite_input.add_theme_font_size_override("font_size", 18)
-		invite_input.placeholder_text = "Enter private alpha invite code"
-		invite_input.secret = true
-		layer.add_child(invite_input)
-		var invite_button := Button.new()
-		invite_button.text = "Save invite code"
-		invite_button.position = Vector2(335, 16)
-		invite_button.add_theme_font_size_override("font_size", 18)
-		invite_button.pressed.connect(_save_invite_code)
-		layer.add_child(invite_button)
-		var support_button := Button.new()
-		support_button.text = "Copy support ID"
-		support_button.position = Vector2(22, 65)
-		support_button.add_theme_font_size_override("font_size", 18)
-		support_button.pressed.connect(_copy_support_id)
-		layer.add_child(support_button)
 	_build_match_hud(layer)
 	instructions = Label.new()
-	instructions.position = Vector2(26, 777)
-	instructions.size = Vector2(1228, 20)
-	instructions.add_theme_font_size_override("font_size", 14)
-	instructions.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	instructions.visible = false
 	layer.add_child(instructions)
 	hover_hint = Label.new()
-	hover_hint.position = Vector2(22, 543)
-	hover_hint.add_theme_font_size_override("font_size", 16)
+	hover_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hover_hint.add_theme_font_size_override("font_size", 14)
 	hover_hint.add_theme_color_override("font_color", Color("ffe391"))
 	layer.add_child(hover_hint)
 	_build_faction_setup(layer)
+	get_viewport().size_changed.connect(_layout_setup)
+	_layout_setup()
 	_show_setup()
 	_update_hud()
 
 func _build_match_hud(layer: CanvasLayer) -> void:
-	var bar := HBoxContainer.new()
-	bar.position = Vector2(16, 565)
-	bar.size = Vector2(1248, 207)
-	bar.add_theme_constant_override("separation", 8)
-	layer.add_child(bar)
-	var status_panel := _hud_panel(bar, 410)
-	var status_column := VBoxContainer.new()
-	status_column.add_theme_constant_override("separation", 5)
-	status_panel.add_child(status_column)
-	hud = Label.new()
-	hud.add_theme_font_size_override("font_size", 14)
-	hud.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	status_column.add_child(hud)
-	var selection_panel := _hud_panel(bar, 330)
-	var selection_column := VBoxContainer.new()
-	selection_column.add_theme_constant_override("separation", 4)
-	selection_panel.add_child(selection_column)
-	selection_title = Label.new()
-	selection_title.add_theme_font_size_override("font_size", 18)
-	selection_title.add_theme_color_override("font_color", Color("ffe1a1"))
-	selection_column.add_child(selection_title)
-	var selection_row := HBoxContainer.new()
-	selection_column.add_child(selection_row)
-	selection_portrait = TextureRect.new()
-	selection_portrait.custom_minimum_size = Vector2(72, 72)
-	selection_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	selection_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	selection_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	selection_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	selection_row.add_child(selection_portrait)
-	selection_details = Label.new()
-	selection_details.custom_minimum_size.x = 220
-	selection_details.add_theme_font_size_override("font_size", 14)
-	selection_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	selection_details.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	selection_row.add_child(selection_details)
-	command_panel = _hud_panel(bar, 490)
-	var command_column := VBoxContainer.new()
-	command_column.add_theme_constant_override("separation", 3)
-	command_panel.add_child(command_column)
-	var heading := Label.new()
-	heading.text = "ORDERS"
-	heading.add_theme_font_size_override("font_size", 16)
-	heading.add_theme_color_override("font_color", Color("ffe1a1"))
-	command_column.add_child(heading)
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 4)
-	command_column.add_child(grid)
-	for action in ["move", "gather", "build", "train_worker", "train_melee", "train_ranged", "attack", "cancel"]:
-		var button := Button.new()
-		button.custom_minimum_size = Vector2(220, 32)
-		button.add_theme_font_size_override("font_size", 14)
-		button.add_theme_color_override("font_disabled_color", Color("d4d1c8"))
-		button.add_theme_color_override("font_focus_color", Color("fff1cf"))
-		button.focus_mode = Control.FOCUS_ALL
-		button.pressed.connect(_activate_command.bind(action))
-		grid.add_child(button)
-		command_buttons[action] = button
-	command_help = Label.new()
-	command_help.add_theme_font_size_override("font_size", 14)
-	command_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	command_help.custom_minimum_size.y = 32
-	command_column.add_child(command_help)
+	hud_ui = BattleHud.new()
+	layer.add_child(hud_ui)
+	hud_ui.command.connect(_activate_command)
+	hud_ui.subset_requested.connect(_select_subset)
+	hud_ui.navigate.connect(_navigate_minimap)
+	hud_ui.minimap.terrain_classifier = Callable(self, "_terrain_id")
+	hud_ui.menu_requested.connect(_toggle_diagnostics)
+	hud_ui.pause_requested.connect(_toggle_pause)
+	hud = hud_ui.diagnostics_label
+	selection_title = hud_ui.selection_title
+	selection_details = hud_ui.selection_details
+	selection_portrait = hud_ui.selection_portrait
+	command_help = hud_ui.command_help
+	command_buttons = hud_ui.command_buttons
+	command_panel = hud_ui.command_panel
+	invite_input = hud_ui.invite_input
+	hud_ui.invite_save.pressed.connect(_save_invite_code)
+	hud_ui.support_copy.pressed.connect(_copy_support_id)
+	if AlphaConfig.CHANNEL != "development":
+		var invite_path := "user://alpha-invite-code.txt"
+		if FileAccess.file_exists(invite_path):
+			invite_code = FileAccess.get_file_as_string(invite_path).strip_edges()
+	hud_ui.invite_input.visible = AlphaConfig.CHANNEL != "development"
+	hud_ui.invite_save.visible = AlphaConfig.CHANNEL != "development"
 
-func _hud_panel(parent: HBoxContainer, width: float) -> PanelContainer:
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size.x = width
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("202a32")
-	style.border_color = Color("af8c58")
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(7)
-	style.set_content_margin_all(10)
-	panel.add_theme_stylebox_override("panel", style)
-	parent.add_child(panel)
-	return panel
+func _toggle_diagnostics() -> void:
+	hud_ui.diagnostics.visible = not hud_ui.diagnostics.visible
+	_update_hud()
+
+func _toggle_pause() -> void:
+	paused = not paused
+	hud_ui.pause_button.text = ">" if paused else "II"
+	hud_ui.show_notice("Paused" if paused else "Resumed")
+
+func _navigate_minimap(tile: Vector2i) -> void:
+	var view_center := Vector2(get_viewport().get_visible_rect().size.x * 0.5, (hud_ui.top.size.y + hud_ui.bottom.position.y) * 0.5)
+	board_pan = (view_center - BOARD_CENTER - _board_view_offset()) - (_tile_to_screen(tile) - BOARD_CENTER) * board_zoom
+	board_pan = board_pan.clamp(Vector2(-320, -190), Vector2(320, 190))
+	hud_ui.minimap.camera_tile = tile
+	hud_ui.minimap.queue_redraw()
+	queue_redraw()
 
 func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_panel = PanelContainer.new()
 	setup_panel.position = Vector2(235, 105)
 	setup_panel.size = Vector2(810, 420)
+	setup_panel.add_theme_stylebox_override("panel", preload("res://ui/hud_skin.gd").panel(10, true))
 	layer.add_child(setup_panel)
 	var margin := MarginContainer.new()
 	for side in ["left", "top", "right", "bottom"]:
@@ -214,17 +170,48 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	regios.custom_minimum_size.y = 72
 	regios.add_theme_font_size_override("font_size", 20)
 	regios.pressed.connect(_choose_faction.bind(Skirmish.REGIOS))
+	regios.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	preload("res://ui/hud_skin.gd").apply_button(regios)
 	column.add_child(regios)
+	setup_regios = regios
 	var poblanos := Button.new()
 	poblanos.text = "Poblanos — posts +20% HP; workers carry 4 gold; standard fighter costs"
 	poblanos.custom_minimum_size.y = 72
 	poblanos.add_theme_font_size_override("font_size", 20)
 	poblanos.pressed.connect(_choose_faction.bind(Skirmish.POBLANOS))
+	poblanos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	preload("res://ui/hud_skin.gd").apply_button(poblanos)
 	column.add_child(poblanos)
+	setup_poblanos = poblanos
 	var note := Label.new()
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
 	column.add_child(note)
+	setup_note = note
+
+func _layout_setup() -> void:
+	if setup_panel == null:
+		return
+	var view := get_viewport().get_visible_rect().size
+	var mobile := view.x < 950.0 or view.y < 560.0
+	var landscape := view.x > view.y
+	setup_goal.text = "Destroy enemy post or hold La Roma for 60s." if mobile and not landscape else ("Destroy the enemy post or hold La Roma for 60 seconds." if mobile else "Win by destroying the opposing command post or holding La Roma for 60 seconds.")
+	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
+	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_regios.text = ("REGIOS  •  +5 gold deliveries" if not landscape else "REGIOS  •  workers deliver 5 gold; fighters cost +1") if mobile else "Regios — workers deliver 5 gold; combat units cost +1 gold"
+	setup_poblanos.text = ("POBLANOS  •  tougher posts" if not landscape else "POBLANOS  •  tougher posts; workers carry 4 gold") if mobile else "Poblanos — posts +20% HP; workers carry 4 gold; standard fighter costs"
+	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
+	for b in [setup_regios, setup_poblanos]:
+		b.custom_minimum_size.y = 50 if mobile and landscape else (65 if mobile else 72)
+		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
+	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
+	setup_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var column: VBoxContainer = setup_panel.get_child(0).get_child(0)
+	column.add_theme_constant_override("separation", 8 if mobile else 16)
+	var title: Label = column.get_child(0)
+	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
+	setup_panel.size = Vector2(minf(810, view.x - 24), 280.0 if mobile and landscape else (330.0 if mobile else minf(420, view.y - 24)))
+	setup_panel.position = (view - setup_panel.size) * 0.5
 
 func _show_setup() -> void:
 	choosing_faction = true
@@ -233,12 +220,20 @@ func _show_setup() -> void:
 	match_id = ""
 	accumulator = 0.0
 	selected_id = -1
+	selected_ids.clear()
+	last_group_signature = ""
+	last_ui_signature = ""
 	hovered_entity_id = -1
 	hovered_source_side = -1
 	placing = false
 	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
+	board_pan = Vector2.ZERO
+	board_zoom = 1.45 if get_viewport().get_visible_rect().size.x >= 1800 else (1.25 if get_viewport().get_visible_rect().size.x >= 1500 else 1.1)
+	paused = false
+	last_event_entities.clear()
+	last_district_state = "neutral"
 	setup_panel.show()
 	hover_hint.text = ""
 	instructions.text = "Choose Regios or Poblanos to begin · Press 1 or 2, or click a choice"
@@ -259,13 +254,23 @@ func _start_match(faction: String) -> void:
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
+	selected_ids.clear()
+	last_group_signature = ""
+	last_ui_signature = ""
 	hovered_entity_id = -1
 	hovered_source_side = -1
 	placing = false
 	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
+	last_event_entities.clear()
+	for id in sim.entities:
+		last_event_entities[id] = sim.entities[id].duplicate(true)
+	last_district_state = sim.district_state
 	marker = Vector2i(-1, -1)
+	board_zoom = 1.45 if get_viewport().get_visible_rect().size.x >= 1800 else (1.25 if get_viewport().get_visible_rect().size.x >= 1500 else 1.1)
+	if get_viewport().get_visible_rect().size.x < 950:
+		_navigate_minimap(Vector2i(4, 3))
 	order_flash_seconds = 0.0
 	var saved: Dictionary = outbox.queue("match_started", match_id)
 	sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
@@ -289,7 +294,7 @@ func _start_match(faction: String) -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
-	if choosing_faction:
+	if choosing_faction or paused:
 		return
 	_refresh_hover()
 	if order_flash_seconds > 0.0:
@@ -307,16 +312,49 @@ func _process(delta: float) -> void:
 		if not saved.ok:
 			sync_note = "Result could not be saved; check device storage."
 	if advanced:
+		for id in selected_ids.duplicate():
+			if not sim.entities.has(id):
+				selected_ids.erase(id)
 		if selected_id != -1 and not sim.entities.has(selected_id):
-			selected_id = -1
+			selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
 			target_mode = ""
 			placing = false
+		_observe_events()
 		_update_unit_facing()
 		_update_hud()
 		_refresh_hover()
 		queue_redraw()
 
+func _observe_events() -> void:
+	for id in sim.entities:
+		var entity: Dictionary = sim.entities[id]
+		if entity.side != Skirmish.HUMAN:
+			continue
+		if not last_event_entities.has(id):
+			if entity.kind in ["worker", "melee", "ranged"]:
+				hud_ui.show_notice("%s ready" % entity.kind.capitalize())
+		elif not last_event_entities[id].complete and entity.complete:
+			hud_ui.show_notice("Recruitment post complete")
+		elif entity.hp < last_event_entities[id].hp and sim.tick_number - last_attack_notice_tick > 50:
+			hud_ui.show_notice("Unit under attack", true)
+			last_attack_notice_tick = sim.tick_number
+	if sim.district_state != last_district_state:
+		if sim.district_state == "human_hold":
+			hud_ui.show_notice("La Roma captured • hold for 01:00")
+		elif sim.district_state == "computer_hold":
+			hud_ui.show_notice("Enemy holds La Roma • contest it", true)
+	last_district_state = sim.district_state
+	last_event_entities.clear()
+	for id in sim.entities:
+		last_event_entities[id] = sim.entities[id].duplicate(true)
+
 func _unhandled_input(event: InputEvent) -> void:
+	if paused:
+		if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
+			_toggle_pause()
+		elif event is InputEventKey and event.pressed and event.keycode == KEY_TAB:
+			_toggle_diagnostics()
+		return
 	if choosing_faction:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode == KEY_1:
@@ -337,6 +375,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_window().mode = Window.MODE_WINDOWED if get_window().mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
 			KEY_B:
 				_activate_command("build")
+			KEY_M:
+				_activate_command("move")
+			KEY_H:
+				_activate_command("gather")
+			KEY_A:
+				_activate_command("attack")
+			KEY_SPACE:
+				_toggle_pause()
 			KEY_ESCAPE:
 				placing = false
 				target_mode = ""
@@ -351,6 +397,16 @@ func _unhandled_input(event: InputEvent) -> void:
 				_show_setup()
 			KEY_F:
 				_send_next()
+			KEY_TAB:
+				_toggle_diagnostics()
+	elif event is InputEventMouseMotion and drag_active:
+		drag_current = event.position
+		queue_redraw()
+	elif event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if drag_active and drag_start.distance_to(event.position) > 12:
+			_select_drag(Rect2(drag_start, event.position - drag_start).abs(), event.shift_pressed)
+		drag_active = false
+		queue_redraw()
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_change_zoom(ZOOM_STEP)
@@ -364,13 +420,26 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		var tile := _screen_to_tile(event.position)
 		if event.button_index == MOUSE_BUTTON_LEFT:
+			drag_active = target_mode.is_empty()
+			drag_start = event.position
+			drag_current = event.position
 			if target_mode != "" and selected_id != -1:
 				_complete_target_order(event.position, tile)
 			else:
 				var id: int = _pick_visual_entity(event.position, Skirmish.HUMAN)
 				if id == -1:
 					id = sim.entity_at(tile)
-				selected_id = id if id != -1 and sim.entities[id].side == Skirmish.HUMAN else -1
+				if id != -1 and sim.entities[id].side == Skirmish.HUMAN:
+					if event.shift_pressed:
+						if id in selected_ids:
+							selected_ids.erase(id)
+						else:
+							selected_ids.append(id)
+					else:
+						selected_ids = [id]
+				else:
+					selected_ids.clear()
+				selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
 				target_mode = ""
 				placing = false
 				if selected_id != -1:
@@ -383,11 +452,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			if target_id == -1:
 				target_id = sim.entity_at(tile)
 			var gold_tile: Vector2i = sim.sources[Skirmish.HUMAN].pos
-			if selected.kind == "worker" and (_pick_visual_source(event.position) == Skirmish.HUMAN or tile == gold_tile):
+			if _command_state("gather").visible and (_pick_visual_source(event.position) == Skirmish.HUMAN or tile == gold_tile):
 				_issue_order("gather", gold_tile, gold_tile)
-			elif selected.kind in ["melee", "ranged"] and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER:
+			elif _command_state("attack").visible and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER:
 				_issue_order("attack", target_id, sim.entities[target_id].pos)
-			elif selected.kind in ["worker", "melee", "ranged"]:
+			elif _command_state("move").visible:
 				var moved: Dictionary = _issue_order("move", tile, tile)
 				if moved.ok:
 					marker = tile
@@ -399,6 +468,31 @@ func _unhandled_input(event: InputEvent) -> void:
 	_refresh_hover()
 	queue_redraw()
 
+func _select_drag(rect: Rect2, additive: bool) -> void:
+	var ids: Array[int] = []
+	if additive:
+		ids.assign(selected_ids)
+	for id in sim.entities:
+		var e: Dictionary = sim.entities[id]
+		if e.side != Skirmish.HUMAN or e.kind not in ["worker", "melee", "ranged"]:
+			continue
+		var screen := BOARD_CENTER + (_actor_ground(e) - BOARD_CENTER) * board_zoom + board_pan + _board_view_offset()
+		if rect.has_point(screen) and id not in ids:
+			ids.append(id)
+	selected_ids = ids
+	selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
+	target_mode = ""
+	placing = false
+	_update_hud()
+
+func _select_subset(id: int) -> void:
+	if id not in selected_ids:
+		return
+	selected_ids = [id]
+	selected_id = id
+	_update_hud()
+	queue_redraw()
+
 func _train(role: String) -> void:
 	if selected_id == -1 or not sim.entities.has(selected_id):
 		sim.feedback = "Select a production building."
@@ -407,7 +501,17 @@ func _train(role: String) -> void:
 
 func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 	var result: Dictionary = sim.issue(Skirmish.HUMAN, kind, selected_id, target)
-	_flash_order(tile, _order_message(kind, target, result), result.ok)
+	var accepted := 1 if result.ok else 0
+	if kind in ["move", "gather", "attack"] and selected_ids.size() > 1:
+		for id in selected_ids:
+			if id == selected_id or not sim.entities.has(id):
+				continue
+			var next: Dictionary = sim.issue(Skirmish.HUMAN, kind, id, target)
+			if next.ok:
+				accepted += 1
+		if accepted > 0:
+			result = {"ok": true, "reason": "group_order"}
+	_flash_order(tile, "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result), result.ok)
 	return result
 
 func _order_message(kind: String, target: Variant, result: Dictionary) -> String:
@@ -440,26 +544,42 @@ func _change_zoom(delta: float) -> void:
 	sim.feedback = "Board zoom: %d%%. 0 resets." % roundi(board_zoom * 100.0)
 
 func _selected_kind() -> String:
-	return sim.entities[selected_id].kind if sim.entities.has(selected_id) else ""
+	if not sim.entities.has(selected_id):
+		return ""
+	if selected_ids.size() > 1:
+		var first: String = sim.entities[selected_id].kind
+		for id in selected_ids:
+			if not sim.entities.has(id) or sim.entities[id].kind != first:
+				return "mixed"
+	return sim.entities[selected_id].kind
 
 func _command_state(action: String) -> Dictionary:
 	var kind := _selected_kind()
+	var roles: Array[String] = []
+	for id in selected_ids:
+		if sim.entities.has(id):
+			roles.append(sim.entities[id].kind)
+	if roles.is_empty() and not kind.is_empty():
+		roles.append(kind)
+	var mobile_group := not roles.is_empty() and roles.all(func(role_name: String) -> bool: return role_name in ["worker", "melee", "ranged"])
+	var fighter_group := not roles.is_empty() and roles.all(func(role_name: String) -> bool: return role_name in ["melee", "ranged"])
+	var worker_group := not roles.is_empty() and roles.all(func(role_name: String) -> bool: return role_name == "worker")
 	var role := action.trim_prefix("train_")
 	var visible := false
 	var label := action.replace("_", " ").capitalize()
 	var reason := ""
 	match action:
-		"move": visible = kind in ["worker", "melee", "ranged"]
+		"move": visible = mobile_group
 		"gather":
-			visible = kind == "worker"
+			visible = worker_group
 			if visible and sim.sources[Skirmish.HUMAN].amount <= 0:
 				reason = "Gold cart empty"
 		"build":
-			visible = kind == "worker"
+			visible = kind == "worker" and selected_ids.size() <= 1
 			label = "Build post · %d gold" % sim._cost(Skirmish.HUMAN, "barracks")
 			if visible and sim._find(Skirmish.HUMAN, "barracks") != -1:
 				reason = "One post limit"
-		"attack": visible = kind in ["melee", "ranged"]
+		"attack": visible = fighter_group
 		"train_worker", "train_melee", "train_ranged":
 			visible = (kind == "command_post" and role == "worker") or (kind == "barracks" and role in ["melee", "ranged"])
 			label = "Recruit %s · %d gold" % [role, sim._cost(Skirmish.HUMAN, role)]
@@ -477,6 +597,9 @@ func _command_state(action: String) -> Dictionary:
 	return {"visible": visible, "enabled": visible and reason.is_empty(), "reason": reason, "label": label}
 
 func _activate_command(action: String) -> void:
+	if paused:
+		hud_ui.show_notice("Resume to issue orders")
+		return
 	if action == "cancel":
 		target_mode = ""
 		placing = false
@@ -530,56 +653,132 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 		placing = false
 
 func _update_hud() -> void:
-	if hud == null:
+	if hud_ui == null:
 		return
+	var ui = hud_ui
+	ui.visible = not choosing_faction
 	if choosing_faction:
-		hud.text = "BATTLE FOR LA ROMA\nChoose a faction to start.\nWin by destroying the enemy post or holding La Roma for 60 seconds.\nSync: %s" % outbox.summary()
-		selection_title.text = "NO SELECTION"
-		selection_details.text = "Choose a faction to start."
-		selection_portrait.texture = null
-		command_panel.hide()
 		return
-	command_panel.show()
 	if selected_id != -1 and not sim.entities.has(selected_id):
 		selected_id = -1
-	var human_post := sim._find(Skirmish.HUMAN, "command_post")
+		selected_ids.clear()
+	var seconds := floori(float(sim.tick_number) / 10.0)
+	ui.timer_label.text = "%02d:%02d" % [seconds / 60, seconds % 60]
+	ui.faction_label.text = sim.factions[Skirmish.HUMAN].to_upper()
+	ui.gold_label.text = str(sim.stockpile[Skirmish.HUMAN])
+	ui.gold_label.tooltip_text = "%d gold in stockpile • %d remaining at your cart" % [sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount]
+	ui.objective_title.text = _district_note()
+	ui.objective_progress.value = sim.district_progress
+	ui.objective_progress.tooltip_text = _district_note()
+	ui.minimap.sim = sim
+	var visible_view := get_viewport().get_visible_rect().size
+	ui.minimap.view_span = Vector2(20, 20) if visible_view.x >= 1000 else Vector2(clampf(visible_view.x / 48.0, 5, 20), clampf((ui.bottom.position.y - 60.0) / 24.0, 5, 20))
+	ui.minimap.queue_redraw()
+	var own_post := sim._find(Skirmish.HUMAN, "command_post")
 	var enemy_post := sim._find(Skirmish.COMPUTER, "command_post")
-	var own_hp: int = maxi(0, sim.entities[human_post].hp) if human_post != -1 else 0
+	var own_hp: int = maxi(0, sim.entities[own_post].hp) if own_post != -1 else 0
 	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 else 0
-	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
-	hud.text = "%s vs %s · %02d:%02d\nGOLD  %d stockpile · %d at cart\nLA ROMA  %s\nWIN  Hold center 01:00 or destroy enemy post\nPOSTS  Ours %d HP · Enemy %d HP\n%s\nSYNC  %s" % [
-		sim.factions[Skirmish.HUMAN].capitalize(), sim.factions[Skirmish.COMPUTER].capitalize(),
-		floori(float(total_seconds) / 60.0), total_seconds % 60,
-		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
-		_district_note(), own_hp, enemy_hp,
-		"RESULT  %s · Press R to restart" % sim.result.capitalize() if sim.result != "" else "%s · %s" % [AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID],
-		_sync_brief() + (" " + sync_note if sync_note.contains("unavailable") or sync_note.contains("invite") or sync_note.contains("attention") else "")]
+	ui.secondary_status.text = "CENTER  %s\nHOLD  %02d:%02d / 01:00\n\nCommand posts\nOurs %d HP  •  Enemy %d HP" % [sim.district_state.replace("_", " ").capitalize(),
+		floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60, own_hp, enemy_hp]
+	var group_signature := str(selected_ids)
+	if group_signature != last_group_signature:
+		last_group_signature = group_signature
+		if selected_ids.size() > 1:
+			var portraits: Array[Dictionary] = []
+			for id in selected_ids:
+				if sim.entities.has(id):
+					portraits.append({"id": id, "texture": art.texture(_actor_art_id(sim.entities[id]))})
+			ui.set_group(portraits)
+		else:
+			ui.set_group([])
 	if selected_id == -1:
-		selection_title.text = "NO SELECTION"
-		selection_details.text = "Click one of your units or posts.\nThe cyan ring marks your active actor."
-		selection_portrait.texture = null
+		ui.set_selection(art.texture("building_command_post_%s" % _faction_color(Skirmish.HUMAN)), "NO SELECTION", sim.factions[Skirmish.HUMAN].capitalize(), 0, 0, "Select a unit or post", "")
 	else:
 		var actor: Dictionary = sim.entities[selected_id]
-		selection_title.text = "%s #%d" % [actor.kind.replace("_", " ").capitalize(), selected_id]
-		selection_portrait.texture = art.texture(_actor_art_id(actor))
-		var details := "%s · %d / %d HP\nOrder: %s" % [sim.factions[Skirmish.HUMAN].capitalize(), actor.hp, sim._starting_health(Skirmish.HUMAN, actor.kind), actor.job.capitalize()]
-		if actor.kind == "worker":
-			details += " · Carry %d" % actor.carry
-		if actor.kind in ["command_post", "barracks"]:
-			if not actor.complete:
-				details += "\nBuilding: %d%%" % roundi(100.0 * actor.progress / Skirmish.BUILD_TICKS)
+		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
+		var activity: String = actor.job.capitalize()
+		if actor.kind == "worker" and actor.carry > 0:
+			activity += "  •  carry %d" % actor.carry
+		var stats := ""
+		if actor.kind in ["melee", "ranged"]:
+			stats = "⚔ %d  •  range %d" % [Skirmish.DAMAGE[actor.kind], Skirmish.RANGE[actor.kind]]
+		elif actor.kind == "worker":
+			stats = "Carry cap %d" % sim._carry_limit(Skirmish.HUMAN)
+		else:
+			stats = "Construction %d%%" % roundi(100.0 * actor.progress / Skirmish.BUILD_TICKS) if not actor.complete else "Ready"
 			if not actor.queue.is_empty():
 				var first: Dictionary = actor.queue[0]
-				details += "\nQueue %d: %s · %ds left" % [actor.queue.size(), first.role, ceili(float(first.remaining) / 10.0)]
-		selection_details.text = details
+				stats += "  •  Queue %d: %s %ds" % [actor.queue.size(), first.role, ceili(float(first.remaining) / 10.0)]
+		ui.set_selection(art.texture(_actor_art_id(actor)), "%d UNITS" % selected_ids.size() if selected_ids.size() > 1 else "%s #%d" % [actor.kind.replace("_", " ").capitalize(), selected_id],
+			sim.factions[Skirmish.HUMAN].capitalize(), actor.hp if selected_ids.size() <= 1 else 0, max_hp if selected_ids.size() <= 1 else 0,
+			"Group selected" if selected_ids.size() > 1 else activity, "%d selected • tap a portrait for one" % selected_ids.size() if selected_ids.size() > 1 else stats)
 	for action in command_buttons:
 		var state := _command_state(action)
-		var button: Button = command_buttons[action]
-		button.visible = state.visible
-		button.disabled = not state.enabled
-		button.text = state.label if state.reason.is_empty() else "%s (%s)" % [state.label, state.reason]
-		button.tooltip_text = state.reason if not state.reason.is_empty() else state.label
-	command_help.text = _target_prompt() if target_mode != "" else "Last action: %s" % sim.feedback
+		var cost := 0
+		if action == "build":
+			cost = sim._cost(Skirmish.HUMAN, "barracks")
+		elif action.begins_with("train_"):
+			cost = sim._cost(Skirmish.HUMAN, action.trim_prefix("train_"))
+		ui.set_action(action, state, cost, target_mode == action)
+	ui.command_help.text = _target_prompt() if target_mode != "" else ""
+	ui.reflow_commands()
+	_update_secondary()
+	var queue: Array = sim.entities[selected_id].queue if sim.entities.has(selected_id) and _selected_kind() in ["command_post", "barracks"] else []
+	ui.set_queue(queue)
+	var support := "%s · %s\n%s\n%s" % [AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID, _sync_brief(), sync_note]
+	ui.diagnostics_label.text = support
+	var attention := false
+	if not outbox.state.is_empty():
+		for item in outbox.state.events:
+			if item.status == "needs_attention":
+				attention = true
+	var alert := attention or sync_note.contains("could not") or sync_note.contains("unavailable") or sync_note.contains("not accepted") or (AlphaConfig.CHANNEL != "development" and invite_code.is_empty())
+	ui.menu_button.text = "..!" if alert else "..."
+	if alert and last_alert_state != "attention":
+		ui.show_notice("Sync needs attention • open menu", true)
+	last_alert_state = "attention" if alert else "clear"
+	if sim.result != "":
+		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
+	elif order_flash_seconds > 0 and not order_flash_text.is_empty():
+		ui.show_notice(order_flash_text, not order_flash_ok)
+
+func _update_secondary() -> void:
+	var ui = hud_ui
+	var kind := _selected_kind()
+	var signature := "%s:%d:%d:%d:%d" % [kind, selected_id, selected_ids.size(), sim.stockpile[Skirmish.HUMAN], sim._find(Skirmish.HUMAN, "barracks")]
+	if signature == last_ui_signature:
+		return
+	last_ui_signature = signature
+	var cards: Array[Dictionary] = []
+	var title := "TACTICAL VIEW"
+	if selected_ids.size() > 1:
+		title = "GROUP • %d" % selected_ids.size()
+	elif kind == "worker":
+		title = "CONSTRUCTION"
+		var state := _command_state("build")
+		cards.append({"texture": art.texture("building_barracks_blue"), "label": "POST\n%d GOLD" % sim._cost(Skirmish.HUMAN, "barracks"),
+			"enabled": state.enabled, "reason": state.reason, "cost": sim._cost(Skirmish.HUMAN, "barracks"), "tooltip": "Recruitment post • %d gold\n%s" % [sim._cost(Skirmish.HUMAN, "barracks"), state.reason if not state.reason.is_empty() else "Click, then place on clear ground"], "action": "build"})
+	elif kind in ["command_post", "barracks"]:
+		title = "PRODUCTION"
+		for role: String in (["worker"] if kind == "command_post" else ["melee", "ranged"]):
+			var action: String = "train_" + role
+			var state := _command_state(action)
+			cards.append({"texture": art.texture("unit_%s_blue" % role), "label": "%s\n%d GOLD" % [role.to_upper(), sim._cost(Skirmish.HUMAN, role)],
+				"enabled": state.enabled, "reason": state.reason, "cost": sim._cost(Skirmish.HUMAN, role), "tooltip": "%s • %d gold\n%s" % [role.capitalize(), sim._cost(Skirmish.HUMAN, role), state.reason if not state.reason.is_empty() else "Recruit here"], "action": action})
+	elif kind in ["melee", "ranged"]:
+		title = "FIELD ORDERS"
+		cards.append({"texture": art.texture(_actor_art_id(sim.entities[selected_id])), "label": "ATTACK\nA", "enabled": true, "tooltip": "Choose an enemy target • A", "action": "attack"})
+	else:
+		title = "LA ROMA"
+	ui.set_secondary(title, cards)
+	if kind == "worker":
+		ui.secondary_details.text = "RECRUITMENT POST\n2 × 2 site  •  one allowed"
+	elif kind in ["command_post", "barracks"]:
+		ui.secondary_details.text = "RECRUIT UNITS\nSpend stockpiled gold"
+	elif kind in ["melee", "ranged"]:
+		ui.secondary_details.text = "COMBAT\nChoose an enemy target"
+	else:
+		ui.secondary_details.text = ""
 
 func _sync_brief() -> String:
 	if outbox.state.is_empty():
@@ -677,8 +876,15 @@ func _copy_support_id() -> void:
 func _tile_to_screen(tile: Vector2i) -> Vector2:
 	return ORIGIN + Vector2((tile.x - tile.y) * TILE_W * 0.5, (tile.x + tile.y) * TILE_H * 0.5)
 
+func _board_view_offset() -> Vector2:
+	var view := get_viewport().get_visible_rect().size
+	if view.x >= 1000.0 and view.y >= 700.0:
+		return (view - Vector2(1280, 800)) * 0.5
+	var playable_bottom: float = hud_ui.bottom.position.y if hud_ui != null else view.y - 180.0
+	return Vector2(view.x * 0.5 - BOARD_CENTER.x, (playable_bottom + 55.0) * 0.5 - BOARD_CENTER.y)
+
 func _screen_to_board(screen: Vector2) -> Vector2:
-	return BOARD_CENTER + (screen - BOARD_CENTER) / board_zoom
+	return BOARD_CENTER + (screen - BOARD_CENTER - board_pan - _board_view_offset()) / board_zoom
 
 func _screen_to_tile(screen: Vector2) -> Vector2i:
 	screen = _screen_to_board(screen)
@@ -758,6 +964,7 @@ func _refresh_hover() -> void:
 		hovered_entity_id = next_entity
 		hovered_source_side = next_source
 		hover_hint.text = next_hint
+		hover_hint.position = (screen + Vector2(14, -34)).clamp(Vector2(8, 65), get_viewport().get_visible_rect().size - Vector2(240, 25))
 		queue_redraw()
 
 func _diamond(center: Vector2) -> PackedVector2Array:
@@ -812,7 +1019,7 @@ func _draw_sprite_outline(art_id: String, rect: Rect2, color: Color) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, get_viewport_rect().size), Color("17212a"))
-	draw_set_transform(BOARD_CENTER * (1.0 - board_zoom), 0.0, Vector2.ONE * board_zoom)
+	draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
 	# Decorative props underlay actors so selectable units stay visible at their ground contact.
 	for y in range(Skirmish.HEIGHT):
 		for x in range(Skirmish.WIDTH):
@@ -865,13 +1072,13 @@ func _draw() -> void:
 		var sprite_rect := Rect2(ground - art.pivot(art_id) * art_scale + Vector2(0, bob),
 			art.texture(art_id).get_size() * art_scale)
 		if not is_building and unit_facing.get(id, 1) < 0:
-			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + Vector2(ground.x * 2.0 * board_zoom, 0),
+			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset() + Vector2(ground.x * 2.0 * board_zoom, 0),
 				0.0, Vector2(-board_zoom, board_zoom))
 		if id == selected_id or id == hovered_entity_id:
 			_draw_sprite_outline(art_id, sprite_rect, Color("7eeaff") if id == selected_id else Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)
 		if not is_building and unit_facing.get(id, 1) < 0:
-			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom), 0.0, Vector2.ONE * board_zoom)
+			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
 		if is_building and not e.complete:
 			draw_rect(Rect2(ground + Vector2(-47, -27), Vector2(94, 26)), Color(0.63, 0.46, 0.28, 0.35))
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44, 4)), Color("3b3029"))
@@ -912,3 +1119,6 @@ func _draw() -> void:
 		draw_arc(flash_center, 22, 0, TAU, 32, flash_color, 3.0)
 		draw_string(ThemeDB.fallback_font, flash_center + Vector2(-100, -26), order_flash_text,
 			HORIZONTAL_ALIGNMENT_CENTER, 200, 18, flash_color)
+	if drag_active and drag_start.distance_to(drag_current) > 12:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		draw_rect(Rect2(drag_start, drag_current - drag_start).abs(), Color("7eeaff"), false, 2.0)
