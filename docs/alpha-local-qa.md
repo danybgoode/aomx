@@ -2,6 +2,18 @@
 
 Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The `mac-private-alpha` art build is `preview-9e1c6f0e3a3e` (itch build `#2139865`, `la-roma-prototype-1`; source ZIP SHA-256 `84b4aa9aa31653144fad7541c527e14af6dfcd83735a7f0f6f590dfb84e9c5f3`). It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. ZIP integrity passed; Butler fetched the processed build back to this Mac, where its app files matched the signed local candidate byte-for-byte, strict signature verification passed and packaged startup succeeded. The owner browser download and full playthrough below remain to be recorded.
 
+The selection-and-scale update `preview-6d6016d42d8e` was uploaded as itch build `#2140875` on 2026-10-16 but is still processing. Until Butler shows that build as ready, the older version above is the downloadable one. The new source ZIP is `dist/alpha/battle-for-la-roma-preview-6d6016d42d8e-macos.zip` (SHA-256 `e6cb202b8d8b6497cf2a290823109b76bf7b157b1cc08902163fc51159519003`); it was signed and launched locally. Do not record owner download QA for the newer build until itch serves it.
+
+## Selection-and-scale retest when the new build is ready
+
+1. Confirm the setup or HUD names `preview-6d6016d42d8e` after downloading a fresh app from the Restricted page.
+2. Hover over the visible body of a blue worker, including pixels above its ground tile. The warm outline and short selection hint should appear. Click there: the active worker should show a cyan outline, ground ring and arrow.
+3. With that worker selected, hover the visible gold cart body. The hint should indicate gathering; right-click above the cart's ground tile and confirm “Gathering gold” appears and the worker starts moving toward the source.
+4. Select a fighter and hover an enemy's visible body. The hint should indicate attack; right-click the body and confirm the attack order. Click empty ground and verify the active marker clears.
+5. Compare workers, fighters, the headquarters and recruitment post at normal zoom. People should read distinctly smaller than the buildings, while remaining identifiable. Repeat selection at 100% and 125% zoom; note any sprite body that fails to respond.
+
+Record the exact version, screenshots and any ambiguous clicks. The older walkthrough below still covers the economy, construction, win routes, restart and offline sync.
+
 ## Install the current build
 
 1. Download `preview-9e1c6f0e3a3e` from itch.io. Safari may expand the download into an app automatically. The checksum above identifies the locally uploaded source ZIP; itch.io may package the browser download differently. macOS may add a number to the app name when a previous copy is present.
