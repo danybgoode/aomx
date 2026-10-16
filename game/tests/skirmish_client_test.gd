@@ -57,11 +57,30 @@ func _run() -> void:
 	select_click.pressed = true
 	client._unhandled_input(select_click)
 	check(client.selected_id == worker_id, "clicking the worker body selects it")
+	check(client.selection_title.text.contains("Worker") and client.selection_portrait.texture != null and client.selection_details.text.contains("HP"),
+		"selection panel follows the active board actor")
+	check(client.command_buttons["gather"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
+		"worker sees only relevant commands")
+	var before_hud: String = client.sim.state_hash()
+	client._update_hud()
+	check(client.sim.state_hash() == before_hud, "HUD refresh does not change simulation state")
+	client._activate_command("gather")
+	check(client.target_mode == "gather" and client.command_help.text.contains("gold cart"), "gather button arms a clear target prompt")
+	client._activate_command("cancel")
+	check(client.target_mode.is_empty() and not client.placing, "cancel returns to ordinary selection")
 	var gold_tile: Vector2i = Skirmish.RESOURCE_POS[Skirmish.HUMAN]
 	var cart_body: Vector2 = client._tile_to_screen(gold_tile) + Vector2(0, -20)
 	var cart_screen: Vector2 = Vector2(640, 305) + (cart_body - Vector2(640, 305)) * client.board_zoom
 	check(client._screen_to_tile(cart_screen) != gold_tile, "cart body overhangs its resource tile")
 	check(client._pick_visual_source(cart_screen) == Skirmish.HUMAN, "visible cart body is targetable")
+	client._activate_command("gather")
+	var gather_left := InputEventMouseButton.new()
+	gather_left.button_index = MOUSE_BUTTON_LEFT
+	gather_left.position = cart_screen
+	gather_left.pressed = true
+	client._unhandled_input(gather_left)
+	check(client.sim.entities[worker_id].job == "gather" and client.target_mode.is_empty(),
+		"gather button and left-click cart use the existing simulation order")
 	var gather_click := InputEventMouseButton.new()
 	gather_click.button_index = MOUSE_BUTTON_RIGHT
 	gather_click.position = cart_screen
@@ -73,6 +92,19 @@ func _run() -> void:
 	check(gather.ok and client.order_flash_ok and client.order_flash_tile == gold_tile and client.sim.feedback == "Gathering gold.", "accepted gather has visible target feedback")
 	var rejected: Dictionary = client._issue_order("build", Vector2i(10, 2), Vector2i(10, 2))
 	check(not rejected.ok and not client.order_flash_ok and client.sim.feedback != "", "rejected build has distinct readable feedback")
+	check(client.command_buttons["build"].disabled and client.command_buttons["build"].text.contains("Need"),
+		"unaffordable build explains its cost")
+	client.sim.stockpile[Skirmish.HUMAN] = 10
+	var post_id: int = client.sim._find(Skirmish.HUMAN, "command_post")
+	client.selected_id = post_id
+	client._update_hud()
+	check(client.command_buttons["train_worker"].visible and not client.command_buttons["gather"].visible,
+		"command post shows its own recruitment order")
+	var gold_before: int = client.sim.stockpile[Skirmish.HUMAN]
+	client._activate_command("train_worker")
+	check(client.sim.entities[post_id].queue.size() == 1 and client.sim.stockpile[Skirmish.HUMAN] == gold_before - client.sim._cost(Skirmish.HUMAN, "worker"),
+		"recruit button uses actual cost and production queue")
+	check(client.selection_details.text.contains("Queue 1"), "selection panel reports the real queue")
 	client.sim.entities[client.sim._find(Skirmish.COMPUTER, "command_post")].hp = 0
 	client._process(0.1)
 	check(client.outbox.state.events.size() == 5 and client.outbox.state.events[4].event.faction == Skirmish.POBLANOS,

@@ -26,6 +26,7 @@ var selected_id := -1
 var hovered_entity_id := -1
 var hovered_source_side := -1
 var placing := false
+var target_mode := ""
 var marker := Vector2i(-1, -1)
 var board_zoom := 1.1
 var order_flash_tile := Vector2i(-1, -1)
@@ -36,6 +37,12 @@ var accumulator := 0.0
 var syncing := false
 var sync_note := ""
 var hud: Label
+var selection_title: Label
+var selection_details: Label
+var selection_portrait: TextureRect
+var command_help: Label
+var command_buttons: Dictionary = {}
+var command_panel: PanelContainer
 var instructions: Label
 var hover_hint: Label
 var request: HTTPRequest
@@ -84,23 +91,103 @@ func _ready() -> void:
 		support_button.add_theme_font_size_override("font_size", 18)
 		support_button.pressed.connect(_copy_support_id)
 		layer.add_child(support_button)
-	hud = Label.new()
-	hud.position = Vector2(22, 600)
-	hud.size = Vector2(1236, 140)
-	hud.add_theme_font_size_override("font_size", 16)
-	layer.add_child(hud)
+	_build_match_hud(layer)
 	instructions = Label.new()
-	instructions.position = Vector2(22, 756)
-	instructions.add_theme_font_size_override("font_size", 18)
+	instructions.position = Vector2(26, 777)
+	instructions.size = Vector2(1228, 20)
+	instructions.add_theme_font_size_override("font_size", 14)
+	instructions.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(instructions)
 	hover_hint = Label.new()
-	hover_hint.position = Vector2(22, 565)
+	hover_hint.position = Vector2(22, 543)
 	hover_hint.add_theme_font_size_override("font_size", 16)
 	hover_hint.add_theme_color_override("font_color", Color("ffe391"))
 	layer.add_child(hover_hint)
 	_build_faction_setup(layer)
 	_show_setup()
 	_update_hud()
+
+func _build_match_hud(layer: CanvasLayer) -> void:
+	var bar := HBoxContainer.new()
+	bar.position = Vector2(16, 565)
+	bar.size = Vector2(1248, 207)
+	bar.add_theme_constant_override("separation", 8)
+	layer.add_child(bar)
+	var status_panel := _hud_panel(bar, 410)
+	var status_column := VBoxContainer.new()
+	status_column.add_theme_constant_override("separation", 5)
+	status_panel.add_child(status_column)
+	hud = Label.new()
+	hud.add_theme_font_size_override("font_size", 14)
+	hud.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status_column.add_child(hud)
+	var selection_panel := _hud_panel(bar, 330)
+	var selection_column := VBoxContainer.new()
+	selection_column.add_theme_constant_override("separation", 4)
+	selection_panel.add_child(selection_column)
+	selection_title = Label.new()
+	selection_title.add_theme_font_size_override("font_size", 18)
+	selection_title.add_theme_color_override("font_color", Color("ffe1a1"))
+	selection_column.add_child(selection_title)
+	var selection_row := HBoxContainer.new()
+	selection_column.add_child(selection_row)
+	selection_portrait = TextureRect.new()
+	selection_portrait.custom_minimum_size = Vector2(72, 72)
+	selection_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	selection_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	selection_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	selection_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	selection_row.add_child(selection_portrait)
+	selection_details = Label.new()
+	selection_details.custom_minimum_size.x = 220
+	selection_details.add_theme_font_size_override("font_size", 14)
+	selection_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	selection_details.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	selection_row.add_child(selection_details)
+	command_panel = _hud_panel(bar, 490)
+	var command_column := VBoxContainer.new()
+	command_column.add_theme_constant_override("separation", 3)
+	command_panel.add_child(command_column)
+	var heading := Label.new()
+	heading.text = "ORDERS"
+	heading.add_theme_font_size_override("font_size", 16)
+	heading.add_theme_color_override("font_color", Color("ffe1a1"))
+	command_column.add_child(heading)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 4)
+	command_column.add_child(grid)
+	for action in ["move", "gather", "build", "train_worker", "train_melee", "train_ranged", "attack", "cancel"]:
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(220, 32)
+		button.add_theme_font_size_override("font_size", 14)
+		button.add_theme_color_override("font_disabled_color", Color("d4d1c8"))
+		button.add_theme_color_override("font_focus_color", Color("fff1cf"))
+		button.focus_mode = Control.FOCUS_ALL
+		button.pressed.connect(_activate_command.bind(action))
+		grid.add_child(button)
+		command_buttons[action] = button
+	command_help = Label.new()
+	command_help.add_theme_font_size_override("font_size", 14)
+	command_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	command_help.custom_minimum_size.y = 32
+	command_column.add_child(command_help)
+
+func _hud_panel(parent: HBoxContainer, width: float) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size.x = width
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("202a32")
+	style.border_color = Color("af8c58")
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(7)
+	style.set_content_margin_all(10)
+	panel.add_theme_stylebox_override("panel", style)
+	parent.add_child(panel)
+	return panel
 
 func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_panel = PanelContainer.new()
@@ -149,6 +236,7 @@ func _show_setup() -> void:
 	hovered_entity_id = -1
 	hovered_source_side = -1
 	placing = false
+	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
 	setup_panel.show()
@@ -167,13 +255,14 @@ func _start_match(faction: String) -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	instructions.text = "Click a unit or building · Right-click gold or enemy · B build · 1/2/3 recruit · +/- zoom · G fullscreen · R factions · F sync"
+	instructions.text = "Click to select · Right-click to order · B build · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
 	hovered_entity_id = -1
 	hovered_source_side = -1
 	placing = false
+	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
 	marker = Vector2i(-1, -1)
@@ -218,6 +307,10 @@ func _process(delta: float) -> void:
 		if not saved.ok:
 			sync_note = "Result could not be saved; check device storage."
 	if advanced:
+		if selected_id != -1 and not sim.entities.has(selected_id):
+			selected_id = -1
+			target_mode = ""
+			placing = false
 		_update_unit_facing()
 		_update_hud()
 		_refresh_hover()
@@ -243,17 +336,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_G:
 				get_window().mode = Window.MODE_WINDOWED if get_window().mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
 			KEY_B:
-				if _selected_kind() == "worker":
-					if sim.stockpile[Skirmish.HUMAN] < sim._cost(Skirmish.HUMAN, "barracks"):
-						placing = false
-						_flash_order(sim.entities[selected_id].pos, "Need 6 gold. Gather first.", false)
-					else:
-						placing = true
-						_flash_order(sim.entities[selected_id].pos, "Choose a clear 2x2 site. Cost: 6.", true)
-				else:
-					sim.feedback = "Select a worker to build."
+				_activate_command("build")
 			KEY_ESCAPE:
 				placing = false
+				target_mode = ""
+				sim.feedback = "Order canceled."
 			KEY_1:
 				_train("worker")
 			KEY_2:
@@ -277,15 +364,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		var tile := _screen_to_tile(event.position)
 		if event.button_index == MOUSE_BUTTON_LEFT:
-			if placing and selected_id != -1:
-				var placed: Dictionary = _issue_order("build", tile, tile)
-				if placed.ok:
-					placing = false
+			if target_mode != "" and selected_id != -1:
+				_complete_target_order(event.position, tile)
 			else:
 				var id: int = _pick_visual_entity(event.position, Skirmish.HUMAN)
 				if id == -1:
 					id = sim.entity_at(tile)
 				selected_id = id if id != -1 and sim.entities[id].side == Skirmish.HUMAN else -1
+				target_mode = ""
+				placing = false
 				if selected_id != -1:
 					_flash_order(sim.entities[selected_id].pos, "%s selected" % sim.entities[selected_id].kind.replace("_", " "), true)
 				else:
@@ -306,6 +393,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					marker = tile
 			else:
 				_flash_order(selected.pos, "Select a unit to give an order.", false)
+			target_mode = ""
+			placing = false
 	_update_hud()
 	_refresh_hover()
 	queue_redraw()
@@ -353,28 +442,144 @@ func _change_zoom(delta: float) -> void:
 func _selected_kind() -> String:
 	return sim.entities[selected_id].kind if sim.entities.has(selected_id) else ""
 
+func _command_state(action: String) -> Dictionary:
+	var kind := _selected_kind()
+	var role := action.trim_prefix("train_")
+	var visible := false
+	var label := action.replace("_", " ").capitalize()
+	var reason := ""
+	match action:
+		"move": visible = kind in ["worker", "melee", "ranged"]
+		"gather":
+			visible = kind == "worker"
+			if visible and sim.sources[Skirmish.HUMAN].amount <= 0:
+				reason = "Gold cart empty"
+		"build":
+			visible = kind == "worker"
+			label = "Build post · %d gold" % sim._cost(Skirmish.HUMAN, "barracks")
+			if visible and sim._find(Skirmish.HUMAN, "barracks") != -1:
+				reason = "One post limit"
+		"attack": visible = kind in ["melee", "ranged"]
+		"train_worker", "train_melee", "train_ranged":
+			visible = (kind == "command_post" and role == "worker") or (kind == "barracks" and role in ["melee", "ranged"])
+			label = "Recruit %s · %d gold" % [role, sim._cost(Skirmish.HUMAN, role)]
+			if visible and not sim.entities[selected_id].complete:
+				reason = "Construction in progress"
+			elif visible and sim.entities[selected_id].queue.size() >= 3:
+				reason = "Queue full"
+		"cancel":
+			visible = target_mode != ""
+			label = "Cancel · Esc"
+	if visible and action not in ["move", "gather", "attack", "cancel"] and reason.is_empty() and sim.stockpile[Skirmish.HUMAN] < sim._cost(Skirmish.HUMAN, "barracks" if action == "build" else role):
+		reason = "Need %d gold" % sim._cost(Skirmish.HUMAN, "barracks" if action == "build" else role)
+	if visible and sim.result != "" and action != "cancel":
+		reason = "Match finished"
+	return {"visible": visible, "enabled": visible and reason.is_empty(), "reason": reason, "label": label}
+
+func _activate_command(action: String) -> void:
+	if action == "cancel":
+		target_mode = ""
+		placing = false
+		sim.feedback = "Order canceled."
+	else:
+		var state := _command_state(action)
+		if not state.enabled:
+			var message: String = state.reason if not state.reason.is_empty() else "Select an actor for that order."
+			_flash_order(sim.entities[selected_id].pos if sim.entities.has(selected_id) else Vector2i(-1, -1), message, false)
+		elif action.begins_with("train_"):
+			_train(action.trim_prefix("train_"))
+		else:
+			target_mode = action
+			placing = action == "build"
+			sim.feedback = _target_prompt()
+	_update_hud()
+	queue_redraw()
+
+func _target_prompt() -> String:
+	match target_mode:
+		"move": return "Move: click a clear ground tile. Esc cancels."
+		"gather": return "Gather: click your gold cart. Esc cancels."
+		"build": return "Build: click a clear 2×2 site outside La Roma. Esc cancels."
+		"attack": return "Attack: click an enemy unit or post. Esc cancels."
+	return ""
+
+func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
+	var result: Dictionary = {"ok": false}
+	match target_mode:
+		"move":
+			result = _issue_order("move", tile, tile)
+			if result.ok:
+				marker = tile
+		"build": result = _issue_order("build", tile, tile)
+		"gather":
+			var gold_tile: Vector2i = sim.sources[Skirmish.HUMAN].pos
+			if _pick_visual_source(screen) == Skirmish.HUMAN or tile == gold_tile:
+				result = _issue_order("gather", gold_tile, gold_tile)
+			else:
+				_flash_order(tile, "Click your gold cart.", false)
+		"attack":
+			var enemy_id: int = _pick_visual_entity(screen, Skirmish.COMPUTER)
+			if enemy_id == -1:
+				enemy_id = sim.entity_at(tile)
+			if enemy_id != -1 and sim.entities[enemy_id].side == Skirmish.COMPUTER:
+				result = _issue_order("attack", enemy_id, sim.entities[enemy_id].pos)
+			else:
+				_flash_order(tile, "Click an enemy unit or post.", false)
+	if result.ok:
+		target_mode = ""
+		placing = false
+
 func _update_hud() -> void:
 	if hud == null:
 		return
 	if choosing_faction:
-		hud.text = "Battle for La Roma · Choose a faction to start\nRegios: carry 5 gold, fighters cost +1 · Poblanos: posts +20%% HP, carry 4, standard fighter costs\nWin by destroying the opposing command post or holding La Roma for 60 seconds.\nSync: %s %s" % [outbox.summary(), sync_note]
+		hud.text = "BATTLE FOR LA ROMA\nChoose a faction to start.\nWin by destroying the enemy post or holding La Roma for 60 seconds.\nSync: %s" % outbox.summary()
+		selection_title.text = "NO SELECTION"
+		selection_details.text = "Choose a faction to start."
+		selection_portrait.texture = null
+		command_panel.hide()
 		return
+	command_panel.show()
 	if selected_id != -1 and not sim.entities.has(selected_id):
 		selected_id = -1
 	var human_post := sim._find(Skirmish.HUMAN, "command_post")
 	var enemy_post := sim._find(Skirmish.COMPUTER, "command_post")
 	var own_hp: int = maxi(0, sim.entities[human_post].hp) if human_post != -1 else 0
 	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 else 0
-	var chosen := "none" if selected_id == -1 else "%s #%d (%d HP)" % [sim.entities[selected_id].kind.replace("_", " "), selected_id, sim.entities[selected_id].hp]
 	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
-	var opponent_note := "Opponent pursues La Roma and your command post."
-	hud.text = "Battle for La Roma · %s vs %s · %s · %s\nStockpile %d · Gold left %d · Our units %d · Opponent %d · Time %02d:%02d · %s\nSelected: %s · Command posts %d / %d HP\nLa Roma: %s\nLast action: %s\nSync: %s %s" % [
-		sim.factions[Skirmish.HUMAN].capitalize(), sim.factions[Skirmish.COMPUTER].capitalize(), AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
+	hud.text = "%s vs %s · %02d:%02d\nGOLD  %d stockpile · %d at cart\nLA ROMA  %s\nWIN  Hold center 01:00 or destroy enemy post\nPOSTS  Ours %d HP · Enemy %d HP\n%s\nSYNC  %s" % [
+		sim.factions[Skirmish.HUMAN].capitalize(), sim.factions[Skirmish.COMPUTER].capitalize(),
+		floori(float(total_seconds) / 60.0), total_seconds % 60,
 		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
-		sim._count_units(Skirmish.HUMAN), sim._count_units(Skirmish.COMPUTER),
-		floori(float(total_seconds) / 60.0), total_seconds % 60, "Result: %s. Press R to restart." % sim.result if sim.result != "" else opponent_note,
-		chosen, own_hp, enemy_hp, _district_note(), sim.feedback,
-		_sync_brief(), sync_note]
+		_district_note(), own_hp, enemy_hp,
+		"RESULT  %s · Press R to restart" % sim.result.capitalize() if sim.result != "" else "%s · %s" % [AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID],
+		_sync_brief() + (" " + sync_note if sync_note.contains("unavailable") or sync_note.contains("invite") or sync_note.contains("attention") else "")]
+	if selected_id == -1:
+		selection_title.text = "NO SELECTION"
+		selection_details.text = "Click one of your units or posts.\nThe cyan ring marks your active actor."
+		selection_portrait.texture = null
+	else:
+		var actor: Dictionary = sim.entities[selected_id]
+		selection_title.text = "%s #%d" % [actor.kind.replace("_", " ").capitalize(), selected_id]
+		selection_portrait.texture = art.texture(_actor_art_id(actor))
+		var details := "%s · %d / %d HP\nOrder: %s" % [sim.factions[Skirmish.HUMAN].capitalize(), actor.hp, sim._starting_health(Skirmish.HUMAN, actor.kind), actor.job.capitalize()]
+		if actor.kind == "worker":
+			details += " · Carry %d" % actor.carry
+		if actor.kind in ["command_post", "barracks"]:
+			if not actor.complete:
+				details += "\nBuilding: %d%%" % roundi(100.0 * actor.progress / Skirmish.BUILD_TICKS)
+			if not actor.queue.is_empty():
+				var first: Dictionary = actor.queue[0]
+				details += "\nQueue %d: %s · %ds left" % [actor.queue.size(), first.role, ceili(float(first.remaining) / 10.0)]
+		selection_details.text = details
+	for action in command_buttons:
+		var state := _command_state(action)
+		var button: Button = command_buttons[action]
+		button.visible = state.visible
+		button.disabled = not state.enabled
+		button.text = state.label if state.reason.is_empty() else "%s (%s)" % [state.label, state.reason]
+		button.tooltip_text = state.reason if not state.reason.is_empty() else state.label
+	command_help.text = _target_prompt() if target_mode != "" else "Last action: %s" % sim.feedback
 
 func _sync_brief() -> String:
 	if outbox.state.is_empty():
@@ -391,12 +596,12 @@ func _sync_brief() -> String:
 
 func _district_note() -> String:
 	match sim.district_state:
-		"human_hold": return "Your hold %02d:%02d / 01:00. Keep enemy fighters out." % [floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60]
-		"computer_hold": return "Enemy hold %02d:%02d / 01:00 — send a fighter into the marked center!" % [floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60]
-		"contested": return "Contested — both armies are inside; timer reset."
-		"reset": return "Empty — hold reset."
+		"human_hold": return "Your hold %02d:%02d / 01:00" % [floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60]
+		"computer_hold": return "Enemy hold %02d:%02d / 01:00 — contest it" % [floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60]
+		"contested": return "Contested — hold reset"
+		"reset": return "Empty — hold reset"
 		"terminal": return "Complete: %s (%s)." % [sim.result, sim.result_reason.replace("_", " ")]
-	return "Neutral — move a melee or ranged unit into the marked 3x3 center."
+	return "Neutral — bring a fighter to center"
 
 func _send_next() -> void:
 	if syncing:
