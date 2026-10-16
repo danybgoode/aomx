@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Shaping
+status: in-progress
+phase: Building
 slug: la-roma-battlefield-art-pack
 title: "La Roma battlefield art pack v0.1"
 area: 02-civilizations-and-world
@@ -44,6 +44,14 @@ A classic RTS player should recognize a Mexico City inspired battlefield, both f
 
 ## Architecture lock
 
+- **D1 · Geometry authority:** Keep the existing 48×24 diamond projection, tile inverse and 20×20 integer simulation grid. A sprite's canvas may overhang its tile or 2×2 footprint; its ground pivot and visible bounds are manifest data, not a collision change.
+- **D2 · View seam:** Place an asset catalog and view-only animation state between the simulation snapshot and Godot drawing. The simulation remains unaware of textures, facing, frame timing and depth.
+- **D3 · Visual map:** Author terrain choices for the fixed 20×20 board without creating pathing or resource data in the art layer. Decorative objects may overhang but do not block or select.
+- **D4 · Depth and picking:** Sort visual entities by projected ground depth, with stable IDs as a tie break. Preserve tile-based entity_at selection, 2×2 placement, and command targets.
+- **D5 · Source and rights:** Newly authored source files and transparent exports are the production pack. The supplied Scrabling download informs palette and shape only unless a separate provenance decision permits direct pixels.
+- **D6 · UI boundary:** Keep the present CanvasLayer status and commands readable. Define reusable Control components for a later desktop/touch HUD, without adding unimplemented resources, camera movement or commands now.
+- **D7 · Verification and release:** Headless checks defend the unchanged rules and outbox; rendered Godot checks defend art readability at both existing zoom limits. A merge is not a deployed build or a public invitation.
+
 - Preserve game/skirmish.gd as the authority for the 20×20 integer grid, commands, collisions, health, win conditions and event versions. Art metadata never changes simulation outcomes.
 - Keep the present Node2D projection and tile picking: a 48×24 flat diamond centered at (640,65) + ((x−y)×24,(x+y)×12), with 100%–125% board zoom around (640,305). A 2×2 building ground footprint is 96×48 pixels. Source sprite canvas and pivot specifications are set in Sprint 1 after actual-scale review.
 - A render-only asset manifest maps existing kinds and faction to textures, pivots, state and timing. Draw visual terrain and entities with view-only depth ordering; keep selection and placement tile based. No TileMapLayer migration is presumed.
@@ -69,6 +77,12 @@ A classic RTS player should recognize a Mexico City inspired battlefield, both f
 | 3 · Visual QA and integration | S3.1 | Gameplay and rendering checks, owner walkthrough and recorded limitations. |
 
 The Sprint 1 pilot is a review boundary. If style or readability fails at gameplay scale, revise before expanding; the L appetite is re-evaluated between waves without silently widening scope.
+
+## Sprint build contracts
+
+- **S1:** Document the live geometry and all current rendered states, then ship a one-terrain/one-command-post/one-unit visual pilot with explicit pivots and a rendered scale check. Any failed readability check changes art direction before S2.
+- **S2:** Add only current-match terrain, buildings, units and state feedback from the approved manifest. Each asset is reachable from the catalog; visual map edits cannot change walkability or entity selection.
+- **S3:** Run the existing deterministic checks and two-faction rendered walkthrough, inspect crowded depth/zoom cases, and record blind comprehension, provenance and performance observations before close-out.
 
 ## Deploy order
 
