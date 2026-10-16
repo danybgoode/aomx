@@ -88,7 +88,6 @@ func _ready() -> void:
 	instructions = Label.new()
 	instructions.position = Vector2(22, 756)
 	instructions.add_theme_font_size_override("font_size", 18)
-	instructions.text = "Select at feet · Right-click target · B build · 1/2/3 recruit · +/- zoom · G fullscreen · R restart · F sync"
 	layer.add_child(instructions)
 	_build_faction_setup(layer)
 	_show_setup()
