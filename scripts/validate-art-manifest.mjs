@@ -55,7 +55,8 @@ const expected = [
   ...["blue", "red"].flatMap(color => [
     "building_command_post_" + color, "building_barracks_" + color,
     "unit_worker_" + color, "unit_melee_" + color, "unit_ranged_" + color
-  ])
+  ]),
+  "prop_gold_cart", "prop_jacaranda", "prop_barricade", "prop_plaza_medallion"
 ];
 for (const id of expected) if (!ids.has(id)) errors.push("required asset missing: " + id);
 

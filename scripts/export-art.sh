@@ -15,7 +15,7 @@ terrain_row() {
   for col in 0 1 2 3; do
     offset_x=$((23 + 384 * col))
     magick "$SOURCE/terrain_atlas.png" -crop "339x${source_h}+${offset_x}+${source_y}" +repage \
-      -filter Point -resize '48x27!' -channel A -threshold 35% +channel \
+      -filter Point -resize '48x27!' -channel A -threshold 35% +channel -strip \
       "$OUTPUT/terrain_${label}_${col}.png"
   done
 }
@@ -27,7 +27,7 @@ terrain_row plaza 776 189
 building() {
   local id="$1" bounds="$2" height="$3"
   magick "$SOURCE/building_atlas.png" -crop "$bounds" +repage \
-    -filter Point -resize "96x${height}!" -channel A -threshold 35% +channel \
+    -filter Point -resize "96x${height}!" -channel A -threshold 35% +channel -strip \
     "$OUTPUT/${id}.png"
 }
 building building_command_post_blue '651x536+86+27' 80
@@ -39,7 +39,7 @@ unit() {
   local id="$1" bounds="$2"
   magick "$SOURCE/unit_atlas.png" -crop "$bounds" +repage \
     -filter Point -resize '36x54!' -background none -gravity south -extent 40x56 \
-    -channel A -threshold 35% +channel "$OUTPUT/${id}.png"
+    -channel A -threshold 35% +channel -strip "$OUTPUT/${id}.png"
 }
 unit unit_worker_blue '282x426+165+46'
 unit unit_melee_blue '275x416+630+56'
@@ -48,4 +48,15 @@ unit unit_worker_red '282x425+165+536'
 unit unit_melee_red '275x416+630+546'
 unit unit_ranged_red '289x429+1110+534'
 
-echo "Exported terrain, building and unit PNGs to $OUTPUT"
+environment() {
+  local id="$1" bounds="$2" width="$3" height="$4"
+  magick "$SOURCE/environment_atlas.png" -crop "$bounds" +repage \
+    -filter Point -resize "${width}x${height}!" -channel A -threshold 35% +channel -strip \
+    "$OUTPUT/${id}.png"
+}
+environment prop_gold_cart '401x384+233+90' 48 46
+environment prop_jacaranda '595x494+1029+23' 64 64
+environment prop_barricade '582x320+146+530' 48 28
+environment prop_plaza_medallion '707x321+976+541' 96 44
+
+echo "Exported terrain, building, unit and environment PNGs to $OUTPUT"
