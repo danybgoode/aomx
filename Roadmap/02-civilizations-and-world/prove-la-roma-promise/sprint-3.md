@@ -51,12 +51,12 @@ The owner receives a small, readable test of the approved value proposition: can
 | Faction trade-off and counter named | pending / 4 | pending / 4 | at least 6 / 8 overall |
 | Voluntary second-match start | pending / 4 | pending / 4 | at least 4 / 8 overall |
 
-**Build/content version:** local signed candidate `preview-090006aa7058` / `la-roma-prototype-1`. **Invitation authorization and delivery QA:** pending. **Verdict and reasons:** pending.
+**Build/content version:** local signed candidate `preview-eb3c7d9012a3` / `la-roma-prototype-1`. **Invitation authorization and delivery QA:** pending. **Verdict and reasons:** pending.
 
 ## Candidate build record · 2026-10-15
 
-- `npm run alpha:export` passed the Node suite, six Godot headless checks, the Godot-to-ingest contract, Godot import, macOS export and strict code-sign verification. The local ZIP is `dist/alpha/battle-for-la-roma-preview-090006aa7058-macos.zip`; SHA-256 `e5e3a755d0e57d673aa08e3942e38993712c061051194b837722bcf8b5c3e514` matches its manifest.
-- The extracted local app opened and displayed both faction choices, both win routes, the private invite field, and build ID `preview-090006aa7058` after choosing Regios. It is test-tagged preview traffic and has not been uploaded or sent to participants.
+- `npm run alpha:export` passed the Node suite, six Godot headless checks, the Godot-to-ingest contract, Godot import, macOS export and strict code-sign verification. The final local ZIP is `dist/alpha/battle-for-la-roma-preview-eb3c7d9012a3-macos.zip`; SHA-256 `3d68b6457c6eb8bed7f8f6559bd882c0a3412f26a500246bbca3b07e0f4a97c7` matches its manifest.
+- The final signed ZIP was extracted and opened locally. Its setup displayed both faction trade-offs, both win routes and the private invite field without clipping. After choosing Poblanos, the HUD showed build ID `preview-eb3c7d9012a3`, the marked neutral district and the opponent goal. Preview traffic is test-tagged; no build has been uploaded or sent to participants.
 - Staging must run the new version allowlist and pass an invited HTTPS receipt/exclusion smoke before this candidate can sync there. Downloaded-build Gatekeeper QA, distribution access checks and owner-authorized invitations remain open. The eight-person tally is intentionally blank.
 
 ## Sprint QA
