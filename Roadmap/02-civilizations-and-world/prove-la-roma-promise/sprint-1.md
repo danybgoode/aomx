@@ -3,7 +3,7 @@ epic: prove-la-roma-promise
 sprint: 1
 title: "Choose counterable factions"
 risk: low
-phase: Shaping
+phase: Building
 stories_total: 1
 stories:
   - id: S1.1
@@ -16,7 +16,7 @@ stories:
 ---
 # Prove the La Roma promise — Sprint 1: Choose counterable factions
 
-**Status:** ⬜ not started
+**Status:** 🟨 building
 
 ## Player outcome
 

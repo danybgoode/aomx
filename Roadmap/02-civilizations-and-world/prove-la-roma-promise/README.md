@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: prove-la-roma-promise
 destination: fight-for-la-roma
@@ -56,6 +56,18 @@ Extend the existing fixed-tick Godot skirmish, validated order path, authored AI
 - **Terminal order:** Simultaneous command-post destruction is a draw. Otherwise command-post defeat resolves before a district hold completed on the same tick. The existing 15-minute unresolved draw remains. Freeze commands and emit one terminal result.
 - **Opponent and fairness:** The authored computer must be able to enter and contest the district and still defend or threaten a command post. Both starts retain comparable access to resource and center. Test each human faction and both victory routes; any core-rule change or cultural portrayal change goes back to the owner under [Ways of Working](../../WAYS-OF-WORKING.md#escalate-dont-guess).
 - **Validation:** The product owner runs a closed, moderated eight-player test only after authorizing invitations and after private alpha delivery checks pass. Four players familiar and four unfamiliar with Mexican references explain both win routes before coaching. The predeclared pass marks are at least three of four in each group explaining both routes, six of eight naming a trade-off and counter, and four of eight voluntarily starting another match. Record raw counts and failures. Do not present this as the 15% later-day target or a North Star baseline.
+
+## Architecture lock · 2026-10-15
+
+- **D1 · Rules stay deterministic:** `game/skirmish.gd` remains the sole fixed-tick rules model. A match owns a human faction and the opposite computer faction; costs, carry limits and building health resolve by side in the model, never from HUD text. Commands for both sides still pass through `issue`. Include faction and district state in snapshots and replay hashes.
+- **D2 · Choice precedes the match:** `game/skirmish_main.gd` shows a faction setup on launch and restart. It queues `match_started` only after a selection. `game/funnel_outbox.gd`'s existing event shape stays intact, with `faction` set on the match start and completion; an open before choice remains `neutral`. No event or player identity is fabricated during setup.
+- **D3 · Center remains a fair path:** The 3×3 district is centered on the existing map crossing. Open the adjacent center wall tiles so both sides have comparable routes. Building footprints cannot intersect the district; combat units may enter it. The district is game state, not a capturable entity.
+- **D4 · Terminal precedence:** Each tick processes movement and simultaneous damage, removes dead units, then checks both posts, one post, district hold, and 15-minute draw in that order. Presence is counted from living combat units after damage. Contest or absence resets progress. Sixty seconds equals 600 fixed ticks. Exactly one result freezes orders.
+- **D5 · Opponent uses orders:** The existing authored AI continues gather/build/train through `issue`, then assigns idle combat units to center contest or post attack according to threats. It must not get a separate movement or damage path. Deterministic scenarios cover both faction choices and active counterplay.
+- **D6 · Versions and eligibility:** Keep `GAME_VERSION` stable unless the event schema changes; bump `CONTENT_VERSION` for the new rules. The Godot outbox, local contract, alpha export manifest and hosted alpha allowlist must agree before a restricted preview can sync. Preserve old supported content for existing previews. Any alpha server allowlist change gets second review and staging smoke; no production deployment or participant invite follows from the merge.
+- **D7 · Visual and QA:** The setup and district HUD use words and shape cues alongside color. Headless rule, outbox and contract checks run at each sprint boundary, followed by a rendered Godot walkthrough. Debug-only smoke fixtures are guarded out of release exports. Record owner QA and the external eight-player test separately; the latter waits for owner-authorized invitations.
+
+**Sprint build contracts:** S1 adds selection, faction parameters and matching event context while preserving command-post conquest. S2 adds district state and countering AI without changing the event schema. S3 adds a versioned test build, receipt/exclusion checks and the approved comprehension protocol; its eight-person result cannot be marked done until the owner-authorized test occurs.
 
 ## What already exists (reuse, don't rebuild)
 
