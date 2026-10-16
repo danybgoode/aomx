@@ -3,7 +3,7 @@ epic: prove-la-roma-promise
 sprint: 1
 title: "Choose counterable factions"
 risk: low
-phase: Building
+phase: Verifying
 stories_total: 1
 stories:
   - id: S1.1
@@ -12,11 +12,11 @@ stories:
     i_want: "to choose a faction with a visible rule difference"
     so_that: "my opening strategy and counterplay change"
     risk: low
-    status: planned
+    status: done
 ---
 # Prove the La Roma promise — Sprint 1: Choose counterable factions
 
-**Status:** 🟨 building
+**Status:** ✅ builder verified; owner comprehension check remains in Sprint 3
 
 ## Player outcome
 
@@ -24,7 +24,7 @@ A player chooses Regios or Poblanos before the solo match, reads each faction's 
 
 ## Stories
 
-### Story 1.1 — Choose two counterable factions
+### ✅ Story 1.1 — Choose two counterable factions
 
 **As a** solo RTS player, **I want** to choose a faction with a visible rule difference, **so that** my opening strategy and counterplay change.
 
@@ -61,3 +61,9 @@ Env: local Godot 4.7.2 · project `game/` · scene `res://skirmish_main.tscn`. S
    → It shows 36 maximum health and a baseline melee cost of three resource.
 
 If a step fails, record its number and what appeared. The owner records whether the words explain the trade-off without a cultural reference.
+
+## Builder QA record · 2026-10-15
+
+- Godot 4.7.2 headless faction, skirmish and client checks passed for both faction assignments, five-versus-four gold deliveries, unit costs, 50/60 command-post health, 30/36 recruitment-post health and deterministic replay.
+- In the rendered debug scene, Regios gathered gold, built a 30-health recruitment post and queued melee for four gold. After restart, Poblanos delivered four gold, showed a 60-health command post and 36-health recruitment post, and queued melee for three gold. The setup named both win routes before either choice.
+- `npm run skirmish:contract` passed with one test-tagged start/completion and the chosen faction. The owner-facing uncoached wording check is part of the planned eight-player test; no participant answer has been recorded.

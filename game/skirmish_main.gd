@@ -14,6 +14,9 @@ const ZOOM_STEP := 0.1
 
 var sim = Skirmish.new()
 var outbox = FunnelOutbox.new()
+var choosing_faction := true
+var setup_panel: PanelContainer
+var setup_goal: Label
 var match_id := ""
 var completion_queued := false
 var selected_id := -1
@@ -37,7 +40,6 @@ func _ready() -> void:
 	outbox.game_version = Skirmish.GAME_VERSION
 	outbox.content_version = Skirmish.CONTENT_VERSION
 	outbox.queue_open_for_launch()
-	_start_match()
 	request = HTTPRequest.new()
 	request.timeout = 3.0
 	add_child(request)
@@ -75,17 +77,78 @@ func _ready() -> void:
 	hud = Label.new()
 	hud.position = Vector2(22, 600)
 	hud.size = Vector2(1236, 140)
-	hud.add_theme_font_size_override("font_size", 20)
+	hud.add_theme_font_size_override("font_size", 16)
 	layer.add_child(hud)
 	instructions = Label.new()
 	instructions.position = Vector2(22, 756)
 	instructions.add_theme_font_size_override("font_size", 18)
 	instructions.text = "Click blue unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R restart · F sync"
 	layer.add_child(instructions)
+	_build_faction_setup(layer)
+	_show_setup()
 	_update_hud()
 
-func _start_match() -> void:
+func _build_faction_setup(layer: CanvasLayer) -> void:
+	setup_panel = PanelContainer.new()
+	setup_panel.position = Vector2(235, 105)
+	setup_panel.size = Vector2(810, 420)
+	layer.add_child(setup_panel)
+	var margin := MarginContainer.new()
+	for side in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 24)
+	setup_panel.add_child(margin)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 16)
+	margin.add_child(column)
+	var title := Label.new()
+	title.text = "Choose a faction"
+	title.add_theme_font_size_override("font_size", 30)
+	column.add_child(title)
+	setup_goal = Label.new()
+	setup_goal.text = "Win by destroying the opposing command post or holding La Roma for 60 seconds."
+	setup_goal.add_theme_font_size_override("font_size", 18)
+	column.add_child(setup_goal)
+	var regios := Button.new()
+	regios.text = "Regios — workers deliver 5 gold; combat units cost +1 gold"
+	regios.custom_minimum_size.y = 72
+	regios.add_theme_font_size_override("font_size", 20)
+	regios.pressed.connect(_choose_faction.bind(Skirmish.REGIOS))
+	column.add_child(regios)
+	var poblanos := Button.new()
+	poblanos.text = "Poblanos — stronger command/recruitment posts; standard economy"
+	poblanos.custom_minimum_size.y = 72
+	poblanos.add_theme_font_size_override("font_size", 20)
+	poblanos.pressed.connect(_choose_faction.bind(Skirmish.POBLANOS))
+	column.add_child(poblanos)
+	var note := Label.new()
+	note.text = "These are fictional strategies, not descriptions of regional people."
+	note.add_theme_font_size_override("font_size", 17)
+	column.add_child(note)
+
+func _show_setup() -> void:
+	choosing_faction = true
 	sim = Skirmish.new()
+	outbox.faction = "neutral"
+	match_id = ""
+	accumulator = 0.0
+	selected_id = -1
+	placing = false
+	setup_panel.show()
+	instructions.text = "Choose Regios or Poblanos to begin · Press 1 or 2, or click a choice"
+	_update_hud()
+	queue_redraw()
+
+func _choose_faction(faction: String) -> void:
+	if not choosing_faction or faction not in [Skirmish.REGIOS, Skirmish.POBLANOS]:
+		return
+	_start_match(faction)
+
+func _start_match(faction: String) -> void:
+	sim = Skirmish.new(faction)
+	outbox.faction = faction
+	choosing_faction = false
+	setup_panel.hide()
+	instructions.text = "Click blue unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R choose faction · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
@@ -102,8 +165,20 @@ func _start_match() -> void:
 				sim.entities[sim._find(Skirmish.HUMAN, "command_post")].hp = 0
 			"draw":
 				sim.tick_number = Skirmish.DRAW_TICK - 1
+			"district_hold":
+				sim.ai_enabled = false
+				sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(9, 10))
+			"district_contest":
+				sim.ai_enabled = false
+				sim._add_entity(Skirmish.HUMAN, "ranged", Vector2i(9, 10))
+				var defender: int = sim._add_entity(Skirmish.COMPUTER, "melee", Vector2i(11, 10))
+				sim.entities[defender].hp = 2
+	_update_hud()
+	queue_redraw()
 
 func _process(delta: float) -> void:
+	if choosing_faction:
+		return
 	if order_flash_seconds > 0.0:
 		order_flash_seconds = maxf(0.0, order_flash_seconds - delta)
 		queue_redraw()
@@ -123,6 +198,13 @@ func _process(delta: float) -> void:
 		queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if choosing_faction:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_1:
+				_choose_faction(Skirmish.REGIOS)
+			elif event.keycode == KEY_2:
+				_choose_faction(Skirmish.POBLANOS)
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_EQUAL, KEY_PLUS, KEY_KP_ADD:
@@ -136,7 +218,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_window().mode = Window.MODE_WINDOWED if get_window().mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
 			KEY_B:
 				if _selected_kind() == "worker":
-					if sim.stockpile[Skirmish.HUMAN] < Skirmish.COST.barracks:
+					if sim.stockpile[Skirmish.HUMAN] < sim._cost(Skirmish.HUMAN, "barracks"):
 						placing = false
 						_flash_order(sim.entities[selected_id].pos, "Need 6 gold. Gather first.", false)
 					else:
@@ -153,7 +235,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_3:
 				_train("ranged")
 			KEY_R:
-				_start_match()
+				_show_setup()
 			KEY_F:
 				_send_next()
 	elif event is InputEventMouseButton and event.pressed:
@@ -242,6 +324,9 @@ func _selected_kind() -> String:
 func _update_hud() -> void:
 	if hud == null:
 		return
+	if choosing_faction:
+		hud.text = "Battle for La Roma · Choose a faction to start\nRegios: 5 gold per delivery, combat units cost +1 · Poblanos: stronger buildings, standard economy\nWin by destroying the opposing command post or holding La Roma for 60 seconds.\nSync: %s %s" % [outbox.summary(), sync_note]
+		return
 	if selected_id != -1 and not sim.entities.has(selected_id):
 		selected_id = -1
 	var human_post := sim._find(Skirmish.HUMAN, "command_post")
@@ -250,14 +335,36 @@ func _update_hud() -> void:
 	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 else 0
 	var chosen := "none" if selected_id == -1 else "%s #%d (%d HP)" % [sim.entities[selected_id].kind.replace("_", " "), selected_id, sim.entities[selected_id].hp]
 	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
-	var opponent_note := "Opponent attacks at 01:20." if sim.tick_number < Skirmish.AI_ATTACK_TICK else "Opponent attacking."
-	hud.text = "Battle for La Roma · %s · %s\nStockpile %d · Gold left %d · Our units %d · Opponent %d · Time %02d:%02d · %s\nSelected: %s · Command posts %d / %d HP\nLast action: %s\nSync: %s %s" % [
-		AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
+	var opponent_note := "Opponent contests La Roma and attacks."
+	hud.text = "Battle for La Roma · %s vs %s · %s · %s\nStockpile %d · Gold left %d · Our units %d · Opponent %d · Time %02d:%02d · %s\nSelected: %s · Command posts %d / %d HP\nLa Roma: %s\nLast action: %s\nSync: %s %s" % [
+		sim.factions[Skirmish.HUMAN].capitalize(), sim.factions[Skirmish.COMPUTER].capitalize(), AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
 		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
 		sim._count_units(Skirmish.HUMAN), sim._count_units(Skirmish.COMPUTER),
 		floori(float(total_seconds) / 60.0), total_seconds % 60, "Result: %s. Press R to restart." % sim.result if sim.result != "" else opponent_note,
-		chosen, own_hp, enemy_hp, sim.feedback,
-		outbox.summary(), sync_note]
+		chosen, own_hp, enemy_hp, _district_note(), sim.feedback,
+		_sync_brief(), sync_note]
+
+func _sync_brief() -> String:
+	if outbox.state.is_empty():
+		return "Local storage unavailable."
+	var pending := 0
+	var synced := 0
+	var attention := 0
+	for item in outbox.state.events:
+		match item.status:
+			"pending": pending += 1
+			"accepted": synced += 1
+			"needs_attention": attention += 1
+	return "%d pending · %d synced · %d need attention." % [pending, synced, attention]
+
+func _district_note() -> String:
+	match sim.district_state:
+		"human_hold": return "Your hold %02d:%02d / 01:00. Keep enemy fighters out." % [floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60]
+		"computer_hold": return "Enemy hold %02d:%02d / 01:00 — send a fighter into the marked center!" % [floori(float(sim.district_progress) / 600.0), floori(float(sim.district_progress) / 10.0) % 60]
+		"contested": return "Contested — both armies are inside; timer reset."
+		"reset": return "Empty — hold reset."
+		"terminal": return "Complete: %s (%s)." % [sim.result, sim.result_reason.replace("_", " ")]
+	return "Neutral — move a melee or ranged unit into the marked 3x3 center."
 
 func _send_next() -> void:
 	if syncing:
@@ -353,10 +460,13 @@ func _draw() -> void:
 			var color := Color("526c5d") if (x + y) % 2 == 0 else Color("496251")
 			if sim._wall(tile):
 				color = Color("263a4a")
+			elif sim._in_district(tile):
+				color = Color("7b6840") if sim.district_state in ["neutral", "reset"] else Color("3b8a96") if sim.district_state == "human_hold" else Color("a6564a") if sim.district_state == "computer_hold" else Color("89578c")
 			if tile == marker:
 				color = Color("7a9ccd")
 			draw_colored_polygon(_diamond(center), color)
 			draw_polyline(_diamond(center) + PackedVector2Array([_diamond(center)[0]]), Color("283b40"), 1.0)
+	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -38), "LA ROMA 3x3", HORIZONTAL_ALIGNMENT_CENTER, 116, 17, Color.WHITE)
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		var source: Dictionary = sim.sources[side]
 		if source.amount > 0:
@@ -396,7 +506,7 @@ func _draw() -> void:
 			draw_arc(center + Vector2(0, 5), 16, 0, TAU, 24, Color("f2de69"), 2.0)
 	if placing:
 		var preview_tile := _screen_to_tile(get_global_mouse_position())
-		var valid: bool = sim._clear_footprint(preview_tile) and sim.stockpile[Skirmish.HUMAN] >= Skirmish.COST.barracks
+		var valid: bool = sim._clear_footprint(preview_tile) and sim.stockpile[Skirmish.HUMAN] >= sim._cost(Skirmish.HUMAN, "barracks")
 		for oy in range(2):
 			for ox in range(2):
 				draw_colored_polygon(_diamond(_tile_to_screen(preview_tile + Vector2i(ox, oy))),

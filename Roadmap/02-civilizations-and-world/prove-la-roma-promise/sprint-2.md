@@ -3,7 +3,7 @@ epic: prove-la-roma-promise
 sprint: 2
 title: "Fight for La Roma"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,18 +12,18 @@ stories:
     i_want: "to contest a visible central district"
     so_that: "I can win by holding it or by command-post conquest"
     risk: low
-    status: planned
+    status: done
   - id: S2.2
     title: "Face a countering opponent"
     as_a: "solo RTS player"
     i_want: "the computer to pursue and deny both win routes"
     so_that: "the district victory is earned rather than automatic"
     risk: low
-    status: planned
+    status: done
 ---
 # Prove the La Roma promise — Sprint 2: Fight for La Roma
 
-**Status:** ⬜ not started
+**Status:** ✅ builder verified; owner comprehension check remains in Sprint 3
 
 ## Player outcome
 
@@ -31,7 +31,7 @@ The center of the existing solo map becomes a contested La Roma district. A play
 
 ## Stories
 
-### Story 2.1 — Contest the La Roma district
+### ✅ Story 2.1 — Contest the La Roma district
 
 **As a** solo RTS player, **I want** to contest a visible central district, **so that** I can win by holding it or by command-post conquest.
 
@@ -45,7 +45,7 @@ The center of the existing solo map becomes a contested La Roma district. A play
 
 **Risk:** low. Local rules and UI, with no new external data boundary.
 
-### Story 2.2 — Face a countering opponent
+### ✅ Story 2.2 — Face a countering opponent
 
 **As a** solo RTS player, **I want** the computer to pursue and deny both win routes, **so that** the district victory is earned rather than automatic.
 
@@ -81,3 +81,9 @@ Env: local Godot 4.7.2 · project `game/` · scene `res://skirmish_main.tscn`. S
    → The computer moves to contest or threatens your post rather than allowing a passive hold.
 
 If a step fails, record its number and what appeared. The owner records whether the district state and next counter are understandable without a cultural reference.
+
+## Builder QA record · 2026-10-15
+
+- Godot district checks passed for both faction assignments: workers cannot hold, construction cannot overlap the zone, enemy presence and absence reset it, exactly 600 uninterrupted ticks win, command-post outcomes take precedence, and AI orders and replay stay deterministic.
+- The rendered `district_contest` fixture showed “Contested”; a player-issued ranged attack removed the defender, started a visible hold, and resolved once to a district win. The same scene showed the warning and terminal reason in text, not color alone.
+- A normal rendered Regios-versus-Poblanos match reached an AI district victory at 01:35. The computer built a post, recruited fighters, held the center and damaged the human command post. Headless rules also covered human post conquest and the 15-minute draw. The eight-player comprehension test remains open.

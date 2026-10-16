@@ -4,6 +4,8 @@ const WIDTH := 20
 const HEIGHT := 20
 const HUMAN := 0
 const COMPUTER := 1
+const REGIOS := "regios"
+const POBLANOS := "poblanos"
 const DRAW_TICK := 9000
 const RESOURCE_POS := {HUMAN: Vector2i(6, 4), COMPUTER: Vector2i(13, 15)}
 const BARRACKS_POS := {HUMAN: Vector2i(5, 6), COMPUTER: Vector2i(13, 11)}
@@ -16,9 +18,14 @@ const COOLDOWN := {"melee": 10, "ranged": 14}
 const BUILD_TICKS := 40
 const CARRY_LIMIT := 4
 const AI_ATTACK_TICK := 800
+const AI_DISTRICT_TICK := 350
+const DISTRICT_MIN := Vector2i(9, 9)
+const DISTRICT_MAX := Vector2i(11, 11)
+const HOLD_TICKS := 600
 const GAME_VERSION := "godot-4.7.2-skirmish-1"
-const CONTENT_VERSION := "original-skirmish-map-1"
+const CONTENT_VERSION := "la-roma-prototype-1"
 
+var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var entities: Dictionary = {}
 var sources: Dictionary = {}
 var stockpile: Dictionary = {HUMAN: 0, COMPUTER: 0}
@@ -26,13 +33,20 @@ var next_id := 1
 var tick_number := 0
 var result := ""
 var terminal_tick := -1
+var result_reason := ""
+var district_side := -1
+var district_progress := 0
+var district_state := "neutral"
 var feedback := "Gather resource, build a recruitment post, then train an army."
 var command_log: Array[Dictionary] = []
 var next_command := 1
 var ai_next_role := "melee"
+var ai_enabled := true
 var pending_footprint := Vector2i(-1, -1)
 
-func _init() -> void:
+func _init(human_faction: String = REGIOS) -> void:
+	assert(human_faction in [REGIOS, POBLANOS], "Choose a supported faction.")
+	factions = {HUMAN: human_faction, COMPUTER: POBLANOS if human_faction == REGIOS else REGIOS}
 	sources = {HUMAN: {"pos": RESOURCE_POS[HUMAN], "amount": 60},
 		COMPUTER: {"pos": RESOURCE_POS[COMPUTER], "amount": 60}}
 	_add_entity(HUMAN, "command_post", Vector2i(2, 2))
@@ -77,7 +91,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				rejected.reason = "worker_required"
 			elif _find(side, "barracks") != -1:
 				rejected.reason = "only_one_recruitment_post"
-			elif stockpile[side] < COST.barracks:
+			elif stockpile[side] < _cost(side, "barracks"):
 				rejected.reason = "insufficient_stockpile"
 			elif not _clear_footprint(target):
 				rejected.reason = "blocked_footprint"
@@ -88,7 +102,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				if route.is_empty() and _distance_to_footprint(actor.pos, target) != 1:
 					rejected.reason = "building_unreachable"
 				else:
-					stockpile[side] -= COST.barracks
+					stockpile[side] -= _cost(side, "barracks")
 					var building_id := _add_entity(side, "barracks", target)
 					entities[building_id].complete = false
 					entities[building_id].progress = 0
@@ -103,12 +117,12 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				rejected.reason = "building_incomplete"
 			elif (actor.kind == "command_post" and target != "worker") or (actor.kind == "barracks" and target not in ["melee", "ranged"]):
 				rejected.reason = "role_unavailable"
-			elif stockpile[side] < COST[target]:
+			elif stockpile[side] < _cost(side, target):
 				rejected.reason = "insufficient_stockpile"
 			elif actor.queue.size() >= 3:
 				rejected.reason = "queue_full"
 			else:
-				stockpile[side] -= COST[target]
+				stockpile[side] -= _cost(side, target)
 				actor.queue.append({"role": target, "remaining": TRAIN_TICKS[target]})
 				rejected = {"ok": true, "reason": "training_queued"}
 		"attack":
@@ -139,7 +153,7 @@ func tick() -> void:
 	if result != "":
 		return
 	tick_number += 1
-	if tick_number % 20 == 0:
+	if ai_enabled and tick_number % 20 == 0:
 		_ai_step()
 	var damages: Dictionary = {}
 	var ids: Array = entities.keys()
@@ -176,13 +190,40 @@ func tick() -> void:
 	var human_dead: bool = human_post == -1 or entities[human_post].hp <= 0
 	var computer_dead: bool = computer_post == -1 or entities[computer_post].hp <= 0
 	if human_dead and computer_dead:
-		_finish("draw")
+		_finish("draw", "simultaneous_posts")
 	elif computer_dead:
-		_finish("win")
+		_finish("win", "command_post")
 	elif human_dead:
-		_finish("loss")
-	elif tick_number >= DRAW_TICK:
-		_finish("draw")
+		_finish("loss", "command_post")
+	else:
+		_tick_district()
+		if result == "" and tick_number >= DRAW_TICK:
+			_finish("draw", "time_limit")
+
+func _tick_district() -> void:
+	var present := {HUMAN: false, COMPUTER: false}
+	for e in entities.values():
+		if e.hp > 0 and e.kind in ["melee", "ranged"] and _in_district(e.pos):
+			present[e.side] = true
+	if present[HUMAN] and present[COMPUTER]:
+		district_state = "contested"
+		district_side = -1
+		district_progress = 0
+		return
+	if not present[HUMAN] and not present[COMPUTER]:
+		district_state = "reset" if district_progress > 0 else "neutral"
+		district_side = -1
+		district_progress = 0
+		return
+	var owner: int = HUMAN if present[HUMAN] else COMPUTER
+	if district_side == owner:
+		district_progress += 1
+	else:
+		district_side = owner
+		district_progress = 1
+		district_state = "human_hold" if owner == HUMAN else "computer_hold"
+	if district_progress >= HOLD_TICKS:
+		_finish("win" if owner == HUMAN else "loss", "district")
 
 func snapshot() -> Dictionary:
 	var list: Array = []
@@ -195,9 +236,13 @@ func snapshot() -> Dictionary:
 			"job": e.job, "target_id": e.target_id, "cooldown": e.cooldown,
 			"path": e.path.map(func(p: Vector2i) -> Array: return [p.x, p.y]), "queue": e.queue.duplicate(true)})
 	return {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
+		"result_reason": result_reason, "district_side": district_side,
+		"district_progress": district_progress, "district_state": district_state,
+		"factions": [factions[HUMAN], factions[COMPUTER]],
 		"stockpile": [stockpile[HUMAN], stockpile[COMPUTER]],
 		"sources": [sources[HUMAN].amount, sources[COMPUTER].amount], "entities": list,
-		"next_id": next_id, "next_command": next_command, "ai_next_role": ai_next_role}
+		"next_id": next_id, "next_command": next_command, "ai_next_role": ai_next_role,
+		"ai_enabled": ai_enabled}
 
 func state_hash() -> String:
 	var hash := HashingContext.new()
@@ -208,7 +253,7 @@ func state_hash() -> String:
 func _add_entity(side: int, kind: String, pos: Vector2i) -> int:
 	var id := next_id
 	next_id += 1
-	entities[id] = {"id": id, "side": side, "kind": kind, "pos": pos, "hp": HEALTH[kind],
+	entities[id] = {"id": id, "side": side, "kind": kind, "pos": pos, "hp": _starting_health(side, kind),
 		"complete": true, "progress": 0, "carry": 0, "job": "idle", "path": [],
 		"target_id": -1, "cooldown": 0, "queue": []}
 	return id
@@ -223,7 +268,7 @@ func _tick_gather(e: Dictionary) -> void:
 	var source: Dictionary = sources[e.side]
 	if _distance(e.pos, source.pos) != 1:
 		e.job = "idle"
-	elif source.amount > 0 and e.carry < CARRY_LIMIT:
+	elif source.amount > 0 and e.carry < _carry_limit(e.side):
 		if tick_number % 3 == 0:
 			source.amount -= 1
 			e.carry += 1
@@ -297,19 +342,34 @@ func _ai_step() -> void:
 	if worker_id != -1 and entities[worker_id].job == "idle" and sources[COMPUTER].amount > 0:
 		issue(COMPUTER, "gather", worker_id, sources[COMPUTER].pos)
 	var barracks_id := _find(COMPUTER, "barracks")
-	if barracks_id == -1 and worker_id != -1 and stockpile[COMPUTER] >= COST.barracks:
+	if barracks_id == -1 and worker_id != -1 and stockpile[COMPUTER] >= _cost(COMPUTER, "barracks"):
 		issue(COMPUTER, "build", worker_id, BARRACKS_POS[COMPUTER])
 		barracks_id = _find(COMPUTER, "barracks")
-	if barracks_id != -1 and entities[barracks_id].complete and stockpile[COMPUTER] >= COST[ai_next_role] and _count_units(COMPUTER) + entities[barracks_id].queue.size() < 3:
+	if barracks_id != -1 and entities[barracks_id].complete and stockpile[COMPUTER] >= _cost(COMPUTER, ai_next_role) and _count_units(COMPUTER) + entities[barracks_id].queue.size() < 3:
 		if issue(COMPUTER, "train", barracks_id, ai_next_role).ok:
 			ai_next_role = "ranged" if ai_next_role == "melee" else "melee"
+	if tick_number < AI_DISTRICT_TICK:
+		return
 	var human_post := _find(HUMAN, "command_post")
-	if human_post != -1 and tick_number >= AI_ATTACK_TICK:
-		var ids: Array = entities.keys()
-		ids.sort()
-		for id in ids:
-			if entities.has(id) and entities[id].side == COMPUTER and entities[id].kind in ["melee", "ranged"] and entities[id].job == "idle":
+	var human_district := -1
+	var ids: Array = entities.keys()
+	ids.sort()
+	for id in ids:
+		if entities.has(id) and entities[id].side == HUMAN and entities[id].hp > 0 and entities[id].kind in ["melee", "ranged"] and _in_district(entities[id].pos):
+			human_district = id
+			break
+	for id in ids:
+		if not entities.has(id) or entities[id].side != COMPUTER or entities[id].kind not in ["melee", "ranged"]:
+			continue
+		var unit: Dictionary = entities[id]
+		if human_district != -1:
+			if unit.job != "attack" or unit.target_id != human_district:
+				issue(COMPUTER, "attack", id, human_district)
+		elif unit.kind == "melee" and tick_number >= AI_ATTACK_TICK and human_post != -1:
+			if unit.job == "idle" or unit.job == "move":
 				issue(COMPUTER, "attack", id, human_post)
+		elif unit.job == "idle" and not _in_district(unit.pos):
+			issue(COMPUTER, "move", id, Vector2i(11, 10))
 
 func _count_units(side: int) -> int:
 	var count := 0
@@ -318,12 +378,25 @@ func _count_units(side: int) -> int:
 			count += 1
 	return count
 
-func _finish(outcome: String) -> void:
+func _cost(side: int, kind: String) -> int:
+	return COST[kind] + (1 if factions[side] == REGIOS and kind in ["melee", "ranged"] else 0)
+
+func _carry_limit(side: int) -> int:
+	return 5 if factions[side] == REGIOS else CARRY_LIMIT
+
+func _starting_health(side: int, kind: String) -> int:
+	if factions[side] == POBLANOS and kind in ["command_post", "barracks"]:
+		return HEALTH[kind] * 6 / 5
+	return HEALTH[kind]
+
+func _finish(outcome: String, reason: String) -> void:
 	if result != "":
 		return
 	result = outcome
+	result_reason = reason
 	terminal_tick = tick_number
-	feedback = "Victory!" if outcome == "win" else "Defeat." if outcome == "loss" else "Draw."
+	district_state = "terminal"
+	feedback = ("La Roma held. Victory!" if outcome == "win" else "La Roma lost. Defeat.") if reason == "district" else "Victory!" if outcome == "win" else "Defeat." if outcome == "loss" else "Draw."
 
 func _log_target(target: Variant) -> Variant:
 	if target is Vector2i:
@@ -331,7 +404,10 @@ func _log_target(target: Variant) -> Variant:
 	return target
 
 func _wall(tile: Vector2i) -> bool:
-	return (tile.x == 10 and tile.y != 10) or tile in [Vector2i(14, 15), Vector2i(16, 15), Vector2i(15, 14), Vector2i(15, 16)]
+	return (tile.x == 10 and tile.y not in [9, 10, 11]) or tile in [Vector2i(14, 15), Vector2i(16, 15), Vector2i(15, 14), Vector2i(15, 16)]
+
+func _in_district(tile: Vector2i) -> bool:
+	return tile.x >= DISTRICT_MIN.x and tile.x <= DISTRICT_MAX.x and tile.y >= DISTRICT_MIN.y and tile.y <= DISTRICT_MAX.y
 
 func _walkable(tile: Vector2i) -> bool:
 	if tile.x < 0 or tile.y < 0 or tile.x >= WIDTH or tile.y >= HEIGHT or _wall(tile):
@@ -349,7 +425,7 @@ func _walkable(tile: Vector2i) -> bool:
 func _clear_footprint(at: Vector2i) -> bool:
 	for offset in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i(1, 1)]:
 		var tile: Vector2i = at + offset
-		if not _walkable(tile) or _unit_at(tile) != -1:
+		if _in_district(tile) or not _walkable(tile) or _unit_at(tile) != -1:
 			return false
 	return true
 
