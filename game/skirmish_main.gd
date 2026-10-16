@@ -472,6 +472,10 @@ func _update_unit_facing() -> void:
 			var delta: Vector2i = e.pos - prior_unit_positions[id]
 			if delta != Vector2i.ZERO:
 				unit_facing[id] = 1 if delta.x - delta.y >= 0 else -1
+			elif e.job == "attack" and sim.entities.has(e.target_id):
+				var target_delta: Vector2i = sim.entities[e.target_id].pos - e.pos
+				if target_delta.x != target_delta.y:
+					unit_facing[id] = 1 if target_delta.x - target_delta.y > 0 else -1
 		prior_unit_positions[id] = e.pos
 	for id in prior_unit_positions.keys():
 		if not present.has(id):
@@ -501,6 +505,7 @@ func _district_color() -> Color:
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, get_viewport_rect().size), Color("17212a"))
 	draw_set_transform(BOARD_CENTER * (1.0 - board_zoom), 0.0, Vector2.ONE * board_zoom)
+	# Decorative props underlay actors so selectable units stay visible at their ground contact.
 	for y in range(Skirmish.HEIGHT):
 		for x in range(Skirmish.WIDTH):
 			var tile := Vector2i(x, y)
@@ -569,9 +574,9 @@ func _draw() -> void:
 		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
 			Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
 		if not is_building and e.job == "attack" and e.cooldown > Skirmish.COOLDOWN.get(e.kind, 1) - 2:
-			draw_circle(ground + Vector2(10 * unit_facing.get(id, 1), -22), 3.0, Color("ffe2a1"))
+			draw_circle(ground + Vector2(10 * unit_facing.get(id, 1), -22 + bob), 3.0, Color("ffe2a1"))
 		if not is_building and e.kind == "worker" and e.carry > 0:
-			draw_circle(ground + Vector2(-11 * unit_facing.get(id, 1), -22), 3.0, Color("f9c45e"))
+			draw_circle(ground + Vector2(-11 * unit_facing.get(id, 1), -22 + bob), 3.0, Color("f9c45e"))
 	if placing:
 		var preview_tile := _screen_to_tile(get_global_mouse_position())
 		var valid: bool = sim._clear_footprint(preview_tile) and sim.stockpile[Skirmish.HUMAN] >= sim._cost(Skirmish.HUMAN, "barracks")
