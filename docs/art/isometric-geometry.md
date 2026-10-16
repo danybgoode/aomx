@@ -11,7 +11,7 @@ The Node2D view converts a tile (x,y) to the center of its screen diamond:
 - screen_x = 640 + 24 × (x − y)
 - screen_y = 65 + 12 × (x + y)
 
-The visible ground diamond centered there has corners (0,−12), (24,0), (0,12), (−24,0), so its ground footprint is exactly 48×24 screen pixels before zoom. Positive tile X goes down-right; positive tile Y goes down-left. The unzoomed board extrema are x 184–1096 and y 53–533 including diamond tips.
+The visible ground diamond centered there has corners (0,−12), (24,0), (0,12), (−24,0), so its ground footprint is exactly 48×24 screen pixels before zoom. Positive tile X goes down-right; positive tile Y goes down-left. Tile centers span x 184–1096 and y 65–521. Including diamond tips, the unzoomed board extrema are x 160–1120 and y 53–533.
 
 Input first reverses board zoom, then solves the two projection equations and rounds each coordinate to the nearest integer tile. Selection calls the simulation's entity_at(tile), not a sprite mask or physics collider. A unit occupies one tile. Both command_post and barracks use a 2×2 logical footprint beginning at entity.pos; the union of those four ground diamonds is 96×48 pixels. Its ground center is 12 pixels below the first tile center and its southern tip is 36 pixels below that center.
 
@@ -19,7 +19,7 @@ Input first reverses board zoom, then solves the two projection equations and ro
 
 The board is not a Camera2D. Node2D._draw applies a transform around (640,305): draw_set_transform(BOARD_CENTER × (1−zoom), 0, (zoom,zoom)). Initial zoom is 1.1; controls clamp it to 1.0–1.25. The CanvasLayer HUD is outside this transform. The project uses a 1280×800 viewport with canvas_items stretch. Fractional zoom can unevenly enlarge pixel clusters; judge art at 1.0, 1.1 and 1.25 instead of promising pixel-perfect integer scaling.
 
-Present draw order is all terrain by map row/column, then two sources, then all buildings by entity ID, then all units by entity ID, then placement and order feedback. This does not depth-sort tall sprites. The art view may sort by projected ground Y plus stable entity ID, while selection and collision remain tile based. Draw underlay terrain and district marks before entities; draw health, selection, placement and order feedback after entities.
+The pre-art draw order was all terrain by map row/column, then two sources, then all buildings by entity ID, then all units by entity ID, then placement and order feedback. That did not depth-sort tall sprites. The art view should sort actors by projected ground Y plus stable entity ID, while selection and collision remain tile based. Draw underlay terrain and district marks before entities; draw health, selection, placement and order feedback after entities.
 
 ## Anchors and canvas
 

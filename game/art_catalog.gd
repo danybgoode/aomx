@@ -10,6 +10,8 @@ func load_manifest() -> void:
 	assert(not source.is_empty(), "Art manifest is missing.")
 	var data: Variant = JSON.parse_string(source)
 	assert(data is Dictionary and data.get("schema_version", 0) == 1, "Art manifest schema mismatch.")
+	records.clear()
+	textures.clear()
 	for record in data.assets:
 		var id: String = record.id
 		assert(not records.has(id), "Duplicate art asset: " + id)
