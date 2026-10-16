@@ -9,6 +9,8 @@ func _initialize() -> void:
 	var opened: Dictionary = first.queue("game_opened")
 	check(opened.ok, "first open saved")
 	check(opened.event.test_account, "prototype traffic test tagged")
+	check(opened.event.game_version == Outbox.GAME_VERSION and opened.event.content_version == Outbox.CONTENT_VERSION,
+		"default outbox uses current skirmish versions")
 	check(opened.event.local_sequence == 1, "first sequence")
 	var persisted = Outbox.new(path)
 	check(persisted.state.player_id == first.state.player_id, "installation ID survives restart")

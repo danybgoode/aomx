@@ -2,13 +2,14 @@ extends RefCounted
 
 const AlphaConfig = preload("res://alpha_config.gd")
 const SCHEMA_VERSION := 1
-const GAME_VERSION := "godot-4.7.2-prototype-1"
-const CONTENT_VERSION := "original-map-1"
+const GAME_VERSION := "godot-4.7.2-skirmish-1"
+const CONTENT_VERSION := "la-roma-prototype-1"
 
 var filename: String
 var state: Dictionary
 var game_version := GAME_VERSION
 var content_version := CONTENT_VERSION
+var faction := "neutral"
 var test_account := AlphaConfig.TEST_ACCOUNT
 
 func _init(path: String = "user://funnel-outbox.json") -> void:
@@ -57,7 +58,7 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
 		"player_id": state.player_id, "claimed_at": utc, "local_sequence": state.next_sequence,
 		"game_version": game_version, "content_version": content_version,
-		"mode": "solo", "faction": "neutral", "test_account": test_account, "bot": false}
+		"mode": "solo", "faction": faction, "test_account": test_account, "bot": false}
 	if type != "game_opened":
 		event.match_id = match_id
 	if type == "match_completed":

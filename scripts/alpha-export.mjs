@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { gameVersion, currentContentVersion } from '../src/alpha/versions.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const godot = process.env.GODOT_BIN ?? 'godot';
@@ -23,7 +24,7 @@ const game = path.join(work, 'game');
 const out = path.join(root, 'dist', 'alpha');
 try {
   run('npm', ['test'], { cwd: root });
-  for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'skirmish_client_test.gd']) {
+  for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd']) {
     run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', `res://tests/${test}`]);
   }
   run('npm', ['run', 'skirmish:contract'], { cwd: root, env: { ...process.env, GODOT_BIN: godot } });
@@ -47,7 +48,7 @@ try {
   }
   const checksum = createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
   const manifest = { build_id: buildId, channel, commit: sha, godot: '4.7.2',
-    game_version: 'godot-4.7.2-skirmish-1', content_version: 'original-skirmish-map-1',
+    game_version: gameVersion, content_version: currentContentVersion,
     endpoint, archive: path.basename(archive), sha256: checksum };
   fs.writeFileSync(path.join(out, `${buildId}.json`), JSON.stringify(manifest, null, 2) + '\n');
   process.stdout.write(`${JSON.stringify(manifest, null, 2)}\n`);

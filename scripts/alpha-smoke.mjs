@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
+import { gameVersion, currentContentVersion } from '../src/alpha/versions.mjs';
 
 const endpoint = process.env.AOMX_INGEST_URL;
 const inviteFile = process.env.AOMX_INVITE_FILE;
@@ -13,11 +14,11 @@ const player = id('internal_smoke');
 const match = id('match');
 const now = new Date().toISOString();
 const base = { schema_version: 1, player_id: player, claimed_at: now,
-  game_version: 'godot-4.7.2-skirmish-1', content_version: 'original-skirmish-map-1',
-  mode: 'solo', faction: 'neutral', test_account: false, bot: false };
+  game_version: gameVersion, content_version: currentContentVersion,
+  mode: 'solo', faction: 'neutral', test_account: true, bot: false };
 const open = { ...base, type: 'game_opened', event_id: id('event'), local_sequence: 1 };
-const start = { ...base, type: 'match_started', event_id: id('event'), match_id: match, local_sequence: 2 };
-const finish = { ...base, type: 'match_completed', event_id: id('event'), match_id: match,
+const start = { ...base, faction: 'regios', type: 'match_started', event_id: id('event'), match_id: match, local_sequence: 2 };
+const finish = { ...base, faction: 'regios', type: 'match_completed', event_id: id('event'), match_id: match,
   local_sequence: 3, result: 'win' };
 async function post(event, invite = token) {
   const response = await fetch(endpoint, { method: 'POST', headers: {
@@ -29,19 +30,22 @@ assert.equal((await post(open, null)).code, 401);
 const first = await post(open);
 assert.equal(first.code, 200);
 assert.equal(first.body.status, 'excluded');
-assert.equal(first.body.reason, 'flag_off');
-assert.equal(first.body.flag.environment, 'preview');
-assert.equal(first.body.flag.value, false);
+assert.equal(first.body.reason, 'test_account');
 assert.deepEqual((await post(open)).body, first.body);
 for (const event of [start, finish]) {
   const receipt = await post(event);
   assert.equal(receipt.code, 200);
   assert.equal(receipt.body.status, 'excluded');
+  assert.equal(receipt.body.reason, 'test_account');
 }
-const invalid = await post({ ...finish, event_id: id('event'), local_sequence: 4,
+const forged = await post({ ...open, event_id: id('event'), local_sequence: 4, test_account: false });
+assert.equal(forged.code, 200);
+assert.equal(forged.body.status, 'excluded');
+assert.equal(forged.body.reason, 'preview_environment');
+const invalid = await post({ ...finish, event_id: id('event'), local_sequence: 5,
   game_version: 'unknown' });
 assert.equal(invalid.code, 422);
 assert.equal(invalid.body.reason, 'unsupported_game_version');
 process.stdout.write(JSON.stringify({ ok: true, endpoint, player_id: player,
-  first_receipt: first.body.receipt_id, preview_flag: first.body.flag.value,
+  first_receipt: first.body.receipt_id, exclusion: 'test_account', forged_exclusion: forged.body.reason,
   accepted_public_events: 0 }) + '\n');

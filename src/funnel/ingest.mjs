@@ -54,12 +54,14 @@ const exclusion = e => e.test_account ? 'test_account' : e.bot ? 'bot' : e.mode 
 
 export class Ingest {
   constructor(store, { now = () => new Date(), maxFutureMs = 5 * 60_000,
-    resolveFlag = () => ({ value: false, reason: 'provider_not_ready' }), supportedVersions = null } = {}) {
+    resolveFlag = () => ({ value: false, reason: 'provider_not_ready' }), supportedVersions = null,
+    forceExcludeReason = null } = {}) {
     this.store = store;
     this.now = now;
     this.maxFutureMs = maxFutureMs;
     this.resolveFlag = resolveFlag;
     this.supportedVersions = supportedVersions;
+    this.forceExcludeReason = forceExcludeReason;
   }
 
   accept(event) {
@@ -105,6 +107,8 @@ export class Ingest {
         status = 'quarantined'; reason = 'clock_reversal';
       } else if (exclusion(event)) {
         status = 'excluded'; reason = exclusion(event);
+      } else if (this.forceExcludeReason) {
+        status = 'excluded'; reason = this.forceExcludeReason;
       } else {
         flag = this.resolveFlag(event.player_id);
         if (!flag?.value) { status = 'excluded'; reason = 'flag_off'; }

@@ -13,9 +13,13 @@ func _run() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new(path)
 	root.add_child(client)
-	check(client.outbox.state.events.size() == 2, "client saves open and start on boot")
+	check(client.outbox.state.events.size() == 1 and client.choosing_faction, "client opens setup without starting a match")
+	client._process(0.1)
+	check(client.sim.tick_number == 0 and client.match_id.is_empty(), "setup does not advance a match")
+	client._choose_faction(Skirmish.REGIOS)
+	check(client.outbox.state.events.size() == 2, "faction choice saves one match start")
 	var start: Dictionary = client.outbox.state.events[1].event
-	check(start.type == "match_started" and start.test_account, "client start is test tagged")
+	check(start.type == "match_started" and start.test_account and start.faction == Skirmish.REGIOS, "client start is test tagged with chosen faction")
 	check(start.game_version == Skirmish.GAME_VERSION and start.content_version == Skirmish.CONTENT_VERSION, "client event carries skirmish rule versions")
 	check(start.match_id == client.match_id, "client match ID matches saved start")
 	var enemy_post: int = client.sim._find(Skirmish.COMPUTER, "command_post")
@@ -24,13 +28,16 @@ func _run() -> void:
 	check(client.sim.result == "win", "terminal result displayed from simulation")
 	check(client.outbox.state.events.size() == 3, "one terminal event saved")
 	var finish: Dictionary = client.outbox.state.events[2].event
-	check(finish.type == "match_completed" and finish.result == "win", "client saves actual terminal result")
+	check(finish.type == "match_completed" and finish.result == "win" and finish.faction == Skirmish.REGIOS, "client saves actual terminal result with matching faction")
 	check(finish.match_id == start.match_id and finish.local_sequence > start.local_sequence, "result links to start in order")
 	client._process(0.1)
 	check(client.outbox.state.events.size() == 3, "repeated frame cannot duplicate terminal result")
 	check(Outbox.new(path).state.events.size() == 3, "terminal result survives restart")
-	client._start_match()
-	check(client.outbox.state.events.size() == 4 and client.match_id != start.match_id, "restart creates a new match start")
+	client._show_setup()
+	check(client.choosing_faction and client.outbox.state.events.size() == 3, "restart returns to choice without starting early")
+	client._choose_faction(Skirmish.POBLANOS)
+	check(client.outbox.state.events.size() == 4 and client.match_id != start.match_id, "new faction choice creates a new match start")
+	check(client.outbox.state.events[3].event.faction == Skirmish.POBLANOS, "restart can choose other faction")
 	check(client.sim.result.is_empty(), "restart clears terminal state")
 	for zoom in [1.0, 1.1, 1.25]:
 		client.board_zoom = zoom
@@ -44,6 +51,10 @@ func _run() -> void:
 	check(gather.ok and client.order_flash_ok and client.order_flash_tile == gold_tile and client.sim.feedback == "Gathering gold.", "accepted gather has visible target feedback")
 	var rejected: Dictionary = client._issue_order("build", Vector2i(10, 2), Vector2i(10, 2))
 	check(not rejected.ok and not client.order_flash_ok and client.sim.feedback != "", "rejected build has distinct readable feedback")
+	client.sim.entities[client.sim._find(Skirmish.COMPUTER, "command_post")].hp = 0
+	client._process(0.1)
+	check(client.outbox.state.events.size() == 5 and client.outbox.state.events[4].event.faction == Skirmish.POBLANOS,
+		"second faction completion keeps its chosen faction")
 	root.remove_child(client)
 	client.queue_free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
