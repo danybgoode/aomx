@@ -21,7 +21,7 @@ The source atlas PNGs are editable raster source for v0.1, but they do not conta
 - Faction names and motifs are fictional gameplay presentation; regional stereotypes are not factual unit abilities.
 - Terrain variants use deterministic coordinate hashing in the view, not random calls that alter simulation/replay.
 - All additions are view-only. No sprite alpha, decoration or source image supplies walkability, attack range, selection or win state.
-- Tall jacarandas, carts and barricades draw below actor sprites in v0.1 so units and their tile selection remain visible in crowded areas. A unit can visually cross in front of a nearer prop; this is an explicit readability tradeoff for the current tile-picking rules.
+- Barricades, carts and jacarandas draw before selectable actors. An actor can appear in front of a nearer prop, but stays visible at its simulation tile. Actor/building depth is sorted by ground contact; a foreground prop pass can follow when it preserves unit readability.
 
 ## Imports and runtime
 

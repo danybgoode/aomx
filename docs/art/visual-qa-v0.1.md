@@ -9,12 +9,15 @@ Date: 2026-10-16. Host: Apple M2 Max, Godot 4.7.2 GL Compatibility, local debug 
 | Faction choice | Poblanos show blue command post/worker against red Regios; choosing Regios reverses the ownership colors without changing player side or match rules. |
 | Map at 100–125% | Four authored terrain classes, both carts, fixed barricade line, two jacarandas and plaza medallion align to the original board. The center is recognizable in neutral and contested states. |
 | Depth and transparency | HQs, worker and center fighters display transparent edges. Ground-depth sorting puts units at the center in front of the plaza and behind nearer sprites. No obvious opaque atlas cells were seen. |
+| Prop priority | A fresh local verifier confirmed tall props draw before actors. This is deliberate: a walking or selected unit must remain visible even when crossing the decorative jacaranda or an edge of a cart/barricade. It can look physically in front of a foreground prop; v0.1 favors readable and tile-selectable units. |
 | Selection and commands | In the crowded `district_contest` fixture at 125%, clicking the blue fighter's ground tile selected ranged #5; right-clicking the red fighter's ground tile yielded “Attacking target.” Clicking the upper part of an overhanging sprite hit a different tile and yielded “Moving here.” Instructions now explicitly direct clicks to unit feet. This is the existing tile-picking rule. |
 | Match result | An unattended Poblanos debug match reached a district loss and displayed the terminal result. In the `district_contest` fixture the blue fighter attacked the red fighter, the center changed from contested to friendly hold, and at 01:23 the scene displayed “Result: win” and “La Roma held. Victory!” with one saved result. |
 | Construction and damage | The AI produced a red barracks in the local match, and health bars reflected reduced command-post HP. The existing construction/placement tests passed; a hands-on visual construction walkthrough is still required. |
 | Zoom | A 100% pilot and 125% crowded center were inspected. Tile anchors stayed aligned. Fractional zoom softens some pixel clusters, especially the small unit details. |
 
 The visual source and 30 exported RGBA PNGs are retained in `game/assets/`. `scripts/export-art.sh` produces byte-identical exports on successive runs; `node scripts/validate-art-manifest.mjs` verifies IDs, paths, dimensions and RGBA format. No downloaded reference pixels or audio entered the build.
+
+The signed `preview-1b000847f4e7` macOS ZIP passed strict code-signature verification during export. The locally extracted packaged app opened with the new battlefield sprites, faction setup and private alpha invite controls. A downloaded-from-itch owner playthrough is still a separate check.
 
 ## Automated checks
 
