@@ -35,6 +35,8 @@ After several owner matches, clicking overhanging unit bodies and the visible go
 
 The Godot client check clicks above the worker's ground tile to select its visible body and above the source tile to order gathering from the cart body. Both passed. Rendered GL Compatibility captures at 110% showed readable smaller units, a visible active marker and a hover hint clear of the HUD. With the same 20×20/12-unit, 180-frame probe after this change, 100% zoom measured median 8.15 ms/p95 12.23 ms and 125% measured median 8.30 ms/p95 11.85 ms; peak static memory was 33.3 MiB. These displayed-frame intervals include wait time and are not a controlled performance comparison. The owner should retest selection and scale in the next downloadable preview.
 
+The signed selection-and-scale source ZIP for `preview-6d6016d42d8e` was uploaded to the same Restricted itch channel as build `#2140875`. As of the last 2026-10-16 Butler status check, itch still reports it processing and `preview-9e1c6f0e3a3e` remains the ready download. Local signed-export checks passed, but remote fetch, packaged signature and owner browser download checks on the new build remain open until processing finishes. The owner retest steps are in `docs/alpha-local-qa.md`.
+
 ## Remaining outcome and release checks
 
 - One culturally familiar and one unfamiliar blind reviewer must identify the two win routes and friend/enemy roles without coaching. Record their exact answers here before the epic is marked shipped.
