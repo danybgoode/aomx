@@ -543,7 +543,8 @@ func _draw() -> void:
 		var color_name := _faction_color(e.side)
 		var art_id: String = ("building_" if is_building else "unit_") + e.kind + "_" + color_name
 		if id == selected_id:
-			draw_arc(ground + Vector2(0, -6), 22 if is_building else 13, 0, TAU, 24, Color("fff099"), 2.0)
+			draw_arc(ground + Vector2(0, -24 if is_building else -6), 22 if is_building else 13,
+				0, TAU, 24, Color("fff099"), 2.0)
 		var bob := 0.0
 		if not is_building and e.job in ["move", "attack", "gather", "deliver", "build"]:
 			bob = -2.0 if sim.tick_number % 4 < 2 else 0.0
@@ -559,17 +560,18 @@ func _draw() -> void:
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44, 4)), Color("3b3029"))
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44.0 * e.progress / Skirmish.BUILD_TICKS, 4)), Color("e5c36f"))
 		if is_building and e.hp <= 0:
-			draw_rect(Rect2(ground + Vector2(-48, -79), Vector2(96, 79)), Color(0.15, 0.1, 0.1, 0.6))
+			draw_rect(Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size()),
+				Color(0.15, 0.1, 0.1, 0.6))
 		var max_hp: int = sim._starting_health(e.side, e.kind)
 		var bar_width := 42.0 if is_building else 24.0
-		var bar_y := -83.0 if is_building else -59.0
+		var bar_y := -art.pivot(art_id).y - 4.0 if is_building else -59.0
 		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))
 		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
 			Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
 		if not is_building and e.job == "attack" and e.cooldown > Skirmish.COOLDOWN.get(e.kind, 1) - 2:
-			draw_circle(ground + Vector2(10, -22), 3.0, Color("ffe2a1"))
+			draw_circle(ground + Vector2(10 * unit_facing.get(id, 1), -22), 3.0, Color("ffe2a1"))
 		if not is_building and e.kind == "worker" and e.carry > 0:
-			draw_circle(ground + Vector2(-11, -22), 3.0, Color("f9c45e"))
+			draw_circle(ground + Vector2(-11 * unit_facing.get(id, 1), -22), 3.0, Color("f9c45e"))
 	if placing:
 		var preview_tile := _screen_to_tile(get_global_mouse_position())
 		var valid: bool = sim._clear_footprint(preview_tile) and sim.stockpile[Skirmish.HUMAN] >= sim._cost(Skirmish.HUMAN, "barracks")
