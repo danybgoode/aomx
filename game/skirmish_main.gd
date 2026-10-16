@@ -115,7 +115,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	regios.pressed.connect(_choose_faction.bind(Skirmish.REGIOS))
 	column.add_child(regios)
 	var poblanos := Button.new()
-	poblanos.text = "Poblanos — stronger command/recruitment posts; standard economy"
+	poblanos.text = "Poblanos — posts +20% HP; workers carry 4 gold; standard fighter costs"
 	poblanos.custom_minimum_size.y = 72
 	poblanos.add_theme_font_size_override("font_size", 20)
 	poblanos.pressed.connect(_choose_faction.bind(Skirmish.POBLANOS))
@@ -325,7 +325,7 @@ func _update_hud() -> void:
 	if hud == null:
 		return
 	if choosing_faction:
-		hud.text = "Battle for La Roma · Choose a faction to start\nRegios: 5 gold per delivery, combat units cost +1 · Poblanos: stronger buildings, standard economy\nWin by destroying the opposing command post or holding La Roma for 60 seconds.\nSync: %s %s" % [outbox.summary(), sync_note]
+		hud.text = "Battle for La Roma · Choose a faction to start\nRegios: carry 5 gold, fighters cost +1 · Poblanos: posts +20% HP, carry 4, standard fighter costs\nWin by destroying the opposing command post or holding La Roma for 60 seconds.\nSync: %s %s" % [outbox.summary(), sync_note]
 		return
 	if selected_id != -1 and not sim.entities.has(selected_id):
 		selected_id = -1
@@ -335,7 +335,7 @@ func _update_hud() -> void:
 	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 else 0
 	var chosen := "none" if selected_id == -1 else "%s #%d (%d HP)" % [sim.entities[selected_id].kind.replace("_", " "), selected_id, sim.entities[selected_id].hp]
 	var total_seconds: int = floori(float(sim.tick_number) / 10.0)
-	var opponent_note := "Opponent contests La Roma and attacks."
+	var opponent_note := "Opponent pursues La Roma and your command post."
 	hud.text = "Battle for La Roma · %s vs %s · %s · %s\nStockpile %d · Gold left %d · Our units %d · Opponent %d · Time %02d:%02d · %s\nSelected: %s · Command posts %d / %d HP\nLa Roma: %s\nLast action: %s\nSync: %s %s" % [
 		sim.factions[Skirmish.HUMAN].capitalize(), sim.factions[Skirmish.COMPUTER].capitalize(), AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID,
 		sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount,
