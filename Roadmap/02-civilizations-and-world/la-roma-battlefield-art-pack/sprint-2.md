@@ -31,7 +31,7 @@ stories:
 
 # La Roma battlefield art pack v0.1 — Sprint 2: Complete current-match battlefield
 
-**Status:** ✅ built and locally verified (`a635d78`)
+**Status:** ✅ Shipped — battlefield rendering merged to `master` in PR #23; blind comprehension QA continues in Sprint 3.
 
 The complete current-match map and all existing unit/building kinds now use catalogued sprites. The fixed 20×20 tile and 2×2 building geometry, picking, orders and simulation remain unchanged. Four environment sprites mark the existing sources, walls and objective or decorate quiet tiles; their positions do not affect pathing. The view uses deterministic terrain variants, faction-based skins, ground-depth sorting, mirrored facing, movement/attack/carry cues, construction progress and health bars. The retained source atlases, repeatable exports and manifest contain 30 transparent PNGs. Rendered Poblanos and Regios starts showed both faction colors, sources, the objective, barriers and zoomed anchors. Headless Godot rule/faction/district/client/outbox checks and the Node contract passed; Sprint 3 owns the complete visual QA record.
 

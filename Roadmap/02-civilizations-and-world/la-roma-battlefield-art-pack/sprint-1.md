@@ -24,7 +24,7 @@ stories:
 
 # La Roma battlefield art pack v0.1 — Sprint 1: Art contract and style pilot
 
-**Status:** ✅ builder verified; review and merge remain
+**Status:** ✅ Shipped — asset pipeline merged to `master` in PR #22; art outcome QA continues in Sprint 3.
 
 ## Stories
 
