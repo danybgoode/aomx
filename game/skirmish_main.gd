@@ -3,6 +3,7 @@ extends Node2D
 const Skirmish = preload("res://skirmish.gd")
 const FunnelOutbox = preload("res://funnel_outbox.gd")
 const AlphaConfig = preload("res://alpha_config.gd")
+const ArtCatalog = preload("res://art_catalog.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -13,6 +14,7 @@ const ZOOM_MAX := 1.25
 const ZOOM_STEP := 0.1
 
 var sim = Skirmish.new()
+var art = ArtCatalog.new()
 var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_panel: PanelContainer
@@ -37,6 +39,8 @@ var invite_code := ""
 var invite_input: LineEdit
 
 func _ready() -> void:
+	art.load_manifest()
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	outbox.game_version = Skirmish.GAME_VERSION
 	outbox.content_version = Skirmish.CONTENT_VERSION
 	outbox.queue_open_for_launch()
@@ -464,7 +468,10 @@ func _draw() -> void:
 				color = Color("7b6840") if sim.district_state in ["neutral", "reset"] else Color("3b8a96") if sim.district_state == "human_hold" else Color("a6564a") if sim.district_state == "computer_hold" else Color("89578c")
 			if tile == marker:
 				color = Color("7a9ccd")
-			draw_colored_polygon(_diamond(center), color)
+			if not sim._wall(tile) and not sim._in_district(tile) and (x + y) % 2 == 0:
+				draw_texture(art.texture("terrain_grass_0"), center - Vector2(24, 12))
+			else:
+				draw_colored_polygon(_diamond(center), color)
 			draw_polyline(_diamond(center) + PackedVector2Array([_diamond(center)[0]]), Color("283b40"), 1.0)
 	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -38), "LA ROMA 3x3", HORIZONTAL_ALIGNMENT_CENTER, 116, 17, Color.WHITE)
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
@@ -482,9 +489,13 @@ func _draw() -> void:
 		var color := Color("4b9ead") if e.side == Skirmish.HUMAN else Color("be665a")
 		if not e.complete:
 			color = Color("a89172")
-		for oy in range(2):
-			for ox in range(2):
-				draw_colored_polygon(_diamond(_tile_to_screen(e.pos + Vector2i(ox, oy))), color)
+		if e.kind == "command_post" and sim.factions[e.side] == Skirmish.POBLANOS:
+			var art_id := "building_command_post_blue"
+			draw_texture(art.texture(art_id), _tile_to_screen(e.pos) + Vector2(0, 36) - art.pivot(art_id))
+		else:
+			for oy in range(2):
+				for ox in range(2):
+					draw_colored_polygon(_diamond(_tile_to_screen(e.pos + Vector2i(ox, oy))), color)
 		var center := _tile_to_screen(e.pos + Vector2i(1, 0)) + Vector2(0, -16)
 		draw_string(ThemeDB.fallback_font, center, "%s %d" % ["HQ" if e.kind == "command_post" else "POST", maxi(0, e.hp)], HORIZONTAL_ALIGNMENT_CENTER, 75, 15, Color.WHITE)
 		if id == selected_id:
@@ -495,7 +506,10 @@ func _draw() -> void:
 			continue
 		var center := _tile_to_screen(e.pos) + Vector2(0, -10)
 		var color := Color("6dd4df") if e.side == Skirmish.HUMAN else Color("ef8272")
-		if e.kind == "worker":
+		if e.kind == "worker" and sim.factions[e.side] == Skirmish.POBLANOS:
+			var art_id := "unit_worker_blue"
+			draw_texture(art.texture(art_id), _tile_to_screen(e.pos) - art.pivot(art_id))
+		elif e.kind == "worker":
 			draw_circle(center, 8, color)
 		elif e.kind == "melee":
 			draw_rect(Rect2(center - Vector2(8, 8), Vector2(16, 16)), color)
