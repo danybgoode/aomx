@@ -35,7 +35,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #4 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status in-progress_
 - [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #10 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
-- [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #11 · 02 Civilizations And World · 0/5 stories · risk: Low · appetite M · _docs: status scaffolded_
+- [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #11 · 02 Civilizations And World · 5/5 stories · risk: Low · appetite M · _docs: status in-progress_
 
 ## Building — live only
 
