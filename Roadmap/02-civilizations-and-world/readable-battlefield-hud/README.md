@@ -81,7 +81,7 @@ Build on `feat/readable-battlefield-hud` after the art-pack branch. Each sprint 
 
 ## Builder result · 2026-10-16
 
-Commit `54a0875` adds the match, selection and contextual order panels and the client checks. The Godot rules/client suite, event contract, art manifest and Node tests pass. Rendered local checks at 1280×800 and 1024×700, including 120% board zoom, show readable panels and intact board picking. An isolated preview-channel copy shows the invite and support controls alongside the HUD. This is local builder evidence; the Restricted download and uncoached human tasks remain open.
+Commit `54a0875` adds the match, selection and contextual order panels and the client checks. The Godot rules/client suite, event contract, art manifest and Node tests pass. Rendered local checks at 1280×800 and 1024×700, including 120% board zoom, show readable panels and intact board picking. An isolated preview-channel copy shows the invite and support controls alongside the HUD. `npm run alpha:export` produced a locally verified, signed preview ZIP for commit `1deb8dbfbda7`; it was not uploaded. This is local builder evidence; the Restricted download and uncoached human tasks remain open.
 
 ## Definition of Done (epic)
 - [x] Five story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
