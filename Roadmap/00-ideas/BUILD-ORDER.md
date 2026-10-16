@@ -25,7 +25,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (5)
+## Ready (6)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -34,6 +34,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #4 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status in-progress_
 - [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #10 · 02 Civilizations And World · 0/6 stories · risk: Low · appetite L · _docs: status scaffolded_
 
 ## Building — live only
 
@@ -50,4 +51,4 @@ _merged, deployed and closed._
 _None._
 
 ---
-_9 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_10 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._

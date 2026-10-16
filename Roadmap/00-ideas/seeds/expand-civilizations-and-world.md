@@ -30,4 +30,4 @@ intent_match: null
 
 # Idea — Expand civilizations and world
 
-After the [two-faction and district playtest](prove-la-roma-promise.md), consider approved factions, maps, original art and audio, balance scenarios, onboarding and accessibility in smaller bets. Validate cultural portrayal and make rules understandable without knowledge of Mexican references. The [design prework](../../../docs/design-prework/README.md) supplies candidate material, not a locked production roster.
+After the [two-faction and district playtest](prove-la-roma-promise.md), consider approved factions, maps, later art and audio, balance scenarios, onboarding and accessibility in smaller bets. The current match's visual replacement is scoped separately in [La Roma battlefield art pack v0.1](la-roma-battlefield-art-pack.md). Validate cultural portrayal and make rules understandable without knowledge of Mexican references. The [design prework](../../../docs/design-prework/README.md) supplies candidate material, not a locked production roster.
