@@ -1,0 +1,700 @@
+{
+  "schema_version": 1,
+  "pack": "la-roma-battlefield-art-v0.1",
+  "tile_ground_size": [
+    48,
+    24
+  ],
+  "simulation_grid": [
+    20,
+    20
+  ],
+  "source_policy": "Generated originals; no Scrabling pixels incorporated.",
+  "assets": [
+    {
+      "id": "terrain_grass_0",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_grass_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_grass_1",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_grass_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_grass_2",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_grass_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_grass_3",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_grass_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_sidewalk_0",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_sidewalk_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_sidewalk_1",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_sidewalk_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_sidewalk_2",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_sidewalk_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_sidewalk_3",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_sidewalk_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_asphalt_0",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_asphalt_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_asphalt_1",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_asphalt_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_asphalt_2",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_asphalt_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_asphalt_3",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_asphalt_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_plaza_0",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_plaza_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_plaza_1",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_plaza_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_plaza_2",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_plaza_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_plaza_3",
+      "category": "terrain",
+      "path": "res://assets/render/terrain_plaza_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "building_command_post_blue",
+      "category": "building",
+      "path": "res://assets/render/building_command_post_blue.png",
+      "source": "res://assets/source/building_atlas.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "south_footprint_tip",
+      "faction_color": "blue",
+      "states": [
+        "complete"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "building_command_post_red",
+      "category": "building",
+      "path": "res://assets/render/building_command_post_red.png",
+      "source": "res://assets/source/building_atlas.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "south_footprint_tip",
+      "faction_color": "red",
+      "states": [
+        "complete"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "building_barracks_blue",
+      "category": "building",
+      "path": "res://assets/render/building_barracks_blue.png",
+      "source": "res://assets/source/building_atlas.png",
+      "canvas": [
+        96,
+        60
+      ],
+      "pivot": [
+        48,
+        59
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "south_footprint_tip",
+      "faction_color": "blue",
+      "states": [
+        "complete"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "building_barracks_red",
+      "category": "building",
+      "path": "res://assets/render/building_barracks_red.png",
+      "source": "res://assets/source/building_atlas.png",
+      "canvas": [
+        96,
+        60
+      ],
+      "pivot": [
+        48,
+        59
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "south_footprint_tip",
+      "faction_color": "red",
+      "states": [
+        "complete"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_worker_blue",
+      "category": "unit",
+      "path": "res://assets/render/unit_worker_blue.png",
+      "source": "res://assets/source/unit_atlas.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "blue",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_melee_blue",
+      "category": "unit",
+      "path": "res://assets/render/unit_melee_blue.png",
+      "source": "res://assets/source/unit_atlas.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "blue",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_ranged_blue",
+      "category": "unit",
+      "path": "res://assets/render/unit_ranged_blue.png",
+      "source": "res://assets/source/unit_atlas.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "blue",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_worker_red",
+      "category": "unit",
+      "path": "res://assets/render/unit_worker_red.png",
+      "source": "res://assets/source/unit_atlas.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "red",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_melee_red",
+      "category": "unit",
+      "path": "res://assets/render/unit_melee_red.png",
+      "source": "res://assets/source/unit_atlas.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "red",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_ranged_red",
+      "category": "unit",
+      "path": "res://assets/render/unit_ranged_red.png",
+      "source": "res://assets/source/unit_atlas.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "red",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    }
+  ],
+  "procedural": [
+    {
+      "id": "source_gold",
+      "basis": "existing sim.sources amount and pos",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "wall_blocked",
+      "basis": "existing sim._wall(tile)",
+      "footprint": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "district_state",
+      "basis": "existing sim.district_state and 3x3 region",
+      "footprint": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "selection_health_order",
+      "basis": "existing selected_id, hp and order response",
+      "footprint": null
+    }
+  ]
+}
