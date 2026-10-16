@@ -83,6 +83,22 @@ func _initialize() -> void:
 			return order.side == Skirmish.COMPUTER and order.kind == "move" and order.target == [11, 10])
 		check(move_order, "computer moves toward district through validated order")
 		check(not open_center.entities[open_center._find(Skirmish.COMPUTER, "ranged")].path.is_empty(), "computer has a center route")
+		var sole_guard = Skirmish.new(faction)
+		var guard_id: int = sole_guard._add_entity(Skirmish.COMPUTER, "melee", Vector2i(11, 10))
+		sole_guard.tick_number = Skirmish.AI_ATTACK_TICK - 1
+		sole_guard.district_side = Skirmish.COMPUTER
+		sole_guard.district_progress = 450
+		sole_guard.tick()
+		check(sole_guard.entities[guard_id].job != "attack" and sole_guard.district_progress == 451,
+			"lone melee guard keeps an established district hold")
+		var covered_guard = Skirmish.new(faction)
+		covered_guard._add_entity(Skirmish.COMPUTER, "melee", Vector2i(11, 10))
+		covered_guard._add_entity(Skirmish.COMPUTER, "ranged", Vector2i(11, 9))
+		covered_guard.tick_number = Skirmish.AI_ATTACK_TICK - 1
+		covered_guard.tick()
+		check(covered_guard.command_log.any(func(order: Dictionary) -> bool:
+			return order.side == Skirmish.COMPUTER and order.kind == "attack" and order.target == covered_guard._find(Skirmish.HUMAN, "command_post")),
+			"covered melee can still pressure the command post")
 		var idle_player = Skirmish.new(faction)
 		for i in range(1200):
 			idle_player.tick()

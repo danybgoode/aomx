@@ -20,6 +20,8 @@ var syncing := false
 var sync_note := ""
 
 func _ready() -> void:
+	outbox.game_version = Sim.GAME_VERSION
+	outbox.content_version = Sim.CONTENT_VERSION
 	outbox.queue("game_opened")
 	request = HTTPRequest.new()
 	request.timeout = 3.0

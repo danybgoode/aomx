@@ -366,10 +366,16 @@ func _ai_step() -> void:
 			if unit.job != "attack" or unit.target_id != human_district:
 				issue(COMPUTER, "attack", id, human_district)
 		elif unit.kind == "melee" and tick_number >= AI_ATTACK_TICK and human_post != -1:
-			if unit.job == "idle" or unit.job == "move":
+			if (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)) and unit.job in ["idle", "move"]:
 				issue(COMPUTER, "attack", id, human_post)
 		elif unit.job == "idle" and not _in_district(unit.pos):
 			issue(COMPUTER, "move", id, Vector2i(11, 10))
+
+func _other_computer_fighter_in_district(except_id: int) -> bool:
+	for id in entities:
+		if id != except_id and entities[id].side == COMPUTER and entities[id].hp > 0 and entities[id].kind in ["melee", "ranged"] and _in_district(entities[id].pos):
+			return true
+	return false
 
 func _count_units(side: int) -> int:
 	var count := 0

@@ -2,8 +2,8 @@ extends RefCounted
 
 const AlphaConfig = preload("res://alpha_config.gd")
 const SCHEMA_VERSION := 1
-const GAME_VERSION := "godot-4.7.2-prototype-1"
-const CONTENT_VERSION := "original-map-1"
+const GAME_VERSION := "godot-4.7.2-skirmish-1"
+const CONTENT_VERSION := "la-roma-prototype-1"
 
 var filename: String
 var state: Dictionary
