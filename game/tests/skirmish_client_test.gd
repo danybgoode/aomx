@@ -45,8 +45,30 @@ func _run() -> void:
 			var screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(tile) - Vector2(640, 305)) * zoom
 			check(client._screen_to_tile(screen) == tile, "board hit testing matches visible tile at zoom %.2f" % zoom)
 	client.board_zoom = 1.1
-	client.selected_id = client.sim._find(Skirmish.HUMAN, "worker")
+	var worker_id: int = client.sim._find(Skirmish.HUMAN, "worker")
+	var worker_tile: Vector2i = client.sim.entities[worker_id].pos
+	var worker_body: Vector2 = client._tile_to_screen(worker_tile) + Vector2(0, -27)
+	var worker_screen: Vector2 = Vector2(640, 305) + (worker_body - Vector2(640, 305)) * client.board_zoom
+	check(client._screen_to_tile(worker_screen) != worker_tile, "worker body overhangs its simulation tile")
+	check(client._pick_visual_entity(worker_screen, Skirmish.HUMAN) == worker_id, "visible worker body is pickable")
+	var select_click := InputEventMouseButton.new()
+	select_click.button_index = MOUSE_BUTTON_LEFT
+	select_click.position = worker_screen
+	select_click.pressed = true
+	client._unhandled_input(select_click)
+	check(client.selected_id == worker_id, "clicking the worker body selects it")
 	var gold_tile: Vector2i = Skirmish.RESOURCE_POS[Skirmish.HUMAN]
+	var cart_body: Vector2 = client._tile_to_screen(gold_tile) + Vector2(0, -20)
+	var cart_screen: Vector2 = Vector2(640, 305) + (cart_body - Vector2(640, 305)) * client.board_zoom
+	check(client._screen_to_tile(cart_screen) != gold_tile, "cart body overhangs its resource tile")
+	check(client._pick_visual_source(cart_screen) == Skirmish.HUMAN, "visible cart body is targetable")
+	var gather_click := InputEventMouseButton.new()
+	gather_click.button_index = MOUSE_BUTTON_RIGHT
+	gather_click.position = cart_screen
+	gather_click.pressed = true
+	client._unhandled_input(gather_click)
+	check(client.sim.entities[worker_id].job == "gather" and client.order_flash_tile == gold_tile,
+		"right-clicking the cart body orders the selected worker to gather")
 	var gather: Dictionary = client._issue_order("gather", gold_tile, gold_tile)
 	check(gather.ok and client.order_flash_ok and client.order_flash_tile == gold_tile and client.sim.feedback == "Gathering gold.", "accepted gather has visible target feedback")
 	var rejected: Dictionary = client._issue_order("build", Vector2i(10, 2), Vector2i(10, 2))

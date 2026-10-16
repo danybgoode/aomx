@@ -29,6 +29,12 @@ Three targeted Antigravity cross-family PR reviews covered the art pipeline, ren
 - Godot simulation benchmark: 20×20/12 units, 5,000 routes mean 0.4525 ms, 1,000 ticks mean 0.0423 ms. This measures the unchanged simulation, not sprite rendering.
 - Rendered debug art probe (`game/tests/art_render_probe.gd`, 180 displayed frames, 20×20/12 units): 100% zoom frame interval median 8.27 ms, p95 13.81 ms; 125% zoom median 8.33 ms, p95 14.21 ms. Godot process monitor showed ~14.7 ms and peak static memory 32.6 MiB. Intervals include display wait. The older 14–28 ms baseline in `game/README.md` was a different debug observation, so it is not a controlled before/after comparison. No mobile, WebGL or hundreds-of-units claim follows from these measurements.
 
+## Owner QA follow-up — selection and scale
+
+After several owner matches, clicking overhanging unit bodies and the visible gold cart remained difficult because the input only rounded to the ground tile. The 40×56 unit exports also appeared almost as tall as 96×60 recruitment posts. The view now shows units at 75% (30×42 visual canvas) and checks cached sprite alpha with a small tolerance before falling back to ground-tile selection. Hover outlines and a short action hint show friendly selections, gold gathering and enemy attack targets; the active unit has a cyan outline, foreground ground ring and arrow. These remain view-only, with the same entity IDs and source tiles sent through simulation validation.
+
+The Godot client check clicks above the worker's ground tile to select its visible body and above the source tile to order gathering from the cart body. Both passed. Rendered GL Compatibility captures at 110% showed readable smaller units, a visible active marker and a hover hint clear of the HUD. With the same 20×20/12-unit, 180-frame probe after this change, 100% zoom measured median 8.15 ms/p95 12.23 ms and 125% measured median 8.30 ms/p95 11.85 ms; peak static memory was 33.3 MiB. These displayed-frame intervals include wait time and are not a controlled performance comparison. The owner should retest selection and scale in the next downloadable preview.
+
 ## Remaining outcome and release checks
 
 - One culturally familiar and one unfamiliar blind reviewer must identify the two win routes and friend/enemy roles without coaching. Record their exact answers here before the epic is marked shipped.
