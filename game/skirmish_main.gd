@@ -88,7 +88,6 @@ func _ready() -> void:
 	instructions = Label.new()
 	instructions.position = Vector2(22, 756)
 	instructions.add_theme_font_size_override("font_size", 18)
-	instructions.text = "Click your unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R restart · F sync"
 	layer.add_child(instructions)
 	_build_faction_setup(layer)
 	_show_setup()
@@ -156,7 +155,7 @@ func _start_match(faction: String) -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	instructions.text = "Click your unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R choose faction · F sync"
+	instructions.text = "Select at feet · Right-click target · B build · 1/2/3 recruit · +/- zoom · G fullscreen · R factions · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
@@ -538,8 +537,8 @@ func _draw() -> void:
 	ids.sort_custom(func(a: int, b: int) -> bool:
 		var ea: Dictionary = sim.entities[a]
 		var eb: Dictionary = sim.entities[b]
-		var ya: int = ea.pos.x + ea.pos.y + (2 if ea.kind in ["command_post", "barracks"] else 0)
-		var yb: int = eb.pos.x + eb.pos.y + (2 if eb.kind in ["command_post", "barracks"] else 0)
+		var ya: int = ea.pos.x + ea.pos.y + (3 if ea.kind in ["command_post", "barracks"] else 0)
+		var yb: int = eb.pos.x + eb.pos.y + (3 if eb.kind in ["command_post", "barracks"] else 0)
 		return ya < yb if ya != yb else a < b)
 	for id in ids:
 		var e: Dictionary = sim.entities[id]

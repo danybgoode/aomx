@@ -1,6 +1,6 @@
 ---
 status: in-progress
-phase: Building
+phase: QA
 slug: la-roma-battlefield-art-pack
 title: "La Roma battlefield art pack v0.1"
 area: 02-civilizations-and-world
@@ -90,11 +90,13 @@ Build on feat/la-roma-battlefield-art-pack. Verify each sprint locally in Godot 
 
 ## Definition of Done
 
+The [technical QA record](../../../docs/art/visual-qa-v0.1.md) separates observed game behavior from the remaining blind and downloadable-build checks.
+
 - [ ] Six story outcomes and each sprint's blind local Godot smoke walkthrough are recorded with commit refs.
-- [ ] Required specs and machine-readable manifest describe every integrated asset, pivot, footprint, state, direction and provenance.
+- [x] Required specs and machine-readable manifest describe every integrated asset, pivot, footprint, state, direction and provenance.
 - [ ] The current solo match can be played to either win route as both factions; tile selection, placement, health, construction, orders and event sync behavior are preserved.
-- [ ] Headless Godot rules/client checks and the skirmish contract pass; rendered checks at 100% and 125% zoom record legibility, depth, transparency, frame time and memory.
+- [x] Headless Godot rules/client checks and the skirmish contract pass; rendered checks at 100% and 125% zoom record legibility, depth, transparency, frame time and memory.
 - [ ] At least one culturally familiar and one unfamiliar blind reviewer attempt the two win-route and friend/enemy identification checks; record exact observations rather than infer a North Star lift.
-- [ ] Art source rights and any third-party inclusions are documented. No secret, local Golden Frijoles state or unreviewed reference download enters the commit.
+- [x] Art source rights and any third-party inclusions are documented. No secret, local Golden Frijoles state or unreviewed reference download enters the commit.
 - [ ] Review and merge to master, then separately verify any authorized restricted preview. Record real remaining QA and release gates in the retrospective.
 - [ ] Update the product poster, durable learnings and generated board from authoritative status. Mark shipped only after this epic's outcome checks, not from a merge alone.
