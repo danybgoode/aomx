@@ -37,7 +37,7 @@ The complete current-match map and all existing unit/building kinds now use cata
 
 ## Stories
 
-### Story 2.1 — Make the fixed map readable
+### Story 2.1 — Make the fixed map readable ✅ a635d78
 
 **As an** RTS player, **I want** distinct terrain, obstacles, sources and objective states, **so that** I can plan movement and understand La Roma.
 
@@ -45,7 +45,7 @@ The complete current-match map and all existing unit/building kinds now use cata
 
 **QA:** Compare walkability and district tests before/after, then inspect both spawn routes and contested center in rendered Godot. No browser smoke.
 
-### Story 2.2 — Replace both factions' building primitives
+### Story 2.2 — Replace both factions' building primitives ✅ a635d78
 
 **As an** RTS player, **I want** anchored command and recruitment post art, **so that** I can recognize ownership, construction and damage.
 
@@ -53,7 +53,7 @@ The complete current-match map and all existing unit/building kinds now use cata
 
 **QA:** Building/placement rule checks plus rendered construction, selection, damage and destruction smoke. No browser smoke.
 
-### Story 2.3 — Replace both factions' unit primitives
+### Story 2.3 — Replace both factions' unit primitives ✅ a635d78
 
 **As an** RTS player, **I want** readable worker, melee and ranged art, **so that** I can distinguish roles and threats during play.
 
