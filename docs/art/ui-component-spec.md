@@ -1,26 +1,25 @@
-# UI component specification — current desktop HUD and later controls
+# Playable skirmish HUD
 
-## Implemented today
+The approved [HUD reference](../../references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg) sets the visual hierarchy: a compact global bar, an uncluttered battlefield, and a contextual command bar. The [capture set](../screenshots/readable-hud/README.md) records the actual Godot implementation at four viewport sizes. The concept's extra resources, population, ages, formations, research, and buildings are future design ideas; they are not part of the current simulation.
 
-The skirmish creates a CanvasLayer in `game/skirmish_main.gd` with three desktop panels: match status, selection and contextual orders. Buttons use the existing validated `issue()` route, while board right click and keyboard commands remain available. A target prompt and cancel action cover move, gather, build and attack. The status panel reads real match and outbox state; the selection panel uses existing art and actor data. The board draws selection rings, numeric HP, placement preview and order feedback. The faction panel, invite-code LineEdit and support Button remain separate. There is no minimap, multi-selection, camera pan or touch command system. The 1280×800 viewport uses `canvas_items` stretch and was also checked locally at 1024×700.
+## Runtime components
 
-The approved concept JPG is a visual direction, not a feature inventory. Its food/wood/stone, population, ages, multiple selection, building cards, minimap and mobile controls are not implemented in the current simulation. The current match has one gold stockpile, one source per side, command/recruitment posts, worker/melee/ranged and two win routes.
-
-## Reusable Godot Control boundary
-
-The desktop panels read state and send commands through the existing simulation; a later touch layout can reuse the same command route:
-
-| Component | Reads | Responsibility |
+| Component | Source | Real data and behavior |
 | --- | --- | --- |
-| MatchStatus | current match and outbox summary | Faction, build channel, clock, result, sync and restart. |
-| ResourceCounter | stockpile and source amount | One current gold resource; future resources require rules/data first. |
-| SelectionPanel | selected entity ID and HP | Role, ownership, health, queue/progress. |
-| CommandPanel | selected kind and legal actions | Move, gather, build, train, attack; disabled states explain cost or invalid target. |
-| DistrictStatus | district_state and progress | Neutral, hold, contested, reset and warning with text plus shape. |
-| AlertStack | simulation feedback and order response | Short confirmations/errors without covering units. |
-| Minimap | future camera and map viewport | Defer until camera pan/viewport exists; current whole board is visible. |
-| TouchCommands | same command adapter | Defer until touch input semantics and target device are defined. |
+| BattleHud | `game/ui/battle_hud.gd` | Responsive top bar, selection, command grid, context cards, objective widget, notifications, and hidden diagnostics. |
+| CommandButton | `game/ui/command_button.gd` | Original vector icons, label, keyboard focus, hover, pressed, disabled and targeting states. |
+| MinimapPanel | `game/ui/minimap_panel.gd` | Reuses the battlefield terrain classifier and `Skirmish` entities, sources and district; click emits a camera destination. |
+| HudSkin | `game/ui/hud_skin.gd` | Shared charcoal, bronze, gold and faction neutral control styling. |
+| SkirmishMain | `game/skirmish_main.gd` | Translates player input into the existing `sim.issue()` route, and projects simulation and outbox state into the HUD. |
 
-Use anchors/containers for layout, focus states for keyboard access and usable tap targets for touch. Keep world pixel sprites separate from UI typography and scalable panels. Dark charcoal/stone panels, bronze trim and warm light type can express the concept without flattening the entire HUD into a bitmap. Selection and warning must remain understandable without blue/red alone.
+The top bar currently shows **gold**, faction, match time, pause and the support menu. The bottom bar shows the selected sprite, health, real stats/activity, available icon commands, building or recruitment card, and the supported production queue. Shift-click or drag selects a group; its portrait grid can select one member. The secondary mobile drawer exposes the same contextual options. A collapsible objective widget shows district state and hold progress. Notifications keep recent events in the support menu's event log. The minimap pans the existing board camera; there is no separate map simulation.
 
-The HUD implementation belongs to the separate readable-battlefield-hud epic. The art pack provides the selection portraits and battlefield sprites.
+Command metadata defines display names, icon roles, shortcuts and tooltips in one place. The availability projection checks the current selected actors, gold and production state. The simulation validates the final order. Board right-click, shortcuts and UI buttons share that command path. Build placement has a live valid/invalid preview and Escape cancels targeting.
+
+The current playable rules have one gold stockpile, worker/melee/ranged units, a command post, a recruitment post, and two victory routes. Population, ages, food/materials/terrains, fog of war, research, stop, patrol, repair, guard and garrison are absent from the rules and must not appear as working HUD controls. Defense is also not a simulation stat. The minimap shows the same enemy actors already visible on the battlefield; a future fog implementation must filter both views together.
+
+## Input and layouts
+
+Desktop keeps the selection, commands and context regions persistent, with a minimap at the upper right. At 844×390 the bottom bar retains 58 pixel command targets and a compact selection panel. At 390×844 it stacks selection and commands and opens context through **Options**. Objectives collapse on mobile. Godot mouse-from-touch emulation is enabled so touch taps use the same board and command handlers. Hover tooltips are supplemental: disabled building cost or reason is also printed in the context panel. Selection, command activation, cancellation, minimap clicks, pause, diagnostics and bounds are covered by the client test.
+
+The icon shapes and panel decoration are original Godot drawing and style resources, with no imported icon pack. Selection and building portraits reuse the existing project sprites. The reference JPG is an internal, user-provided visual direction and is never shipped as a runtime texture.
