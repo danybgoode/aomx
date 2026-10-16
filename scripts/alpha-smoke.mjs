@@ -38,10 +38,14 @@ for (const event of [start, finish]) {
   assert.equal(receipt.body.status, 'excluded');
   assert.equal(receipt.body.reason, 'test_account');
 }
-const invalid = await post({ ...finish, event_id: id('event'), local_sequence: 4,
+const forged = await post({ ...open, event_id: id('event'), local_sequence: 4, test_account: false });
+assert.equal(forged.code, 200);
+assert.equal(forged.body.status, 'excluded');
+assert.equal(forged.body.reason, 'preview_environment');
+const invalid = await post({ ...finish, event_id: id('event'), local_sequence: 5,
   game_version: 'unknown' });
 assert.equal(invalid.code, 422);
 assert.equal(invalid.body.reason, 'unsupported_game_version');
 process.stdout.write(JSON.stringify({ ok: true, endpoint, player_id: player,
-  first_receipt: first.body.receipt_id, exclusion: 'test_account',
+  first_receipt: first.body.receipt_id, exclusion: 'test_account', forged_exclusion: forged.body.reason,
   accepted_public_events: 0 }) + '\n');

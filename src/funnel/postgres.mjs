@@ -6,7 +6,8 @@ import { makeReport } from './report.mjs';
 // A transaction-wide lock serializes policy decisions across service instances.
 // Each decision uses the same pure Ingest policy as the local JSONL prototype.
 export class PostgresFunnel {
-  constructor(connectionString, { resolveFlag, now, pool, supportedVersions, requireInvite = false } = {}) {
+  constructor(connectionString, { resolveFlag, now, pool, supportedVersions, requireInvite = false,
+    forceExcludeReason = null } = {}) {
     const hostname = connectionString ? new URL(connectionString).hostname : '';
     const privateHost = ['localhost', '127.0.0.1', 'postgres'].includes(hostname);
     this.pool = pool ?? new pg.Pool({ connectionString, max: 4, connectionTimeoutMillis: 5000,
@@ -15,6 +16,7 @@ export class PostgresFunnel {
     this.now = now;
     this.supportedVersions = supportedVersions;
     this.requireInvite = requireInvite;
+    this.forceExcludeReason = forceExcludeReason;
   }
 
   async accept(event, { inviteToken } = {}) {
@@ -43,7 +45,8 @@ export class PostgresFunnel {
       let appended;
       const store = { rows: rows.map(r => r.row), append(row) { appended = row; this.rows.push(row); } };
       const receipt = new Ingest(store, { resolveFlag: this.resolveFlag, now: this.now,
-        supportedVersions: this.supportedVersions }).accept(event);
+        supportedVersions: this.supportedVersions,
+        forceExcludeReason: this.forceExcludeReason }).accept(event);
       if (claimInvite && appended && ['accepted', 'excluded'].includes(receipt.status)) {
         const hash = createHash('sha256').update(inviteToken).digest('hex');
         await client.query(`update alpha_private.invite_tokens set player_id=$1, claimed_at=now()

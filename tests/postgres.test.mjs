@@ -7,6 +7,39 @@ import { PostgresFunnel } from '../src/funnel/postgres.mjs';
 import { serve } from '../src/funnel/http.mjs';
 
 const url = process.env.AOMX_TEST_DATABASE_URL;
+test('Postgres preview policy excludes a client that claims public eligibility', async () => {
+  const persisted = [];
+  const client = {
+    async query(sql, params) {
+      if (sql.startsWith('select row from alpha_private.audit_events')) {
+        return { rows: persisted.map(row => ({ row })) };
+      }
+      if (sql.startsWith('insert into alpha_private.audit_events')) persisted.push(params[7]);
+      return { rows: [] };
+    },
+    release() {}
+  };
+  const pool = { async connect() { return client; }, async end() {} };
+  const funnel = new PostgresFunnel(null, { pool, forceExcludeReason: 'preview_environment',
+    resolveFlag: () => ({ value: true, environment: 'preview' }),
+    now: () => new Date('2026-10-20T12:00:00.000Z') });
+  const base = { schema_version: 1, player_id: 'player_preview_01',
+    claimed_at: '2026-10-14T12:00:00.000Z', game_version: 'game-1',
+    content_version: 'map-1', mode: 'solo', faction: 'regios', test_account: false, bot: false };
+  const rows = [
+    { ...base, type: 'game_opened', event_id: 'event_preview_open_01', local_sequence: 1 },
+    { ...base, type: 'match_started', event_id: 'event_preview_start_01', match_id: 'match_preview_01', local_sequence: 2 },
+    { ...base, type: 'match_completed', event_id: 'event_preview_finish_01', match_id: 'match_preview_01', local_sequence: 3, result: 'win' }
+  ];
+  for (const row of rows) {
+    const receipt = await funnel.accept(row);
+    assert.equal(receipt.status, 'excluded');
+    assert.equal(receipt.reason, 'preview_environment');
+  }
+  assert.equal(persisted.length, 3);
+  assert.ok(persisted.every(row => row.receipt.status === 'excluded'));
+});
+
 test('Postgres keeps a stable receipt across service restart and hides operator routes', { skip: !url }, async () => {
   const admin = new pg.Client({ connectionString: url, ssl: false });
   await admin.connect();

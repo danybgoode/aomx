@@ -93,6 +93,21 @@ test('clock anomaly and test traffic stay outside readings', () => {
   assert.equal(makeReport(ingest.store.rows, at(15)).accepted_events, 0);
 });
 
+test('preview ingest excludes client claims even when its flag is on', () => {
+  const ingest = new Ingest(new AuditStore(path.join(temp(), 'audit.jsonl')), {
+    now: () => new Date(at(20)), resolveFlag: () => ({ value: true, environment: 'preview' }),
+    forceExcludeReason: 'preview_environment' });
+  const rows = [
+    event('game_opened', 'event_preview_open_01', 1, 1),
+    event('match_started', 'event_preview_start_01', 2, 1, 'match_preview_01'),
+    event('match_completed', 'event_preview_finish_01', 3, 1, 'match_preview_01', 'win')
+  ];
+  const receipts = rows.map(row => ingest.accept(row));
+  assert.ok(receipts.every(receipt => receipt.status === 'excluded' && receipt.reason === 'preview_environment'));
+  assert.deepEqual(ingest.accept(rows[2]), receipts[2]);
+  assert.equal(makeReport(ingest.store.rows, at(20)).accepted_events, 0);
+});
+
 test('clock reversal is quarantined even when sequence increases', () => {
   const ingest = new Ingest(new AuditStore(path.join(temp(), 'audit.jsonl')), { now: () => new Date(at(20)), resolveFlag: () => ({ value: true }) });
   assert.equal(ingest.accept(event('game_opened', 'event_open_01', 1, 3)).status, 'accepted');

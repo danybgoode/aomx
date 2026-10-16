@@ -23,6 +23,7 @@ const resolveFlag = playerId => provider ? {
 } : { value: false, reason: 'provider_not_configured', environment };
 const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL, { resolveFlag,
   requireInvite: true,
+  forceExcludeReason: environment === 'preview' ? 'preview_environment' : null,
   supportedVersions });
 await funnel.health();
 const server = serve(funnel, { host: '0.0.0.0', port: Number(process.env.AOMX_PORT ?? 8787), publicMode: true });

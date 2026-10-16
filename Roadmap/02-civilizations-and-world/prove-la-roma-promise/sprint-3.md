@@ -58,6 +58,7 @@ The owner receives a small, readable test of the approved value proposition: can
 - `npm run alpha:export` passed the Node suite, six Godot headless checks, the Godot-to-ingest contract, Godot import, macOS export and strict code-sign verification. The final local ZIP is `dist/alpha/battle-for-la-roma-preview-eb3c7d9012a3-macos.zip`; SHA-256 `3d68b6457c6eb8bed7f8f6559bd882c0a3412f26a500246bbca3b07e0f4a97c7` matches its manifest.
 - The final signed ZIP was extracted and opened locally. Its setup displayed both faction trade-offs, both win routes and the private invite field without clipping. After choosing Poblanos, the HUD showed build ID `preview-eb3c7d9012a3`, the marked neutral district and the opponent goal. Preview traffic is test-tagged; no build has been uploaded or sent to participants.
 - Staging must run the new version allowlist and pass an invited HTTPS receipt/exclusion smoke before this candidate can sync there. Downloaded-build Gatekeeper QA, distribution access checks and owner-authorized invitations remain open. The eight-person tally is intentionally blank.
+- Independent security review found that preview exclusion had trusted the client marker. The candidate server policy now forces exclusion in the `preview` environment, even when a client claims `test_account: false` and the flag is on. Node policy and Postgres-adapter checks pass with zero accepted public events; the reviewer must clear the updated diff before merge.
 
 ## Sprint QA
 
