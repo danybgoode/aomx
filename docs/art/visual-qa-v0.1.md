@@ -17,7 +17,9 @@ Date: 2026-10-16. Host: Apple M2 Max, Godot 4.7.2 GL Compatibility, local debug 
 
 The visual source and 30 exported RGBA PNGs are retained in `game/assets/`. `scripts/export-art.sh` produces byte-identical exports on successive runs; `node scripts/validate-art-manifest.mjs` verifies IDs, paths, dimensions and RGBA format. No downloaded reference pixels or audio entered the build.
 
-The signed `preview-1b000847f4e7` macOS ZIP passed strict code-signature verification during export. The locally extracted packaged app opened with the new battlefield sprites, faction setup and private alpha invite controls. A downloaded-from-itch owner playthrough is still a separate check.
+The final signed candidate is `preview-9e1c6f0e3a3e` (`dist/alpha/battle-for-la-roma-preview-9e1c6f0e3a3e-macos.zip`, SHA-256 `84b4aa9aa31653144fad7541c527e14af6dfcd83735a7f0f6f590dfb84e9c5f3`). ZIP integrity and strict code-signature verification passed; the extracted packaged app launched for 20 headless frames. The earlier packaged candidate opened with the new battlefield sprites, faction setup and private alpha invite controls in a rendered local check. A downloaded-from-itch owner playthrough is still a separate check.
+
+Three targeted Antigravity cross-family PR reviews covered the art pipeline, renderer and QA changes. Their actionable findings were fixed: board X bounds, catalog reload, building overlay anchors, stationary attack facing, bobbing cues and an overwritten instruction. The renderer review also questioned props drawing below actors; the v0.1 readability choice is recorded in the pipeline spec and above. The reviews were scoped to text files because the PNG diff exceeded the review input budget; they are not a review of every source atlas pixel.
 
 ## Automated checks
 
