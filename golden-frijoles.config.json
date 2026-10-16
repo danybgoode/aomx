@@ -2,5 +2,8 @@
   "project": {
     "mode": "new",
     "startPoint": "idea"
+  },
+  "jev": {
+    "egress": true
   }
 }

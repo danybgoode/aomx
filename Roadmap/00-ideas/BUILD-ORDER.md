@@ -5,19 +5,18 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-15 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-10-16 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (5)
+## Backlog (4)
 
 _seeds with no pitch yet._
 
-- [Prove the La Roma promise](seeds/prove-la-roma-promise.md) — #5 · 02 · seed · Feature · risk: Low · _docs: status raw_
 - [Prepare a release candidate](seeds/prepare-release-candidate.md) — #6 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
 - [Deepen strategic play](seeds/deepen-strategic-play.md) — #7 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
-- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #8 · 02 · seed · Feature · risk: Low · _docs: status raw_
+- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #8 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Add more ways to play](seeds/add-more-ways-to-play.md) — #9 · 03 · seed · Feature · risk: Low · _docs: status raw_
 
 ## Refining (0)
@@ -26,7 +25,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (4)
+## Ready (5)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -34,6 +33,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #4 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status in-progress_
+- [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 0/4 stories · risk: Low · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 
