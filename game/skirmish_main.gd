@@ -37,6 +37,8 @@ var instructions: Label
 var request: HTTPRequest
 var invite_code := ""
 var invite_input: LineEdit
+var prior_unit_positions: Dictionary = {}
+var unit_facing: Dictionary = {}
 
 func _ready() -> void:
 	art.load_manifest()
@@ -86,7 +88,7 @@ func _ready() -> void:
 	instructions = Label.new()
 	instructions.position = Vector2(22, 756)
 	instructions.add_theme_font_size_override("font_size", 18)
-	instructions.text = "Click blue unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R restart · F sync"
+	instructions.text = "Click your unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R restart · F sync"
 	layer.add_child(instructions)
 	_build_faction_setup(layer)
 	_show_setup()
@@ -137,6 +139,8 @@ func _show_setup() -> void:
 	accumulator = 0.0
 	selected_id = -1
 	placing = false
+	prior_unit_positions.clear()
+	unit_facing.clear()
 	setup_panel.show()
 	instructions.text = "Choose Regios or Poblanos to begin · Press 1 or 2, or click a choice"
 	_update_hud()
@@ -152,11 +156,13 @@ func _start_match(faction: String) -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	instructions.text = "Click blue unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R choose faction · F sync"
+	instructions.text = "Click your unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R choose faction · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
 	placing = false
+	prior_unit_positions.clear()
+	unit_facing.clear()
 	marker = Vector2i(-1, -1)
 	order_flash_seconds = 0.0
 	var saved: Dictionary = outbox.queue("match_started", match_id)
@@ -198,6 +204,7 @@ func _process(delta: float) -> void:
 		if not saved.ok:
 			sync_note = "Result could not be saved; check device storage."
 	if advanced:
+		_update_unit_facing()
 		_update_hud()
 		queue_redraw()
 
@@ -265,7 +272,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if selected_id != -1:
 					_flash_order(tile, "%s selected" % sim.entities[selected_id].kind.replace("_", " "), true)
 				else:
-					sim.feedback = "Select a blue unit or building."
+					sim.feedback = "Select your unit or building."
 		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_id != -1 and sim.entities.has(selected_id):
 			var selected: Dictionary = sim.entities[selected_id]
 			var target_id: int = sim.entity_at(tile)
@@ -454,70 +461,122 @@ func _diamond(center: Vector2) -> PackedVector2Array:
 	return PackedVector2Array([center + Vector2(0, -TILE_H * 0.5), center + Vector2(TILE_W * 0.5, 0),
 		center + Vector2(0, TILE_H * 0.5), center + Vector2(-TILE_W * 0.5, 0)])
 
+func _update_unit_facing() -> void:
+	var present := {}
+	for id in sim.entities:
+		var e: Dictionary = sim.entities[id]
+		if e.kind not in ["worker", "melee", "ranged"]:
+			continue
+		present[id] = true
+		if prior_unit_positions.has(id):
+			var delta: Vector2i = e.pos - prior_unit_positions[id]
+			if delta != Vector2i.ZERO:
+				unit_facing[id] = 1 if delta.x - delta.y >= 0 else -1
+			elif e.job == "attack" and sim.entities.has(e.target_id):
+				var target_delta: Vector2i = sim.entities[e.target_id].pos - e.pos
+				if target_delta.x != target_delta.y:
+					unit_facing[id] = 1 if target_delta.x - target_delta.y > 0 else -1
+		prior_unit_positions[id] = e.pos
+	for id in prior_unit_positions.keys():
+		if not present.has(id):
+			prior_unit_positions.erase(id)
+			unit_facing.erase(id)
+
+func _terrain_id(tile: Vector2i) -> String:
+	var kind := "grass"
+	if sim._in_district(tile):
+		kind = "plaza"
+	elif sim._wall(tile) or tile.y in [4, 15] or tile.x in [5, 14]:
+		kind = "asphalt"
+	elif tile.x in [4, 6, 13, 15] or tile.y in [3, 5, 14, 16] or (tile.x >= 8 and tile.x <= 12 and tile.y >= 7 and tile.y <= 13):
+		kind = "sidewalk"
+	return "terrain_%s_%d" % [kind, posmod(tile.x * 13 + tile.y * 7, 4)]
+
+func _faction_color(side: int) -> String:
+	return "blue" if sim.factions[side] == Skirmish.POBLANOS else "red"
+
+func _district_color() -> Color:
+	match sim.district_state:
+		"human_hold": return Color("398ac0") if _faction_color(Skirmish.HUMAN) == "blue" else Color("bf5f51")
+		"computer_hold": return Color("398ac0") if _faction_color(Skirmish.COMPUTER) == "blue" else Color("bf5f51")
+		"contested": return Color("b086d0")
+	return Color("e2c87e")
+
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, get_viewport_rect().size), Color("17212a"))
 	draw_set_transform(BOARD_CENTER * (1.0 - board_zoom), 0.0, Vector2.ONE * board_zoom)
+	# Decorative props underlay actors so selectable units stay visible at their ground contact.
 	for y in range(Skirmish.HEIGHT):
 		for x in range(Skirmish.WIDTH):
 			var tile := Vector2i(x, y)
 			var center := _tile_to_screen(tile)
-			var color := Color("526c5d") if (x + y) % 2 == 0 else Color("496251")
-			if sim._wall(tile):
-				color = Color("263a4a")
-			elif sim._in_district(tile):
-				color = Color("7b6840") if sim.district_state in ["neutral", "reset"] else Color("3b8a96") if sim.district_state == "human_hold" else Color("a6564a") if sim.district_state == "computer_hold" else Color("89578c")
+			draw_texture(art.texture(_terrain_id(tile)), center - Vector2(24, 12))
+			if sim._in_district(tile):
+				var tint := _district_color()
+				tint.a = 0.27 if sim.district_state in ["neutral", "reset"] else 0.45
+				draw_colored_polygon(_diamond(center), tint)
 			if tile == marker:
-				color = Color("7a9ccd")
-			if not sim._wall(tile) and not sim._in_district(tile) and (x + y) % 2 == 0:
-				draw_texture(art.texture("terrain_grass_0"), center - Vector2(24, 12))
-			else:
-				draw_colored_polygon(_diamond(center), color)
-			draw_polyline(_diamond(center) + PackedVector2Array([_diamond(center)[0]]), Color("283b40"), 1.0)
-	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -38), "LA ROMA 3x3", HORIZONTAL_ALIGNMENT_CENTER, 116, 17, Color.WHITE)
+				draw_polyline(_diamond(center) + PackedVector2Array([_diamond(center)[0]]), Color("a7dbf2"), 2.0)
+			if sim._wall(tile):
+				var wall_id := "prop_barricade"
+				draw_texture(art.texture(wall_id), center - art.pivot(wall_id))
+	for tile in [Vector2i(2, 13), Vector2i(17, 5)]:
+		var tree_id := "prop_jacaranda"
+		draw_texture(art.texture(tree_id), _tile_to_screen(tile) - art.pivot(tree_id))
+	var medallion_id := "prop_plaza_medallion"
+	draw_texture(art.texture(medallion_id), _tile_to_screen(Vector2i(10, 10)) - art.pivot(medallion_id))
+	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), "LA ROMA", HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		var source: Dictionary = sim.sources[side]
 		if source.amount > 0:
 			var center := _tile_to_screen(source.pos)
-			draw_circle(center + Vector2(0, -9), 11.0, Color("e7b34a"))
-			draw_string(ThemeDB.fallback_font, center + Vector2(-10, -20), str(source.amount), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
+			var cart_id := "prop_gold_cart"
+			draw_texture(art.texture(cart_id), center - art.pivot(cart_id))
+			draw_string(ThemeDB.fallback_font, center + Vector2(-22, -45), "GOLD %d" % source.amount,
+				HORIZONTAL_ALIGNMENT_CENTER, 44, 12, Color("fff0ba"))
 	var ids: Array = sim.entities.keys()
-	ids.sort()
+	ids.sort_custom(func(a: int, b: int) -> bool:
+		var ea: Dictionary = sim.entities[a]
+		var eb: Dictionary = sim.entities[b]
+		var ya: int = ea.pos.x + ea.pos.y + (2 if ea.kind in ["command_post", "barracks"] else 0)
+		var yb: int = eb.pos.x + eb.pos.y + (2 if eb.kind in ["command_post", "barracks"] else 0)
+		return ya < yb if ya != yb else a < b)
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
-		if e.kind not in ["command_post", "barracks"]:
-			continue
-		var color := Color("4b9ead") if e.side == Skirmish.HUMAN else Color("be665a")
-		if not e.complete:
-			color = Color("a89172")
-		if e.kind == "command_post" and sim.factions[e.side] == Skirmish.POBLANOS:
-			var art_id := "building_command_post_blue"
-			draw_texture(art.texture(art_id), _tile_to_screen(e.pos) + Vector2(0, 36) - art.pivot(art_id))
-		else:
-			for oy in range(2):
-				for ox in range(2):
-					draw_colored_polygon(_diamond(_tile_to_screen(e.pos + Vector2i(ox, oy))), color)
-		var center := _tile_to_screen(e.pos + Vector2i(1, 0)) + Vector2(0, -16)
-		draw_string(ThemeDB.fallback_font, center, "%s %d" % ["HQ" if e.kind == "command_post" else "POST", maxi(0, e.hp)], HORIZONTAL_ALIGNMENT_CENTER, 75, 15, Color.WHITE)
+		var is_building: bool = e.kind in ["command_post", "barracks"]
+		var ground := _tile_to_screen(e.pos) + (Vector2(0, 36) if is_building else Vector2.ZERO)
+		var color_name := _faction_color(e.side)
+		var art_id: String = ("building_" if is_building else "unit_") + e.kind + "_" + color_name
 		if id == selected_id:
-			draw_arc(center + Vector2(0, 10), 24, 0, TAU, 24, Color("f2de69"), 2.0)
-	for id in ids:
-		var e: Dictionary = sim.entities[id]
-		if e.kind not in ["worker", "melee", "ranged"]:
-			continue
-		var center := _tile_to_screen(e.pos) + Vector2(0, -10)
-		var color := Color("6dd4df") if e.side == Skirmish.HUMAN else Color("ef8272")
-		if e.kind == "worker" and sim.factions[e.side] == Skirmish.POBLANOS:
-			var art_id := "unit_worker_blue"
-			draw_texture(art.texture(art_id), _tile_to_screen(e.pos) - art.pivot(art_id))
-		elif e.kind == "worker":
-			draw_circle(center, 8, color)
-		elif e.kind == "melee":
-			draw_rect(Rect2(center - Vector2(8, 8), Vector2(16, 16)), color)
+			draw_arc(ground + Vector2(0, -24 if is_building else -6), 22 if is_building else 13,
+				0, TAU, 24, Color("fff099"), 2.0)
+		var bob := 0.0
+		if not is_building and e.job in ["move", "attack", "gather", "deliver", "build"]:
+			bob = -2.0 if sim.tick_number % 4 < 2 else 0.0
+		if not is_building and unit_facing.get(id, 1) < 0:
+			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + Vector2(ground.x * 2.0 * board_zoom, 0),
+				0.0, Vector2(-board_zoom, board_zoom))
+			draw_texture(art.texture(art_id), ground - art.pivot(art_id) + Vector2(0, bob))
+			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom), 0.0, Vector2.ONE * board_zoom)
 		else:
-			draw_colored_polygon(PackedVector2Array([center + Vector2(0, -10), center + Vector2(10, 8), center + Vector2(-10, 8)]), color)
-		draw_string(ThemeDB.fallback_font, center + Vector2(-8, -13), str(e.hp), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color.WHITE)
-		if id == selected_id:
-			draw_arc(center + Vector2(0, 5), 16, 0, TAU, 24, Color("f2de69"), 2.0)
+			draw_texture(art.texture(art_id), ground - art.pivot(art_id) + Vector2(0, bob))
+		if is_building and not e.complete:
+			draw_rect(Rect2(ground + Vector2(-47, -27), Vector2(94, 26)), Color(0.63, 0.46, 0.28, 0.35))
+			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44, 4)), Color("3b3029"))
+			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44.0 * e.progress / Skirmish.BUILD_TICKS, 4)), Color("e5c36f"))
+		if is_building and e.hp <= 0:
+			draw_rect(Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size()),
+				Color(0.15, 0.1, 0.1, 0.6))
+		var max_hp: int = sim._starting_health(e.side, e.kind)
+		var bar_width := 42.0 if is_building else 24.0
+		var bar_y := -art.pivot(art_id).y - 4.0 if is_building else -59.0
+		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))
+		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
+			Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
+		if not is_building and e.job == "attack" and e.cooldown > Skirmish.COOLDOWN.get(e.kind, 1) - 2:
+			draw_circle(ground + Vector2(10 * unit_facing.get(id, 1), -22 + bob), 3.0, Color("ffe2a1"))
+		if not is_building and e.kind == "worker" and e.carry > 0:
+			draw_circle(ground + Vector2(-11 * unit_facing.get(id, 1), -22 + bob), 3.0, Color("f9c45e"))
 	if placing:
 		var preview_tile := _screen_to_tile(get_global_mouse_position())
 		var valid: bool = sim._clear_footprint(preview_tile) and sim.stockpile[Skirmish.HUMAN] >= sim._cost(Skirmish.HUMAN, "barracks")

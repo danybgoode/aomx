@@ -664,6 +664,110 @@
         "SE"
       ],
       "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "prop_gold_cart",
+      "category": "prop",
+      "path": "res://assets/render/prop_gold_cart.png",
+      "source": "res://assets/source/environment_atlas.png",
+      "canvas": [
+        48,
+        46
+      ],
+      "pivot": [
+        24,
+        44
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "prop_jacaranda",
+      "category": "prop",
+      "path": "res://assets/render/prop_jacaranda.png",
+      "source": "res://assets/source/environment_atlas.png",
+      "canvas": [
+        64,
+        64
+      ],
+      "pivot": [
+        32,
+        62
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "prop_barricade",
+      "category": "prop",
+      "path": "res://assets/render/prop_barricade.png",
+      "source": "res://assets/source/environment_atlas.png",
+      "canvas": [
+        48,
+        28
+      ],
+      "pivot": [
+        24,
+        26
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "prop_plaza_medallion",
+      "category": "prop",
+      "path": "res://assets/render/prop_plaza_medallion.png",
+      "source": "res://assets/source/environment_atlas.png",
+      "canvas": [
+        96,
+        44
+      ],
+      "pivot": [
+        48,
+        22
+      ],
+      "footprint": [
+        3,
+        3
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
     }
   ],
   "procedural": [
