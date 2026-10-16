@@ -32,6 +32,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Validate ingest image imports
+        run: |
+          docker build -f deploy/alpha/Dockerfile -t aomx-ingest:ci .
+          docker run --rm --entrypoint node aomx-ingest:ci --input-type=module -e "await import('./src/alpha/versions.mjs'); await import('./src/funnel/postgres.mjs'); await import('./src/funnel/http.mjs')"
       - name: Install pinned Godot
         run: |
           curl -fsSL -o /tmp/godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
@@ -43,7 +47,7 @@ jobs:
           GODOT_BIN: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
         run: |
           "$GODOT_BIN" --headless --path game --import
-          for test in simulation_test.gd outbox_test.gd skirmish_test.gd skirmish_client_test.gd; do
+          for test in simulation_test.gd outbox_test.gd skirmish_test.gd faction_test.gd district_test.gd skirmish_client_test.gd; do
             "$GODOT_BIN" --headless --path game --script "res://tests/$test"
           done
           npm run skirmish:contract
