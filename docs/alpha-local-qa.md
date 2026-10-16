@@ -1,10 +1,10 @@
 # Private alpha: local macOS download QA
 
-Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The intended `mac-private-alpha` build is `preview-dd25696f2712` (`la-roma-prototype-1`; ZIP SHA-256 `d55fcfa14b737a1fc189ec6aefcd99f6436800dc376bb5084d8a0e77767edfdf`). It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. The candidate has passed local signed-build QA but has not been uploaded or downloaded from itch.io yet.
+Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The `mac-private-alpha` build is `preview-dd25696f2712` (`la-roma-prototype-1`; source ZIP SHA-256 `d55fcfa14b737a1fc189ec6aefcd99f6436800dc376bb5084d8a0e77767edfdf`). It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. Butler fetched build `#2136676` back to this Mac, where strict signature verification and a byte-for-byte comparison passed. The owner browser download and full playthrough below remain to be recorded.
 
 ## Install the current build
 
-1. Move the old `Battle for La Roma Alpha.app` that macOS called damaged to the Bin. That build had an invalid code signature. Download `preview-dd25696f2712` from itch.io once the owner-only upload is authorized; confirm the downloaded ZIP checksum matches the value above. Safari may expand the ZIP into an app automatically. macOS may name the current copy `Battle for La Roma Alpha-2.app` or another numbered variant when a previous copy is present.
+1. Move the old `Battle for La Roma Alpha.app` that macOS called damaged to the Bin. That build had an invalid code signature. Download `preview-dd25696f2712` from itch.io. If the browser saves a ZIP, confirm its checksum matches the value above; Safari may expand it into an app automatically. macOS may name the current copy `Battle for La Roma Alpha-2.app` or another numbered variant when a previous copy is present.
 2. Verify the newly downloaded app before opening it:
 
    ```sh

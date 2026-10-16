@@ -16,7 +16,7 @@ stories:
 ---
 # Prove the La Roma promise — Sprint 3: Read the playtest
 
-**Status:** 🟨 local candidate ready; delivery and playtest pending
+**Status:** 🟨 restricted owner preview ready; owner playthrough and playtest pending
 
 ## Player outcome
 
@@ -51,14 +51,20 @@ The owner receives a small, readable test of the approved value proposition: can
 | Faction trade-off and counter named | pending / 4 | pending / 4 | at least 6 / 8 overall |
 | Voluntary second-match start | pending / 4 | pending / 4 | at least 4 / 8 overall |
 
-**Build/content version:** local signed candidate `preview-dd25696f2712` / `la-roma-prototype-1`. **Invitation authorization and delivery QA:** pending. **Verdict and reasons:** pending.
+**Build/content version:** Restricted owner preview `preview-dd25696f2712` / `la-roma-prototype-1`. **External invitation authorization:** pending. **Verdict and reasons:** pending.
 
 ## Candidate build record · 2026-10-15
 
 - `npm run alpha:export` passed 15 Node checks (one optional live Postgres check skipped), six Godot headless checks, the Godot-to-ingest contract, Godot import, macOS export and strict code-sign verification. The updated local ZIP is `dist/alpha/battle-for-la-roma-preview-dd25696f2712-macos.zip`; SHA-256 `d55fcfa14b737a1fc189ec6aefcd99f6436800dc376bb5084d8a0e77767edfdf` matches its manifest.
-- The updated signed ZIP was extracted and opened locally. Its setup displayed both faction trade-offs, both win routes and the private invite field without clipping. After choosing Poblanos, the HUD showed build ID `preview-dd25696f2712`, the marked neutral district and the opponent goal. Preview traffic is test-tagged; no build has been uploaded or sent to participants.
-- Staging must run the new version allowlist and pass an invited HTTPS receipt/exclusion smoke before this candidate can sync there. Downloaded-build Gatekeeper QA, distribution access checks and owner-authorized invitations remain open. The eight-person tally is intentionally blank.
-- Independent security review found that preview exclusion had trusted the client marker. The candidate server policy now forces exclusion in the `preview` environment, even when a client claims `test_account: false` and the flag is on. Node policy and Postgres-adapter checks pass with zero accepted public events. General review found stale default outbox versions and a lone AI melee unit leaving a district hold; the updated outbox defaults and guard behavior pass regression checks. Both reviewers must clear the updated diff before merge.
+- The signed ZIP was extracted and opened locally. Its setup displayed both faction trade-offs, both win routes and the private invite field without clipping. After choosing Poblanos, the HUD showed build ID `preview-dd25696f2712`, the marked neutral district and the opponent goal. Preview traffic is test-tagged.
+- Independent security review found that preview exclusion had trusted the client marker. The server now forces exclusion in the `preview` environment, even when a client claims `test_account: false` and the flag is on. General review found stale default outbox versions and a lone AI melee unit leaving a district hold; the updated outbox defaults and guard behavior pass regression checks. Antigravity and Vibe re-reviewed the final PR #18 diff with clean verdicts before merge.
+
+## Restricted delivery and staging QA · 2026-10-16 UTC
+
+- PR #18 merged to `master` after green CI and independent general/security reviews. PR #20 fixed the Docker image's missing `src/alpha/versions.mjs` import, added an image import check and brought faction/district suites into CI; it also passed both independent reviews and CI before merge. The isolated staging ingest image is `aomx-ingest:8be95e7`, healthy behind allowlisted HTTPS. The prior image and code tree remain available for rollback.
+- A one-use owner-only QA invite exercised the reviewed HTTPS route: missing invite 401; current-version open, start and finish produced stable `excluded:test_account` receipts; a preview event claiming `test_account: false` produced `excluded:preview_environment`; an unsupported version produced 422. The server report afterward showed 0 accepted public events, 0 readings and no observed baseline. The QA invite was revoked, returned `401 invite_invalid`, and its plaintext copies were removed.
+- The itch.io page was visibly **RESTRICTED** and an anonymous request returned 404 before upload. Butler build `#2136676` serves `preview-dd25696f2712` on `mac-private-alpha`. A fresh Butler fetch to this Mac passed strict code-sign verification and matched the signed local app byte for byte; the fetched app opened with the expected faction setup and Regios build ID. No external download key or participant invitation was issued.
+- The owner still needs to complete the [downloaded-build walkthrough](../../../docs/alpha-local-qa.md), including Gatekeeper behavior, a full match as each faction, offline restart and client outbox sync on this version. Independent keyed access outside the creator session, participant notice and authorization, and the eight-player verdict remain open. The tally above remains intentionally blank.
 
 ## Sprint QA
 
