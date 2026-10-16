@@ -88,7 +88,7 @@ func _ready() -> void:
 	instructions = Label.new()
 	instructions.position = Vector2(22, 756)
 	instructions.add_theme_font_size_override("font_size", 18)
-	instructions.text = "Click your unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R restart · F sync"
+	instructions.text = "Select at feet · Right-click target · B build · 1/2/3 recruit · +/- zoom · G fullscreen · R restart · F sync"
 	layer.add_child(instructions)
 	_build_faction_setup(layer)
 	_show_setup()
@@ -156,7 +156,7 @@ func _start_match(faction: String) -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	instructions.text = "Click your unit · Right-click order · B build · 1/2/3 recruit · +/- or wheel zoom · G fullscreen · R choose faction · F sync"
+	instructions.text = "Select at feet · Right-click target · B build · 1/2/3 recruit · +/- zoom · G fullscreen · R factions · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
