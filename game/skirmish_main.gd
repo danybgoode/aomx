@@ -325,7 +325,7 @@ func _update_hud() -> void:
 	if hud == null:
 		return
 	if choosing_faction:
-		hud.text = "Battle for La Roma · Choose a faction to start\nRegios: carry 5 gold, fighters cost +1 · Poblanos: posts +20% HP, carry 4, standard fighter costs\nWin by destroying the opposing command post or holding La Roma for 60 seconds.\nSync: %s %s" % [outbox.summary(), sync_note]
+		hud.text = "Battle for La Roma · Choose a faction to start\nRegios: carry 5 gold, fighters cost +1 · Poblanos: posts +20%% HP, carry 4, standard fighter costs\nWin by destroying the opposing command post or holding La Roma for 60 seconds.\nSync: %s %s" % [outbox.summary(), sync_note]
 		return
 	if selected_id != -1 and not sim.entities.has(selected_id):
 		selected_id = -1
