@@ -17,7 +17,7 @@ stories:
 
 # La Roma battlefield art pack v0.1 — Sprint 3: Visual QA and integration
 
-**Status:** Technical checks complete; blind and downloadable-build QA pending. See [technical QA record](../../../docs/art/visual-qa-v0.1.md).
+**Status:** 🟦 In review — technical checks complete; blind and downloadable-build QA pending. See [technical QA record](../../../docs/art/visual-qa-v0.1.md).
 
 The original player-visible match, selection tile, collision, construction and event rules remain intact. Automated Godot and Node checks pass. Local rendered checks covered both faction choices, neutral and contested district art, a district loss and win, selection and attack feedback in the crowded center, 100%/125% board zoom, alpha transparency and a displayed-frame probe. The art is code-complete; exact blind-review answers and the owner-Mac download walkthrough remain required before this story can be marked done.
 
