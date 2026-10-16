@@ -12,26 +12,28 @@ stories:
     i_want: "distinct terrain, obstacles, sources and objective states"
     so_that: "I can plan movement and understand La Roma"
     risk: low
-    status: planned
+    status: done
   - id: S2.2
     title: "Replace both factions' building primitives"
     as_a: "RTS player"
     i_want: "anchored command and recruitment post art"
     so_that: "I can recognize ownership, construction and damage"
     risk: low
-    status: planned
+    status: done
   - id: S2.3
     title: "Replace both factions' unit primitives"
     as_a: "RTS player"
     i_want: "readable worker, melee and ranged art"
     so_that: "I can distinguish roles and threats during play"
     risk: low
-    status: planned
+    status: done
 ---
 
 # La Roma battlefield art pack v0.1 — Sprint 2: Complete current-match battlefield
 
-**Status:** ⬜ not started
+**Status:** ✅ built and locally verified (`a635d78`)
+
+The complete current-match map and all existing unit/building kinds now use catalogued sprites. The fixed 20×20 tile and 2×2 building geometry, picking, orders and simulation remain unchanged. Four environment sprites mark the existing sources, walls and objective or decorate quiet tiles; their positions do not affect pathing. The view uses deterministic terrain variants, faction-based skins, ground-depth sorting, mirrored facing, movement/attack/carry cues, construction progress and health bars. The retained source atlases, repeatable exports and manifest contain 30 transparent PNGs. Rendered Poblanos and Regios starts showed both faction colors, sources, the objective, barriers and zoomed anchors. Headless Godot rule/faction/district/client/outbox checks and the Node contract passed; Sprint 3 owns the complete visual QA record.
 
 ## Stories
 
