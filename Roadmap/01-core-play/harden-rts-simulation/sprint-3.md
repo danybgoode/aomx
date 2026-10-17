@@ -16,7 +16,7 @@ stories:
 ---
 # Harden the RTS simulation — Sprint 3: Scale and sync decision
 
-**Status:** Local and Linux benchmark/hash QA passed; downloaded-build walkthrough remains.
+**Status:** Implemented, reviewed and merged in [PR #39](https://github.com/danybgoode/aomx/pull/39); local and Linux QA passed. Owner browser walkthrough remains.
 
 ## Stories
 

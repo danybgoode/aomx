@@ -1,12 +1,21 @@
 # Private alpha: local macOS download QA
 
-Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The current visual HUD preview is `preview-87bafb02fe41` (itch build `#2142965`, `la-roma-prototype-1`; source ZIP SHA-256 `a73193c987f654836ad2a62ac33741d3efdc3e794cc0906d21aec6d5cefe1618`). It includes window-resize scaling for the battlefield and HUD plus a visible Reset control. It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. The signed local export, strict signature verification and extracted-app startup passed. The owner browser download and full playthrough below remain to be recorded.
+Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The current simulation-foundation preview is `preview-27661d2a0900` (itch build `#2143645`, `la-roma-prototype-1`; source ZIP SHA-256 `748fb89797fe49a834c0e86c4b8e67261332c818f10b1716ad5550098dde7d8b`). It adds versioned match rules, one local save slot and resume to the previous visual HUD build. It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. The signed local export, strict signature verification, extracted-app startup and authenticated Butler fetch all passed. The fetched app matched the source archive byte for byte and completed a rendered save/quit/reopen/resume check. The owner browser download and full manual playthrough below remain to be recorded.
 
-The earlier resize-only build `preview-4827e70dc52a` (itch `#2142751`) is superseded. Butler marked build `#2142965` ready; check `butler status danybgoode/battle-for-la-roma` again if the itch page still shows the older build.
+The visual HUD build `preview-87bafb02fe41` (itch `#2142965`) is superseded. Butler marked build `#2143645` ready; check `butler status danybgoode/battle-for-la-roma` again if the itch page still shows the older build.
+
+## Simulation foundation check on the current build
+
+1. After choosing a faction, open **...** and confirm the build ID is `preview-27661d2a0900`. Use **Save current match** after gathering, construction or training has progressed. Confirm the event log reports that the match was saved.
+2. Quit the app entirely, reopen it and choose **Resume saved match** on the faction screen. Confirm faction, clock, gold, buildings, units and any queued work match the saved point. No second match-start event should appear. The current slot is local to this Godot profile.
+3. Finish this match by destroying the enemy command post. In a separate saved match, finish by holding La Roma uncontested for 60 seconds. Confirm each outcome is recorded once as preview test traffic. A save whose match has already completed should be refused with a readable message and kept on disk.
+4. On a disposable profile only, try a corrupt or unsupported v1 save fixture. Resume should explain the rejection, keep the file and avoid a misleading fresh match. The automated fixture and replay cases are in `game/tests/`.
+
+The builder completed steps 1–2 on a Butler-fetched app and observed the completed-match guard in step 3. The full two-route owner walkthrough and browser download remain open.
 
 ## Uncoached HUD and selection tasks on the current build
 
-1. Open the **...** menu and confirm its alpha diagnostics name `preview-87bafb02fe41`. Without coaching, note whether the player can identify gold, La Roma progress, the two win routes, and where sync status now lives.
+1. Open the **...** menu and confirm its alpha diagnostics name `preview-27661d2a0900`. Without coaching, note whether the player can identify gold, La Roma progress, the two win routes, and where sync status now lives.
 2. Hover over the visible body of a blue worker, including pixels above its ground tile. The warm outline and short selection hint should appear. Click there: the active worker should show a cyan outline, ground ring and arrow.
 3. With that worker selected, hover the visible gold cart body. The hint should indicate gathering; right-click above the cart's ground tile and confirm “Gathering gold” appears and the worker starts moving toward the source.
 4. Select a fighter and hover an enemy's visible body. The hint should indicate attack; right-click the body and confirm the attack order. Click empty ground and verify the active marker clears.
@@ -19,7 +28,7 @@ Record the exact version, screenshots and any ambiguous clicks. The older walkth
 
 ## Install the current build
 
-1. Download `preview-87bafb02fe41` from itch.io after Butler marks it ready. Safari may expand the download into an app automatically. The checksum above identifies the locally uploaded source ZIP; itch.io may package the browser download differently. macOS may add a number to the app name when a previous copy is present.
+1. Download `preview-27661d2a0900` from itch.io after Butler marks it ready. Safari may expand the download into an app automatically. The checksum above identifies the locally uploaded source ZIP; itch.io may package the browser download differently. macOS may add a number to the app name when a previous copy is present.
 2. Verify the newly downloaded app before opening it:
 
    ```sh

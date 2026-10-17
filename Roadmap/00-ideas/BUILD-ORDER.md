@@ -42,7 +42,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #6 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
 - [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #7 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
-- [Harden the RTS simulation](../01-core-play/harden-rts-simulation/README.md) — #8 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status scaffolded_
+- [Harden the RTS simulation](../01-core-play/harden-rts-simulation/README.md) — #8 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status in-progress_
 
 ## Building — live only
 

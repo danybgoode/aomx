@@ -16,7 +16,7 @@ stories:
 ---
 # Harden the RTS simulation — Sprint 2: Save, replay and versioning
 
-**Status:** Local implementation and regression QA passed; review and downloaded-build walkthrough remain.
+**Status:** Implemented, reviewed and merged in [PR #39](https://github.com/danybgoode/aomx/pull/39); builder fetched-build save/resume QA passed. Owner browser walkthrough remains.
 
 ## Stories
 
@@ -53,4 +53,4 @@ Record a failed step with build, save version and observed result. Keep test fix
 
 - The in-game Menu and faction screen now expose one local v1 save slot and resume. [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the envelope, version rejection, data exclusions and power-loss limit.
 - `skirmish_persistence_test.gd`, `skirmish_replay_test.gd` and `skirmish_save_client_test.gd` passed on Godot 4.7.2 macOS, including round-trip continuation, corrupt/unsupported files, command divergence and match event deduplication. A rendered Godot probe saved, returned to setup and resumed the same match ID; the settings panel showed both controls and the saved status.
-- The replay verifier is a diagnostic API and test tool; there is no player-facing replay viewer in this slice. The owner downloaded-build save/quit/resume and both terminal paths remain owed.
+- Independent Codex review found that a damaged replay entry could throw a runtime error; the fix and malformed JSON regression cases landed before merge. The replay verifier is a diagnostic API and test tool; there is no player-facing replay viewer in this slice. The Butler-fetched `preview-27661d2a0900` saved an active match, quit, reopened and resumed it; a previously completed match ID was refused with readable feedback. The owner browser download and both terminal paths remain owed.
