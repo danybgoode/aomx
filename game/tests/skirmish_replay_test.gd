@@ -36,6 +36,14 @@ func _initialize() -> void:
 	altered.human_commands[0].target = [3, 3]
 	mismatch = Replay.verify(altered)
 	check(not mismatch.ok and mismatch.first_divergent_tick == 0, "changed command reports divergence at issue tick")
+	altered = JSON.parse_string(JSON.stringify(recording))
+	altered.human_commands[0] = null
+	mismatch = Replay.verify(altered)
+	check(not mismatch.ok and mismatch.reason == "replay_history_invalid", "malformed command is rejected without a runtime error")
+	altered = JSON.parse_string(JSON.stringify(recording))
+	altered.checkpoints[0] = null
+	mismatch = Replay.verify(altered)
+	check(not mismatch.ok and mismatch.reason == "replay_history_invalid", "malformed checkpoint is rejected without a runtime error")
 	if not failed:
 		print("Skirmish replay checks passed: JSON, AI ordering, checkpoints and divergence")
 	quit(1 if failed else 0)

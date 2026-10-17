@@ -29,14 +29,27 @@ static func verify(recording: Dictionary) -> Dictionary:
 		return _bad("replay_metadata_invalid", 0)
 	if not recording.get("human_commands") is Array or not recording.get("checkpoints") is Array:
 		return _bad("replay_history_invalid", 0)
-	if not recording.get("expected_hash") is String or not recording.get("expected_log_hash") is String:
+	if not recording.get("expected_hash") is String or recording.expected_hash.length() != 64 or not recording.get("expected_log_hash") is String or recording.expected_log_hash.length() != 64:
 		return _bad("replay_hash_invalid", 0)
-	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed))
 	var commands: Array = recording.human_commands
 	var checkpoints: Array = recording.checkpoints
+	var end_tick := int(recording.end_tick)
+	if end_tick > 100000 or commands.size() > 200000 or checkpoints.size() > 200000:
+		return _bad("replay_history_invalid", 0)
+	var last_command_tick := -1
+	for entry in commands:
+		if not entry is Dictionary or not _integer(entry.get("issued_tick"), 0) or int(entry.issued_tick) < last_command_tick or int(entry.issued_tick) > end_tick:
+			return _bad("replay_history_invalid", 0)
+		last_command_tick = int(entry.issued_tick)
+	var last_checkpoint_tick := -1
+	for entry in checkpoints:
+		if not entry is Dictionary or not _integer(entry.get("tick"), 1) or int(entry.tick) <= last_checkpoint_tick or int(entry.tick) > end_tick or not entry.get("hash") is String or entry.hash.length() != 64:
+			return _bad("replay_history_invalid", 0)
+		last_checkpoint_tick = int(entry.tick)
+	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed))
 	var command_index := 0
 	var checkpoint_index := 0
-	for logical_tick in range(int(recording.end_tick) + 1):
+	for logical_tick in range(end_tick + 1):
 		if logical_tick > 0:
 			game.tick()
 			if game.tick_number != logical_tick:
