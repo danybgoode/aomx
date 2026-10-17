@@ -92,6 +92,8 @@ Owner feedback accepted the isometric battlefield and requested the gameplay int
 
 PR [#32](https://github.com/danybgoode/aomx/pull/32) passed project checks and CodeQL, and merged as `1d1349249f14`. The signed macOS owner preview built from that commit is `preview-1d1349249f14` (source ZIP SHA-256 `0e78ed5540d00b3266fdb8b73433a58aa626504e6acb5127bbbc9457ab3329e6`). The extracted app passed strict code signature verification and a local headless launch. It was uploaded to the existing Restricted itch channel as build `#2142419`; Butler processing and owner download QA are tracked in the [walkthrough](../../../docs/alpha-local-qa.md).
 
+Owner QA found that resizing the window no longer zoomed the battlefield after the responsive canvas change. PR [#34](https://github.com/danybgoode/aomx/pull/34) restored resize-based board scaling while keeping the HUD responsive and preserving manual wheel/key zoom across resizes. The client test covers the resize signal, tile picking and reset. A Web export was resized live from 1024×700 to 1536×960 in Chrome and both layouts rendered correctly. The replacement signed Restricted preview is `preview-4827e70dc52a` (itch build `#2142751`; source ZIP SHA-256 `73e455b1e194b8287d2f2c358b597d9b5c7d957b777c43e7ed8dc700aa11245e`); its extracted app launched locally. Owner download QA and two uncoached reviews remain open.
+
 ## Definition of Done (epic)
 - [x] Six story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
 - [x] Existing rules, selection/picking, offline outbox and content versions pass their checks.

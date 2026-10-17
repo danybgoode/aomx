@@ -1,24 +1,24 @@
 # Private alpha: local macOS download QA
 
-Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The current visual HUD preview is `preview-1d1349249f14` (itch build `#2142419`, `la-roma-prototype-1`; source ZIP SHA-256 `0e78ed5540d00b3266fdb8b73433a58aa626504e6acb5127bbbc9457ab3329e6`). It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. The signed local export, strict signature verification and extracted-app startup passed. The owner browser download and full playthrough below remain to be recorded.
+Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The current visual HUD preview is `preview-4827e70dc52a` (itch build `#2142751`, `la-roma-prototype-1`; source ZIP SHA-256 `73e455b1e194b8287d2f2c358b597d9b5c7d957b777c43e7ed8dc700aa11245e`). It includes window-resize battlefield zoom. It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so record that this walkthrough covers one machine. The signed local export, strict signature verification and extracted-app startup passed. The owner browser download and full playthrough below remain to be recorded.
 
-The earlier HUD build `preview-b453e0523b1d` (itch `#2141043`) is superseded. Check `butler status danybgoode/battle-for-la-roma` for the current build's ready mark before downloading; a successful push can still be processing.
+The earlier visual HUD build `preview-1d1349249f14` (itch `#2142419`) is superseded. Check `butler status danybgoode/battle-for-la-roma` for the current build's ready mark before downloading; a successful push can still be processing.
 
 ## Uncoached HUD and selection tasks on the current build
 
-1. Open the **...** menu and confirm its alpha diagnostics name `preview-1d1349249f14`. Without coaching, note whether the player can identify gold, La Roma progress, the two win routes, and where sync status now lives.
+1. Open the **...** menu and confirm its alpha diagnostics name `preview-4827e70dc52a`. Without coaching, note whether the player can identify gold, La Roma progress, the two win routes, and where sync status now lives.
 2. Hover over the visible body of a blue worker, including pixels above its ground tile. The warm outline and short selection hint should appear. Click there: the active worker should show a cyan outline, ground ring and arrow.
 3. With that worker selected, hover the visible gold cart body. The hint should indicate gathering; right-click above the cart's ground tile and confirm “Gathering gold” appears and the worker starts moving toward the source.
 4. Select a fighter and hover an enemy's visible body. The hint should indicate attack; right-click the body and confirm the attack order. Click empty ground and verify the active marker clears.
 5. Choose a worker's Gather icon and click the gold cart, then use the Build icon or construction card after enough gold arrives. Choose a command post or completed recruitment post and use its recruit icon/card. Choose Move and Attack on a fighter, cancel once, then choose Attack again. Note any unclear target prompt, disabled reason or order confirmation. The simulation rules and costs should match the keyboard and right-click path.
-6. Compare workers, fighters, the headquarters and recruitment post at normal zoom. People should read distinctly smaller than the buildings, while remaining identifiable. Repeat selection at 100% and 125% zoom; note any sprite body that fails to respond. Verify the portrait and health follow the cyan board selection. Shift-click or drag two friendly fighters, then tap one group portrait to select a subset.
+6. Compare workers, fighters, the headquarters and recruitment post at normal zoom. People should read distinctly smaller than the buildings, while remaining identifiable. Resize the window and use one wheel zoom step in each direction; note any sprite body that fails to respond. Verify the portrait and health follow the cyan board selection. Shift-click or drag two friendly fighters, then tap one group portrait to select a subset.
 7. Collapse and expand **Objectives**, click different minimap locations to pan, pause/resume, and open **...** for invite, sync, support ID and event log. Check that temporary alerts do not cover selection or commands.
 
 Record the exact version, screenshots and any ambiguous clicks. The older walkthrough below still covers the economy, construction, win routes, restart and offline sync.
 
 ## Install the current build
 
-1. Download `preview-1d1349249f14` from itch.io after Butler marks it ready. Safari may expand the download into an app automatically. The checksum above identifies the locally uploaded source ZIP; itch.io may package the browser download differently. macOS may add a number to the app name when a previous copy is present.
+1. Download `preview-4827e70dc52a` from itch.io after Butler marks it ready. Safari may expand the download into an app automatically. The checksum above identifies the locally uploaded source ZIP; itch.io may package the browser download differently. macOS may add a number to the app name when a previous copy is present.
 2. Verify the newly downloaded app before opening it:
 
    ```sh
