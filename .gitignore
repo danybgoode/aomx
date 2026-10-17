@@ -10,6 +10,9 @@
 .golden-frijoles/
 .funnel-local/
 
+# Local design references and source artwork
+references/
+
 # Operating system and editor files
 .DS_Store
 Thumbs.db

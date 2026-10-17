@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 8
+build_order: 13
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "If two faction prototypes make the first match more distinctive, additional approved factions, maps and presentation can support varied match stories."
@@ -30,4 +30,4 @@ intent_match: null
 
 # Idea — Expand civilizations and world
 
-After the [two-faction and district playtest](prove-la-roma-promise.md), consider approved factions, maps, later art and audio, balance scenarios, onboarding and accessibility in smaller bets. The current match's visual replacement is scoped separately in [La Roma battlefield art pack v0.1](la-roma-battlefield-art-pack.md). Validate cultural portrayal and make rules understandable without knowledge of Mexican references. The [design prework](../../../docs/design-prework/README.md) supplies candidate material, not a locked production roster.
+After the [two-faction and district playtest](prove-la-roma-promise.md) and the [simulation, economy, warfare and AI waves](../../full-game-build-path.md), refine a production-content epic: approved faction roster and tech trees, distinct map templates, art/animation/audio exports and cultural/accessibility review. The current match's visual replacement is scoped separately in [La Roma battlefield art pack v0.1](la-roma-battlefield-art-pack.md). The owner confirmed rights to `references/newArtWork`, `references/critters` and `references/isometric tileset`; the [asset inventory](../../../docs/art/reference-inventory.md) distinguishes flattened concept boards from candidate tiles/sprites. Integrate only selected, traced exports at tested game scale, with readable roles and counterplay. GDD candidate names, landmark bonuses and map routes are not final mechanics.

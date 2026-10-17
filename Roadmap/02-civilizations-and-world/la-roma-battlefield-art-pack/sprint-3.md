@@ -3,7 +3,7 @@ epic: la-roma-battlefield-art-pack
 sprint: 3
 title: "Visual QA and integration"
 risk: low
-phase: QA
+phase: Verifying
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,7 +12,7 @@ stories:
     i_want: "a checked and readable art build"
     so_that: "I can decide whether it represents La Roma well enough for alpha"
     risk: low
-    status: in_progress
+    status: in-progress
 ---
 
 # La Roma battlefield art pack v0.1 — Sprint 3: Visual QA and integration

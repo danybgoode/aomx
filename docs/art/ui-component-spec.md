@@ -1,6 +1,6 @@
 # Playable skirmish HUD
 
-The approved [HUD reference](../../references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg) sets the visual hierarchy: a compact global bar, an uncluttered battlefield, and a contextual command bar. The [capture set](../screenshots/readable-hud/README.md) records the actual Godot implementation at four viewport sizes. The concept's extra resources, population, ages, formations, research, and buildings are future design ideas; they are not part of the current simulation.
+The approved [HUD reference](approved-hud-concept.jpg) sets the visual hierarchy: a compact global bar, an uncluttered battlefield, and a contextual command bar. The [capture set](../screenshots/readable-hud/README.md) records the actual Godot implementation at four viewport sizes. The concept's extra resources, population, ages, formations, research, and buildings are future design ideas; they are not part of the current simulation.
 
 ## Runtime components
 

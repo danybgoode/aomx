@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 6
+build_order: 18
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "Players will need a reliable way to install, learn, play, return and report problems before a wider release."
@@ -30,4 +30,4 @@ intent_match: null
 
 # Idea — Prepare a release candidate
 
-After a finishable, distinctive and measurable match exists, refine the distribution build, settings, localization, accessibility, performance, crash reporting, support and community loop into reviewable work. Set a release decision from observed play and quality evidence. The provisional 15% later-day completion goal has no baseline until the first eligible cohort matures; a merge to `master` is not a deployment.
+After the chosen full-game content and platform gates in the [build path](../../full-game-build-path.md), refine a source-commit-traceable release candidate with signed/versioned builds, onboarding, settings, localization/accessibility, performance, crash/support process, license and attribution register and production telemetry. This follows—not replaces—the earlier measured private-alpha work. Record which native desktop, Web and mobile targets are actually verified on devices. Set go/no-go from observed play, quality and legal evidence. The provisional 15% later-day completion goal has no baseline until the first eligible cohort matures; a merge to `master` is not a deployment.

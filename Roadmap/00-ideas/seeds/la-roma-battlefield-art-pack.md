@@ -8,7 +8,7 @@ appetite: L
 underwritten_by: wave-2026-10
 risk: low
 epic: "02-civilizations-and-world/la-roma-battlefield-art-pack"
-build_order: 10
+build_order: 6
 updated: 2026-10-16
 intent_ask: verbatim
 hypothesis: "We believe original, readable CDMX battlefield art will help classic RTS players understand and enjoy the current La Roma match because primitives hide its setting and state. We'll know from blind comprehension checks now and first-match completion after an observed cohort."
@@ -160,7 +160,7 @@ The exact unit/building **canvas** dimensions, directional frame count and anima
 - game/skirmish_main.gd owns projection, inverse picking, zoom, board drawing, order feedback, selection and the CanvasLayer text HUD. Replace only the view path in increments.
 - game/project.godot pins 1280×800 canvas-item stretch and GL Compatibility; game/skirmish_main.tscn is a single Node2D.
 - game/tests and the skirmish contract command already cover gameplay and event behavior; use their baseline hashes/checks at each integration boundary.
-- references/6d48808370c32e2ee014d7f429eedefbea650850e24b8536db0ada52bd5621ee.jpg and references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg show the visual direction and HUD concept.
+- The local `references/6d48808370c32e2ee014d7f429eedefbea650850e24b8536db0ada52bd5621ee.jpg` and tracked [HUD concept](../../../docs/art/approved-hud-concept.jpg) show the visual direction; [the inventory](../../../docs/art/reference-inventory.md) records the newly added local art sets and the 2026-10-16 rights confirmation.
 - docs/design-prework/art-audio/06-art-audio.md already records the visual principles and warns against arbitrary sprite dimensions.
 
 ## Visuals

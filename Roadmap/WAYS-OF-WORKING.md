@@ -79,7 +79,7 @@ The push requires this project's ignored ingest key (`GROWTH_ENGINE_API_KEY` or 
 
 ## Documentation map
 
-`Roadmap/README.md` is the product poster. `horizon.md` names declared destinations. `00-strategy/` holds agreed strategy and assumptions. `00-ideas/seeds/` holds raw ideas; `BUILD-ORDER.md` is generated from source status. Epic and sprint documents record funded work. `LEARNINGS.md` holds only findings relevant to this project.
+`Roadmap/README.md` is the product poster. `docs/design/GDD.md` is the full-game design reference, while `full-game-build-path.md` orders proposed capabilities and `docs/architecture-review-2026-10-16.md` records implementation evidence; neither funds an epic. `horizon.md` names declared destinations. `00-strategy/` holds agreed strategy and assumptions. `00-ideas/seeds/` holds raw or refined ideas; `BUILD-ORDER.md` is generated from source status. Epic and sprint documents record funded work. `LEARNINGS.md` holds only findings relevant to this project.
 
 ## Conventions
 

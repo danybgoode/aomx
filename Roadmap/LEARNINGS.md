@@ -2,6 +2,8 @@
 
 Only project-specific findings belong here. Add new entries when evidence changes a decision or prevents repeat work.
 
+- **2026-10-16 — Preserve the prototype, then formalize its seams.** The current Godot match already uses validated commands, a fixed logical tick, snapshots and repeatability checks, but `game/skirmish.gd` also hardcodes the one-resource economy, map, AI and faction values. Broader four-age content should follow a versioned command/state/content and save/replay contract, with representative crowd and cross-platform evidence before multiplayer model selection. See the [architecture review](../docs/architecture-review-2026-10-16.md).
+
 - **2026-10-13 — Start with a measured funnel.** The game has no playable build, so there is no observed retention baseline. The 15% later-day match completion goal is a hypothesis to revisit after the first mature cohort. See [North Star](00-strategy/north-star.md).
 - **2026-10-13 — Aggregate by player before reporting retention.** Golden Frijoles `telemetry_event` inputs count raw event occurrences. The agreed North Star needs distinct players and a later-day condition, so compute those values from identified game events and send the resulting readings through `external_push`.
 - **2026-10-13 — Keep products separate.** Golden Frijoles CLI commands act on a selected product. This repo belongs to `aomx`; verify the active product before any future push or key operation.

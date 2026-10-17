@@ -2,6 +2,8 @@
 
 **Version:** 0.2 · **Date:** 2026-10-13 · **Status:** Living design, pre-production
 
+The [v0.3 GDD](../design/GDD.md) now provides global design alignment. This v0.2 package is retained as historical working material; when its proposals conflict with GDD sections 1–10, the v0.3 GDD takes precedence. Delivery scope and implementation status live in the [roadmap](../../Roadmap/README.md) and source.
+
 A satirical, mechanically serious, AoE2-inspired real-time strategy game in an alternate contemporary Mexico City where regional communities wage **literal battles**, destroy buildings, build economies, and fight for La Roma.
 
 ## Confirmed decisions

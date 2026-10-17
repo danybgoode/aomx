@@ -8,7 +8,7 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 9
+build_order: 15
 updated: 2026-10-13
 intent_ask: proxy
 hypothesis: "Once the core solo match earns repeat play, additional modes and shared play may give players more reasons to return."
@@ -30,4 +30,4 @@ intent_match: null
 
 # Idea — Add more ways to play
 
-The [design prework](../../../docs/design-prework/maps/05-maps-modes.md) proposes a fuller Battle for La Roma mode and other objectives. Consider each mode as its own refined bet after observing interest in the core game. Multiplayer needs a separate synchronization decision based on representative unit-count benchmarks, repeatable state hashes and a real server/client test; the solo prototype does not establish that architecture.
+The [v0.3 GDD](../../../docs/design/GDD.md) proposes conquest, wonder and a signature La Roma territorial mode. Refine alternate victory rules on the shared objective/state framework only after the core economy, warfare and AI have meaningful counterplay. Keep the current 3×3 hold as a prototype, not final mode rules. Team and online play depend on the separate [multiplayer idea](prove-multiplayer.md); campaigns/editor depend on [scenario work](create-campaigns-and-scenarios.md). Each mode must state terminal conditions, readable progress, AI behavior and replay/save evidence. See the [full-game build path](../../full-game-build-path.md).

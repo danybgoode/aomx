@@ -1,6 +1,6 @@
 ---
 status: in-progress
-phase: QA
+phase: Verifying
 slug: la-roma-battlefield-art-pack
 title: "La Roma battlefield art pack v0.1"
 area: 02-civilizations-and-world
@@ -14,7 +14,7 @@ quote_low_usd: 50
 quote_high_usd: 300
 quote_basis: "L, n=0, wide"
 hypothesis: "We believe original, readable CDMX battlefield art will help classic RTS players understand and enjoy the current La Roma match because primitives hide its setting and state. We'll know from blind comprehension checks now and first-match completion after an observed cohort."
-target_metric: "first_match_completion"
+target_metric: null
 target_from: null
 target_to: null
 read_date: null
@@ -31,12 +31,12 @@ adopted_event: null
 retained_event: null
 retention_days: null
 satisfied_event: null
-build_order: 10
+build_order: 6
 ---
 
 # Epic: La Roma battlefield art pack v0.1
 
-**Scope:** [Approved pitch](../../00-ideas/seeds/la-roma-battlefield-art-pack.md) · **Destination:** fight-for-la-roma · **Risk:** low
+> **Area:** 02-civilizations-and-world · **Risk:** low · **Class:** Feature · **Scope seed:** [Approved pitch](../../00-ideas/seeds/la-roma-battlefield-art-pack.md) · **Destination:** fight-for-la-roma
 
 ## Why
 
@@ -48,7 +48,7 @@ A classic RTS player should recognize a Mexico City inspired battlefield, both f
 - **D2 · View seam:** Place an asset catalog and view-only animation state between the simulation snapshot and Godot drawing. The simulation remains unaware of textures, facing, frame timing and depth.
 - **D3 · Visual map:** Author terrain choices for the fixed 20×20 board without creating pathing or resource data in the art layer. Decorative objects may overhang but do not block or select.
 - **D4 · Depth and picking:** Sort visual entities by projected ground depth, with stable IDs as a tie break. Preserve tile-based entity_at selection, 2×2 placement, and command targets.
-- **D5 · Source and rights:** Newly authored source files and transparent exports are the production pack. The supplied Scrabling download informs palette and shape only unless a separate provenance decision permits direct pixels.
+- **D5 · Source and rights:** Newly authored source files and transparent exports are the v0.1 production pack. On 2026-10-16 the owner confirmed commercial rights to the local isometric tileset, critters and new concept boards; direct use in a later pack still requires per-asset provenance, actual-scale visual and geometry review, and a traced export into `game/assets/`.
 - **D6 · UI boundary:** Keep the present CanvasLayer status and commands readable. Define reusable Control components for a later desktop/touch HUD, without adding unimplemented resources, camera movement or commands now.
 - **D7 · Verification and release:** Headless checks defend the unchanged rules and outbox; rendered Godot checks defend art readability at both existing zoom limits. A merge is not a deployed build or a public invitation.
 
@@ -88,7 +88,9 @@ The Sprint 1 pilot is a review boundary. If style or readability fails at gamepl
 
 Build on feat/la-roma-battlefield-art-pack. Verify each sprint locally in Godot 4.7.2 and keep source assets, exports, manifest and docs together. A reviewed merge to master is a code landing, not a game deployment. A restricted preview export or update, if used for owner QA, follows deploy/alpha/README.md with unchanged test exclusion and content-version handling. No participant invitation or public release is implied.
 
-## Definition of Done
+## Definition of Done (epic)
+
+The [new local artwork inventory](../../../docs/art/reference-inventory.md) records owner-rights-cleared `newArtWork`, `critters` and `isometric tileset` sources added after this v0.1 scope. They inform the next production-content decision; this already funded epic is not silently expanded to integrate every new asset or concept-board mechanic.
 
 The [technical QA record](../../../docs/art/visual-qa-v0.1.md) separates observed game behavior from the remaining blind and downloadable-build checks.
 
