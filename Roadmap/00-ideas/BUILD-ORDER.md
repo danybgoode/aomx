@@ -10,11 +10,10 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (10)
+## Backlog (9)
 
 _seeds with no pitch yet._
 
-- [Integrate the owned art library](seeds/integrate-owned-art-library.md) — #9 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Deepen strategic play](seeds/deepen-strategic-play.md) — #10 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Expand warfare and world](seeds/expand-warfare-and-world.md) — #11 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Build a strategic opponent](seeds/build-strategic-opponent.md) — #12 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
@@ -31,7 +30,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (7)
+## Ready (8)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -42,6 +41,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #6 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
 - [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #7 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Integrate the owned art library](../02-civilizations-and-world/integrate-owned-art-library/README.md) — #9 · 02 Civilizations And World · 2/3 stories · risk: Low · appetite M · _docs: status in-progress_
 
 ## Building — live only
 

@@ -9,7 +9,7 @@
     20,
     20
   ],
-  "source_policy": "Generated originals; no Scrabling pixels incorporated.",
+  "source_policy": "Existing project originals plus owner-rights-confirmed tiles/critter source and an isolated AI-assisted concept derivative; each owned candidate records hashes and role.",
   "assets": [
     {
       "id": "terrain_grass_0",
@@ -768,6 +768,960 @@
         "SE"
       ],
       "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "terrain_owned_000",
+      "category": "terrain",
+      "path": "res://assets/render/owned/tile_000.png",
+      "source": "res://assets/source/owned/tile_000.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "aa1503cc95c45a3edba8876fcf0623fb872e40f426119384fc2f206a0e349c3d",
+      "export_sha256": "f21b469f8402d4dce95d11cfbfea2c28e7dfdc27ee54d46252dfba0f2fac60e1",
+      "export_recipe": "scripts/export-owned-art.sh: point 48x48",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "terrain_owned_022",
+      "category": "terrain",
+      "path": "res://assets/render/owned/tile_022.png",
+      "source": "res://assets/source/owned/tile_022.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "7f2ca8c449bd66ddc5c7f75ae21db8bb40a024a789e6d4ac226a28c6796e02a2",
+      "export_sha256": "549967f01d7a2cb5bd4ef138a1d3ffdcfca45cefa1fe4e363011ffeb7ce1e205",
+      "export_recipe": "scripts/export-owned-art.sh: point 48x48",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "prop_owned_flowers",
+      "category": "prop",
+      "path": "res://assets/render/owned/tile_044.png",
+      "source": "res://assets/source/owned/tile_044.png",
+      "canvas": [
+        32,
+        32
+      ],
+      "pivot": [
+        16,
+        26
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "9ecc773101ca48a4e6edc70fd997b210a1addd058fb978711563cd8e311c95cd",
+      "export_sha256": "6a151d301ffb56ff422b095851979d0041820a8f4831332b4238241ae1bffdf0",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "match"
+    },
+    {
+      "id": "building_concept_command_post_blue",
+      "category": "building",
+      "path": "res://assets/render/owned/concept_command_post_blue.png",
+      "source": "res://assets/source/owned/concept_command_post_blue.png",
+      "canvas": [
+        96,
+        85
+      ],
+      "pivot": [
+        48,
+        83
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted",
+      "source_sha256": "3733535306d20c622ddc5ec0e4e3db7bdc1b45dfa2960a8915aa4a15bf16c317",
+      "export_sha256": "3db503af2fa123a77cd6d236c11658a04dc1085f62780f7e3ef2db67fe509f0a",
+      "export_recipe": "scripts/export-owned-art.sh: Lanczos 96x85",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_0",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_0.png",
+      "source": "res://assets/source/owned/boar_NE_idle_0.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "039b700b8238f3e5953cc95ac1cb93dabed2b91a3d63bda0b66558c60ff7a64f",
+      "export_sha256": "e3bc48ce7114070b69b0055d5ba29aa0dffdc3f5857da43f967e58dfd659c8c6",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_1",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_1.png",
+      "source": "res://assets/source/owned/boar_NE_idle_1.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "e82bd1b43929738f6a2ede39484203c1d6707c7857ef5889e54a15796f3577eb",
+      "export_sha256": "4ec83126c326eb6aebbaf17177ffb138304001c765a7996dbed7e2823b65ebb0",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_2",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_2.png",
+      "source": "res://assets/source/owned/boar_NE_idle_2.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "cdae10fd2423d14bba2afe3f3aea659cc9e827c58f8ab98ce6966a3d39bbe89d",
+      "export_sha256": "96973882346bda2255aeba6559ff84172b82ebe05856acd9fd02ba062acb9857",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_3",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_3.png",
+      "source": "res://assets/source/owned/boar_NE_idle_3.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "ebc1cba076c29b56996db506efa232fe59ea8b481f5cb998e4bd3e5f20082e5f",
+      "export_sha256": "063f5897c884989d45279b1f6baa5753e923227287a2ff858cf20bb09f0f448b",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_4",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_4.png",
+      "source": "res://assets/source/owned/boar_NE_idle_4.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "7d005d7b9b608dbbc61bb3db3ac4492e6e821ce8be14e1db99cf83443729dadd",
+      "export_sha256": "d729fae0ec90a2bab786f778044f226c69bfd188a8e3a45b63ba29d3904b1615",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_5",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_5.png",
+      "source": "res://assets/source/owned/boar_NE_idle_5.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "8042e2d5298b38f875642f5e7db49baf2db994e3562245bb1d19ed134ae82058",
+      "export_sha256": "1cf98bd1193a4af9721556735046e1f17eb8f42b7a3cf14f5f6bb81180cfb03b",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_ne_idle_6",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NE_idle_6.png",
+      "source": "res://assets/source/owned/boar_NE_idle_6.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "15bc3e6f2e60d6b847203d194ea42677f1fd256315d38965acd960506abcbaa5",
+      "export_sha256": "a5160bc493183e8e91964be1543a6bae2ce207223506f177113c97c339e970ae",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_0",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_0.png",
+      "source": "res://assets/source/owned/boar_NW_idle_0.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "f192ff99a23fa2bff15b72175aa0860838896b8fad569e5f552e1ef96fec32ca",
+      "export_sha256": "ede22801d4b774811403a3526826adc02886a22af0a90c585bb6230fb4ea6cf0",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_1",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_1.png",
+      "source": "res://assets/source/owned/boar_NW_idle_1.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "40000e04dd9e7d62ca6c94bce5f75aab303206336dccebbf2877f297ce5d3a0d",
+      "export_sha256": "f63cfc6dda889f23ae897161276efe831670223c3293706afdc753deed004eb4",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_2",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_2.png",
+      "source": "res://assets/source/owned/boar_NW_idle_2.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "03c4d940146e97b291ca9e031e58340fc669e78225784ec6d31604ef0fa74838",
+      "export_sha256": "89feb8aca799244b399b2f300847bcf756395947c3e0422d7ef9760894d6fe8b",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_3",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_3.png",
+      "source": "res://assets/source/owned/boar_NW_idle_3.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "5feb5cbcb73e2b596ce9284647e7e32e3b0a2bc4d0eae28896ddc92ff8b82a6c",
+      "export_sha256": "365c352f0eb138f8c78d7706a21b0ff1da0f22dfec23b292431ffde3327199e4",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_4",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_4.png",
+      "source": "res://assets/source/owned/boar_NW_idle_4.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "1711bb1c864ed7dfa98f57d5464d47ee51498312e96a87e675330619515e462a",
+      "export_sha256": "57d1bfe9ef6b438b0cc18130fcc479d4aa33d27ab430d39333b986c0970082ed",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_5",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_5.png",
+      "source": "res://assets/source/owned/boar_NW_idle_5.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "1413fba06bed4ea843ba29a386dd726f54f6417cdaa799f2efd0d930a256beb7",
+      "export_sha256": "981b72a32a142b04797deddbe28678de8ceb4f0609a575358ae8edc627bfefed",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_nw_idle_6",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_NW_idle_6.png",
+      "source": "res://assets/source/owned/boar_NW_idle_6.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "NW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "5b4f95bab600474de6b14e6d55ab84d913641063f2be9152f3c1687142413aa8",
+      "export_sha256": "9b414e02f9b977661eba8f779dfcd05d7e971ec4ddce6b7bcfefb1510e5a2b9e",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_0",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_0.png",
+      "source": "res://assets/source/owned/boar_SE_idle_0.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "0b6c345c77ec3314cbceb4f1d140e46891364bff374767d4e68aa322109e43ba",
+      "export_sha256": "934ed66502031ecb218e42e97740c824f678b13cf7aa95a65774efa5c7bd91bf",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_1",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_1.png",
+      "source": "res://assets/source/owned/boar_SE_idle_1.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "7bf7acd7a7bc9678a7b3a6e626483a94770074fcf478e2f4d3b1d06bf2c7fca1",
+      "export_sha256": "b7b018fde1cca912da8135e2381978dfcfe9d2188b1bd9d0bfdfc1f1415ee23a",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_2",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_2.png",
+      "source": "res://assets/source/owned/boar_SE_idle_2.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "6a249ba32da177cb80aec14aa4d966ff7496515023a57dad8ddb1edc42e917e6",
+      "export_sha256": "d3de5f05645c84626203cba7214577f785df127934a558c918d47a27917b3b38",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_3",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_3.png",
+      "source": "res://assets/source/owned/boar_SE_idle_3.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "be72d0cebb378e76df07c4958efdb7131ee12009ad64fe19b26719f5732f9889",
+      "export_sha256": "bec366831518cfc91a366d966042f2d8bcd95c78f3e3f0bfd2743b4118525730",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_4",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_4.png",
+      "source": "res://assets/source/owned/boar_SE_idle_4.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "3f282d64402f5262210f9b4e65fb4ff90550e22153684ef1075da5120681393a",
+      "export_sha256": "c23f512d7ac46ab8d506dd78c30a11edea66503fd93b9b6c2e370c07a8af6d21",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_5",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_5.png",
+      "source": "res://assets/source/owned/boar_SE_idle_5.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "67cbfc73fcb4d3d8628910b6805ab17d7fc8192fd646f6a84e25dfa836eadaff",
+      "export_sha256": "324e545f60944dc702b3d229e32dcab3b938b453318d740445d32854c49e4b70",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_se_idle_6",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SE_idle_6.png",
+      "source": "res://assets/source/owned/boar_SE_idle_6.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "543db00c322fa3bc1e9afbb766d6784a253340386c6f5d4c2f7506899d94aeb4",
+      "export_sha256": "41da834b241018144c5df176640ea5d5b91706878da43674c589d81db31e8f64",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_0",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_0.png",
+      "source": "res://assets/source/owned/boar_SW_idle_0.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "d4fa413f0d88c12bbaf65c4f713303dd8ddb6905bb0a69f4d568d0d54556641b",
+      "export_sha256": "9bc84e1439ceb4c0b9da19cd3962f4056f988c25aaa6214440936506c43f38b9",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_1",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_1.png",
+      "source": "res://assets/source/owned/boar_SW_idle_1.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "c7d67ff6335c311a28f2f554b5ad4519d0bef950228c67258119c7659cd14b78",
+      "export_sha256": "292d58da04bf2574558356e00cb16fc8a3abaa8b3c086776842ed1fafc6dd761",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_2",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_2.png",
+      "source": "res://assets/source/owned/boar_SW_idle_2.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "af76f27755efa2362fcb97c5588857cc2e1b15c8c2cc3ceb12a84549ac5fea19",
+      "export_sha256": "59a47842c0be5082065b3117ed27bfebb4225fca62b32737f5431f22c6b47ed6",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_3",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_3.png",
+      "source": "res://assets/source/owned/boar_SW_idle_3.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "89b84cac44e6e1397ac8cfbcfada4afc8deede60a91e857e4cf8660fa3c91753",
+      "export_sha256": "3be6eb4c79c20b3ff007a9e56cee8b46257ac02ac4a6130427974096fcf8ca52",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_4",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_4.png",
+      "source": "res://assets/source/owned/boar_SW_idle_4.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "45d8333056ba995a7bc855d80a3565293cfe4e6cf4b4c17dd07aab03433079a5",
+      "export_sha256": "111f9d51598916e023095dea7a8c4fb6215a5ebbb1dffaf20b43c80b640a507d",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_5",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_5.png",
+      "source": "res://assets/source/owned/boar_SW_idle_5.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "e9195a2d60c25af7da91fedf2454fa1cf6ef89ccbae1187ffbae137c8be00288",
+      "export_sha256": "5e88e537b7dc825b402637f075ce66cdea74e3712bae1332e449aaf2e0968af5",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
+    },
+    {
+      "id": "critter_boar_sw_idle_6",
+      "category": "critter",
+      "path": "res://assets/render/owned/boar_SW_idle_6.png",
+      "source": "res://assets/source/owned/boar_SW_idle_6.png",
+      "canvas": [
+        46,
+        32
+      ],
+      "pivot": [
+        23,
+        29
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "idle"
+      ],
+      "directions": [
+        "SW"
+      ],
+      "rights": "owner-confirmed-commercial-2026-10-16",
+      "source_sha256": "06909f44ee7cf1cf8a78ca168c33a4c1de4500c3db987d2f482e5116ba8cb4c3",
+      "export_sha256": "3db335879ca0d8fc860911f84cab39f1c305c1ffcc596047f1c08658bc48bf9c",
+      "export_recipe": "scripts/export-owned-art.sh: native size",
+      "runtime_use": "pilot"
     }
   ],
   "procedural": [

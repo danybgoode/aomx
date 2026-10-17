@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -7,6 +8,7 @@ const manifestPath = path.join(root, "game/assets/manifest.v0.1.json");
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 const errors = [];
 const ids = new Set();
+let ownedTexturePixels = 0;
 
 if (manifest.schema_version !== 1) errors.push("unsupported schema_version");
 if (manifest.tile_ground_size?.join("x") !== "48x24") errors.push("tile ground geometry mismatch");
@@ -45,8 +47,24 @@ for (const asset of manifest.assets ?? []) {
       asset.pivot.some((v, i) => !Number.isInteger(v) || v < 0 || v >= asset.canvas[i])) {
     errors.push(asset.id + ": invalid pivot");
   }
-  if (asset.rights !== "project-original-ai-assisted") errors.push(asset.id + ": rights missing");
+  if (!["project-original-ai-assisted", "owner-confirmed-commercial-2026-10-16"].includes(asset.rights)) {
+    errors.push(asset.id + ": rights missing");
+  }
+  if (asset.path?.startsWith("res://assets/render/owned/")) {
+    if (!["pilot", "match"].includes(asset.runtime_use)) errors.push(asset.id + ": unapproved runtime role");
+    if (asset.anchor !== "ground_center" || asset.footprint?.length !== 2) errors.push(asset.id + ": geometry metadata missing");
+    for (const [key, hashKey] of [["source", "source_sha256"], ["path", "export_sha256"]]) {
+      const file = typeof asset[key] === "string" ? path.join(root, "game", asset[key].slice("res://".length)) : "";
+      if (!fs.existsSync(file) || crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex") !== asset[hashKey]) {
+        errors.push(asset.id + ": " + hashKey + " mismatch");
+      }
+    }
+    if (!asset.export_recipe?.startsWith("scripts/export-owned-art.sh:")) errors.push(asset.id + ": export recipe missing");
+    ownedTexturePixels += asset.canvas[0] * asset.canvas[1];
+  }
 }
+
+if (ownedTexturePixels * 4 > 1024 * 1024) errors.push("owned textures exceed 1 MiB uncompressed RGBA budget");
 
 const expected = [
   ...["grass", "sidewalk", "asphalt", "plaza"].flatMap(
@@ -59,9 +77,17 @@ const expected = [
   "prop_gold_cart", "prop_jacaranda", "prop_barricade", "prop_plaza_medallion"
 ];
 for (const id of expected) if (!ids.has(id)) errors.push("required asset missing: " + id);
+for (const id of ["terrain_owned_000", "terrain_owned_022", "prop_owned_flowers", "building_concept_command_post_blue"]) {
+  if (!ids.has(id)) errors.push("owned candidate missing: " + id);
+}
+for (const direction of ["ne", "nw", "se", "sw"]) {
+  for (let frame = 0; frame < 7; frame++) {
+    if (!ids.has(`critter_boar_${direction}_idle_${frame}`)) errors.push(`boar ${direction} idle frame ${frame} missing`);
+  }
+}
 
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
 }
-console.log("Art manifest OK: " + ids.size + " RGBA textures, " + (manifest.procedural?.length ?? 0) + " procedural cues.");
+console.log("Art manifest OK: " + ids.size + " RGBA textures, " + ownedTexturePixels * 4 + " owned RGBA bytes, " + (manifest.procedural?.length ?? 0) + " procedural cues.");

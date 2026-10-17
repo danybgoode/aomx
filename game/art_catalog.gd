@@ -6,7 +6,7 @@ var records: Dictionary = {}
 var textures: Dictionary = {}
 var hit_images: Dictionary = {}
 
-func load_manifest() -> void:
+func load_manifest(include_pilot: bool = false) -> void:
 	var source := FileAccess.get_file_as_string(MANIFEST_PATH)
 	assert(not source.is_empty(), "Art manifest is missing.")
 	var data: Variant = JSON.parse_string(source)
@@ -15,6 +15,8 @@ func load_manifest() -> void:
 	textures.clear()
 	hit_images.clear()
 	for record in data.assets:
+		if record.get("runtime_use", "match") == "pilot" and not include_pilot:
+			continue
 		var id: String = record.id
 		assert(not records.has(id), "Duplicate art asset: " + id)
 		records[id] = record
