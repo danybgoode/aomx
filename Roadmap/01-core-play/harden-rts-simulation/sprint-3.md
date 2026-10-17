@@ -3,7 +3,7 @@ epic: harden-rts-simulation
 sprint: 3
 title: "Scale and sync decision"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,11 +12,11 @@ stories:
     i_want: "crowded battles to remain controllable and consistent"
     so_that: "larger maps and later shared play can be built on evidence"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Harden the RTS simulation — Sprint 3: Scale and sync decision
 
-**Status:** ⬜ not started
+**Status:** Local benchmark and rendered QA passed; Linux comparison and downloaded-build walkthrough remain.
 
 ## Stories
 
@@ -47,3 +47,9 @@ Env: local desktop build for the representative stress fixture, with Godot versi
 4. Read the benchmark and sync ADR. → Both name the tested battle size, budgets, evidence, chosen next approach and remaining unknowns.
 
 Record a failed step with fixture, device, build and command sequence.
+
+## Builder evidence · 2026-10-16
+
+- The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records the predeclared p95 budgets and a 20×20/15, 32×32/83 and 48×48/163 matrix. A static-building occupancy cache brought all three debug route and tick cases within budget. It rebuilds from saved state.
+- A 1280×800 rendered Godot crowd probe captured 82 entities with p95 frame interval 13.39 ms over 120 frames. Selection/HUD remain visible; dense fighters can overlap. This is not a low-end device or release-build benchmark.
+- [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional server-authoritative direction and named next experiment. The 700-tick Regios/Poblanos hash fixtures pass locally on macOS; Linux CI comparison is pending.

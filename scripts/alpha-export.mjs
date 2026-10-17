@@ -24,7 +24,9 @@ const game = path.join(work, 'game');
 const out = path.join(root, 'dist', 'alpha');
 try {
   run('npm', ['test'], { cwd: root });
-  for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd']) {
+  for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd',
+    'rules_content_test.gd', 'skirmish_persistence_test.gd', 'skirmish_replay_test.gd', 'cross_platform_hash_test.gd', 'skirmish_save_client_test.gd',
+    'skirmish_scale_benchmark.gd']) {
     run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', `res://tests/${test}`]);
   }
   run('npm', ['run', 'skirmish:contract'], { cwd: root, env: { ...process.env, GODOT_BIN: godot } });

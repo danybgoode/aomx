@@ -2,6 +2,9 @@
 
 Only project-specific findings belong here. Add new entries when evidence changes a decision or prevents repeat work.
 
+- **2026-10-16 — Cache static occupancy for scale, then preserve it across restore.** Repeated building-footprint scans made the 32×32 route p95 68.041 ms in the first crowd run. A cache lowered it to 3.117 ms in the final debug matrix, within the declared 6 ms budget; save restore rebuilds the cache. This does not solve fighter overlap or low-end-device performance. See the [foundation benchmark](../docs/simulation-benchmark-2026-10-16.md).
+- **2026-10-16 — Keep save and telemetry lifecycles separate.** The v1 local save stores canonical match state and the match ID but excludes invite credentials and the funnel outbox. Resume retains the ID, emits no new start and refuses a completion already recorded in the outbox. Version/content mismatches preserve the file with an explicit error. See [ADR 003](../docs/architecture-decisions/003-simulation-contract.md).
+
 - **2026-10-16 — Preserve the prototype, then formalize its seams.** The current Godot match already uses validated commands, a fixed logical tick, snapshots and repeatability checks, but `game/skirmish.gd` also hardcodes the one-resource economy, map, AI and faction values. Broader four-age content should follow a versioned command/state/content and save/replay contract, with representative crowd and cross-platform evidence before multiplayer model selection. See the [architecture review](../docs/architecture-review-2026-10-16.md).
 
 - **2026-10-13 — Start with a measured funnel.** The game has no playable build, so there is no observed retention baseline. The 15% later-day match completion goal is a hypothesis to revisit after the first mature cohort. See [North Star](00-strategy/north-star.md).
