@@ -47,7 +47,7 @@ Players and reviewers need to see whether the owner's tiles, critters and Mexico
 - The 20×20 simulation grid, 48×24 ground diamond, 2×2 building footprint, picking, commands and objectives remain authoritative in `game/skirmish.gd` and `game/skirmish_main.gd`.
 - All production source copies live under `game/assets/source/owned/`; ignored `references/` is never a build input. Each export has rights, source hash, export hash, dimensions, pivot and runtime role in the manifest.
 - The selected raised 32×32 tile blocks are scale candidates in `art_pilot.tscn`. Their 48×24 top projection does not make their tall sides suitable to replace flat battlefield terrain without a further seam review.
-- Boar animation is an ambient *candidate* in the pilot. It has no match entity, collision, target, behavior or cultural association. A gameplay or ambient role decision is required before any match placement.
+- Boar animation remains a pilot candidate by owner decision. Its dark silhouette needs contrast work before any match role is reconsidered. It has no match entity, collision, target, behavior or cultural association.
 - A transparent command post derivative follows the `newArtWork/BUILDINGS.jpg` direction. Its isolated source is retained; the flattened board and its proposed mechanics never enter the game.
 - `prop_owned_flowers` is the only selected owned asset placed in the match, as view-only decoration. Runtime flags and telemetry event changes are unnecessary for this visual pilot.
 
@@ -72,6 +72,6 @@ Build on `feat/integrate-owned-art-library`. Review and merge to `master`, then 
 - [x] Per-asset owned rights, source/export hashes, anchor, canvas, role and memory budget are validated.
 - [x] The pilot loads selected tiles, a transparent concept derivative and four-direction idle critter animation at 100% and 125% scale.
 - [x] A selected owned flower prop appears in the match without changing simulation or selection.
-- [ ] Rendered owner visual review at normal zoom records palette, readability and raised-tile seams.
+- [x] Rendered owner visual review at normal zoom records palette, readability and raised-tile seams. The owner kept the boar, raised tiles and concept post as pilot candidates.
 - [ ] Complete matches as both factions and both victory routes are checked in a downloadable build; save and test-tagged event behavior remain intact.
-- [ ] Merge to `master`, verify any authorized Restricted preview, and record the result in the retrospective and roadmap.
+- [x] Merge to `master`, verify the authorized Restricted preview, and record the result in the retrospective and roadmap.
