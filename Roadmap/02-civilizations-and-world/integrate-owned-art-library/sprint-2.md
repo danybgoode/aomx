@@ -24,6 +24,8 @@ stories:
 
 Run the headless pilot test and inspect the rendered scene. Record owner palette, scale and seam judgment separately from automated checks.
 
+The owner reviewed the 100%/125% comparison and chose to keep the boar, raised tiles and concept command post in the pilot. The boar needs stronger contrast at match scale, and raised sidewalls do not join the flat board cleanly. The flower prop alone is approved for match decoration in this slice.
+
 ## Sprint 2 — Smoke walkthrough
 
 1. Run Godot with `--path game res://art_pilot.tscn`.

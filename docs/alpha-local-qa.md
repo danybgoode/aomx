@@ -1,5 +1,11 @@
 # Private alpha: local macOS download QA
 
+## Owned art preview · 2026-10-17
+
+Epic #9's signed Restricted preview is `preview-0d2b90f67f91` on itch channel `mac-private-alpha` (Butler build `#2146053`). Source archive SHA-256: `04d1125e537f40b1cba3b9940aa909176b4b7954094141f7a23ab76c3c522b61`. The authenticated Butler fetch matched the source archive's extracted app, strict code-signature verification passed, the fetched app opened, and its menu displayed the expected build ID. In a Regios match, the owned flower decoration rendered at normal zoom. The owner reviewed the [scale pilot](screenshots/owned-art-pilot/scale-comparison.png) and kept the boar, raised tiles and concept command post as pilot candidates.
+
+The four downloaded-build victory runs and save/resume check below were completed on the earlier `preview-27661d2a0900` build. They remain open for this owned art preview; a rendered start and menu check is not a completed match.
+
 Use the Restricted [itch.io page](https://danybgoode.itch.io/battle-for-la-roma) while signed in as its owner. The current simulation-foundation preview is `preview-27661d2a0900` (itch build `#2143645`, `la-roma-prototype-1`; source ZIP SHA-256 `748fb89797fe49a834c0e86c4b8e67261332c818f10b1716ad5550098dde7d8b`). It adds versioned match rules, one local save slot and resume to the previous visual HUD build. It is a **preview**: its events are test traffic even though the owner enabled the **preview** Golden Frijoles flag on 2026-10-15. The owner waived a separate-Mac check on 2026-10-14, so this walkthrough covers one machine. The signed local export, strict signature verification, extracted-app startup and authenticated Butler fetch all passed. The fetched app matched the source archive byte for byte and completed a rendered save/quit/reopen/resume check. On 2026-10-16, the owner reported that browser download, save/resume and both manual victory routes passed on this build.
 
 The visual HUD build `preview-87bafb02fe41` (itch `#2142965`) is superseded. Butler marked build `#2143645` ready; check `butler status danybgoode/battle-for-la-roma` again if the itch page still shows the older build.

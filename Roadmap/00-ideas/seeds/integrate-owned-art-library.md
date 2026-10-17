@@ -93,7 +93,7 @@ flowchart LR
 
 ## Open risks / research
 
-Source rights were confirmed by the owner on 2026-10-16. There is no observed first-match cohort or blind comprehension result. The owner still needs to judge final scale and palette in the downloadable build.
+Source rights were confirmed by the owner on 2026-10-16. The owner reviewed the 100%/125% scale comparison and kept the boar, raised tiles and concept command post as pilot candidates. There is no observed first-match cohort or blind comprehension result. A full walkthrough of this downloadable build remains open.
 
 > Theres also new art work to use in references/newArtWork
 > Remember that we also have the whole references/critters and references/isometric tileset to use as they are very high quality.
