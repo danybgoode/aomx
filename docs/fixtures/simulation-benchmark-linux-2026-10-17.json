@@ -1,0 +1,13 @@
+{
+  "source_run": "https://github.com/danybgoode/aomx/actions/runs/39003896658",
+  "device": "GitHub Actions ubuntu-latest runner",
+  "godot": "4.7.2-stable (official)",
+  "os": "Linux",
+  "debug": true,
+  "mode": "headless",
+  "results": [
+    {"scenario":"baseline","map":"20x20","units":15,"orders":300,"accepted_orders":300,"ticks":300,"route_mean_ms":0.901603333333333,"route_p95_ms":1.16,"route_p95_budget_ms":2,"tick_mean_ms":0.0577766666666667,"tick_p95_ms":0.118,"tick_p95_budget_ms":2,"static_memory_bytes":25861652,"state_hash":"ec9735ab0cb0bc1da3b6d69ee7c521071337259c362e4c4c343d72e504df47c4"},
+    {"scenario":"crowded","map":"32x32","units":83,"orders":500,"accepted_orders":500,"ticks":300,"route_mean_ms":3.255772,"route_p95_ms":4.363,"route_p95_budget_ms":6,"tick_mean_ms":0.25179,"tick_p95_ms":0.299,"tick_p95_budget_ms":4,"static_memory_bytes":26259256,"state_hash":"b8ba7b99235d992e894c9e3a6211ea8e9c1b6d7ace886faddc1a29d7ff2a3657"},
+    {"scenario":"large_army","map":"48x48","units":163,"orders":800,"accepted_orders":800,"ticks":300,"route_mean_ms":7.56168375,"route_p95_ms":10.355,"route_p95_budget_ms":12,"tick_mean_ms":0.49778,"tick_p95_ms":0.544,"tick_p95_budget_ms":8,"static_memory_bytes":26802416,"state_hash":"efc256c3831548a97d204f69b8fb725f250578c8bcb23af4002617a8b49bdf84"}
+  ]
+}

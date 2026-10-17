@@ -16,7 +16,7 @@ stories:
 ---
 # Harden the RTS simulation — Sprint 3: Scale and sync decision
 
-**Status:** Local benchmark and rendered QA passed; Linux comparison and downloaded-build walkthrough remain.
+**Status:** Local and Linux benchmark/hash QA passed; downloaded-build walkthrough remains.
 
 ## Stories
 
@@ -52,4 +52,4 @@ Record a failed step with fixture, device, build and command sequence.
 
 - The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records the predeclared p95 budgets and a 20×20/15, 32×32/83 and 48×48/163 matrix. A static-building occupancy cache brought all three debug route and tick cases within budget. It rebuilds from saved state.
 - A 1280×800 rendered Godot crowd probe captured 82 entities with p95 frame interval 13.39 ms over 120 frames. Selection/HUD remain visible; dense fighters can overlap. This is not a low-end device or release-build benchmark.
-- [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional server-authoritative direction and named next experiment. The 700-tick Regios/Poblanos hash fixtures pass locally on macOS; Linux CI comparison is pending.
+- [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional server-authoritative direction and named next experiment. The 700-tick Regios/Poblanos hash fixtures passed on macOS and Linux in [CI run 39003896658](https://github.com/danybgoode/aomx/actions/runs/39003896658); all three Linux benchmark cases met the declared budgets. Web/mobile and a production-sized moving battle remain untested.

@@ -1,6 +1,6 @@
 ---
 status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+phase: In review       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: harden-rts-simulation
 title: "Harden the RTS simulation"
@@ -88,7 +88,7 @@ Players should be able to finish and resume the existing solo match as the game 
 
 **Baseline before extraction:** Godot 4.7.2 macOS headless rules, faction and district suites pass; the client suite passes with normal `user://` access. The existing 20×20/12-unit benchmark on this Mac measured 5,000 routes at 0.4553 ms mean and 1,000 ticks at 0.0423 ms mean. Existing tests cover command-post and district terminal paths. This is the comparison baseline, not the later scale target.
 
-**Builder evidence:** [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the implemented simulation, content, save and replay contracts. The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records passing local route/tick budgets through 48×48/163 entities and rendered save/crowd probes. [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional network direction. All 12 Godot headless suites, Node tests and the game-to-ingest contract pass locally. Linux CI comparison, independent review, merge and owner downloaded-build QA remain before epic close-out.
+**Builder evidence:** [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the implemented simulation, content, save and replay contracts. The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records passing local and Linux route/tick budgets through 48×48/163 entities, identical 700-tick faction hashes and rendered save/crowd probes. [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional network direction. All 12 Godot headless suites, Node tests and the game-to-ingest contract pass locally and in Linux CI. An independent Codex review found malformed replay input handling; it was fixed and covered by regression tests. Merge and owner downloaded-build QA remain before epic close-out.
 
 **Boundary:** this epic does not add the four-resource economy, all ages, production wildlife, network transport or matchmaking. A cross-platform mismatch is evidence for the synchronization decision, not a reason to assert lockstep.
 
