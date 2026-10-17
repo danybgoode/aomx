@@ -5,6 +5,7 @@ const FunnelOutbox = preload("res://funnel_outbox.gd")
 const AlphaConfig = preload("res://alpha_config.gd")
 const ArtCatalog = preload("res://art_catalog.gd")
 const BattleHud = preload("res://ui/battle_hud.gd")
+const MatchSave = preload("res://skirmish_persistence.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -15,7 +16,7 @@ const ZOOM_MAX := 2.1
 const ZOOM_STEP := 0.1
 const UNIT_ART_SCALE := 0.75
 
-var sim = Skirmish.new()
+var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
 var outbox = FunnelOutbox.new()
 var choosing_faction := true
@@ -23,7 +24,9 @@ var setup_panel: PanelContainer
 var setup_goal: Label
 var setup_regios: Button
 var setup_poblanos: Button
+var setup_resume: Button
 var setup_note: Label
+var setup_save_error: Label
 var match_id := ""
 var completion_queued := false
 var selected_id := -1
@@ -66,6 +69,7 @@ var instructions: Label
 var hover_hint: Label
 var request: HTTPRequest
 var invite_code := ""
+var save_path := MatchSave.SAVE_PATH
 var invite_input: LineEdit
 var prior_unit_positions: Dictionary = {}
 var unit_facing: Dictionary = {}
@@ -112,6 +116,8 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.menu_requested.connect(_toggle_diagnostics)
 	hud_ui.pause_requested.connect(_toggle_pause)
 	hud_ui.restart_requested.connect(_restart_match)
+	hud_ui.save_requested.connect(_save_match)
+	hud_ui.resume_requested.connect(_resume_match)
 	hud = hud_ui.diagnostics_label
 	selection_title = hud_ui.selection_title
 	selection_details = hud_ui.selection_details
@@ -193,11 +199,21 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	preload("res://ui/hud_skin.gd").apply_button(poblanos)
 	column.add_child(poblanos)
 	setup_poblanos = poblanos
+	setup_resume = Button.new()
+	setup_resume.text = "Resume saved match"
+	setup_resume.custom_minimum_size.y = 50
+	setup_resume.pressed.connect(_resume_match)
+	preload("res://ui/hud_skin.gd").apply_button(setup_resume)
+	column.add_child(setup_resume)
 	var note := Label.new()
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
 	column.add_child(note)
 	setup_note = note
+	setup_save_error = Label.new()
+	setup_save_error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_save_error.add_theme_color_override("font_color", Color("ffb49f"))
+	column.add_child(setup_save_error)
 
 func _layout_setup() -> void:
 	if setup_panel == null:
@@ -211,7 +227,7 @@ func _layout_setup() -> void:
 	setup_regios.text = ("REGIOS  •  +5 gold deliveries" if not landscape else "REGIOS  •  workers deliver 5 gold; fighters cost +1") if mobile else "Regios — workers deliver 5 gold; combat units cost +1 gold"
 	setup_poblanos.text = ("POBLANOS  •  tougher posts" if not landscape else "POBLANOS  •  tougher posts; workers carry 4 gold") if mobile else "Poblanos — posts +20% HP; workers carry 4 gold; standard fighter costs"
 	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
-	for b in [setup_regios, setup_poblanos]:
+	for b in [setup_regios, setup_poblanos, setup_resume]:
 		b.custom_minimum_size.y = 50 if mobile and landscape else (65 if mobile else 72)
 		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
 	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
@@ -247,6 +263,8 @@ func _show_setup() -> void:
 	last_event_entities.clear()
 	last_district_state = "neutral"
 	setup_panel.show()
+	setup_resume.visible = FileAccess.file_exists(save_path)
+	setup_save_error.text = ""
 	hover_hint.text = ""
 	instructions.text = "Choose Regios or Poblanos to begin · Press 1 or 2, or click a choice"
 	_update_hud()
@@ -256,6 +274,72 @@ func _choose_faction(faction: String) -> void:
 	if not choosing_faction or faction not in [Skirmish.REGIOS, Skirmish.POBLANOS]:
 		return
 	_start_match(faction)
+
+func _save_match() -> void:
+	if choosing_faction or sim.result != "":
+		hud_ui.show_notice("Start an active match before saving", true)
+		return
+	var saved: Dictionary = MatchSave.write(sim, match_id, completion_queued, save_path)
+	if saved.ok:
+		hud_ui.show_notice("Match saved. Resume it from the faction screen or menu.")
+	else:
+		hud_ui.show_notice("Save failed: %s. Current match is still playable." % saved.reason.replace("_", " "), true)
+
+func _resume_match() -> void:
+	var restored: Dictionary = MatchSave.read(save_path)
+	if not restored.ok:
+		var message := "Saved match could not load: %s. File kept." % restored.reason.replace("_", " ")
+		if choosing_faction:
+			setup_save_error.text = message
+		else:
+			hud_ui.show_notice(message, true)
+		return
+	if _outbox_has_terminal(restored.match_id) and restored.game.result == "":
+		var completed_note := "That saved match already finished. Start a new match; the save file is kept."
+		if choosing_faction:
+			setup_save_error.text = completed_note
+		else:
+			hud_ui.show_notice(completed_note, true)
+		return
+	sim = restored.game as Skirmish
+	match_id = restored.match_id
+	completion_queued = restored.completion_queued or sim.result != ""
+	outbox.faction = sim.factions[Skirmish.HUMAN]
+	choosing_faction = false
+	setup_panel.hide()
+	instructions.text = "Click to select · Right-click to order · B build · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
+	paused = false
+	hud_ui.pause_button.text = "II"
+	hud_ui.diagnostics.hide()
+	accumulator = 0.0
+	selected_id = -1
+	selected_ids.clear()
+	last_group_signature = ""
+	last_ui_signature = ""
+	hovered_entity_id = -1
+	hovered_source_side = -1
+	placing = false
+	target_mode = ""
+	prior_unit_positions.clear()
+	unit_facing.clear()
+	last_event_entities.clear()
+	for id in sim.entities:
+		last_event_entities[id] = sim.entities[id].duplicate(true)
+	last_district_state = sim.district_state
+	marker = Vector2i(-1, -1)
+	_reset_zoom()
+	order_flash_seconds = 0.0
+	hud_ui.show_notice("Saved match resumed")
+	_update_hud()
+	queue_redraw()
+
+func _outbox_has_terminal(id: String) -> bool:
+	if not outbox.state.has("events"):
+		return false
+	for item in outbox.state.events:
+		if item.has("event") and item.event.get("type") == "match_completed" and item.event.get("match_id") == id:
+			return true
+	return false
 
 func _start_match(faction: String) -> void:
 	sim = Skirmish.new(faction)

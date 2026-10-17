@@ -6,6 +6,8 @@ signal navigate(tile: Vector2i)
 signal menu_requested
 signal pause_requested
 signal restart_requested
+signal save_requested
+signal resume_requested
 
 const HudSkin = preload("res://ui/hud_skin.gd")
 const CommandButton = preload("res://ui/command_button.gd")
@@ -38,6 +40,8 @@ var diagnostics_label: Label
 var invite_input: LineEdit
 var invite_save: Button
 var support_copy: Button
+var save_button: Button
+var resume_button: Button
 var close_diagnostics: Button
 var gold_label: Label
 var faction_label: Label
@@ -257,6 +261,10 @@ func _build() -> void:
 	close_diagnostics.pressed.connect(func() -> void: diagnostics.hide())
 	diagnostics_label = _label(diag_col, "", 13)
 	diagnostics_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	save_button = _button(diag_col, "Save current match")
+	save_button.pressed.connect(func() -> void: save_requested.emit())
+	resume_button = _button(diag_col, "Resume saved match")
+	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	event_log_label = _label(diag_col, "EVENTS", 12, HudSkin.MUTED)
 	event_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	invite_input = LineEdit.new()
@@ -384,7 +392,7 @@ func _layout() -> void:
 	notification_label.position = Vector2(7, 5)
 	notification_panel.position = Vector2((w - 340) * 0.5, bottom.position.y - 44)
 	notification_panel.size = Vector2(minf(340, w - 2 * margin), 36)
-	diagnostics.size = Vector2(minf(480, w - 22), minf(340, h - 22))
+	diagnostics.size = Vector2(minf(480, w - 22), minf(420, h - 22))
 	diagnostics.position = (size - diagnostics.size) * 0.5
 	var diag_content: VBoxContainer = diagnostics.get_child(0)
 	diag_content.position = Vector2(12, 12)

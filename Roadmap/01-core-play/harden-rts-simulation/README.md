@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: In review       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: harden-rts-simulation
 title: "Harden the RTS simulation"
@@ -76,7 +76,19 @@ Players should be able to finish and resume the existing solo match as the game 
 | [2](sprint-2.md) | Save and resume a match; replay its commands to the same terminal state with explicit version handling. | High; round trip, malformed/old save cases, replay hashes and owner resume walkthrough. |
 | [3](sprint-3.md) | A representative stress match and cross-environment results inform pathing and network synchronization. | High; reproducible benchmark matrix, real-window smoke and a written sync-model decision. |
 
-**Architecture lock before Sprint 1:** agree on canonical state and command schema, stable content IDs, logical update order, RNG ownership, simulation versus content versioning, and the old-match adapter. Record the baseline command stream and expected win/loss paths before extraction. Keep this a migration of the playable match, not a parallel new engine.
+## Architecture lock · 2026-10-16
+
+- **D1 · One authority:** `game/skirmish.gd` remains the rules authority. Input, HUD, art and telemetry consume state or issue semantic commands. Do not create a second match engine. Existing `issue(side, kind, actor_id, target)` remains a compatibility adapter while the versioned command envelope is introduced.
+- **D2 · Stable contracts:** The command envelope carries schema version, logical issue tick, sequence, side, actor ID, kind and a typed target. Reject unknown versions, kinds, IDs or malformed targets before mutation. New game-content definitions use stable string IDs with validated costs, health, timing, faction modifiers and objective parameters. Keep rendering assets in their separate manifest.
+- **D3 · Canonical state:** A versioned save contains only authoritative logical state: faction choice, tick, entities with stable IDs and queued work, source/stockpile amounts, district and terminal state, AI schedule/state, command sequence and seeded RNG state. Exclude frame accumulator, UI selection/zoom, invite code, player identity and telemetry outbox. The save wrapper additionally carries match ID and event-completion guard, without copying the outbox.
+- **D4 · Deterministic order:** One fixed 0.1-second tick. Apply due commands in sequence, AI orders, ascending entity IDs, damage in ascending target ID, deaths, then victory/district. No rendering FPS or global random source changes outcomes. Seeded RNG is owned by the simulation even though the current rules use no random draws. Preserve the current two-faction costs, movement and both terminal paths.
+- **D5 · Persistence and compatibility:** Separate command, simulation-state, save-wrapper and content versions. Read only supported versions; malformed or unknown files return a clear error and stay intact. Write a temporary file, flush and atomically replace the destination where supported. Do not silently reset a match. A resumed match keeps its match ID and must not emit a second start or duplicate completion.
+- **D6 · Replay and comparison:** Replay the versioned human command stream at its recorded logical ticks while the deterministic AI derives its own orders. Compare checkpoint hashes and name the first divergent tick. A replay record is diagnostic evidence, not a trusted multiplayer protocol.
+- **D7 · Scale and sync evidence:** Benchmark the 20×20/12-unit baseline and at least two larger, crowded cases; record device, build type, duration, commands, tick/route/frame/memory results and budgets before changing routing. Compare macOS and Linux headless hashes when CI is available. Choose lockstep only if declared cross-environment cases agree; otherwise favor an authoritative model or record a missing experiment. This epic does not implement networking.
+
+**Baseline before extraction:** Godot 4.7.2 macOS headless rules, faction and district suites pass; the client suite passes with normal `user://` access. The existing 20×20/12-unit benchmark on this Mac measured 5,000 routes at 0.4553 ms mean and 1,000 ticks at 0.0423 ms mean. Existing tests cover command-post and district terminal paths. This is the comparison baseline, not the later scale target.
+
+**Builder evidence:** [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the implemented simulation, content, save and replay contracts. The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records passing local and Linux route/tick budgets through 48×48/163 entities, identical 700-tick faction hashes and rendered save/crowd probes. [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional network direction. All 12 Godot headless suites, Node tests and the game-to-ingest contract pass locally and in Linux CI. An independent Codex review found malformed replay input handling; it was fixed and covered by regression tests. Merge and owner downloaded-build QA remain before epic close-out.
 
 **Boundary:** this epic does not add the four-resource economy, all ages, production wildlife, network transport or matchmaking. A cross-platform mismatch is evidence for the synchronization decision, not a reason to assert lockstep.
 

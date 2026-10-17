@@ -3,7 +3,7 @@ epic: harden-rts-simulation
 sprint: 2
 title: "Save, replay and versioning"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S2.1
@@ -12,11 +12,11 @@ stories:
     i_want: "to resume a saved match and replay its decisions"
     so_that: "a longer battle remains trustworthy across sessions"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Harden the RTS simulation — Sprint 2: Save, replay and versioning
 
-**Status:** ⬜ not started
+**Status:** Local implementation and regression QA passed; review and downloaded-build walkthrough remain.
 
 ## Stories
 
@@ -48,3 +48,9 @@ Env: downloaded macOS preview from the sprint commit; use the local debug build 
 5. Run replay against the recorded command stream. → Checkpoint and terminal hashes match the fixture; a deliberate changed command reports divergence.
 
 Record a failed step with build, save version and observed result. Keep test fixtures out of a real player profile.
+
+## Builder evidence · 2026-10-16
+
+- The in-game Menu and faction screen now expose one local v1 save slot and resume. [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the envelope, version rejection, data exclusions and power-loss limit.
+- `skirmish_persistence_test.gd`, `skirmish_replay_test.gd` and `skirmish_save_client_test.gd` passed on Godot 4.7.2 macOS, including round-trip continuation, corrupt/unsupported files, command divergence and match event deduplication. A rendered Godot probe saved, returned to setup and resumed the same match ID; the settings panel showed both controls and the saved status.
+- The replay verifier is a diagnostic API and test tool; there is no player-facing replay viewer in this slice. The owner downloaded-build save/quit/resume and both terminal paths remain owed.

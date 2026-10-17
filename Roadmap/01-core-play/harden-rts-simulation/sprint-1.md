@@ -3,7 +3,7 @@ epic: harden-rts-simulation
 sprint: 1
 title: "Contract and migration seam"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S1.1
@@ -12,11 +12,11 @@ stories:
     i_want: "the current two-faction match to keep the same commands and outcomes"
     so_that: "future content can grow without breaking my game"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Harden the RTS simulation — Sprint 1: Contract and migration seam
 
-**Status:** ⬜ not started
+**Status:** Local implementation and regression QA passed; review and downloaded-build walkthrough remain.
 
 ## Stories
 
@@ -47,3 +47,9 @@ Env: local Godot 4.7.2 debug build from the sprint commit (`"$GODOT_BIN" --path 
 4. Repeat the same command fixture in headless mode. → The canonical state hash matches the recorded baseline.
 
 Record a failed step with build, faction, command and observed state.
+
+## Builder evidence · 2026-10-16
+
+- [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) records the authority, command, state, content and compatibility seams. `game/content/skirmish.v1.json` holds live values; malformed IDs, map positions, content schema and commands are rejected before mutation.
+- Existing `skirmish_test.gd`, `faction_test.gd`, `district_test.gd`, `skirmish_client_test.gd` and the new `rules_content_test.gd` passed on Godot 4.7.2 macOS. `npm run skirmish:contract` passed with zero public events.
+- A real 1280×800 Godot window rendered the existing board/HUD after migration; the client-side save/resume probe also exercised the live scene. Both terminal paths remain covered by the original regression suites. The owner downloaded-build manual route walkthrough is still owed.
