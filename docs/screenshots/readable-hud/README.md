@@ -1,6 +1,6 @@
 # Readable battlefield HUD captures
 
-Approved [visual direction](../../../references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg) and actual Godot 4.7.2 gameplay captures:
+Approved [visual direction](../../art/approved-hud-concept.jpg) and actual Godot 4.7.2 gameplay captures:
 
 | Viewport | Actual state |
 | --- | --- |

@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "02-civilizations-and-world/readable-battlefield-hud"
-build_order: 11
+build_order: 7
 updated: 2026-10-16
 intent_ask: verbatim
 hypothesis: "We believe a legible match HUD and contextual commands for first-time skirmish players will improve first-match completion because players can understand selection, resources, objectives and orders without memorizing keys; we will check uncoached tasks and the first-match funnel when real play data exists."
@@ -93,7 +93,7 @@ Genuinely new: the game has CanvasLayer text, hotkeys and world feedback, but no
 - `game/art_catalog.gd` and `game/assets/`: faction and entity art usable for portraits.
 - `game/funnel_outbox.gd`: pending/offline/sync state.
 - `docs/art/ui-component-spec.md`: reusable Godot Control plan and unsupported concept features.
-- `references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg`: local visual reference, not a required runtime dependency.
+- [Approved HUD concept](../../../docs/art/approved-hud-concept.jpg): tracked visual reference, not a runtime dependency.
 
 ## Visuals
 

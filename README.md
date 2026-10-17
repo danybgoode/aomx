@@ -6,6 +6,8 @@ The project has a local launch-funnel instrumentation prototype and a finishable
 
 ## Project plan
 
+- [Global game design document v0.3](docs/design/GDD.md), [architecture and capability review](docs/architecture-review-2026-10-16.md), and [full-game build path](Roadmap/full-game-build-path.md)
+- [Local artwork inventory and integration rules](docs/art/reference-inventory.md)
 - [Product roadmap](Roadmap/README.md)
 - [Approved strategy](Roadmap/00-strategy/pmf-narrative.md)
 - [North Star and launch measurement plan](Roadmap/00-strategy/north-star.md)
@@ -13,6 +15,8 @@ The project has a local launch-funnel instrumentation prototype and a finishable
 - [Engine feasibility investigation](docs/technical-feasibility.md) and [engine decision](docs/architecture-decisions/001-engine-selection.md)
 - [Local Godot solo skirmish](game/README.md), [funded solo-skirmish epic](Roadmap/01-core-play/finish-solo-skirmish/README.md) and [RTS core epic](Roadmap/01-core-play/prove-rts-core/README.md)
 - [Local launch funnel contract and run commands](docs/launch-funnel-contract.md)
+
+The GDD sets the full standalone game's design direction. The roadmap and funded epics determine approved build scope; source and tests establish what works today. Age of Empires II: Definitive Edition is the fidelity reference; a specific build/patch and exception policy must be recorded before numerical parity claims. `references/` is ignored local source material, while the canonical GDD and selected production assets live in tracked project paths.
 
 ## Golden Frijoles
 

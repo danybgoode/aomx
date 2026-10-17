@@ -5,19 +5,25 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-16 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-10-17 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (4)
+## Backlog (10)
 
 _seeds with no pitch yet._
 
-- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #6 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
-- [Deepen strategic play](seeds/deepen-strategic-play.md) — #7 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
-- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #8 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
-- [Add more ways to play](seeds/add-more-ways-to-play.md) — #9 · 03 · seed · Feature · risk: Low · _docs: status raw_
+- [Integrate the owned art library](seeds/integrate-owned-art-library.md) — #9 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
+- [Deepen strategic play](seeds/deepen-strategic-play.md) — #10 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Expand warfare and world](seeds/expand-warfare-and-world.md) — #11 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Build a strategic opponent](seeds/build-strategic-opponent.md) — #12 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
+- [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #13 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
+- [Prove multiplayer and replays](seeds/prove-multiplayer.md) — #14 · 03 · seed · Feature · risk: High · _docs: status raw_
+- [Add more ways to play](seeds/add-more-ways-to-play.md) — #15 · 03 · seed · Feature · risk: Low · _docs: status raw_
+- [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #16 · 03 · seed · Feature · risk: Low · _docs: status raw_
+- [Prove cross-platform play](seeds/prove-cross-platform-play.md) — #17 · 09 Platform And Measurement · seed · Feature · risk: High · _docs: status raw_
+- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #18 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
 
 ## Refining (0)
 
@@ -25,7 +31,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (7)
+## Ready (8)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -34,8 +40,9 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #4 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status in-progress_
 - [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
-- [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #10 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
-- [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #11 · 02 Civilizations And World · 5/5 stories · risk: Low · appetite M · _docs: status in-progress_
+- [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #6 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
+- [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #7 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Harden the RTS simulation](../01-core-play/harden-rts-simulation/README.md) — #8 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status scaffolded_
 
 ## Building — live only
 
@@ -52,4 +59,4 @@ _merged, deployed and closed._
 _None._
 
 ---
-_11 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_18 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._

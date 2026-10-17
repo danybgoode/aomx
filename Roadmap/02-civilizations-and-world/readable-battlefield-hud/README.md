@@ -15,7 +15,7 @@ quote_low_usd: 20    # ≈ API $ — copied from the seed's `quote:` by scaffold
 quote_high_usd: 120
 quote_basis: "M, n=0, wide"
 hypothesis: "We believe a legible match HUD and contextual commands for first-time skirmish players will improve first-match completion because players can understand selection, resources, objectives and orders without memorizing keys; we will check uncoached tasks and the first-match funnel when real play data exists."   # the result record — copied from the seed by scaffold-epic; null = no target (never an error)
-target_metric: "first_match_completion"
+target_metric: null
 target_from: null   # from what, a number
 target_to: null       # to what, a number
 read_date: null       # YYYY-MM-DD; null = 30 days after shipping, derived by the extract and never written back
@@ -32,7 +32,7 @@ adopted_event: null
 retained_event: null
 retention_days: null
 satisfied_event: null
-build_order: 11      # integer position in the ONE global build sequence — the SSOT once the epic
+build_order: 7       # integer position in the ONE global build sequence — the SSOT once the epic
                      # exists (the seed's value is only a fallback). Fill it in at the betting
                      # table; plain integers, no "#2a" suffixes. See 00-ideas/README.md → Ordering.
 ---
@@ -88,7 +88,7 @@ The merged `master` commit `b453e05` was exported separately as `preview-b453e05
 
 ## Visual redesign follow-up · 2026-10-16
 
-Owner feedback accepted the isometric battlefield and requested the gameplay interface match the [approved HUD direction](../../../references/04a1d5324f0edb9c8e41f5a474ec3f49255671b7baf530e4de7f154e661cce23.jpg). Sprint 3 implements the [Godot component design](../../../docs/art/ui-component-spec.md) and [four actual captures](../../../docs/screenshots/readable-hud/README.md). Only supported simulation resources and actions appear. Alpha invite and diagnostics remain available in the menu. The native Godot HUD test covers selection, group orders, minimap navigation, pause, contextual commands, building placement and the four viewport bounds. A single-threaded Web export loaded to the gameplay screen in Chrome. Owner download QA and two uncoached reviews remain unrecorded.
+Owner feedback accepted the isometric battlefield and requested the gameplay interface match the [approved HUD direction](../../../docs/art/approved-hud-concept.jpg). Sprint 3 implements the [Godot component design](../../../docs/art/ui-component-spec.md) and [four actual captures](../../../docs/screenshots/readable-hud/README.md). Only supported simulation resources and actions appear. Alpha invite and diagnostics remain available in the menu. The native Godot HUD test covers selection, group orders, minimap navigation, pause, contextual commands, building placement and the four viewport bounds. A single-threaded Web export loaded to the gameplay screen in Chrome. Owner download QA and two uncoached reviews remain unrecorded.
 
 PR [#32](https://github.com/danybgoode/aomx/pull/32) passed project checks and CodeQL, and merged as `1d1349249f14`. The signed macOS owner preview built from that commit is `preview-1d1349249f14` (source ZIP SHA-256 `0e78ed5540d00b3266fdb8b73433a58aa626504e6acb5127bbbc9457ab3329e6`). The extracted app passed strict code signature verification and a local headless launch. It was uploaded to the existing Restricted itch channel as build `#2142419`; Butler processing and owner download QA are tracked in the [walkthrough](../../../docs/alpha-local-qa.md).
 

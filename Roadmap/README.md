@@ -4,6 +4,8 @@
 
 This folder is the product source of truth. The [strategy](00-strategy/pmf-narrative.md), [North Star](00-strategy/north-star.md), and [risk validation](00-strategy/risk-validation.md) are agreed starting points. Claims marked as assumptions still need evidence.
 
+The [GDD v0.3](../docs/design/GDD.md) is the global design target for the complete standalone RTS. The [architecture and capability review](../docs/architecture-review-2026-10-16.md) separates that target from verified prototype behavior, and the [full-game build path](full-game-build-path.md) records substantive dependency-ordered future work. The GDD does not change funded epic scope by itself. The owner chose Age of Empires II: Definitive Edition as the fidelity reference and confirmed commercial rights to the three local art sets on 2026-10-16. The [art inventory](../docs/art/reference-inventory.md) records how those references can enter a production asset pipeline.
+
 The [Horizon](horizon.md) names the end states each epic advances. Epic `destination:` fields link to those declarations for the Golden Frijoles Horizon view.
 
 ## Current state
@@ -28,7 +30,7 @@ The areas below are provisional until the first epics are shaped.
 
 ## Feature map
 
-No game feature has been publicly released. The funnel has 2/7 locally verified stories; RTS core and solo skirmish each have 4/4. La Roma has 3/4 builder-verified stories, a Restricted owner preview and staging receipt/exclusion evidence; its eight-player test is unrun. The HUD has 6/6 builder-verified stories across native and Web checks, with human and downloaded-build QA still open. The measured private alpha is funded at #4, with its owner QA and invitation gates still open. The live board may show merged PRs as complete even when a game build has not been released. Later ideas remain raw until `refine` shapes and funds them; the generated board shows their proposed order.
+No game feature has been publicly released. The funnel has 2/7 locally verified stories; RTS core and solo skirmish each have 4/4. La Roma has 3/4 builder-verified stories, a Restricted owner preview and staging receipt/exclusion evidence; its eight-player test is unrun. The HUD has 6/6 builder-verified stories across native and Web checks, with human and downloaded-build QA still open. The measured private alpha is funded at #4, with its owner QA and invitation gates still open. The live board may show merged PRs as complete even when a game build has not been released. The simulation-foundation pitch is ready for the owner's Plan gate; later ideas remain raw until `refine` shapes and funds them. The generated board shows their proposed order.
 
 ## Suggested next work · 2026-10-16
 
@@ -39,8 +41,8 @@ This is the practical sequence across the existing epics and raw seeds. The [gen
 3. **Complete owner QA on the [La Roma preview](02-civilizations-and-world/prove-la-roma-promise/README.md).** The faction and district code is merged, reviewed and builder checked. The staging ingest accepts the new version as excluded test traffic, and the Restricted owner channel serves the signed build. The owner still needs a browser download, full matches as both factions, an offline restart and a client outbox sync check on that version.
 4. **Finish private alpha access checks before a La Roma playtest.** Verify an independent keyed download outside the creator session, approve the participant notice and first invitation, then recruit the two four-person cultural-context groups. Record uncoached comprehension and second-match choices against the predeclared marks.
 5. **Invite a small private alpha cohort, then read the mature funnel.** Finish [private alpha](09-platform-and-measurement/enable-measured-private-alpha/README.md) and [launch funnel](09-platform-and-measurement/track-launch-play-funnel/README.md) with approved participant notice, release checks, accepted events and reconciled readings after the seven-day windows close. Report the observed baseline; the 15% target remains provisional.
-6. **Refine, fund and build [Prepare a release candidate](00-ideas/seeds/prepare-release-candidate.md).** That raw seed covers distribution quality, onboarding, settings, accessibility, performance, support and a wider release decision informed by alpha evidence.
-7. Revisit the later raw seeds after playtest evidence: [Deepen strategic play](00-ideas/seeds/deepen-strategic-play.md), [Expand civilizations and world](00-ideas/seeds/expand-civilizations-and-world.md), then [Add more ways to play](00-ideas/seeds/add-more-ways-to-play.md). Each needs its own refinement and approval before building.
+6. **Build the funded [Harden the RTS simulation](01-core-play/harden-rts-simulation/README.md) epic next.** Its versioned rules/content, save/replay and representative benchmark work protects the full-game architecture before broad gameplay expansion. The epic is scaffolded and ready; no game code for it has shipped.
+7. Refine the [owned art library](00-ideas/seeds/integrate-owned-art-library.md) as a view-only follow-on to current art/HUD QA, then follow the [full-game build path](full-game-build-path.md): complete economy and ages, expand warfare/world, build strategic AI, then production factions/maps, online and alternate play, campaigns/scenarios, platform parity and release candidate. Each later raw seed requires its own refinement and approval; the order can change with evidence. Continue the existing alpha and funnel gates in parallel.
 
 ## Working together
 
