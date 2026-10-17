@@ -1156,6 +1156,10 @@ func _draw() -> void:
 	for tile in [Vector2i(2, 13), Vector2i(17, 5)]:
 		var tree_id := "prop_jacaranda"
 		draw_texture(art.texture(tree_id), _tile_to_screen(tile) - art.pivot(tree_id))
+	# Owner-supplied flowers are decorative; the simulation and tile picking ignore them.
+	for tile in [Vector2i(3, 14), Vector2i(17, 6)]:
+		var flowers_id := "prop_owned_flowers"
+		draw_texture(art.texture(flowers_id), _tile_to_screen(tile) - art.pivot(flowers_id))
 	var medallion_id := "prop_plaza_medallion"
 	draw_texture(art.texture(medallion_id), _tile_to_screen(Vector2i(10, 10)) - art.pivot(medallion_id))
 	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), "LA ROMA", HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
