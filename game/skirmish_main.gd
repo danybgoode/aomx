@@ -111,6 +111,7 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.minimap.terrain_classifier = Callable(self, "_terrain_id")
 	hud_ui.menu_requested.connect(_toggle_diagnostics)
 	hud_ui.pause_requested.connect(_toggle_pause)
+	hud_ui.restart_requested.connect(_restart_match)
 	hud = hud_ui.diagnostics_label
 	selection_title = hud_ui.selection_title
 	selection_details = hud_ui.selection_details
@@ -137,8 +138,16 @@ func _toggle_pause() -> void:
 	hud_ui.pause_button.text = ">" if paused else "II"
 	hud_ui.show_notice("Paused" if paused else "Resumed")
 
+func _restart_match() -> void:
+	if choosing_faction:
+		return
+	_start_match(sim.factions[Skirmish.HUMAN])
+	hud_ui.show_notice("New match started")
+
 func _navigate_minimap(tile: Vector2i) -> void:
-	var view_center := Vector2(get_viewport().get_visible_rect().size.x * 0.5, (hud_ui.top.size.y + hud_ui.bottom.position.y) * 0.5)
+	var top_edge: float = (hud_ui.get_global_transform() * (hud_ui.top.position + Vector2(0, hud_ui.top.size.y))).y
+	var bottom_edge: float = (hud_ui.get_global_transform() * hud_ui.bottom.position).y
+	var view_center := Vector2(get_viewport().get_visible_rect().size.x * 0.5, (top_edge + bottom_edge) * 0.5)
 	board_pan = (view_center - BOARD_CENTER - _board_view_offset()) - (_tile_to_screen(tile) - BOARD_CENTER) * board_zoom
 	board_pan = board_pan.clamp(Vector2(-320, -190), Vector2(320, 190))
 	hud_ui.minimap.camera_tile = tile
@@ -250,6 +259,9 @@ func _choose_faction(faction: String) -> void:
 
 func _start_match(faction: String) -> void:
 	sim = Skirmish.new(faction)
+	paused = false
+	hud_ui.pause_button.text = "II"
+	hud_ui.diagnostics.hide()
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
@@ -297,7 +309,7 @@ func _start_match(faction: String) -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
-	if choosing_faction or paused:
+	if choosing_faction or paused or hud_ui.restart_scrim.visible:
 		return
 	_refresh_hover()
 	if order_flash_seconds > 0.0:
@@ -352,6 +364,10 @@ func _observe_events() -> void:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if hud_ui != null and hud_ui.restart_scrim.visible:
+		if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+			hud_ui.cancel_restart()
+		return
 	if paused:
 		if event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
 			_toggle_pause()
@@ -689,7 +705,8 @@ func _update_hud() -> void:
 	ui.objective_progress.tooltip_text = _district_note()
 	ui.minimap.sim = sim
 	var visible_view := get_viewport().get_visible_rect().size
-	ui.minimap.view_span = Vector2(20, 20) if visible_view.x >= 1000 else Vector2(clampf(visible_view.x / 48.0, 5, 20), clampf((ui.bottom.position.y - 60.0) / 24.0, 5, 20))
+	var hud_bottom: float = (ui.get_global_transform() * ui.bottom.position).y
+	ui.minimap.view_span = Vector2(20, 20) if visible_view.x >= 1000 else Vector2(clampf(visible_view.x / 48.0, 5, 20), clampf((hud_bottom - 60.0) / 24.0, 5, 20))
 	ui.minimap.queue_redraw()
 	var own_post := sim._find(Skirmish.HUMAN, "command_post")
 	var enemy_post := sim._find(Skirmish.COMPUTER, "command_post")
@@ -897,7 +914,7 @@ func _board_view_offset() -> Vector2:
 	var view := get_viewport().get_visible_rect().size
 	if view.x >= 1000.0 and view.y >= 700.0:
 		return (view - Vector2(1280, 800)) * 0.5
-	var playable_bottom: float = hud_ui.bottom.position.y if hud_ui != null else view.y - 180.0
+	var playable_bottom: float = (hud_ui.get_global_transform() * hud_ui.bottom.position).y if hud_ui != null else view.y - 180.0
 	return Vector2(view.x * 0.5 - BOARD_CENTER.x, (playable_bottom + 55.0) * 0.5 - BOARD_CENTER.y)
 
 func _screen_to_board(screen: Vector2) -> Vector2:

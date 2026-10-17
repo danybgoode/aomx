@@ -5,6 +5,7 @@ signal subset_requested(id: int)
 signal navigate(tile: Vector2i)
 signal menu_requested
 signal pause_requested
+signal restart_requested
 
 const HudSkin = preload("res://ui/hud_skin.gd")
 const CommandButton = preload("res://ui/command_button.gd")
@@ -42,7 +43,11 @@ var gold_label: Label
 var faction_label: Label
 var timer_label: Label
 var pause_button: Button
+var restart_button: Button
 var menu_button: Button
+var restart_scrim: ColorRect
+var restart_dialog: Panel
+var restart_confirm: Button
 var selection_panel: Panel
 var selection_portrait: TextureRect
 var group_grid: GridContainer
@@ -73,9 +78,19 @@ var last_notification := ""
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_build()
 	resized.connect(_layout)
+	get_viewport().size_changed.connect(_resize_for_viewport)
+	_resize_for_viewport()
+
+func _resize_for_viewport() -> void:
+	var view := get_viewport().get_visible_rect().size
+	var factor := 1.0
+	if view.x >= 950.0 and view.y >= 560.0:
+		factor = clampf(minf(view.x / 1280.0, view.y / 800.0), 1.0, 1.75)
+	scale = Vector2.ONE * factor
+	size = view / factor
 	_layout()
 
 func _panel(parent: Node, padding: int = 8, stronger: bool = false) -> Panel:
@@ -128,6 +143,9 @@ func _build() -> void:
 	pause_button = _button(top_row, "II")
 	pause_button.tooltip_text = "Pause / resume • Space"
 	pause_button.pressed.connect(func() -> void: pause_requested.emit())
+	restart_button = _button(top_row, "RESET")
+	restart_button.tooltip_text = "Start a fresh match as the same faction • R opens faction choice"
+	restart_button.pressed.connect(func() -> void: restart_scrim.show())
 	menu_button = _button(top_row, "...")
 	menu_button.tooltip_text = "Settings, alpha support and diagnostics"
 	menu_button.pressed.connect(func() -> void: menu_requested.emit())
@@ -249,6 +267,31 @@ func _build() -> void:
 	support_copy = _button(diag_col, "Copy support ID")
 	diagnostics.hide()
 
+	restart_scrim = ColorRect.new()
+	restart_scrim.color = Color(0, 0, 0, 0.65)
+	restart_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	restart_scrim.z_index = 30
+	add_child(restart_scrim)
+	restart_dialog = _panel(restart_scrim, 12, true)
+	_label(restart_dialog, "RESET MATCH?", 19, HudSkin.GOLD).position = Vector2(14, 10)
+	var warning := _label(restart_dialog, "Start over with the same faction?\nCurrent match progress will be lost.", 14)
+	warning.position = Vector2(14, 42)
+	warning.size = Vector2(340, 50)
+	var cancel_reset := _button(restart_dialog, "CANCEL")
+	cancel_reset.position = Vector2(14, 99)
+	cancel_reset.size = Vector2(120, 36)
+	cancel_reset.pressed.connect(cancel_restart)
+	restart_confirm = _button(restart_dialog, "RESET MATCH")
+	restart_confirm.position = Vector2(142, 99)
+	restart_confirm.size = Vector2(150, 36)
+	restart_confirm.pressed.connect(func() -> void:
+		restart_scrim.hide()
+		restart_requested.emit())
+	restart_scrim.hide()
+
+func cancel_restart() -> void:
+	restart_scrim.hide()
+
 func _layout() -> void:
 	if top == null:
 		return
@@ -257,15 +300,18 @@ func _layout() -> void:
 	var portrait := w < 620
 	var mobile := w < 950 or h < 560
 	var margin := 7.0 if mobile else 13.0
-	var top_h := 44.0 if mobile else 52.0
+	var top_h := 52.0
 	top.position = Vector2(margin, margin)
 	top.size = Vector2(w - margin * 2.0, top_h)
 	var top_row: HBoxContainer = top.get_node("TopRow")
 	top_row.position = Vector2.ZERO
 	top_row.size = top.size - Vector2(12, 10)
+	top_row.add_theme_constant_override("separation", 4 if mobile else 12)
 	faction_label.custom_minimum_size.x = 70 if mobile else 160
 	faction_label.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	timer_label.add_theme_font_size_override("font_size", 13 if mobile else 17)
+	timer_label.custom_minimum_size.x = 48 if mobile else 58
+	restart_button.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	var bottom_h := 222.0 if portrait else (122.0 if mobile else 193.0)
 	var bottom_w := minf(w - 2.0 * margin, 1250.0) if not mobile else w - 2.0 * margin
 	bottom.position = Vector2((w - bottom_w) * 0.5, h - bottom_h - margin)
@@ -343,6 +389,10 @@ func _layout() -> void:
 	var diag_content: VBoxContainer = diagnostics.get_child(0)
 	diag_content.position = Vector2(12, 12)
 	diag_content.size = diagnostics.size - Vector2(24, 24)
+	restart_scrim.position = Vector2.ZERO
+	restart_scrim.size = size
+	restart_dialog.size = Vector2(minf(370, w - 24), 148)
+	restart_dialog.position = (size - restart_dialog.size) * 0.5
 
 func _layout_selection(portrait: bool, mobile: bool) -> void:
 	var s := selection_panel.size

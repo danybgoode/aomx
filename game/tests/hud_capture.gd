@@ -27,6 +27,8 @@ func _capture() -> void:
 		client.selected_ids.clear()
 		client.selected_ids.append(client.selected_id)
 	client._update_hud()
+	if mode == "reset":
+		client.hud_ui.restart_button.pressed.emit()
 	client.queue_redraw()
 	for i in 8:
 		await process_frame
