@@ -39,6 +39,25 @@ func _run() -> void:
 	check(client.outbox.state.events.size() == 4 and client.match_id != start.match_id, "new faction choice creates a new match start")
 	check(client.outbox.state.events[3].event.faction == Skirmish.POBLANOS, "restart can choose other faction")
 	check(client.sim.result.is_empty(), "restart clears terminal state")
+	var original_window_size := root.size
+	root.size = Vector2i(1536, 960)
+	await process_frame
+	var large_window_zoom: float = client.board_zoom
+	var resize_tile := Vector2i(6, 4)
+	var large_tile_screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(resize_tile) - Vector2(640, 305)) * large_window_zoom + client.board_pan + client._board_view_offset()
+	check(client._screen_to_tile(large_tile_screen) == resize_tile, "tile picking follows resize-based zoom")
+	root.size = Vector2i(1024, 700)
+	await process_frame
+	check(client.board_zoom < large_window_zoom, "resizing a desktop window changes battlefield zoom")
+	client._change_zoom(0.1)
+	var manual_offset: float = client.zoom_adjustment
+	root.size = original_window_size
+	await process_frame
+	check(is_equal_approx(client.board_zoom, client._default_board_zoom(Vector2(original_window_size)) + manual_offset),
+		"window resize preserves the player's wheel/key zoom adjustment")
+	client._reset_zoom()
+	check(is_equal_approx(client.board_zoom, client._default_board_zoom(Vector2(original_window_size))),
+		"zoom reset fits the current window")
 	client.board_pan = Vector2.ZERO
 	for zoom in [1.0, 1.1, 1.25]:
 		client.board_zoom = zoom

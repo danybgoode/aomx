@@ -10,8 +10,8 @@ const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
 const BOARD_CENTER := Vector2(640, 305)
 const TICK_SECONDS := 0.1
-const ZOOM_MIN := 1.0
-const ZOOM_MAX := 1.55
+const ZOOM_MIN := 0.7
+const ZOOM_MAX := 2.1
 const ZOOM_STEP := 0.1
 const UNIT_ART_SCALE := 0.75
 
@@ -37,6 +37,7 @@ var placing := false
 var target_mode := ""
 var marker := Vector2i(-1, -1)
 var board_zoom := 1.1
+var zoom_adjustment := 0.0
 var board_pan := Vector2.ZERO
 var hud_ui: Control
 var paused := false
@@ -212,6 +213,8 @@ func _layout_setup() -> void:
 	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
 	setup_panel.size = Vector2(minf(810, view.x - 24), 280.0 if mobile and landscape else (330.0 if mobile else minf(420, view.y - 24)))
 	setup_panel.position = (view - setup_panel.size) * 0.5
+	_apply_resize_zoom(view)
+	queue_redraw()
 
 func _show_setup() -> void:
 	choosing_faction = true
@@ -230,7 +233,7 @@ func _show_setup() -> void:
 	prior_unit_positions.clear()
 	unit_facing.clear()
 	board_pan = Vector2.ZERO
-	board_zoom = 1.45 if get_viewport().get_visible_rect().size.x >= 1800 else (1.25 if get_viewport().get_visible_rect().size.x >= 1500 else 1.1)
+	_reset_zoom()
 	paused = false
 	last_event_entities.clear()
 	last_district_state = "neutral"
@@ -268,7 +271,7 @@ func _start_match(faction: String) -> void:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
 	last_district_state = sim.district_state
 	marker = Vector2i(-1, -1)
-	board_zoom = 1.45 if get_viewport().get_visible_rect().size.x >= 1800 else (1.25 if get_viewport().get_visible_rect().size.x >= 1500 else 1.1)
+	_reset_zoom()
 	if get_viewport().get_visible_rect().size.x < 950:
 		_navigate_minimap(Vector2i(4, 3))
 	order_flash_seconds = 0.0
@@ -369,8 +372,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_MINUS, KEY_KP_SUBTRACT:
 				_change_zoom(-ZOOM_STEP)
 			KEY_0:
-				board_zoom = 1.1
-				sim.feedback = "Board zoom reset to 110%."
+				_reset_zoom()
+				sim.feedback = "Board zoom fit to window."
 			KEY_G:
 				get_window().mode = Window.MODE_WINDOWED if get_window().mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
 			KEY_B:
@@ -541,7 +544,21 @@ func _flash_order(tile: Vector2i, message: String, ok: bool) -> void:
 
 func _change_zoom(delta: float) -> void:
 	board_zoom = clampf(snappedf(board_zoom + delta, 0.05), ZOOM_MIN, ZOOM_MAX)
-	sim.feedback = "Board zoom: %d%%. 0 resets." % roundi(board_zoom * 100.0)
+	zoom_adjustment = board_zoom - _default_board_zoom(get_viewport().get_visible_rect().size)
+	sim.feedback = "Board zoom: %d%%. Resize window or press 0 to fit." % roundi(board_zoom * 100.0)
+
+func _default_board_zoom(view: Vector2) -> float:
+	# Keep the touch board legible; its minimap handles navigation in narrow layouts.
+	if view.x < 620.0 or view.y < 560.0:
+		return 1.1
+	return clampf(1.1 * minf(view.x / 1280.0, view.y / 800.0), 0.72, 1.9)
+
+func _apply_resize_zoom(view: Vector2) -> void:
+	board_zoom = clampf(_default_board_zoom(view) + zoom_adjustment, ZOOM_MIN, ZOOM_MAX)
+
+func _reset_zoom() -> void:
+	zoom_adjustment = 0.0
+	_apply_resize_zoom(get_viewport().get_visible_rect().size)
 
 func _selected_kind() -> String:
 	if not sim.entities.has(selected_id):
