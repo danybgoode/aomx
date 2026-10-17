@@ -27,6 +27,7 @@ Replace the alpha's three prose-heavy panels with a responsive top bar and conte
 ## Sprint QA
 
 - Godot rules/client, Node, art manifest and event contract checks passed. The signed macOS export from merged `1d1349249f14` passed strict signature verification and started locally.
+- The resize-zoom follow-up merged as `4827e70dc52a`. Its client test and project CI passed; native and Web desktop resize captures were inspected. The replacement signed preview passed export and local startup checks.
 - Desktop and mobile viewport captures are linked in the screenshot README. The Web release export rendered in Chrome at desktop and 390×844; a mobile touch tap selected a worker.
 - [Downloaded-build walkthrough](../../../docs/alpha-local-qa.md) and two uncoached reviewer playthroughs remain owner evidence.
 
