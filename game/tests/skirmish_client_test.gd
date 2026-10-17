@@ -182,26 +182,53 @@ func _run() -> void:
 	client._select_subset(wing_id)
 	check(client.selected_ids == [wing_id] and not client.hud_ui.group_grid.visible,
 		"portrait subset returns to one unit")
-	client.hud_ui.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	for viewport_size in [Vector2(1536, 960), Vector2(1920, 1080), Vector2(844, 390), Vector2(390, 844)]:
-		client.hud_ui.size = viewport_size
-		client.hud_ui._layout()
+	var baseline_top_height := 52.0
+	for viewport_size in [Vector2i(1536, 960), Vector2i(1920, 1080), Vector2i(844, 390), Vector2i(390, 844)]:
+		root.size = viewport_size
+		await process_frame
 		var bar: Panel = client.hud_ui.bottom
 		var map: Control = client.hud_ui.minimap
-		check(bar.position.x >= 0 and bar.position.y >= 0 and bar.position.x + bar.size.x <= viewport_size.x and bar.position.y + bar.size.y <= viewport_size.y,
+		var bar_rect: Rect2 = bar.get_global_rect()
+		var map_rect: Rect2 = map.get_global_rect()
+		var top_rect: Rect2 = client.hud_ui.top.get_global_rect()
+		check(bar_rect.position.x >= 0 and bar_rect.position.y >= 0 and bar_rect.end.x <= viewport_size.x and bar_rect.end.y <= viewport_size.y,
 			"bottom HUD stays inside %s viewport" % viewport_size)
-		check(map.position.x >= 0 and map.position.y >= 0 and map.position.x + map.size.x <= viewport_size.x and map.position.y + map.size.y <= viewport_size.y,
+		check(map_rect.position.x >= 0 and map_rect.position.y >= 0 and map_rect.end.x <= viewport_size.x and map_rect.end.y <= viewport_size.y,
 			"minimap stays inside %s viewport" % viewport_size)
+		check(top_rect.position.x >= 0 and top_rect.end.x <= viewport_size.x and top_rect.end.y <= viewport_size.y,
+			"top HUD stays inside %s viewport" % viewport_size)
+		if viewport_size.x >= 1280:
+			check(top_rect.size.y > baseline_top_height and bar_rect.size.y > 193.0,
+				"desktop top and bottom HUD grow with the battlefield at %s" % viewport_size)
 		if viewport_size.x < 950:
 			for button in client.command_buttons.values():
 				if button.visible:
-					check(button.size.y >= 44, "mobile command touch target is at least 44 pixels high")
-	client.hud_ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	client.hud_ui._layout()
+					check(button.get_global_rect().size.y >= 44, "mobile command touch target is at least 44 pixels high")
+	root.size = original_window_size
+	await process_frame
 	client.sim.entities[client.sim._find(Skirmish.COMPUTER, "command_post")].hp = 0
 	client._process(0.1)
 	check(client.outbox.state.events.size() == 5 and client.outbox.state.events[4].event.faction == Skirmish.POBLANOS,
 		"second faction completion keeps its chosen faction")
+	var finished_match_id: String = client.match_id
+	client._toggle_pause()
+	client.hud_ui.restart_button.pressed.emit()
+	check(client.hud_ui.restart_scrim.visible and client.match_id == finished_match_id,
+		"visible reset asks before discarding match progress")
+	var reset_prompt_tick: int = client.sim.tick_number
+	client._process(0.5)
+	check(client.sim.tick_number == reset_prompt_tick, "reset confirmation holds simulation time")
+	client.hud_ui.cancel_restart()
+	check(not client.hud_ui.restart_scrim.visible and client.match_id == finished_match_id,
+		"canceling reset keeps the current match")
+	client.hud_ui.restart_button.pressed.emit()
+	client.hud_ui.restart_confirm.pressed.emit()
+	check(client.match_id != finished_match_id and client.sim.tick_number == 0 and client.sim.result.is_empty(),
+		"visible reset button starts a fresh match")
+	check(client.sim.factions[Skirmish.HUMAN] == Skirmish.POBLANOS and not client.paused and client.hud_ui.pause_button.text == "II",
+		"reset retains the faction and clears pause state")
+	check(client.outbox.state.events.size() == 6 and client.outbox.state.events[5].event.type == "match_started",
+		"reset saves exactly one new match start")
 	root.remove_child(client)
 	client.queue_free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
