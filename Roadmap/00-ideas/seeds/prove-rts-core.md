@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "01-core-play/prove-rts-core"
-build_order: 2
+build_order: 3
 updated: 2026-10-13
 intent_ask: verbatim
 hypothesis: "Classic RTS players cannot yet judge the game through play. Give them a worker to move, a resource to gather and a structure to build, so we can test controls and engine before combat. We'll know when a fresh checkout runs those loops and replays the same commands to the same state."

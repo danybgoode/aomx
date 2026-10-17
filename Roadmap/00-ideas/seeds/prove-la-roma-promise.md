@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "02-civilizations-and-world/prove-la-roma-promise"
-build_order: 5
+build_order: 6
 updated: 2026-10-15
 intent_ask: proxy
 hypothesis: "Today a classic RTS player can finish a solo skirmish but cannot experience what makes the fight for La Roma distinct. Two contrasting factions and a visible district win path give each match a strategic identity. We'll know when testers in both cultural-context groups can explain the goal and a counterplay choice without coaching."

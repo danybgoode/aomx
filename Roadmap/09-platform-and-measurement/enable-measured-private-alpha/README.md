@@ -32,7 +32,7 @@ adopted_event: match_result_synced
 retained_event: later_day_match_completed
 retention_days: 7
 satisfied_event: null
-build_order: 4       # integer position in the ONE global build sequence — the SSOT once the epic
+build_order: 5       # integer position in the ONE global build sequence — the SSOT once the epic
                      # exists (the seed's value is only a fallback). Fill it in at the betting
                      # table; plain integers, no "#2a" suffixes. See 00-ideas/README.md → Ordering.
 ---

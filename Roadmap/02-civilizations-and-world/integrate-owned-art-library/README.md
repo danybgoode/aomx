@@ -31,7 +31,7 @@ adopted_event: null
 retained_event: null
 retention_days: null
 satisfied_event: null
-build_order: 9
+build_order: 10
 ---
 
 # Epic: Integrate the owned art library
@@ -75,3 +75,7 @@ Build on `feat/integrate-owned-art-library`. Review and merge to `master`, then 
 - [x] Rendered owner visual review at normal zoom records palette, readability and raised-tile seams. The owner kept the boar, raised tiles and concept post as pilot candidates.
 - [ ] Complete matches as both factions and both victory routes are checked in a downloadable build; save and test-tagged event behavior remain intact.
 - [x] Merge to `master`, verify the authorized Restricted preview, and record the result in the retrospective and roadmap.
+
+## Closeout state, 2026-10-17
+
+The downloaded preview passed flower rendering, core commands, offline save/quit/resume and local test-tagged outbox checks. The required wins by both factions and both victory routes have not passed on this build; Sprint 3 and this epic remain in progress. See the [Sprint 3 QA log](sprint-3.md#downloaded-build-qa-2026-10-17) and [retrospective](RETROSPECTIVE.md#open-evidence). The generated board's **Ready** column describes the remaining work after the merged code PR, not this epic's completion status.

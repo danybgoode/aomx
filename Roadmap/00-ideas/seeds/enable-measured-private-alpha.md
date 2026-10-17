@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: high
 epic: "09-platform-and-measurement/enable-measured-private-alpha"
-build_order: 4
+build_order: 5
 updated: 2026-10-14
 intent_ask: verbatim
 hypothesis: "Invited RTS players need an installable solo match whose offline results form a trustworthy cohort. We will know this works when a downloaded match, later-day return, duplicate and rejected path reconcile in Golden Frijoles, with test traffic excluded."
