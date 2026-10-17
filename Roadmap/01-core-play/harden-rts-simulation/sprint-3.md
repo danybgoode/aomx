@@ -3,7 +3,7 @@ epic: harden-rts-simulation
 sprint: 3
 title: "Scale and sync decision"
 risk: high
-phase: Verifying
+phase: Shipped
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,15 +12,15 @@ stories:
     i_want: "crowded battles to remain controllable and consistent"
     so_that: "larger maps and later shared play can be built on evidence"
     risk: high
-    status: in-progress
+    status: done
 ---
 # Harden the RTS simulation — Sprint 3: Scale and sync decision
 
-**Status:** Implemented, reviewed and merged in [PR #39](https://github.com/danybgoode/aomx/pull/39); local and Linux QA passed. Owner browser walkthrough remains.
+**Status:** ✅ Merged in [PR #39](https://github.com/danybgoode/aomx/pull/39), deployed to the Restricted owner preview and owner browser QA passed 2026-10-16.
 
 ## Stories
 
-### Story 3.1 — Profile representative battles and decide the sync model
+### ✅ Story 3.1 — Profile representative battles and decide the sync model
 
 **As an** RTS player, **I want** crowded battles to remain controllable and consistent, **so that** larger maps and later shared play can be built on evidence.
 

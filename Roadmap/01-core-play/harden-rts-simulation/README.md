@@ -1,6 +1,6 @@
 ---
-status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: In review       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: shipped   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Shipped       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: harden-rts-simulation
 title: "Harden the RTS simulation"
@@ -88,7 +88,7 @@ Players should be able to finish and resume the existing solo match as the game 
 
 **Baseline before extraction:** Godot 4.7.2 macOS headless rules, faction and district suites pass; the client suite passes with normal `user://` access. The existing 20×20/12-unit benchmark on this Mac measured 5,000 routes at 0.4553 ms mean and 1,000 ticks at 0.0423 ms mean. Existing tests cover command-post and district terminal paths. This is the comparison baseline, not the later scale target.
 
-**Builder evidence:** [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the implemented simulation, content, save and replay contracts. The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records passing local and Linux route/tick budgets through 48×48/163 entities, identical 700-tick faction hashes and rendered save/crowd probes. [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional network direction. All 12 Godot headless suites, Node tests and the game-to-ingest contract pass locally and in Linux CI. An independent Codex review found malformed replay input handling; it was fixed and covered by regression tests. [PR #39](https://github.com/danybgoode/aomx/pull/39) merged as `27661d2`; signed Restricted `preview-27661d2a0900` is ready as itch build `#2143645`. An authenticated Butler fetch returned byte-identical files, and the fetched app passed save/quit/reopen/resume. Owner browser download and full manual terminal-route walkthrough remain before epic close-out.
+**Outcome verified 2026-10-16:** [ADR 003](../../../docs/architecture-decisions/003-simulation-contract.md) specifies the implemented simulation, content, save and replay contracts. The [benchmark report](../../../docs/simulation-benchmark-2026-10-16.md) records passing local and Linux route/tick budgets through 48×48/163 entities, identical 700-tick faction hashes and rendered save/crowd probes. [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) records the provisional network direction. All 12 Godot headless suites, Node tests and the game-to-ingest contract pass locally and in Linux CI. An independent Codex review found malformed replay input handling; it was fixed and covered by regression tests. [PR #39](https://github.com/danybgoode/aomx/pull/39) merged as `27661d2`; signed Restricted `preview-27661d2a0900` is ready as itch build `#2143645`. Butler fetched byte-identical files, and the fetched app passed save/quit/reopen/resume. The owner reported that browser download, save/resume, a command-post win and a La Roma hold win all passed on this build. This is a Restricted owner preview, not a public game release.
 
 **Boundary:** this epic does not add the four-resource economy, all ages, production wildlife, network transport or matchmaking. A cross-platform mismatch is evidence for the synchronization decision, not a reason to assert lockstep.
 
@@ -101,6 +101,6 @@ Land each sprint as a reviewable change on a `feat/harden-rts-simulation` branch
 - [x] Current Regios and Poblanos matches still finish by command-post and district routes in regression suites; invalid commands/content fail visibly and safely.
 - [x] Versioned save/load and replay reproduce declared canonical hashes; incompatible data has a documented, tested rejection path.
 - [x] Benchmark evidence names map/unit counts, command load, device/build, duration, tick/frame/memory budgets and results; the synchronization and routing decision records what remains uncertain.
-- [ ] A second reviewer checks simulation and save migration. The owner completes the downloaded-build save/resume and terminal-match walkthrough; test-tagged telemetry remains excluded from public cohort counts.
+- [x] A second reviewer checks simulation and save migration. The owner completes the downloaded-build save/resume and terminal-match walkthrough; test-tagged telemetry remains excluded from public cohort counts.
 - [x] Update [the product poster](../../README.md), [learnings](../../LEARNINGS.md), and [retrospective](RETROSPECTIVE.md) with the observed result. Regenerate the Golden Frijoles board and sync it after status changes.
-- [ ] Set this README to `status: shipped` only after the epic outcome is verified. Do not describe a merge as a deployed game build.
+- [x] Set this README to `status: shipped` only after the epic outcome is verified. Do not describe a merge as a deployed game build.

@@ -2,7 +2,7 @@
 
 **Scope.** This review compares the [v0.3 GDD](design/GDD.md), the local ignored `references/roadmap-alignment.md` brief, current Godot source, tests, and existing roadmap. “Verified” below means directly visible in source or an existing test; it does not mean this review completed a fresh owner playthrough, device benchmark, or public release. The [full-game build path](../Roadmap/full-game-build-path.md) is the delivery map. The agreed [North Star](../Roadmap/00-strategy/north-star.md) remains unchanged, including the provisional 15% target and unknown baseline.
 
-**After this baseline review:** The [simulation foundation epic](../Roadmap/01-core-play/harden-rts-simulation/README.md) merged in [PR #39](https://github.com/danybgoode/aomx/pull/39) and reached a Restricted owner preview. [ADR 003](architecture-decisions/003-simulation-contract.md) and the [benchmark report](simulation-benchmark-2026-10-16.md) hold the new save/replay, Linux hash and crowd evidence. The gap matrix below deliberately describes the pre-epic source snapshot; owner browser and full manual route QA remain open.
+**After this baseline review:** The [simulation foundation epic](../Roadmap/01-core-play/harden-rts-simulation/README.md) merged in [PR #39](https://github.com/danybgoode/aomx/pull/39) and shipped to a Restricted owner preview. The owner reported browser download, save/resume and both victory routes passed. [ADR 003](architecture-decisions/003-simulation-contract.md) and the [benchmark report](simulation-benchmark-2026-10-16.md) hold the new save/replay, Linux hash and crowd evidence. The gap matrix below deliberately describes the pre-epic source snapshot.
 
 ## Assessment
 
