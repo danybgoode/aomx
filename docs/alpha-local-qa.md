@@ -1,5 +1,18 @@
 # Private alpha: local macOS download QA
 
+## Current strategic owner preview · 2026-10-18
+
+The current Restricted channel build is `preview-9053c3808441` (itch `#2150671`, `godot-4.7.2-skirmish-2` / `la-roma-strategy-2`). It contains the owned flower prop and the four-resource, four-age match. Source ZIP SHA-256 is `cd0df885a6bb1cfd8dd2c032658978401f4fab73a19bdf4cccc2125577a4069f`. PR [#44](https://github.com/danybgoode/aomx/pull/44) passed Project checks and CodeQL and merged to `master`. The authenticated Butler fetch matched the source archive's extracted app byte for byte; strict code-signature verification passed. An anonymous request to the itch page returned 404. The app downloaded before this upload is an older build and cannot count for this version's QA.
+
+Owner downloaded-build checks on **this exact build** remain open:
+
+1. Download from the Restricted page while signed in as owner. Open **...** and confirm the build ID above; inspect all four labeled sources, owned flowers, stockpile counters, age and population at normal and enlarged zoom.
+2. In separate matches, play **Regios** and **Poblanos** to Gentrificación and finish **each faction by each victory route**: command-post destruction and an uncontested 60-second La Roma hold. Record four result/route combinations and any unclear command or pacing behavior.
+3. Save an unfinished strategic match, quit the app, reopen the same downloaded build and resume. Confirm faction, match time/ID, four balances, worker cargo, source refresh, age, research and queue. The outbox should have one test-tagged start and one completion per finished match, without a duplicate start on resume.
+4. Enter a fresh internal invite only after the VM ingest image supports this game/content pair. Sync the pending test events, retry once and confirm stable receipts and no public cohort reading. The older `owner_qa_20261014` invite was revoked.
+
+The VM ingest update and the four downloaded-build matches remain unverified. The earlier walkthroughs below document prior versions and do not close these checks.
+
 ## Owned art preview · 2026-10-17
 
 Epic #9's signed Restricted preview is `preview-0d2b90f67f91` on itch channel `mac-private-alpha` (Butler build `#2146053`). Source archive SHA-256: `04d1125e537f40b1cba3b9940aa909176b4b7954094141f7a23ab76c3c522b61`. The authenticated Butler fetch matched the source archive's extracted app, strict code-signature verification passed, the fetched app opened, and its menu displayed the expected build ID. In a Regios match, the owned flower decoration rendered at normal zoom. The owner reviewed the [scale pilot](screenshots/owned-art-pilot/scale-comparison.png) and kept the boar, raised tiles and concept command post as pilot candidates.
