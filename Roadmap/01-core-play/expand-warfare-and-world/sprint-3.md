@@ -59,3 +59,5 @@ Environment: the signed Restricted macOS preview; record actual build ID, checks
 5. Save, quit, resume, finish and sync the test event. → Match ID persists, one test-tagged completion is accepted and public cohort counts exclude it.
 
 Record one result per step and any owed gap. A merged PR alone does not complete the sprint or epic.
+
+**2026-10-18 checkpoint:** PR #48 merged with green checks; `aomx-ingest:c5e7053` passed live test-event contract smoke and the temporary invite was revoked. A separate release-template owner-Mac probe met the declared performance budgets. Restricted build #2157380 is processing. Downloaded-app steps 1–5, including all four faction×victory results, save/resume and in-app sync, remain pending owner execution.

@@ -78,11 +78,19 @@ L appetite is reviewed at each boundary. Keep optional mechanics out if the comp
 
 Build on `feat/expand-warfare-and-world`, commit per story and review the full assembled diff. Preserve the alpha ingest version contract; deploy ingest support before attempting a new client-version sync if the event contract changes. Run headless Godot rules, content, save/replay, client, scale and cross-platform hash checks plus the Node game-to-ingest contract. Check rendered 1024×700 and 1280×800 views, normal and 120% zoom. Merge to `master` after high-risk review and green checks, then export a signed Restricted macOS preview following `deploy/alpha/README.md`; download and verify it separately. Preview traffic stays excluded from public cohorts.
 
+### Integration and Restricted QA record · 2026-10-18
+
+- [PR #48](https://github.com/danybgoode/aomx/pull/48) passed independent high-risk review, Project checks and CodeQL, then merged to `master` as `c5e705309257`.
+- The Godot rules, content, crowd, combat, visibility, save/replay, cross-platform hash and game-to-ingest contract checks pass. The [QA record](../../../docs/warfare-qa-2026-10-18.md) contains controlled encounter and rendered evidence.
+- The signed macOS source archive is `preview-c5e705309257`, SHA-256 `a68d0b732fe94ffdadd9c817921d5aeebfb4da395af743fd31bd485aab91b4ce`. Restricted upload #2157380 is processing; authenticated fetch and downloaded-app verification remain open.
+- `aomx-ingest:c5e7053` is healthy on the Restricted VM. The owner-Mac live contract smoke returned a stable test receipt, excluded test and forged non-test preview events, rejected an unsupported version, and accepted zero public events. Its temporary invite was revoked, verified HTTP 401, and removed from both operator files. In-app outbox sync is still open.
+- A separate Godot 4.7.2 **release-template QA export** of the merged warfare code met the declared routing, tick, frame and process-memory budgets for the diagnostic workload. This is not a complete match on the signed downloaded app. The four faction×victory runs, owner sprint walkthroughs and downloaded-app save/resume remain open.
+
 ## Definition of Done
 
 - [ ] All six stories meet their observable acceptance checks; each sprint records a numbered owner smoke with the actual build ID and results.
 - [ ] The larger map supports scouting and non-stuck movement; a representative release-build owner Mac performance record states map, units, commands, duration, route/tick/frame/memory values and predeclared budgets.
-- [ ] Armor/counter, projectile, siege, visibility, target-loss and terminal cases pass deterministic headless and save/replay checks; the AI uses legal information and commands.
+- [x] Armor/counter, projectile, siege, visibility, target-loss and terminal cases pass deterministic headless and save/replay checks; the AI uses legal information and commands.
 - [ ] A downloaded Restricted build completes Conquest and La Roma as both factions against the computer, including save/resume and one test-tagged sync receipt. No public invitation or retention claim is inferred.
 - [ ] Independent high-risk review and required checks pass; the integration branch lands on `master` and the Restricted preview is verified. Record actual release and PR evidence here.
 - [ ] Update the poster and generated board, write a dated retrospective at actual close, promote durable findings to `Roadmap/LEARNINGS.md`, and set this README to `status: shipped` only when the above evidence exists.

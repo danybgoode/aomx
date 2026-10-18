@@ -1,8 +1,14 @@
 # Private alpha: local macOS download QA
 
-## Current strategic owner preview · 2026-10-18
+## Expanded warfare owner preview · 2026-10-18
 
-The current Restricted channel build is `preview-9053c3808441` (itch `#2150671`, `godot-4.7.2-skirmish-2` / `la-roma-strategy-2`). It contains the owned flower prop and the four-resource, four-age match. Source ZIP SHA-256 is `cd0df885a6bb1cfd8dd2c032658978401f4fab73a19bdf4cccc2125577a4069f`. PR [#44](https://github.com/danybgoode/aomx/pull/44) passed Project checks and CodeQL and merged to `master`. The authenticated Butler fetch matched the source archive's extracted app byte for byte; strict code-signature verification passed. An anonymous request to the itch page returned 404. The app downloaded before this upload is an older build and cannot count for this version's QA.
+The new Restricted `mac-private-alpha` upload is `preview-c5e705309257` (Butler build `#2157380`, `godot-4.7.2-skirmish-3` / `la-roma-warfare-3`). Its signed source ZIP SHA-256 is `a68d0b732fe94ffdadd9c817921d5aeebfb4da395af743fd31bd485aab91b4ce`. Reviewed PR [#48](https://github.com/danybgoode/aomx/pull/48) merged as `c5e705309257`. The upload is still processing; wait for Butler to show `✓ #2157380` before downloading. The Restricted ingest image `aomx-ingest:c5e7053` is healthy and supports this client pair. An owner-Mac API smoke passed stable retry, test-account exclusion, forged preview exclusion and unsupported-version rejection with zero accepted public events. Its one-use event-write invite was revoked, verified to return HTTP 401, and deleted from both operator files. This API smoke does not prove in-app outbox sync.
+
+The owner must use this exact downloaded build for the [three sprint walkthroughs](../Roadmap/01-core-play/expand-warfare-and-world/README.md). Record the numbered result of each step, both desktop sizes and zoom states, four faction×victory combinations, one save/quit/resume and one in-app test-tagged sync receipt. A new temporary invite will be needed for that in-app sync because the smoke credential is revoked. The [warfare QA record](warfare-qa-2026-10-18.md) includes release-template performance diagnostics; they use the same merged warfare code but a separate probe export and do not replace the downloaded-app walkthrough. Until those checks pass, epic #11 remains in progress.
+
+## Previous strategic owner preview · 2026-10-18
+
+The previous Restricted channel build is `preview-9053c3808441` (itch `#2150671`, `godot-4.7.2-skirmish-2` / `la-roma-strategy-2`). It contains the owned flower prop and the four-resource, four-age match. Source ZIP SHA-256 is `cd0df885a6bb1cfd8dd2c032658978401f4fab73a19bdf4cccc2125577a4069f`. PR [#44](https://github.com/danybgoode/aomx/pull/44) passed Project checks and CodeQL and merged to `master`. The authenticated Butler fetch matched the source archive's extracted app byte for byte; strict code-signature verification passed. An anonymous request to the itch page returned 404. The app downloaded before this upload is an older build and cannot count for this version's QA.
 
 Owner downloaded-build checks on **this exact build** remain open:
 
