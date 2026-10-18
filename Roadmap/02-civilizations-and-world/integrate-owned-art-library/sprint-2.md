@@ -16,6 +16,8 @@ stories:
 ---
 # Integrate the owned art library — Sprint 2
 
+**Status:** ✅ Shipped — scale pilot and owner review merged in PR #42.
+
 ### Story 2.1 — Compare tiles, building and critter at game scale ✅
 
 **Acceptance:** `game/art_pilot.tscn` shows a raised earth and grass tile, flower prop, current and concept-derived command posts, and a boar idle animation at 100% and 125%. Left/right cycles all four directions. `game/tests/art_pipeline_test.gd` checks frame and pivot contracts.

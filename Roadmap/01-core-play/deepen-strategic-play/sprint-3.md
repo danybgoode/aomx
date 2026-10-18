@@ -17,6 +17,8 @@ stories:
 
 # Deepen strategic play — Sprint 3
 
+**Status:** 🏗 In progress — merged implementation; downloaded-build match and save/resume QA remain open.
+
 ### Story 3.1 — Finish a four-age match against legal AI
 
 As a player, I can reach the fourth age and finish a two-faction match by either existing route. The opponent gathers, builds, researches and advances through the same validated commands, costs and prerequisites. The HUD explains resources, population, queues, age and unavailable actions without hiding the board.

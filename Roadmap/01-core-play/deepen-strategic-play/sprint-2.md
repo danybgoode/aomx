@@ -17,6 +17,8 @@ stories:
 
 # Deepen strategic play — Sprint 2
 
+**Status:** 🏗 In progress — merged implementation; downloaded-build progression walkthrough remains open.
+
 ### Story 2.1 — Research and advance through four ages
 
 As a player, I can inspect a compact mechanics-first tree, queue/cancel research, see its cost, time and effect, and advance Foránea → Universitaria → Godín → Gentrificación only after explicit prerequisites. Spending on army competes with advancement.

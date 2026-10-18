@@ -16,6 +16,8 @@ stories:
 ---
 # Integrate the owned art library — Sprint 1
 
+**Status:** ✅ Shipped — source audit, export contract and verification merged in PR #42.
+
 ### Story 1.1 — Trace and export owned art candidates ✅
 
 **Acceptance:** `scripts/export-owned-art.sh` reproduces 32 exports from tracked source copies. `node scripts/validate-art-manifest.mjs` checks hashes, dimensions, roles and the 1 MiB owned RGBA budget. Source rights and recipes are recorded in the manifest and `docs/art/owned-art-pipeline.md`.
