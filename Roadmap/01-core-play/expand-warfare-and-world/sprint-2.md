@@ -24,7 +24,7 @@ stories:
 
 # Expand warfare and world — Sprint 2: Counters and siege
 
-**Status:** 🏗 In progress — controlled combat and save/replay pass; signed downloaded-build smoke remains open.
+**Status:** 🟦 In review — controlled combat and save/replay pass; signed downloaded-build smoke remains open.
 
 ### Story 2.1 — Choose a predictable counter
 
