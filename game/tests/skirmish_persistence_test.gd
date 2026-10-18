@@ -27,7 +27,7 @@ func _initialize() -> void:
 	var saved: Dictionary = Save.write(game, match_id, false, path)
 	check(saved.ok and FileAccess.file_exists(path), "versioned save written")
 	var snapshot: Dictionary = game.snapshot()
-	check(snapshot.state_schema_version == 2 and snapshot.balances.size() == 2
+	check(snapshot.state_schema_version == 3 and snapshot.balances.size() == 2
 		and snapshot.resource_sources.size() == 2 and snapshot.age_index.size() == 2
 		and snapshot.researched.size() == 2 and snapshot.balances[0].terrenos == 5
 		and snapshot.resource_sources[0].terrenos.refresh_remaining == 12

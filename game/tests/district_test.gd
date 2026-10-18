@@ -23,15 +23,15 @@ func _initialize() -> void:
 		game.entities[enemy].pos = Vector2i(12, 10)
 		game.tick()
 		check(game.district_progress == 1, "hold restarts after contest")
-		game.entities[fighter].pos = Vector2i(8, 10)
+		game.entities[fighter].pos = Vector2i(7, 10)
 		game.tick()
 		check(game.district_state == "reset" and game.district_progress == 0, "empty zone resets hold")
 		game.entities[fighter].pos = Vector2i(9, 10)
 		for i in range(Skirmish.HOLD_TICKS - 1):
 			game.tick()
-		check(game.result == "" and game.district_progress == Skirmish.HOLD_TICKS - 1, "hold needs all 600 ticks")
+		check(game.result == "" and game.district_progress == Skirmish.HOLD_TICKS - 1, "hold needs every configured tick")
 		game.tick()
-		check(game.result == "win" and game.result_reason == "district", "exact 600-tick district win")
+		check(game.result == "win" and game.result_reason == "district", "exact configured district win")
 		var terminal: int = game.terminal_tick
 		game.tick()
 		check(game.terminal_tick == terminal and not game.issue(Skirmish.HUMAN, "move", fighter, Vector2i(9, 9)).ok,
@@ -101,8 +101,8 @@ func _initialize() -> void:
 		covered_guard.tick_number = Skirmish.AI_ATTACK_TICK - 1
 		covered_guard.tick()
 		check(covered_guard.command_log.any(func(order: Dictionary) -> bool:
-			return order.side == Skirmish.COMPUTER and order.kind == "attack" and order.target == covered_guard._find(Skirmish.HUMAN, "command_post")),
-			"covered melee can still pressure the command post")
+			return order.side == Skirmish.COMPUTER and order.kind == "attack_move" and order.target == [4, 4]),
+			"covered melee scouts toward the command post without hidden targeting")
 		var idle_player = Skirmish.new(faction)
 		var reached_fourth_age := false
 		for i in range(4000):

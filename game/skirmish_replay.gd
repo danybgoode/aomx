@@ -3,7 +3,7 @@ extends RefCounted
 const Skirmish = preload("res://skirmish.gd")
 const RulesContent = preload("res://rules_content.gd")
 const Save = preload("res://skirmish_persistence.gd")
-const REPLAY_SCHEMA_VERSION := 2
+const REPLAY_SCHEMA_VERSION := 3
 
 static func record(game: RefCounted) -> Dictionary:
 	var human: Array[Dictionary] = []

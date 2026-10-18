@@ -14,6 +14,9 @@ const CommandButton = preload("res://ui/command_button.gd")
 const MinimapPanel = preload("res://ui/minimap_panel.gd")
 const ACTIONS := {
 	"move": {"name": "MOVE", "key": "M", "description": "Choose clear ground for this unit."},
+	"attack_move": {"name": "ADVANCE", "key": "", "description": "Move and engage visible enemies in range."},
+	"stop": {"name": "STOP", "key": "", "description": "Cancel this unit's current order."},
+	"hold": {"name": "HOLD", "key": "", "description": "Stay here and attack enemies in range."},
 	"gather": {"name": "GATHER", "key": "H", "description": "Choose a resource source for this worker."},
 	"build": {"name": "BUILD", "key": "B", "description": "Choose a building and place it on clear ground."},
 	"repair": {"name": "REPAIR", "key": "", "description": "Choose a damaged friendly building."},
@@ -24,6 +27,8 @@ const ACTIONS := {
 	"train_worker": {"name": "WORKER", "key": "1", "description": "Recruit a worker at the command post."},
 	"train_melee": {"name": "FIGHTER", "key": "2", "description": "Recruit a melee fighter at the recruitment post."},
 	"train_ranged": {"name": "RANGED", "key": "3", "description": "Recruit a ranged fighter at the recruitment post."},
+	"train_armored": {"name": "ARMORED", "key": "", "description": "Recruit a durable armored counter."},
+	"train_siege": {"name": "SIEGE", "key": "", "description": "Recruit a costly structure attacker."},
 	"cancel": {"name": "CANCEL", "key": "", "description": "Leave target mode or choose a paid order to cancel with its shown refund."}
 }
 

@@ -73,7 +73,7 @@ func _run() -> void:
 	map_click.position = Vector2(7, 7) + (client.hud_ui.minimap.size - Vector2(14, 14)) * Vector2(0.375, 0.325)
 	map_click.pressed = true
 	client.hud_ui.minimap._gui_input(map_click)
-	check(client.hud_ui.minimap.camera_tile == Vector2i(7, 6), "clicking the minimap moves the camera")
+	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 9), "clicking the minimap moves the camera")
 	client._toggle_pause()
 	var paused_tick: int = client.sim.tick_number
 	client._process(0.5)

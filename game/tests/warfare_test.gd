@@ -1,0 +1,98 @@
+extends SceneTree
+
+const Skirmish = preload("res://skirmish.gd")
+const Save = preload("res://skirmish_persistence.gd")
+const Replay = preload("res://skirmish_replay.gd")
+var failures := 0
+
+func _initialize() -> void:
+	var game = Skirmish.new()
+	game.ai_enabled = false
+	check(game.map_width == 28 and game.map_height == 28, "authored larger map loads")
+	check(not game.is_visible(Skirmish.HUMAN, game.entities[game._find(Skirmish.COMPUTER, "command_post")].pos), "enemy post starts hidden")
+	var human := game._add_entity(Skirmish.HUMAN, "melee", Vector2i(13, 16))
+	var enemy := game._add_entity(Skirmish.COMPUTER, "ranged", Vector2i(15, 16))
+	check(game.issue(Skirmish.HUMAN, "attack", human, enemy).reason == "target_not_visible", "hidden enemy cannot be targeted")
+	game._refresh_visibility()
+	check(game.is_visible(Skirmish.HUMAN, Vector2i(15, 16)), "scout reveals an enemy")
+	check(game.issue(Skirmish.HUMAN, "attack", human, enemy).ok, "visible enemy can be targeted")
+	game.entities[human].pos = Vector2i(3, 16)
+	game._refresh_visibility()
+	check(not game.is_visible(Skirmish.HUMAN, Vector2i(15, 16)) and game.is_explored(Skirmish.HUMAN, Vector2i(15, 16)), "explored tile remains after vision leaves")
+	game.tick()
+	check(game.entities[human].job == "idle", "lost target cancels attack")
+	var crowd = Skirmish.new()
+	crowd.ai_enabled = false
+	var first := crowd._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 10))
+	var second := crowd._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 11))
+	check(crowd.issue(Skirmish.HUMAN, "move", first, Vector2i(6, 10)).ok, "first crowded move accepted")
+	check(crowd.issue(Skirmish.HUMAN, "move", second, Vector2i(6, 11)).ok, "second crowded move accepted")
+	for i in range(30):
+		crowd.tick()
+		check(crowd.entities[first].pos != crowd.entities[second].pos, "fighters never overlap")
+	var fight = Skirmish.new()
+	fight.ai_enabled = false
+	var armored := fight._add_entity(Skirmish.COMPUTER, "armored", Vector2i(13, 9))
+	var melee := fight._add_entity(Skirmish.HUMAN, "melee", Vector2i(12, 9))
+	fight._refresh_visibility()
+	check(fight.issue(Skirmish.HUMAN, "attack", melee, armored).ok, "armored target visible")
+	var hp: int = fight.entities[armored].hp
+	fight.tick()
+	check(fight.entities[armored].hp == hp - 1, "armor reduces blunt damage to floor one")
+	var siege := fight._add_entity(Skirmish.HUMAN, "siege", Vector2i(14, 14))
+	var post := fight._find(Skirmish.COMPUTER, "command_post")
+	fight._refresh_visibility()
+	check(fight.issue(Skirmish.HUMAN, "attack", siege, post).ok, "siege can target visible post")
+	var post_hp: int = fight.entities[post].hp
+	fight.tick()
+	check(fight.entities[post].hp == post_hp and fight.projectiles.size() > 0, "siege projectile travels before impact")
+	var payload := Save.capture(fight, "solo_0123456789abcdef0123456789abcdef")
+	check(Save.restore(payload).ok, "in-flight projectile and fog survive save")
+	for i in range(5):
+		fight.tick()
+	check(fight.entities[post].hp < post_hp, "siege projectile impacts after travel")
+	var ballistics = Skirmish.new()
+	ballistics.ai_enabled = false
+	var shooter := ballistics._add_entity(Skirmish.HUMAN, "ranged", Vector2i(12, 9))
+	var runner := ballistics._add_entity(Skirmish.COMPUTER, "worker", Vector2i(14, 9))
+	ballistics._refresh_visibility()
+	check(ballistics.issue(Skirmish.HUMAN, "attack", shooter, runner).ok, "visible moving target can be attacked")
+	ballistics.tick()
+	var runner_hp: int = ballistics.entities[runner].hp
+	ballistics.entities[runner].pos = Vector2i(14, 10)
+	ballistics.entities[shooter].hp = 0
+	for i in range(3):
+		ballistics.tick()
+	check(ballistics.entities[runner].hp == runner_hp and ballistics.projectiles.is_empty(), "in-flight shot misses a moved target even after shooter death")
+	var conquest = Skirmish.new()
+	conquest.ai_enabled = false
+	conquest._add_entity(Skirmish.COMPUTER, "melee", Vector2i(13, 9))
+	conquest.entities[conquest._find(Skirmish.COMPUTER, "command_post")].hp = 0
+	conquest.tick()
+	check(conquest.result == "win" and conquest.result_reason == "command_post" and conquest._find(Skirmish.COMPUTER, "melee") != -1, "last post loss ends Conquest with surviving enemy units")
+	var recruitment = Skirmish.new()
+	recruitment.ai_enabled = false
+	recruitment.age_index[Skirmish.HUMAN] = 2
+	for resource_id in Skirmish.RESOURCE_IDS:
+		recruitment._add_balance(Skirmish.HUMAN, resource_id, 100)
+	var barracks := recruitment._add_entity(Skirmish.HUMAN, "barracks", Vector2i(5, 6))
+	check(recruitment.issue(Skirmish.HUMAN, "train", barracks, "armored").ok, "armored role uses normal recruitment")
+	check(recruitment.issue(Skirmish.HUMAN, "train", barracks, "siege").ok, "siege role uses normal recruitment")
+	for i in range(180):
+		recruitment.tick()
+	check(recruitment._find(Skirmish.HUMAN, "armored") != -1 and recruitment._find(Skirmish.HUMAN, "siege") != -1, "both roles spawn through production")
+	var armored_id := recruitment._find(Skirmish.HUMAN, "armored")
+	check(recruitment.issue(Skirmish.HUMAN, "hold", armored_id, "").ok, "hold order uses command validation")
+	check(recruitment.issue(Skirmish.HUMAN, "stop", armored_id, "").ok, "stop order uses command validation")
+	check(recruitment.issue(Skirmish.HUMAN, "attack_move", armored_id, Vector2i(8, 6)).ok, "attack-move uses path validation")
+	var replay = Skirmish.new()
+	for i in range(12):
+		replay.tick()
+	check(Replay.verify(Replay.record(replay)).ok, "versioned rules replay deterministically")
+	print("Warfare checks: ", "PASS" if failures == 0 else "%d failures" % failures)
+	quit(1 if failures > 0 else 0)
+
+func check(condition: bool, description: String) -> void:
+	if not condition:
+		failures += 1
+		printerr("FAIL: ", description)
