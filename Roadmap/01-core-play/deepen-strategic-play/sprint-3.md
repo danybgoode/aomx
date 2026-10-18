@@ -3,7 +3,7 @@ epic: deepen-strategic-play
 sprint: 3
 title: "Integrated two-faction match"
 risk: high
-phase: Locking architecture
+phase: Verifying
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,7 +12,7 @@ stories:
     i_want: "a capable opponent on the same economy and progression rules"
     so_that: "the new decisions matter through a complete battle"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Deepen strategic play — Sprint 3
@@ -37,3 +37,7 @@ Run the full Godot and Node contract suite, cross-platform hash, rendered deskto
    → Match ID, age, research, stockpiles, worker cargo and queue state are unchanged; no duplicate start event appears.
 4. Replay controlled AI/economy scenarios for both factions and check normal and enlarged zoom.
    → The opponent pays valid costs and the board, selection and command reasons remain readable.
+
+## QA record, 2026-10-17
+
+Both AI faction fixtures reached Gentrificación and completed research. The normal idle-match test confirms fourth-age progression before AI district pressure wins; district contest, post loss and deterministic replay still pass. The full Godot CI script list, Node suite, ingest contract and art manifest passed locally. Independent high-risk review rechecked cancellation, AI pacing, path obstruction and stale modal fixes. Signed Restricted build upload, downloaded-build wins for both factions/routes and release outbox QA remain open.

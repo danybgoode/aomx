@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Locking architecture
+status: in-progress
+phase: Verifying
 slug: deepen-strategic-play
 title: "Deepen strategic play"
 area: 01-core-play
@@ -75,3 +75,7 @@ Build in one orchestrated run on `feat/deepen-strategic-play`, committing per st
 - [ ] A real downloaded Restricted build is played to fourth age as both factions and completes both victory routes; record build ID, save/quit/resume and test-event behavior.
 - [ ] High-risk independent review and required checks pass; the integration PR reaches `master` and the Restricted preview is verified.
 - [ ] The poster, board, retrospective and durable learnings are updated; this README changes to `status: shipped` only with the above evidence.
+
+## Build verification, 2026-10-17
+
+The three story commits implement the versioned four-resource economy, four ages and three technology effects, strategic save/replay, legal AI and player-facing controls. The full Godot CI script list passed locally, including physical source/drop-off, cancellation/refund, normal AI fourth-age pacing, cross-platform hash, save/resume and stale-choice checks. `npm test`, the Godot-to-ingest contract and owned-art manifest validation passed. Independent high-risk review found and rechecked fixes for paid-order cancellation, early AI district victory, cached paths through new buildings and stale modal actions after actor death. The Restricted download, full-match owner QA and release record remain the closeout gate.

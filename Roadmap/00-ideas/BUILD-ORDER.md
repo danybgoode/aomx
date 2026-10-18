@@ -5,7 +5,7 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-17 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-10-18 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
@@ -33,7 +33,7 @@ _None._
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
-- [Deepen strategic play](../01-core-play/deepen-strategic-play/README.md) — #1 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status scaffolded_
+- [Deepen strategic play](../01-core-play/deepen-strategic-play/README.md) — #1 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status in-progress_
 - [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #2 · 09 Platform And Measurement · 2/7 stories · risk: High · appetite L · _docs: status in-progress_
 - [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #3 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #4 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_

@@ -3,7 +3,7 @@ epic: deepen-strategic-play
 sprint: 2
 title: "Four-age progression"
 risk: high
-phase: Locking architecture
+phase: Verifying
 stories_total: 1
 stories:
   - id: S2.1
@@ -12,7 +12,7 @@ stories:
     i_want: "army-versus-research choices and legal age advancement"
     so_that: "each phase changes my next plan"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Deepen strategic play — Sprint 2
@@ -37,3 +37,7 @@ Run content, simulation, save/replay, cross-platform hash and client checks. Per
    → Each effect and age is visible, charged once, and preserved after save/quit/resume.
 4. Cancel a queued research or age transition in a controlled scenario.
    → The declared refund applies and replay reaches the same hash.
+
+## QA record, 2026-10-17
+
+`strategic_progression_test.gd` passed all age prerequisites, three technology effects, costs, queue/cancel/refund and gates. Persistence/replay tests passed strategic state round-trip, deterministic continuation and explicit rejection of older saves without deletion. Client tests exercised player cancellation of paid age and research orders and save/resume through an active age queue and completed technology. Downloaded-build observation remains open.

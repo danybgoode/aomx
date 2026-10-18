@@ -3,7 +3,7 @@ epic: deepen-strategic-play
 sprint: 1
 title: "Complete worker economy"
 risk: high
-phase: Locking architecture
+phase: Verifying
 stories_total: 1
 stories:
   - id: S1.1
@@ -12,7 +12,7 @@ stories:
     i_want: "physical resource routes, construction, repair and housing"
     so_that: "worker allocation changes what I can build next"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Deepen strategic play — Sprint 1
@@ -37,3 +37,7 @@ Run `game/tests/` simulation, content, persistence, replay and client checks, `n
    → Progress and health respond deterministically; invalid placement and insufficient resources explain why.
 4. Fill the population cap, then finish housing and recruit again.
    → Recruitment is blocked, then allowed at the new cap; save/replay retain stockpiles, cargo and structures.
+
+## QA record, 2026-10-17
+
+`strategic_economy_test.gd` passed all four physical gather/delivery routes, finite Terrenos refresh, lost drop-off recovery, multi-builder progress, paid repair, population cap and construction refund. A regression case places a building across an existing worker path and confirms that the worker never crosses its footprint. `skirmish_client_test.gd` passed resource picking and HUD checks at 1024×700 and 2.1× zoom. Downloaded-build observation remains open.
