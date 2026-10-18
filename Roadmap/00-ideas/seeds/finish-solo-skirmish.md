@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "01-core-play/finish-solo-skirmish"
-build_order: 3
+build_order: 4
 updated: 2026-10-14
 intent_ask: proxy
 hypothesis: "Classic RTS players need a complete battle to judge the game. A small solo skirmish with an authored opponent lets them test its economy and combat. We'll know when a fresh Godot checkout produces a win, loss and draw with one test-tagged terminal result each."

@@ -8,7 +8,7 @@ appetite: L
 underwritten_by: wave-2026-10
 risk: high
 epic: "09-platform-and-measurement/track-launch-play-funnel"
-build_order: 1
+build_order: 2
 updated: 2026-10-13
 intent_ask: verbatim
 hypothesis: "New players can finish solo battles offline, but we cannot yet see where they stop or if they return. Capture their journey from first open through a later-day finish so launch decisions use complete cohorts. We'll know when offline, abandoned, duplicate and return paths reconcile with the reported metrics."

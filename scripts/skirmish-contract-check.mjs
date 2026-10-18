@@ -38,7 +38,7 @@ try {
   assert.deepEqual(ingest.accept(events[2]), receipts[2]);
   assert.equal(store.rows.length, 3);
   const legacy = new Ingest(new AuditStore(path.join(dir, 'legacy-audit.jsonl')), { supportedVersions });
-  const legacyReceipt = legacy.accept({ ...events[0], content_version: 'original-skirmish-map-1' });
+  const legacyReceipt = legacy.accept({ ...events[0], game_version: 'godot-4.7.2-skirmish-1', content_version: 'original-skirmish-map-1' });
   assert.equal(legacyReceipt.status, 'excluded');
   assert.equal(legacyReceipt.reason, 'test_account');
   const report = makeReport(store.rows);

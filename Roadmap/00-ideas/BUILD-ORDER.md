@@ -5,16 +5,15 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-17 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-10-18 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (9)
+## Backlog (8)
 
 _seeds with no pitch yet._
 
-- [Deepen strategic play](seeds/deepen-strategic-play.md) — #10 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Expand warfare and world](seeds/expand-warfare-and-world.md) — #11 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Build a strategic opponent](seeds/build-strategic-opponent.md) — #12 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #13 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
@@ -30,18 +29,19 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (8)
+## Ready (9)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
-- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #1 · 09 Platform And Measurement · 2/7 stories · risk: High · appetite L · _docs: status in-progress_
-- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #2 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
-- [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #3 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
-- [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #4 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status in-progress_
-- [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #5 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
-- [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #6 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
-- [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #7 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
-- [Integrate the owned art library](../02-civilizations-and-world/integrate-owned-art-library/README.md) — #9 · 02 Civilizations And World · 2/3 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Deepen strategic play](../01-core-play/deepen-strategic-play/README.md) — #1 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status in-progress_
+- [Track the launch play funnel](../09-platform-and-measurement/track-launch-play-funnel/README.md) — #2 · 09 Platform And Measurement · 2/7 stories · risk: High · appetite L · _docs: status in-progress_
+- [Prove the RTS core](../01-core-play/prove-rts-core/README.md) — #3 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Finish a solo skirmish](../01-core-play/finish-solo-skirmish/README.md) — #4 · 01 Core Play · 4/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Enable a measured private alpha](../09-platform-and-measurement/enable-measured-private-alpha/README.md) — #5 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite M · _docs: status in-progress_
+- [Prove the La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) — #6 · 02 Civilizations And World · 3/4 stories · risk: Low · appetite M · _docs: status in-progress_
+- [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #7 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
+- [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #9 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
+- [Integrate the owned art library](../02-civilizations-and-world/integrate-owned-art-library/README.md) — #10 · 02 Civilizations And World · 2/3 stories · risk: Low · appetite M · _docs: status in-progress_
 
 ## Building — live only
 

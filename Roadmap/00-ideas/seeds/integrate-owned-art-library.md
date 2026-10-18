@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "02-civilizations-and-world/integrate-owned-art-library"
-build_order: 9
+build_order: 10
 updated: 2026-10-16
 intent_ask: verbatim
 hypothesis: "We believe a traced, scale-tested art pipeline will help players recognize the La Roma battlefield and its units while playing the existing match because the supplied source art is stronger than the current primitives; we'll know from owner visual checks and later first-match completion evidence."

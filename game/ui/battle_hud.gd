@@ -14,13 +14,17 @@ const CommandButton = preload("res://ui/command_button.gd")
 const MinimapPanel = preload("res://ui/minimap_panel.gd")
 const ACTIONS := {
 	"move": {"name": "MOVE", "key": "M", "description": "Choose clear ground for this unit."},
-	"gather": {"name": "GATHER", "key": "H", "description": "Send the worker to your gold cart."},
-	"build": {"name": "BUILD", "key": "B", "description": "Place a recruitment post on a clear 2×2 site."},
+	"gather": {"name": "GATHER", "key": "H", "description": "Choose a resource source for this worker."},
+	"build": {"name": "BUILD", "key": "B", "description": "Choose a building and place it on clear ground."},
+	"repair": {"name": "REPAIR", "key": "", "description": "Choose a damaged friendly building."},
+	"assist": {"name": "ASSIST", "key": "", "description": "Choose an unfinished friendly building."},
 	"attack": {"name": "ATTACK", "key": "A", "description": "Choose an enemy unit or building."},
+	"research": {"name": "RESEARCH", "key": "", "description": "Choose an available technology at the registry."},
+	"advance": {"name": "AGE UP", "key": "", "description": "Start the next age at the command post."},
 	"train_worker": {"name": "WORKER", "key": "1", "description": "Recruit a worker at the command post."},
 	"train_melee": {"name": "FIGHTER", "key": "2", "description": "Recruit a melee fighter at the recruitment post."},
 	"train_ranged": {"name": "RANGED", "key": "3", "description": "Recruit a ranged fighter at the recruitment post."},
-	"cancel": {"name": "CANCEL", "key": "Esc", "description": "Leave target or placement mode."}
+	"cancel": {"name": "CANCEL", "key": "", "description": "Leave target mode or choose a paid order to cancel with its shown refund."}
 }
 
 var top: Panel
@@ -44,6 +48,9 @@ var save_button: Button
 var resume_button: Button
 var close_diagnostics: Button
 var gold_label: Label
+var resource_labels: Dictionary = {}
+var age_label: Label
+var population_label: Label
 var faction_label: Label
 var timer_label: Label
 var pause_button: Button
@@ -79,6 +86,9 @@ var secondary_toggle: Button
 var mobile_secondary_open := false
 var paused := false
 var last_notification := ""
+var choice_panel: Panel
+var choice_title: Label
+var choice_list: VBoxContainer
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -126,20 +136,19 @@ func _build() -> void:
 	faction_label = _label(top_row, "LA ROMA", 16, HudSkin.GOLD)
 	faction_label.custom_minimum_size.x = 160
 	var resource := HBoxContainer.new()
-	resource.add_theme_constant_override("separation", 5)
+	resource.add_theme_constant_override("separation", 8)
 	top_row.add_child(resource)
-	var icon := CommandButton.new()
-	icon.glyph = "gold"
-	icon.text = ""
-	icon.disabled = true
-	icon.custom_minimum_size = Vector2(35, 32)
-	resource.add_child(icon)
-	icon.custom_minimum_size = Vector2(35, 32)
-	gold_label = _label(resource, "0", 18, HudSkin.GOLD)
+	for id in ["comida", "materiales", "varos", "terrenos"]:
+		var label := _label(resource, "%s 0" % id.substr(0, 1).to_upper(), 14, HudSkin.GOLD)
+		label.tooltip_text = "%s in stockpile" % id.capitalize()
+		resource_labels[id] = label
+	gold_label = resource_labels["varos"]
+	age_label = _label(top_row, "FORÁNEA", 13, HudSkin.GOLD)
+	population_label = _label(top_row, "0/0", 13, HudSkin.TEXT)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(spacer)
-	gold_label.tooltip_text = "Gold in your stockpile. The only spendable resource in this alpha."
+	population_label.tooltip_text = "Population used / housing capacity"
 	var divider := VSeparator.new()
 	top_row.add_child(divider)
 	timer_label = _label(top_row, "00:00", 17)
@@ -153,6 +162,14 @@ func _build() -> void:
 	menu_button = _button(top_row, "...")
 	menu_button.tooltip_text = "Settings, alpha support and diagnostics"
 	menu_button.pressed.connect(func() -> void: menu_requested.emit())
+
+	choice_panel = _panel(self, 12, true)
+	choice_panel.z_index = 25
+	choice_title = _label(choice_panel, "CHOOSE", 17, HudSkin.GOLD)
+	choice_list = VBoxContainer.new()
+	choice_list.add_theme_constant_override("separation", 6)
+	choice_panel.add_child(choice_list)
+	choice_panel.hide()
 
 	bottom = _panel(self, 7, true)
 	selection_panel = _panel(bottom, 7)
@@ -317,6 +334,10 @@ func _layout() -> void:
 	top_row.add_theme_constant_override("separation", 4 if mobile else 12)
 	faction_label.custom_minimum_size.x = 70 if mobile else 160
 	faction_label.add_theme_font_size_override("font_size", 12 if mobile else 16)
+	for id in resource_labels:
+		(resource_labels[id] as Label).add_theme_font_size_override("font_size", 11 if mobile else 14)
+	age_label.add_theme_font_size_override("font_size", 10 if mobile else 13)
+	population_label.add_theme_font_size_override("font_size", 10 if mobile else 13)
 	timer_label.add_theme_font_size_override("font_size", 13 if mobile else 17)
 	timer_label.custom_minimum_size.x = 48 if mobile else 58
 	restart_button.add_theme_font_size_override("font_size", 12 if mobile else 16)
@@ -401,6 +422,12 @@ func _layout() -> void:
 	restart_scrim.size = size
 	restart_dialog.size = Vector2(minf(370, w - 24), 148)
 	restart_dialog.position = (size - restart_dialog.size) * 0.5
+	choice_panel.size = Vector2(minf(370, w - 24), minf(300, h - 90))
+	choice_panel.position = (size - choice_panel.size) * 0.5
+	choice_title.position = Vector2(12, 8)
+	choice_title.size = Vector2(choice_panel.size.x - 24, 24)
+	choice_list.position = Vector2(12, 37)
+	choice_list.size = Vector2(choice_panel.size.x - 24, choice_panel.size.y - 49)
 
 func _layout_selection(portrait: bool, mobile: bool) -> void:
 	var s := selection_panel.size
@@ -468,12 +495,45 @@ func set_action(action: String, state: Dictionary, cost: int, active: bool) -> v
 	b.set("caption", meta.name)
 	var tip := "%s\n%s" % [meta.name, meta.description]
 	if cost > 0:
-		tip += "\nCost: %d gold" % cost
+		tip += "\nCost: %d varos" % cost
 	if not state.reason.is_empty():
 		tip += "\nUnavailable: %s" % state.reason
 	else:
-		tip += "\nShortcut: %s" % meta.key
+		if not meta.key.is_empty():
+			tip += "\nShortcut: %s" % meta.key
 	b.tooltip_text = tip
+
+func set_economy(stockpiles: Dictionary, age_name: String, population: int, capacity: int, source_notes: Dictionary) -> void:
+	for id in resource_labels:
+		var label: Label = resource_labels[id]
+		label.text = "%s %d" % [id.substr(0, 1).to_upper(), int(stockpiles.get(id, 0))]
+		label.tooltip_text = "%s: %d in stockpile. %s" % [id.capitalize(), int(stockpiles.get(id, 0)), str(source_notes.get(id, ""))]
+	age_label.text = age_name.to_upper()
+	age_label.tooltip_text = "Current age: " + age_name
+	population_label.text = "%d/%d" % [population, capacity]
+	population_label.tooltip_text = "Population used / capacity: %d / %d" % [population, capacity]
+
+func show_choices(title: String, entries: Array[Dictionary]) -> void:
+	choice_title.text = title
+	for child in choice_list.get_children():
+		child.queue_free()
+	for entry in entries:
+		var id := str(entry.get("id", ""))
+		var b := _button(choice_list, str(entry.get("label", id)))
+		b.custom_minimum_size.y = 42
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		b.add_theme_font_size_override("font_size", 11)
+		b.disabled = not bool(entry.get("enabled", false))
+		b.tooltip_text = str(entry.get("reason", ""))
+		b.pressed.connect(_choose_entry.bind(id))
+	var cancel := _button(choice_list, "CANCEL")
+	cancel.custom_minimum_size.y = 34
+	cancel.pressed.connect(func() -> void: choice_panel.hide())
+	choice_panel.show()
+
+func _choose_entry(id: String) -> void:
+	choice_panel.hide()
+	command.emit(id)
 
 func reflow_commands() -> void:
 	var w := command_panel.size.x
@@ -543,9 +603,9 @@ func set_secondary(title: String, cards: Array[Dictionary]) -> void:
 			secondary_reason.text = str(card.get("reason", "")) if not card.get("enabled", true) else ("Cost %d gold" % int(card.get("cost", 0)) if card.get("cost", 0) > 0 else "")
 
 func set_queue(entries: Array) -> void:
-	var show_queue := not entries.is_empty() or secondary_title.text == "PRODUCTION"
+	var show_queue := not entries.is_empty() or secondary_title.text in ["PRODUCTION", "RESEARCH"]
 	queue_title.visible = show_queue and size.x >= 950
-	queue_title.text = "PRODUCTION QUEUE  %d / 3" % entries.size()
+	queue_title.text = "QUEUE  %d / 3" % entries.size()
 	for i in 3:
 		var slot: Panel = queue_slots[i]
 		slot.visible = show_queue and size.x >= 950

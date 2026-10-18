@@ -59,7 +59,7 @@ func _run() -> void:
 	check(is_equal_approx(client.board_zoom, client._default_board_zoom(Vector2(original_window_size))),
 		"zoom reset fits the current window")
 	client.board_pan = Vector2.ZERO
-	for zoom in [1.0, 1.1, 1.25]:
+	for zoom in [1.0, 1.1, 1.25, 2.1]:
 		client.board_zoom = zoom
 		for tile in [Vector2i(4, 2), Vector2i(6, 4), Vector2i(13, 15)]:
 			var screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(tile) - Vector2(640, 305)) * zoom + client._board_view_offset()
@@ -99,40 +99,53 @@ func _run() -> void:
 		"selection panel follows the active board actor")
 	check(client.command_buttons["gather"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
 		"worker sees only relevant commands")
+	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "FORÁNEA" and client.hud_ui.population_label.text == "1/4",
+		"HUD shows four resource counters, age and population")
 	var before_hud: String = client.sim.state_hash()
 	client._update_hud()
 	check(client.sim.state_hash() == before_hud, "HUD refresh does not change simulation state")
 	client._activate_command("gather")
-	check(client.target_mode == "gather" and client.command_help.text.contains("gold cart"), "gather button arms a clear target prompt")
+	check(client.target_mode == "gather" and client.command_help.text.contains("Comida") and client.command_help.text.contains("Terrenos"),
+		"gather button names all four sources")
 	client._activate_command("cancel")
 	check(client.target_mode.is_empty() and not client.placing, "cancel returns to ordinary selection")
-	var gold_tile: Vector2i = Skirmish.RESOURCE_POS[Skirmish.HUMAN]
-	var cart_body: Vector2 = client._tile_to_screen(gold_tile) + Vector2(0, -20)
-	var cart_screen: Vector2 = Vector2(640, 305) + (cart_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
-	check(client._screen_to_tile(cart_screen) != gold_tile, "cart body overhangs its resource tile")
-	check(client._pick_visual_source(cart_screen) == Skirmish.HUMAN, "visible cart body is targetable")
+	for resource_id in Skirmish.RESOURCE_IDS:
+		var source_tile: Vector2i = client.sim.resource_sources[Skirmish.HUMAN][resource_id].pos
+		var source_body: Vector2 = client._tile_to_screen(source_tile) + Vector2(0, -8)
+		var source_screen: Vector2 = Vector2(640, 305) + (source_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
+		check(client._pick_visual_source(source_screen) == resource_id, "%s labeled source is targetable" % resource_id)
+	var comida_tile: Vector2i = client.sim.resource_sources[Skirmish.HUMAN].comida.pos
+	var comida_body: Vector2 = client._tile_to_screen(comida_tile) + Vector2(0, -8)
+	var comida_screen: Vector2 = Vector2(640, 305) + (comida_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
 	client._activate_command("gather")
 	var gather_left := InputEventMouseButton.new()
 	gather_left.button_index = MOUSE_BUTTON_LEFT
-	gather_left.position = cart_screen
+	gather_left.position = comida_screen
 	gather_left.pressed = true
 	client._unhandled_input(gather_left)
-	check(client.sim.entities[worker_id].job == "gather" and client.target_mode.is_empty(),
-		"gather button and left-click cart use the existing simulation order")
+	check(client.sim.entities[worker_id].job == "gather" and client.sim.entities[worker_id].source_resource == "comida" and client.target_mode.is_empty(),
+		"gather button and left-click source use the validated resource order")
 	var gather_click := InputEventMouseButton.new()
 	gather_click.button_index = MOUSE_BUTTON_RIGHT
-	gather_click.position = cart_screen
+	gather_click.position = comida_screen
 	gather_click.pressed = true
 	client._unhandled_input(gather_click)
-	check(client.sim.entities[worker_id].job == "gather" and client.order_flash_tile == gold_tile,
-		"right-clicking the cart body orders the selected worker to gather")
-	var gather: Dictionary = client._issue_order("gather", gold_tile, gold_tile)
-	check(gather.ok and client.order_flash_ok and client.order_flash_tile == gold_tile and client.sim.feedback == "Gathering gold.", "accepted gather has visible target feedback")
-	var rejected: Dictionary = client._issue_order("build", Vector2i(10, 2), Vector2i(10, 2))
+	check(client.sim.entities[worker_id].job == "gather" and client.order_flash_tile == comida_tile,
+		"right-clicking the source marker orders the selected worker to gather")
+	var gather: Dictionary = client._issue_order("gather", comida_tile, comida_tile)
+	check(gather.ok and client.order_flash_ok and client.order_flash_tile == comida_tile and client.sim.feedback == "Gathering resource.",
+		"accepted gather has visible target feedback")
+	var rejected: Dictionary = client._issue_order("build", {"kind": "depot", "pos": Vector2i(10, 2)}, Vector2i(10, 2))
 	check(not rejected.ok and not client.order_flash_ok and client.sim.feedback != "", "rejected build has distinct readable feedback")
-	check(client.command_buttons["build"].disabled and client.command_buttons["build"].tooltip_text.contains("Need"),
-		"unaffordable build explains its cost")
-	client.sim.stockpile[Skirmish.HUMAN] = 10
+	client._activate_command("build")
+	check(client.hud_ui.choice_panel.visible and client._building_reason("depot").contains("Need"),
+		"build chooser shows the resource shortfall")
+	client.hud_ui.choice_panel.hide()
+	for resource_id in Skirmish.RESOURCE_IDS:
+		client.sim._add_balance(Skirmish.HUMAN, resource_id, 100)
+	client._update_hud()
+	check(client.hud_ui.resource_labels["terrenos"].text == "T 100", "Terrenos stockpile updates in the HUD")
+	check(client._building_reason("registry").contains("age"), "registry explains its age gate")
 	var post_id: int = client.sim._find(Skirmish.HUMAN, "command_post")
 	client.selected_id = post_id
 	client.selected_ids.clear()
@@ -140,23 +153,60 @@ func _run() -> void:
 	client._update_hud()
 	check(client.command_buttons["train_worker"].visible and not client.command_buttons["gather"].visible,
 		"command post shows its own recruitment order")
-	var gold_before: int = client.sim.stockpile[Skirmish.HUMAN]
+	var comida_before: int = client.sim.balance(Skirmish.HUMAN, "comida")
 	client._activate_command("train_worker")
-	check(client.sim.entities[post_id].queue.size() == 1 and client.sim.stockpile[Skirmish.HUMAN] == gold_before - client.sim._cost(Skirmish.HUMAN, "worker"),
-		"recruit button uses actual cost and production queue")
+	check(client.sim.entities[post_id].queue.size() == 1 and client.sim.balance(Skirmish.HUMAN, "comida") == comida_before - int(client.sim._costs(Skirmish.HUMAN, "worker").comida),
+		"recruit button uses four-resource cost and production queue")
 	check(client.hud_ui.selection_stats.text.contains("Queue 1"), "selection panel reports the real queue")
+	check(client.command_buttons["cancel"].visible, "queued production exposes paid-order cancellation")
+	client._activate_command("cancel")
+	check(client.hud_ui.choice_panel.visible and client.hud_ui.choice_title.text == "CANCEL PAID ORDER", "queue cancellation shows a confirmation choice")
+	var queue_refund: int = int(client.sim._costs(Skirmish.HUMAN, "worker").comida) / 2
+	client.hud_ui._choose_entry("cancel_queue_0")
+	check(client.sim.entities[post_id].queue.is_empty() and client.sim.balance(Skirmish.HUMAN, "comida") == comida_before - int(client.sim._costs(Skirmish.HUMAN, "worker").comida) + queue_refund,
+		"player can cancel active recruitment with the declared half refund")
 	client.selected_id = worker_id
 	client.selected_ids.clear()
 	client.selected_ids.append(worker_id)
 	client._update_hud()
 	client._activate_command("build")
-	check(client.target_mode == "build" and client.placing, "build button arms the existing placement preview")
+	check(client.hud_ui.choice_panel.visible and not client.placing, "build button opens the building choices")
+	client.hud_ui._choose_entry("build_barracks")
+	check(client.target_mode == "build" and client.placing and not client.hud_ui.choice_panel.visible,
+		"chosen building arms the placement preview")
 	client._complete_target_order(Vector2.ZERO, Skirmish.BARRACKS_POS[Skirmish.HUMAN])
-	check(client.sim._find(Skirmish.HUMAN, "barracks") != -1 and client.target_mode.is_empty(),
+	var unfinished_barracks: int = client.sim._find(Skirmish.HUMAN, "barracks")
+	check(unfinished_barracks != -1 and client.target_mode.is_empty(),
 		"build button places a post through the validated simulation order")
+	var materials_before_cancel: int = client.sim.balance(Skirmish.HUMAN, "materiales")
+	client._activate_command("cancel")
+	check(client.hud_ui.choice_panel.visible, "incomplete construction exposes cancellation")
+	client.hud_ui._choose_entry("cancel_build_%d" % unfinished_barracks)
+	check(client.sim._find(Skirmish.HUMAN, "barracks") == -1 and client.sim.balance(Skirmish.HUMAN, "materiales") > materials_before_cancel,
+		"player can cancel unfinished construction and receive its refund")
+	client._activate_command("build")
+	check(client.hud_ui.choice_panel.visible, "worker can open the building chooser before combat")
 	client.sim.entities.erase(worker_id)
 	client._process(0.1)
-	check(client.selected_id == -1 and client.selection_title.text == "NO SELECTION", "lost actor clears the selection panel")
+	check(client.selected_id == -1 and client.selection_title.text == "NO SELECTION" and not client.hud_ui.choice_panel.visible,
+		"lost worker closes its stale building chooser")
+	client._activate_command("build_depot")
+	check(not client.placing, "stale building choice cannot arm placement after worker death")
+	client.sim.age_index[Skirmish.HUMAN] = 1
+	var registry_id: int = client.sim._add_entity(Skirmish.HUMAN, "registry", Vector2i(7, 8))
+	client.selected_id = registry_id
+	client.selected_ids.clear()
+	client.selected_ids.append(registry_id)
+	client._update_hud()
+	client._activate_command("research")
+	check(client.hud_ui.choice_panel.visible, "registry can open the research chooser")
+	client.sim.entities[registry_id].hp = 0
+	client._process(0.1)
+	check(client.selected_id == -1 and not client.hud_ui.choice_panel.visible,
+		"destroyed registry closes its stale research chooser")
+	client._activate_command("research_carry_capacity_i")
+	check(not client.sim._queued(Skirmish.HUMAN, "tech", "carry_capacity_i"),
+		"stale research choice is rejected without crashing")
 	var fighter_id: int = client.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 2))
 	var target_id: int = client.sim._add_entity(Skirmish.COMPUTER, "melee", Vector2i(5, 2))
 	client.selected_id = fighter_id
@@ -183,7 +233,7 @@ func _run() -> void:
 	check(client.selected_ids == [wing_id] and not client.hud_ui.group_grid.visible,
 		"portrait subset returns to one unit")
 	var baseline_top_height := 52.0
-	for viewport_size in [Vector2i(1536, 960), Vector2i(1920, 1080), Vector2i(844, 390), Vector2i(390, 844)]:
+	for viewport_size in [Vector2i(1024, 700), Vector2i(1536, 960), Vector2i(1920, 1080), Vector2i(844, 390), Vector2i(390, 844)]:
 		root.size = viewport_size
 		await process_frame
 		var bar: Panel = client.hud_ui.bottom
@@ -197,6 +247,12 @@ func _run() -> void:
 			"minimap stays inside %s viewport" % viewport_size)
 		check(top_rect.position.x >= 0 and top_rect.end.x <= viewport_size.x and top_rect.end.y <= viewport_size.y,
 			"top HUD stays inside %s viewport" % viewport_size)
+		if viewport_size == Vector2i(1024, 700):
+			for resource_id in Skirmish.RESOURCE_IDS:
+				var counter: Label = client.hud_ui.resource_labels[resource_id]
+				check(top_rect.encloses(counter.get_global_rect()), "%s counter fits the 1024×700 HUD" % resource_id)
+			check(top_rect.encloses(client.hud_ui.age_label.get_global_rect()) and top_rect.encloses(client.hud_ui.population_label.get_global_rect()),
+				"age and population fit the 1024×700 HUD")
 		if viewport_size.x >= 1280:
 			check(top_rect.size.y > baseline_top_height and bar_rect.size.y > 193.0,
 				"desktop top and bottom HUD grow with the battlefield at %s" % viewport_size)

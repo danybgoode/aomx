@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: low
 epic: "02-civilizations-and-world/readable-battlefield-hud"
-build_order: 7
+build_order: 9
 updated: 2026-10-16
 intent_ask: verbatim
 hypothesis: "We believe a legible match HUD and contextual commands for first-time skirmish players will improve first-match completion because players can understand selection, resources, objectives and orders without memorizing keys; we will check uncoached tasks and the first-match funnel when real play data exists."

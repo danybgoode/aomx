@@ -2,9 +2,11 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
-const SAVE_SCHEMA_VERSION := 1
+const SAVE_SCHEMA_VERSION := 2
 const MAX_SAVE_BYTES := 16777216
-const JOBS := ["idle", "move", "gather", "deliver", "build", "attack"]
+const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair"]
+const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
+const QUEUE_KINDS := ["unit", "tech", "age"]
 const RESULTS := ["", "win", "loss", "draw"]
 
 static func capture(game: RefCounted, match_id: String, completion_queued: bool = false) -> Dictionary:
@@ -74,7 +76,7 @@ static func restore(payload: Dictionary) -> Dictionary:
 		return checked
 	if not payload.get("command_log") is Array or not payload.get("hash_checkpoints") is Array:
 		return _bad("save_history_invalid")
-	if not _validate_history(payload.command_log, payload.hash_checkpoints, state):
+	if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
 		return _bad("save_history_invalid")
 	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed))
 	game.tick_number = int(state.tick)
@@ -84,9 +86,20 @@ static func restore(payload: Dictionary) -> Dictionary:
 	game.district_side = int(state.district_side)
 	game.district_progress = int(state.district_progress)
 	game.district_state = state.district_state
-	game.stockpile = {Skirmish.HUMAN: int(state.stockpile[0]), Skirmish.COMPUTER: int(state.stockpile[1])}
-	game.sources[Skirmish.HUMAN].amount = int(state.sources[0])
-	game.sources[Skirmish.COMPUTER].amount = int(state.sources[1])
+	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+		var saved_balances: Dictionary = state.balances[side]
+		game.stockpile[side] = int(saved_balances.varos)
+		for resource_id in RESOURCE_IDS:
+			if resource_id != "varos":
+				game.other_stockpiles[side][resource_id] = int(saved_balances[resource_id])
+			var saved_source: Dictionary = state.resource_sources[side][resource_id]
+			var source: Dictionary = game.resource_sources[side][resource_id]
+			source.amount = int(saved_source.amount)
+			source.refresh_remaining = int(saved_source.refresh_remaining)
+			source.refreshes_left = int(saved_source.refreshes_left)
+		game.sources[side] = game.resource_sources[side].varos
+		game.age_index[side] = int(state.age_index[side])
+		game.researched[side] = state.researched[side].duplicate()
 	game.next_id = int(state.next_id)
 	game.next_command = int(state.next_command)
 	game.ai_next_role = state.ai_next_role
@@ -100,10 +113,11 @@ static func restore(payload: Dictionary) -> Dictionary:
 			path.append(Vector2i(int(p[0]), int(p[1])))
 		var queue: Array = []
 		for order in e.queue:
-			queue.append({"role": order.role, "remaining": int(order.remaining)})
+			queue.append({"kind": order.kind, "role": order.role, "remaining": int(order.remaining)})
 		game.entities[int(e.id)] = {"id": int(e.id), "side": int(e.side), "kind": e.kind,
 			"pos": Vector2i(int(e.pos[0]), int(e.pos[1])), "hp": int(e.hp),
 			"complete": e.complete, "progress": int(e.progress), "carry": int(e.carry),
+			"carry_resource": e.carry_resource, "source_resource": e.source_resource,
 			"job": e.job, "target_id": int(e.target_id), "cooldown": int(e.cooldown),
 			"path": path, "queue": queue}
 	game.rebuild_navigation()
@@ -132,14 +146,44 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_terminal_invalid")
 	if s.result != "" and int(s.terminal_tick) > int(s.tick):
 		return _bad("state_terminal_invalid")
-	if not s.get("factions") is Array or s.factions.size() != 2 or s.factions[0] not in [Skirmish.REGIOS, Skirmish.POBLANOS] or s.factions[1] == s.factions[0]:
+	if not s.get("factions") is Array or s.factions.size() != 2 or s.factions[0] not in [Skirmish.REGIOS, Skirmish.POBLANOS] or s.factions[1] not in [Skirmish.REGIOS, Skirmish.POBLANOS] or s.factions[1] == s.factions[0]:
 		return _bad("state_factions_invalid")
-	for key in ["stockpile", "sources"]:
-		if not s.get(key) is Array or s[key].size() != 2:
-			return _bad("state_" + key + "_invalid")
-		for n in s[key]:
-			if not _integer(n, 0):
-				return _bad("state_" + key + "_invalid")
+	if not s.get("balances") is Array or s.balances.size() != 2:
+		return _bad("state_balances_invalid")
+	if not s.get("resource_sources") is Array or s.resource_sources.size() != 2:
+		return _bad("state_resource_sources_invalid")
+	if not s.get("age_index") is Array or s.age_index.size() != 2:
+		return _bad("state_age_index_invalid")
+	if not s.get("researched") is Array or s.researched.size() != 2:
+		return _bad("state_researched_invalid")
+	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+		var balance: Variant = s.balances[side]
+		if not _keys_exact(balance, RESOURCE_IDS):
+			return _bad("state_balances_invalid")
+		for resource_id in RESOURCE_IDS:
+			if not _integer(balance[resource_id], 0):
+				return _bad("state_balances_invalid")
+		var source_set: Variant = s.resource_sources[side]
+		if not _keys_exact(source_set, RESOURCE_IDS):
+			return _bad("state_resource_sources_invalid")
+		for resource_id in RESOURCE_IDS:
+			var source: Variant = source_set[resource_id]
+			if not _keys_exact(source, ["amount", "refresh_remaining", "refreshes_left"]):
+				return _bad("state_resource_sources_invalid")
+			for field in ["amount", "refresh_remaining", "refreshes_left"]:
+				if not _integer(source[field], 0):
+					return _bad("state_resource_sources_invalid")
+			if int(source.refreshes_left) > int(content.resources[resource_id].refresh_count):
+				return _bad("state_resource_sources_invalid")
+		if not _integer(s.age_index[side], 0) or int(s.age_index[side]) >= content.ages.order.size():
+			return _bad("state_age_index_invalid")
+		if not s.researched[side] is Array or s.researched[side].size() > content.techs.size():
+			return _bad("state_researched_invalid")
+		var seen_techs: Dictionary = {}
+		for tech_id in s.researched[side]:
+			if not tech_id is String or tech_id not in content.techs or seen_techs.has(tech_id):
+				return _bad("state_researched_invalid")
+			seen_techs[tech_id] = true
 	if s.get("ai_next_role") not in ["melee", "ranged"] or not s.get("ai_enabled") is bool:
 		return _bad("state_ai_invalid")
 	if not s.get("entities") is Array or s.entities.size() > 10000:
@@ -161,6 +205,8 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 				return _bad("state_entity_" + key + "_invalid")
 		if not _integer(e.get("target_id"), -1) or not e.get("complete") is bool or e.get("job") not in JOBS:
 			return _bad("state_entity_job_invalid")
+		if not _resource_or_empty(e.get("carry_resource")) or not _resource_or_empty(e.get("source_resource")):
+			return _bad("state_entity_resource_invalid")
 		if not e.get("path") is Array or e.path.size() > int(content.map.width) * int(content.map.height):
 			return _bad("state_entity_path_invalid")
 		for p in e.path:
@@ -169,13 +215,23 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		if not e.get("queue") is Array or e.queue.size() > 3:
 			return _bad("state_entity_queue_invalid")
 		for order in e.queue:
-			if not order is Dictionary or order.get("role") not in content.units or not _integer(order.get("remaining"), 0):
+			if not _keys_exact(order, ["kind", "role", "remaining"]) or order.kind not in QUEUE_KINDS or not _integer(order.remaining, 0):
 				return _bad("state_entity_queue_invalid")
+			match order.kind:
+				"unit":
+					if order.role not in content.units:
+						return _bad("state_entity_queue_invalid")
+				"tech":
+					if order.role not in content.techs:
+						return _bad("state_entity_queue_invalid")
+				"age":
+					if order.role not in content.ages.transitions:
+						return _bad("state_entity_queue_invalid")
 	if int(s.next_id) <= last_id:
 		return _bad("state_next_id_invalid")
 	return {"ok": true}
 
-static func _validate_history(commands: Array, checkpoints: Array, state: Dictionary) -> bool:
+static func _validate_history(commands: Array, checkpoints: Array, state: Dictionary, content: Dictionary) -> bool:
 	if commands.size() > 200000 or checkpoints.size() > 200000 or int(state.next_command) != commands.size() + 1:
 		return false
 	var sequence := 0
@@ -185,7 +241,9 @@ static func _validate_history(commands: Array, checkpoints: Array, state: Dictio
 		sequence += 1
 		if not _integer(raw.get("sequence"), 1) or int(raw.sequence) != sequence or not _integer(raw.get("issued_tick"), 0) or int(raw.issued_tick) > int(state.tick):
 			return false
-		if raw.get("schema_version") != Skirmish.COMMAND_SCHEMA_VERSION or raw.get("kind") not in ["move", "gather", "build", "train", "attack"] or not _integer(raw.get("side"), 0) or int(raw.side) > 1 or not _integer(raw.get("actor_id"), 1):
+		if raw.get("schema_version") != Skirmish.COMMAND_SCHEMA_VERSION or not _integer(raw.get("side"), 0) or int(raw.side) > 1 or not _integer(raw.get("actor_id"), 1):
+			return false
+		if not _command_target(raw.get("kind"), raw.get("target"), content):
 			return false
 	var last_tick := -1
 	for cp in checkpoints:
@@ -195,6 +253,39 @@ static func _validate_history(commands: Array, checkpoints: Array, state: Dictio
 			return false
 		last_tick = int(cp.tick)
 	return true
+
+static func _command_target(kind: Variant, target: Variant, content: Dictionary) -> bool:
+	var width := int(content.map.width)
+	var height := int(content.map.height)
+	match kind:
+		"move", "gather":
+			return _point(target, width, height)
+		"build":
+			if _point(target, width, height):
+				return true
+			return _keys_exact(target, ["kind", "pos"]) and target.kind in content.buildings and target.kind != "command_post" and _point(target.pos, width, height)
+		"train":
+			return target is String and target in content.units
+		"research":
+			return target is String and target in content.techs
+		"advance":
+			return target is String and target in content.ages.transitions
+		"attack", "assist", "repair":
+			return _integer(target, 1)
+		"cancel":
+			return _integer(target, 0)
+	return false
+
+static func _keys_exact(value: Variant, expected: Array) -> bool:
+	if not value is Dictionary or value.size() != expected.size():
+		return false
+	for key in expected:
+		if not value.has(key):
+			return false
+	return true
+
+static func _resource_or_empty(value: Variant) -> bool:
+	return value is String and (value == "" or value in RESOURCE_IDS)
 
 static func _integer(v: Variant, minimum: int) -> bool:
 	return (v is int or v is float) and float(v) == float(int(v)) and int(v) >= minimum

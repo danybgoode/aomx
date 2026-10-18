@@ -8,6 +8,9 @@ const HUMAN := 0
 const COMPUTER := 1
 const REGIOS := "regios"
 const POBLANOS := "poblanos"
+const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
+const BUILDING_KINDS := ["command_post", "barracks", "depot", "housing", "registry"]
+const COMBAT_KINDS := ["melee", "ranged"]
 const DRAW_TICK := 9000
 const RESOURCE_POS := {HUMAN: Vector2i(6, 4), COMPUTER: Vector2i(13, 15)}
 const BARRACKS_POS := {HUMAN: Vector2i(5, 6), COMPUTER: Vector2i(13, 11)}
@@ -19,15 +22,15 @@ const RANGE := {"melee": 1, "ranged": 3}
 const COOLDOWN := {"melee": 10, "ranged": 14}
 const BUILD_TICKS := 40
 const CARRY_LIMIT := 4
-const AI_ATTACK_TICK := 800
-const AI_DISTRICT_TICK := 350
+const AI_ATTACK_TICK := 2600
+const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(9, 9)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 600
-const GAME_VERSION := "godot-4.7.2-skirmish-1"
-const CONTENT_VERSION := "la-roma-prototype-1"
-const COMMAND_SCHEMA_VERSION := 1
-const STATE_SCHEMA_VERSION := 1
+const GAME_VERSION := "godot-4.7.2-skirmish-2"
+const CONTENT_VERSION := "la-roma-strategy-2"
+const COMMAND_SCHEMA_VERSION := 2
+const STATE_SCHEMA_VERSION := 2
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
@@ -42,6 +45,11 @@ var hash_checkpoints: Array[Dictionary] = []
 var entities: Dictionary = {}
 var sources: Dictionary = {}
 var stockpile: Dictionary = {HUMAN: 0, COMPUTER: 0}
+var resource_sources: Dictionary = {}
+var source_tiles: Dictionary = {}
+var other_stockpiles: Dictionary = {}
+var age_index: Dictionary = {HUMAN: 0, COMPUTER: 0}
+var researched: Dictionary = {HUMAN: [], COMPUTER: []}
 var next_id := 1
 var tick_number := 0
 var result := ""
@@ -76,8 +84,16 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	rng_state = seed if seed != 0 else 1
 	initial_seed = rng_state
 	factions = {HUMAN: human_faction, COMPUTER: POBLANOS if human_faction == REGIOS else REGIOS}
-	sources = {HUMAN: {"pos": _point(content.map.resource_positions[HUMAN]), "amount": int(content.map.resource_amount)},
-		COMPUTER: {"pos": _point(content.map.resource_positions[COMPUTER]), "amount": int(content.map.resource_amount)}}
+	for side in [HUMAN, COMPUTER]:
+		resource_sources[side] = {}
+		other_stockpiles[side] = {"comida": 0, "materiales": 0, "terrenos": 0}
+		for resource_id in RESOURCE_IDS:
+			var rule: Dictionary = content.resources[resource_id]
+			var source_pos := _point(rule.source_positions[side])
+			source_tiles[source_pos] = true
+			resource_sources[side][resource_id] = {"pos": source_pos,
+				"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
+		sources[side] = resource_sources[side].varos
 	for side in [HUMAN, COMPUTER]:
 		_add_entity(side, "command_post", _point(content.map.command_posts[side]))
 		_add_entity(side, "worker", _point(content.map.workers[side]))
@@ -93,16 +109,23 @@ func issue_command(command: Dictionary) -> Dictionary:
 	if not _whole_number(command.side) or not _whole_number(command.actor_id) or not command.kind is String:
 		return {"ok": false, "reason": "command_type_invalid"}
 	var target: Variant = command.target
-	if command.kind in ["move", "gather", "build"]:
+	if command.kind in ["move", "gather"]:
 		if not target is Array or target.size() != 2 or not _whole_number(target[0]) or not _whole_number(target[1]):
 			return {"ok": false, "reason": "command_target_invalid"}
 		target = Vector2i(int(target[0]), int(target[1]))
-	elif command.kind == "attack":
+	elif command.kind == "build":
+		if target is Array and target.size() == 2 and _whole_number(target[0]) and _whole_number(target[1]):
+			target = Vector2i(int(target[0]), int(target[1]))
+		elif target is Dictionary and target.get("kind") is String and target.get("pos") is Array and target.pos.size() == 2 and _whole_number(target.pos[0]) and _whole_number(target.pos[1]):
+			target = {"kind": target.kind, "pos": Vector2i(int(target.pos[0]), int(target.pos[1]))}
+		else:
+			return {"ok": false, "reason": "command_target_invalid"}
+	elif command.kind in ["attack", "assist", "repair", "cancel"]:
 		if not _whole_number(target):
 			return {"ok": false, "reason": "command_target_invalid"}
 		target = int(target)
-	elif command.kind == "train":
-		if not target is String or target not in content.units:
+	elif command.kind in ["train", "research", "advance"]:
+		if not target is String:
 			return {"ok": false, "reason": "command_target_invalid"}
 	else:
 		return {"ok": false, "reason": "command_kind_invalid"}
@@ -119,7 +142,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 		return {"ok": false, "reason": "wrong_side_or_dead"}
 	match kind:
 		"move":
-			if actor.kind == "command_post" or actor.kind == "barracks" or not target is Vector2i or not _walkable(target):
+			if actor.kind in content.buildings or not target is Vector2i or not _walkable(target):
 				rejected.reason = "blocked_or_invalid_tile"
 			else:
 				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return tile == target)
@@ -130,57 +153,166 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 					actor.job = "move" if not route.is_empty() else "idle"
 					rejected = {"ok": true, "reason": "moving"}
 		"gather":
-			if actor.kind != "worker" or target != sources[side].pos or sources[side].amount <= 0:
+			var resource_id := _resource_at(side, target) if target is Vector2i else ""
+			if actor.kind != "worker" or resource_id.is_empty():
 				rejected.reason = "resource_unavailable"
 			else:
-				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance(tile, target) == 1)
-				if route.is_empty() and _distance(actor.pos, target) != 1:
-					rejected.reason = "resource_unreachable"
+				var source: Dictionary = resource_sources[side][resource_id]
+				if source.amount <= 0:
+					rejected.reason = "resource_depleted"
+				elif actor.carry > 0 and actor.carry_resource != resource_id:
+					rejected.reason = "deliver_current_cargo_first"
 				else:
-					actor.path = route
-					actor.job = "gather"
-					rejected = {"ok": true, "reason": "gathering"}
+					var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance(tile, target) == 1)
+					if route.is_empty() and _distance(actor.pos, target) != 1:
+						rejected.reason = "resource_unreachable"
+					else:
+						actor.path = route
+						actor.source_resource = resource_id
+						actor.job = "gather"
+						rejected = {"ok": true, "reason": "gathering"}
 		"build":
-			if actor.kind != "worker" or not target is Vector2i:
+			var building_kind := "barracks"
+			var at := Vector2i(-1, -1)
+			if target is Vector2i:
+				at = target
+			elif target is Dictionary and target.get("kind") is String and target.get("pos") is Vector2i:
+				building_kind = target.kind
+				at = target.pos
+			if actor.kind != "worker":
 				rejected.reason = "worker_required"
-			elif _find(side, "barracks") != -1:
-				rejected.reason = "only_one_recruitment_post"
-			elif stockpile[side] < _cost(side, "barracks"):
+			elif building_kind not in content.buildings or building_kind == "command_post":
+				rejected.reason = "building_unavailable"
+			elif not _age_allows(side, content.buildings[building_kind].min_age):
+				rejected.reason = "age_required"
+			elif not _can_pay(side, _costs(side, building_kind)):
 				rejected.reason = "insufficient_stockpile"
-			elif not _clear_footprint(target):
+			elif not _clear_footprint(at):
 				rejected.reason = "blocked_footprint"
 			else:
-				pending_footprint = target
-				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance_to_footprint(tile, target) == 1)
+				pending_footprint = at
+				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance_to_footprint(tile, at) == 1)
+				var workers_can_exit := _build_preserves_worker_routes(side)
 				pending_footprint = Vector2i(-1, -1)
-				if route.is_empty() and _distance_to_footprint(actor.pos, target) != 1:
+				if not workers_can_exit:
+					rejected.reason = "blocked_worker_route"
+				elif route.is_empty() and _distance_to_footprint(actor.pos, at) != 1:
 					rejected.reason = "building_unreachable"
 				else:
-					stockpile[side] -= _cost(side, "barracks")
-					var building_id := _add_entity(side, "barracks", target)
+					_pay(side, _costs(side, building_kind))
+					var building_id := _add_entity(side, building_kind, at)
 					entities[building_id].complete = false
 					entities[building_id].progress = 0
 					actor.path = route
 					actor.job = "build"
 					actor.target_id = building_id
 					rejected = {"ok": true, "reason": "construction_started"}
+		"assist":
+			if actor.kind != "worker" or not target is int or not entities.has(target) or entities[target].side != side or entities[target].kind not in content.buildings or entities[target].complete:
+				rejected.reason = "incomplete_friendly_building_required"
+			else:
+				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, entities[target]) == 1)
+				if route.is_empty() and _distance_to_entity(actor.pos, entities[target]) != 1:
+					rejected.reason = "building_unreachable"
+				else:
+					actor.path = route
+					actor.job = "build"
+					actor.target_id = target
+					rejected = {"ok": true, "reason": "assisting_construction"}
+		"repair":
+			if actor.kind != "worker" or not target is int or not entities.has(target) or entities[target].side != side or entities[target].kind not in content.buildings or not entities[target].complete:
+				rejected.reason = "complete_friendly_building_required"
+			elif entities[target].hp >= _starting_health(side, entities[target].kind):
+				rejected.reason = "building_undamaged"
+			elif balance(side, "materiales") < 1:
+				rejected.reason = "need_materiales"
+			else:
+				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, entities[target]) == 1)
+				if route.is_empty() and _distance_to_entity(actor.pos, entities[target]) != 1:
+					rejected.reason = "building_unreachable"
+				else:
+					actor.path = route
+					actor.job = "repair"
+					actor.target_id = target
+					rejected = {"ok": true, "reason": "repairing"}
 		"train":
-			if actor.kind not in ["command_post", "barracks"] or not target is String:
+			if actor.kind not in content.buildings or not target is String or target not in content.units:
 				rejected.reason = "production_building_required"
 			elif not actor.complete:
 				rejected.reason = "building_incomplete"
 			elif target not in content.buildings[actor.kind].trains:
 				rejected.reason = "role_unavailable"
-			elif stockpile[side] < _cost(side, target):
+			elif not _age_allows(side, content.units[target].min_age):
+				rejected.reason = "age_required"
+			elif _population_used(side) >= _population_cap(side):
+				rejected.reason = "population_cap"
+			elif not _can_pay(side, _costs(side, target)):
 				rejected.reason = "insufficient_stockpile"
 			elif actor.queue.size() >= 3:
 				rejected.reason = "queue_full"
 			else:
-				stockpile[side] -= _cost(side, target)
-				actor.queue.append({"role": target, "remaining": int(content.units[target].train_ticks)})
+				_pay(side, _costs(side, target))
+				actor.queue.append({"kind": "unit", "role": target, "remaining": int(content.units[target].train_ticks)})
 				rejected = {"ok": true, "reason": "training_queued"}
+		"research":
+			if actor.kind != "registry" or not actor.complete or not target is String or target not in content.techs:
+				rejected.reason = "registry_and_tech_required"
+			elif target in researched[side] or _queued(side, "tech", target):
+				rejected.reason = "already_researched_or_queued"
+			elif not _age_allows(side, content.techs[target].age):
+				rejected.reason = "age_required"
+			elif not _has_techs(side, content.techs[target].requires_techs):
+				rejected.reason = "tech_prerequisite_missing"
+			elif not _can_pay(side, content.techs[target].costs):
+				rejected.reason = "insufficient_stockpile"
+			elif actor.queue.size() >= 3:
+				rejected.reason = "queue_full"
+			else:
+				_pay(side, content.techs[target].costs)
+				actor.queue.append({"kind": "tech", "role": target, "remaining": int(content.techs[target].duration_ticks)})
+				rejected = {"ok": true, "reason": "research_queued"}
+		"advance":
+			var next_age := ""
+			if age_index[side] < content.ages.order.size() - 1:
+				next_age = content.ages.order[age_index[side] + 1]
+			if actor.kind != "command_post" or not actor.complete or target != next_age or next_age.is_empty():
+				rejected.reason = "next_age_required"
+			else:
+				var transition: Dictionary = content.ages.transitions[next_age]
+				if not _has_buildings(side, transition.requires_buildings):
+					rejected.reason = "building_prerequisite_missing"
+				elif not _has_techs(side, transition.requires_techs):
+					rejected.reason = "tech_prerequisite_missing"
+				elif _queued(side, "age", next_age):
+					rejected.reason = "age_already_queued"
+				elif not _can_pay(side, transition.costs):
+					rejected.reason = "insufficient_stockpile"
+				elif actor.queue.size() >= 3:
+					rejected.reason = "queue_full"
+				else:
+					_pay(side, transition.costs)
+					actor.queue.append({"kind": "age", "role": next_age, "remaining": int(transition.duration_ticks)})
+					rejected = {"ok": true, "reason": "age_queued"}
+		"cancel":
+			if actor.kind in content.buildings and actor.complete and target is int and target >= 0 and target < actor.queue.size():
+				var order: Dictionary = actor.queue[target]
+				_refund(side, _order_costs(side, order), 50 if target == 0 else 100)
+				actor.queue.remove_at(target)
+				rejected = {"ok": true, "reason": "queue_canceled"}
+			elif actor.kind == "worker" and target is int and entities.has(target) and entities[target].side == side and entities[target].kind in content.buildings and not entities[target].complete:
+				var canceled: Dictionary = entities[target]
+				_refund(side, _costs(side, canceled.kind), 50)
+				_release_building(canceled.pos)
+				entities.erase(target)
+				for worker in entities.values():
+					if worker.kind == "worker" and worker.target_id == target:
+						worker.job = "idle"
+						worker.target_id = -1
+				rejected = {"ok": true, "reason": "construction_canceled"}
+			else:
+				rejected.reason = "nothing_to_cancel"
 		"attack":
-			if actor.kind not in ["melee", "ranged"] or not target is int or not entities.has(target):
+			if actor.kind not in COMBAT_KINDS or not target is int or not entities.has(target):
 				rejected.reason = "combat_unit_and_target_required"
 			elif entities[target].side == side or entities[target].hp <= 0:
 				rejected.reason = "invalid_enemy_target"
@@ -208,6 +340,7 @@ func tick() -> void:
 	if result != "":
 		return
 	tick_number += 1
+	_tick_sources()
 	if ai_enabled and tick_number % int(content.ai.step_ticks) == 0:
 		_ai_step()
 	var damages: Dictionary = {}
@@ -219,19 +352,25 @@ func tick() -> void:
 		var entity: Dictionary = entities[id]
 		if entity.hp <= 0:
 			continue
-		if entity.kind in ["command_post", "barracks"]:
+		if entity.kind in content.buildings:
 			_tick_production(entity)
 			continue
 		if entity.cooldown > 0:
 			entity.cooldown -= 1
 		if not entity.path.is_empty():
 			if tick_number % 3 == 0:
-				entity.pos = entity.path.pop_front()
+				if _walkable(entity.path[0]):
+					entity.pos = entity.path.pop_front()
+				else:
+					_reroute_blocked(entity)
 			continue
+		if entity.kind == "worker" and entity.job == "idle" and entity.carry > 0:
+			_begin_delivery(entity)
 		match entity.job:
 			"gather": _tick_gather(entity)
 			"deliver": _tick_deliver(entity)
 			"build": _tick_build(entity)
+			"repair": _tick_repair(entity)
 			"attack": _tick_attack(entity, damages)
 			"move": entity.job = "idle"
 	var damage_ids: Array = damages.keys()
@@ -260,6 +399,34 @@ func tick() -> void:
 			_finish("draw", "time_limit")
 	if tick_number % 50 == 0 or result != "":
 		hash_checkpoints.append({"tick": tick_number, "hash": state_hash()})
+
+func _reroute_blocked(entity: Dictionary) -> void:
+	entity.path.clear()
+	match entity.job:
+		"gather":
+			if entity.source_resource in RESOURCE_IDS:
+				var source: Dictionary = resource_sources[entity.side][entity.source_resource]
+				if source.amount > 0:
+					entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
+					if not entity.path.is_empty() or _distance(entity.pos, source.pos) == 1:
+						return
+		"deliver":
+			_begin_delivery(entity)
+			return
+		"build", "repair":
+			if entities.has(entity.target_id):
+				var building: Dictionary = entities[entity.target_id]
+				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, building) == 1)
+				if not entity.path.is_empty() or _distance_to_entity(entity.pos, building) == 1:
+					return
+		"attack":
+			if entities.has(entity.target_id):
+				var target: Dictionary = entities[entity.target_id]
+				var reach := int(content.units[entity.kind].range)
+				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach)
+				if not entity.path.is_empty() or _distance_to_entity(entity.pos, target) <= reach:
+					return
+	entity.job = "idle"
 
 func _tick_district() -> void:
 	var present := {HUMAN: false, COMPUTER: false}
@@ -294,16 +461,31 @@ func snapshot() -> Dictionary:
 		var e: Dictionary = entities[id]
 		list.append({"id": id, "side": e.side, "kind": e.kind, "pos": [e.pos.x, e.pos.y],
 			"hp": e.hp, "complete": e.complete, "progress": e.progress, "carry": e.carry,
+			"carry_resource": e.carry_resource, "source_resource": e.source_resource,
 			"job": e.job, "target_id": e.target_id, "cooldown": e.cooldown,
 			"path": e.path.map(func(p: Vector2i) -> Array: return [p.x, p.y]), "queue": e.queue.duplicate(true)})
+	var balances: Array = []
+	var source_states: Array = []
+	for side in [HUMAN, COMPUTER]:
+		var side_balances := {}
+		var side_sources := {}
+		for resource_id in RESOURCE_IDS:
+			side_balances[resource_id] = balance(side, resource_id)
+			var source: Dictionary = resource_sources[side][resource_id]
+			side_sources[resource_id] = {"amount": source.amount,
+				"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
+		balances.append(side_balances)
+		source_states.append(side_sources)
 	return {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
 		"result_reason": result_reason, "district_side": district_side,
 		"district_progress": district_progress, "district_state": district_state,
 		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id,
 		"content_hash": content_hash, "rng_state": rng_state, "initial_seed": initial_seed,
 		"factions": [factions[HUMAN], factions[COMPUTER]],
-		"stockpile": [stockpile[HUMAN], stockpile[COMPUTER]],
-		"sources": [sources[HUMAN].amount, sources[COMPUTER].amount], "entities": list,
+		"balances": balances, "resource_sources": source_states,
+		"age_index": [age_index[HUMAN], age_index[COMPUTER]],
+		"researched": [researched[HUMAN].duplicate(), researched[COMPUTER].duplicate()],
+		"entities": list,
 		"next_id": next_id, "next_command": next_command, "ai_next_role": ai_next_role,
 		"ai_enabled": ai_enabled}
 
@@ -318,7 +500,8 @@ func _add_entity(side: int, kind: String, pos: Vector2i) -> int:
 	var id := next_id
 	next_id += 1
 	entities[id] = {"id": id, "side": side, "kind": kind, "pos": pos, "hp": _starting_health(side, kind),
-		"complete": true, "progress": 0, "carry": 0, "job": "idle", "path": [],
+		"complete": true, "progress": 0, "carry": 0, "carry_resource": "", "source_resource": "",
+		"job": "idle", "path": [],
 		"target_id": -1, "cooldown": 0, "queue": []}
 	if kind in content.buildings:
 		_occupy_building(pos)
@@ -350,34 +533,94 @@ func _find(side: int, kind: String) -> int:
 			return id
 	return -1
 
+func _tick_sources() -> void:
+	for side in [HUMAN, COMPUTER]:
+		for resource_id in RESOURCE_IDS:
+			var source: Dictionary = resource_sources[side][resource_id]
+			if source.amount > 0 or source.refreshes_left <= 0:
+				continue
+			if source.refresh_remaining <= 0:
+				source.refresh_remaining = int(content.resources[resource_id].refresh_ticks)
+			source.refresh_remaining -= 1
+			if source.refresh_remaining <= 0:
+				source.amount = int(content.resources[resource_id].refresh_amount)
+				source.refreshes_left -= 1
+
+func _resource_at(side: int, tile: Vector2i) -> String:
+	for resource_id in RESOURCE_IDS:
+		if resource_sources[side][resource_id].pos == tile:
+			return resource_id
+	return ""
+
+func _dropoff_for(side: int, resource_id: String, from: Vector2i) -> Dictionary:
+	var best_id := -1
+	var best_route: Array[Vector2i] = []
+	var ids: Array = entities.keys()
+	ids.sort()
+	for id in ids:
+		var building: Dictionary = entities[id]
+		if building.side != side or building.hp <= 0 or not building.complete:
+			continue
+		var valid: bool = building.kind in ["command_post", "registry"] if resource_id == "terrenos" else building.kind in ["command_post", "depot"]
+		if not valid:
+			continue
+		var route := _route_until(from, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, building) == 1)
+		if route.is_empty() and _distance_to_entity(from, building) != 1:
+			continue
+		if best_id == -1 or route.size() < best_route.size():
+			best_id = id
+			best_route = route
+	return {"id": best_id, "route": best_route}
+
+func _begin_delivery(e: Dictionary) -> void:
+	if e.carry <= 0 or e.carry_resource not in RESOURCE_IDS:
+		e.job = "idle"
+		return
+	var destination := _dropoff_for(e.side, e.carry_resource, e.pos)
+	if destination.id == -1:
+		e.job = "idle"
+		e.path = []
+		return
+	e.target_id = int(destination.id)
+	e.path = destination.route
+	e.job = "deliver"
+
 func _tick_gather(e: Dictionary) -> void:
-	var source: Dictionary = sources[e.side]
+	var resource_id: String = e.source_resource
+	if resource_id not in RESOURCE_IDS:
+		e.job = "idle"
+		return
+	var source: Dictionary = resource_sources[e.side][resource_id]
 	if _distance(e.pos, source.pos) != 1:
 		e.job = "idle"
 	elif source.amount > 0 and e.carry < _carry_limit(e.side):
 		if tick_number % 3 == 0:
 			source.amount -= 1
 			e.carry += 1
+			e.carry_resource = resource_id
 	elif e.carry > 0:
-		var post_id := _find(e.side, "command_post")
-		if post_id == -1:
-			e.job = "idle"
-		else:
-			e.path = _route_until(e.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, entities[post_id]) == 1)
-			e.job = "deliver"
+		_begin_delivery(e)
 	else:
 		e.job = "idle"
 
 func _tick_deliver(e: Dictionary) -> void:
-	var post_id := _find(e.side, "command_post")
-	if post_id == -1 or _distance_to_entity(e.pos, entities[post_id]) != 1:
+	var destination := _dropoff_for(e.side, e.carry_resource, e.pos)
+	if destination.id == -1:
 		e.job = "idle"
+		e.path = []
 		return
-	stockpile[e.side] += e.carry
+	if _distance_to_entity(e.pos, entities[destination.id]) != 1:
+		e.path = destination.route
+		e.target_id = int(destination.id)
+		return
+	_add_balance(e.side, e.carry_resource, e.carry)
 	e.carry = 0
-	if sources[e.side].amount > 0:
-		e.path = _route_until(e.pos, func(tile: Vector2i) -> bool: return _distance(tile, sources[e.side].pos) == 1)
-		e.job = "gather"
+	e.carry_resource = ""
+	e.target_id = -1
+	if e.source_resource in RESOURCE_IDS and resource_sources[e.side][e.source_resource].amount > 0:
+		var source: Dictionary = resource_sources[e.side][e.source_resource]
+		e.path = _route_until(e.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
+		e.job = "gather" if not e.path.is_empty() or _distance(e.pos, source.pos) == 1 else "idle"
 	else:
 		e.job = "idle"
 
@@ -386,15 +629,35 @@ func _tick_build(e: Dictionary) -> void:
 		e.job = "idle"
 		return
 	var building: Dictionary = entities[e.target_id]
+	if building.complete:
+		e.job = "idle"
+		return
 	if _distance_to_entity(e.pos, building) != 1:
 		e.job = "idle"
 		return
-	building.progress += 1
-	if building.progress >= int(content.buildings.barracks.build_ticks):
+	building.progress += _construction_rate(e.side)
+	if building.progress >= int(content.buildings[building.kind].build_ticks):
 		building.complete = true
+		building.progress = int(content.buildings[building.kind].build_ticks)
 		e.job = "idle"
 		if e.side == HUMAN:
-			feedback = "Recruitment post complete."
+			feedback = "%s complete." % building.kind.replace("_", " ").capitalize()
+
+func _tick_repair(e: Dictionary) -> void:
+	if not entities.has(e.target_id):
+		e.job = "idle"
+		return
+	var building: Dictionary = entities[e.target_id]
+	if building.hp <= 0 or not building.complete or _distance_to_entity(e.pos, building) != 1:
+		e.job = "idle"
+		return
+	var maximum := _starting_health(e.side, building.kind)
+	if building.hp >= maximum or balance(e.side, "materiales") <= 0:
+		e.job = "idle"
+		return
+	if tick_number % 5 == 0:
+		_add_balance(e.side, "materiales", -1)
+		building.hp = mini(maximum, building.hp + 2 * _construction_rate(e.side))
 
 func _tick_production(e: Dictionary) -> void:
 	if not e.complete or e.queue.is_empty():
@@ -403,11 +666,24 @@ func _tick_production(e: Dictionary) -> void:
 	if order.remaining > 0:
 		order.remaining -= 1
 		return
-	for tile in _perimeter(e.pos):
-		if _walkable(tile) and _unit_at(tile) == -1:
-			_add_entity(e.side, order.role, tile)
+	match order.kind:
+		"unit":
+			if _population_alive(e.side) >= _population_cap(e.side):
+				return
+			for tile in _perimeter(e.pos):
+				if _walkable(tile) and _unit_at(tile) == -1:
+					_add_entity(e.side, order.role, tile)
+					e.queue.pop_front()
+					return
+		"tech":
+			if order.role not in researched[e.side]:
+				researched[e.side].append(order.role)
+				researched[e.side].sort()
 			e.queue.pop_front()
-			return
+		"age":
+			if age_index[e.side] + 1 < content.ages.order.size() and content.ages.order[age_index[e.side] + 1] == order.role:
+				age_index[e.side] += 1
+			e.queue.pop_front()
 
 func _tick_attack(e: Dictionary, damages: Dictionary) -> void:
 	if not entities.has(e.target_id) or entities[e.target_id].hp <= 0:
@@ -420,42 +696,161 @@ func _tick_attack(e: Dictionary, damages: Dictionary) -> void:
 			e.job = "idle"
 		return
 	if e.cooldown == 0:
-		damages[e.target_id] = damages.get(e.target_id, 0) + int(content.units[e.kind].damage)
+		damages[e.target_id] = damages.get(e.target_id, 0) + _unit_damage(e.side, e.kind)
 		e.cooldown = int(content.units[e.kind].cooldown_ticks)
 
+func _ai_goal() -> Dictionary:
+	var side := COMPUTER
+	var workers := 0
+	for entity in entities.values():
+		if entity.side == side and entity.hp > 0 and entity.kind == "worker":
+			workers += 1
+	if workers + _count_queued_role(side, "worker") < 3:
+		return {"kind": "train", "id": "worker", "costs": _costs(side, "worker")}
+	for building_kind in ["housing", "depot", "barracks"]:
+		var building_id := _find(side, building_kind)
+		if building_id == -1:
+			return {"kind": "build", "id": building_kind, "costs": _costs(side, building_kind)}
+		if not entities[building_id].complete:
+			return {"kind": "wait", "id": building_id, "costs": {}}
+	var barracks_id := _find(side, "barracks")
+	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _count_queued_role(side, "melee") + _count_queued_role(side, "ranged") < 2:
+		var role := ai_next_role
+		return {"kind": "train", "id": role, "costs": _costs(side, role)}
+	if age_index[side] == 0 and not _queued(side, "age", "universitaria"):
+		return {"kind": "advance", "id": "universitaria", "costs": content.ages.transitions.universitaria.costs}
+	if age_index[side] >= 1:
+		var registry_id := _find(side, "registry")
+		if registry_id == -1:
+			return {"kind": "build", "id": "registry", "costs": _costs(side, "registry")}
+		if not entities[registry_id].complete:
+			return {"kind": "wait", "id": registry_id, "costs": {}}
+	if age_index[side] >= 1 and "carry_capacity_i" not in researched[side] and not _queued(side, "tech", "carry_capacity_i"):
+		return {"kind": "research", "id": "carry_capacity_i", "costs": content.techs.carry_capacity_i.costs}
+	if age_index[side] == 1 and not _queued(side, "age", "godin"):
+		return {"kind": "advance", "id": "godin", "costs": content.ages.transitions.godin.costs}
+	if age_index[side] >= 2 and "construction_rate_i" not in researched[side] and not _queued(side, "tech", "construction_rate_i"):
+		return {"kind": "research", "id": "construction_rate_i", "costs": content.techs.construction_rate_i.costs}
+	if age_index[side] == 2 and not _queued(side, "age", "gentrificacion"):
+		return {"kind": "advance", "id": "gentrificacion", "costs": content.ages.transitions.gentrificacion.costs}
+	if age_index[side] >= 3 and "combat_training_i" not in researched[side] and not _queued(side, "tech", "combat_training_i"):
+		return {"kind": "research", "id": "combat_training_i", "costs": content.techs.combat_training_i.costs}
+	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _count_queued_role(side, "melee") + _count_queued_role(side, "ranged") < int(content.ai.army_cap):
+		var role := ai_next_role
+		return {"kind": "train", "id": role, "costs": _costs(side, role)}
+	return {}
+
+func _count_fighters(side: int) -> int:
+	var count := 0
+	for entity in entities.values():
+		if entity.side == side and entity.hp > 0 and entity.kind in COMBAT_KINDS:
+			count += 1
+	return count
+
+func _count_queued_role(side: int, role: String) -> int:
+	var count := 0
+	for entity in entities.values():
+		if entity.side == side and entity.kind in content.buildings:
+			for order in entity.queue:
+				if order.kind == "unit" and order.role == role:
+					count += 1
+	return count
+
+func _ai_shortage(costs: Dictionary) -> String:
+	var resource_id := "varos"
+	var shortage := -1
+	for id in RESOURCE_IDS:
+		var missing: int = maxi(0, int(costs.get(id, 0)) - balance(COMPUTER, id))
+		if missing > shortage:
+			shortage = missing
+			resource_id = id
+	return resource_id
+
+func _ai_build(kind: String) -> bool:
+	var worker_ids: Array = []
+	for id in entities:
+		if entities[id].side == COMPUTER and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].job not in ["build", "repair"]:
+			worker_ids.append(id)
+	if worker_ids.is_empty():
+		return false
+	var preferred := _point(content.map.barracks_positions[COMPUTER])
+	if kind == "barracks":
+		for worker_id in worker_ids:
+			if issue(COMPUTER, "build", worker_id, {"kind": kind, "pos": preferred}).ok:
+				return true
+	var post: Dictionary = entities[_find(COMPUTER, "command_post")]
+	for radius in range(1, 15):
+		for y in range(1, map_height - 1):
+			for x in range(1, map_width - 1):
+				var at := Vector2i(x, y)
+				if _distance(at, post.pos) != radius or not _clear_footprint(at):
+					continue
+				for worker_id in worker_ids:
+					if issue(COMPUTER, "build", worker_id, {"kind": kind, "pos": at}).ok:
+						return true
+	return false
+
 func _ai_step() -> void:
-	var worker_id := _find(COMPUTER, "worker")
-	if worker_id != -1 and entities[worker_id].job == "idle" and sources[COMPUTER].amount > 0:
-		issue(COMPUTER, "gather", worker_id, sources[COMPUTER].pos)
-	var barracks_id := _find(COMPUTER, "barracks")
-	if barracks_id == -1 and worker_id != -1 and stockpile[COMPUTER] >= _cost(COMPUTER, "barracks"):
-		issue(COMPUTER, "build", worker_id, _point(content.map.barracks_positions[COMPUTER]))
-		barracks_id = _find(COMPUTER, "barracks")
-	if barracks_id != -1 and entities[barracks_id].complete and stockpile[COMPUTER] >= _cost(COMPUTER, ai_next_role) and _count_units(COMPUTER) + entities[barracks_id].queue.size() < int(content.ai.army_cap):
-		if issue(COMPUTER, "train", barracks_id, ai_next_role).ok:
-			ai_next_role = "ranged" if ai_next_role == "melee" else "melee"
-	if tick_number < int(content.ai.district_tick):
-		return
-	var human_post := _find(HUMAN, "command_post")
-	var human_district := -1
+	var side := COMPUTER
+	var goal := _ai_goal()
+	if not goal.is_empty() and _can_pay(side, goal.costs):
+		var actor_id := -1
+		match goal.kind:
+			"build":
+				_ai_build(goal.id)
+			"wait":
+				for id in entities:
+					var worker: Dictionary = entities[id]
+					if worker.side == side and worker.kind == "worker" and worker.hp > 0 and worker.carry == 0 and worker.job in ["idle", "gather"]:
+						issue(side, "assist", id, goal.id)
+			"train":
+				actor_id = _find(side, "command_post" if goal.id == "worker" else "barracks")
+				if actor_id != -1 and issue(side, "train", actor_id, goal.id).ok and goal.id in COMBAT_KINDS:
+					ai_next_role = "ranged" if goal.id == "melee" else "melee"
+			"research":
+				actor_id = _find(side, "registry")
+				if actor_id != -1:
+					issue(side, "research", actor_id, goal.id)
+			"advance":
+				actor_id = _find(side, "command_post")
+				if actor_id != -1:
+					issue(side, "advance", actor_id, goal.id)
+	goal = _ai_goal()
+	var resource_id: String = _ai_shortage(goal.costs) if not goal.is_empty() else str(RESOURCE_IDS[int(tick_number / int(content.ai.step_ticks)) % RESOURCE_IDS.size()])
 	var ids: Array = entities.keys()
 	ids.sort()
 	for id in ids:
-		if entities.has(id) and entities[id].side == HUMAN and entities[id].hp > 0 and entities[id].kind in ["melee", "ranged"] and _in_district(entities[id].pos):
+		if not entities.has(id):
+			continue
+		var worker: Dictionary = entities[id]
+		if worker.side != side or worker.kind != "worker" or worker.hp <= 0:
+			continue
+		if worker.carry > 0:
+			continue
+		if worker.job == "idle" or (worker.job == "gather" and worker.source_resource != resource_id):
+			var source: Dictionary = resource_sources[side][resource_id]
+			if source.amount > 0:
+				issue(side, "gather", id, source.pos)
+	if tick_number < int(content.ai.district_tick) or age_index[side] < 3:
+		return
+	var human_post := _find(HUMAN, "command_post")
+	var human_district := -1
+	for id in ids:
+		if entities.has(id) and entities[id].side == HUMAN and entities[id].hp > 0 and entities[id].kind in COMBAT_KINDS and _in_district(entities[id].pos):
 			human_district = id
 			break
 	for id in ids:
-		if not entities.has(id) or entities[id].side != COMPUTER or entities[id].kind not in ["melee", "ranged"]:
+		if not entities.has(id) or entities[id].side != side or entities[id].kind not in COMBAT_KINDS:
 			continue
 		var unit: Dictionary = entities[id]
 		if human_district != -1:
 			if unit.job != "attack" or unit.target_id != human_district:
-				issue(COMPUTER, "attack", id, human_district)
+				issue(side, "attack", id, human_district)
 		elif unit.kind == "melee" and tick_number >= int(content.ai.attack_tick) and human_post != -1:
 			if (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)) and unit.job in ["idle", "move"]:
-				issue(COMPUTER, "attack", id, human_post)
+				issue(side, "attack", id, human_post)
 		elif unit.job == "idle" and not _in_district(unit.pos):
-			issue(COMPUTER, "move", id, _point(content.map.ai_district_target))
+			issue(side, "move", id, _point(content.map.ai_district_target))
 
 func _other_computer_fighter_in_district(except_id: int) -> bool:
 	for id in entities:
@@ -470,12 +865,109 @@ func _count_units(side: int) -> int:
 			count += 1
 	return count
 
+func balance(side: int, resource_id: String) -> int:
+	if resource_id == "varos":
+		return int(stockpile[side])
+	return int(other_stockpiles[side].get(resource_id, 0))
+
+func _add_balance(side: int, resource_id: String, amount: int) -> void:
+	if resource_id == "varos":
+		stockpile[side] = int(stockpile[side]) + amount
+	else:
+		other_stockpiles[side][resource_id] = balance(side, resource_id) + amount
+
+func _costs(side: int, kind: String) -> Dictionary:
+	var rule: Dictionary = content.units[kind] if kind in content.units else content.buildings[kind]
+	var costs: Dictionary = rule.costs.duplicate(true)
+	if kind in COMBAT_KINDS:
+		costs.varos = int(costs.varos) + int(content.factions[factions[side]].combat_cost_extra)
+	return costs
+
+func _can_pay(side: int, costs: Dictionary) -> bool:
+	for resource_id in RESOURCE_IDS:
+		if balance(side, resource_id) < int(costs.get(resource_id, 0)):
+			return false
+	return true
+
+func _pay(side: int, costs: Dictionary) -> void:
+	assert(_can_pay(side, costs))
+	for resource_id in RESOURCE_IDS:
+		_add_balance(side, resource_id, -int(costs.get(resource_id, 0)))
+
+func _refund(side: int, costs: Dictionary, percent: int) -> void:
+	for resource_id in RESOURCE_IDS:
+		_add_balance(side, resource_id, int(costs.get(resource_id, 0)) * percent / 100)
+
+func _order_costs(side: int, order: Dictionary) -> Dictionary:
+	match order.kind:
+		"unit": return _costs(side, order.role)
+		"tech": return content.techs[order.role].costs
+		"age": return content.ages.transitions[order.role].costs
+	return {}
+
+func _age_allows(side: int, age_id: String) -> bool:
+	var needed: int = content.ages.order.find(age_id)
+	return needed >= 0 and age_index[side] >= needed
+
+func _has_buildings(side: int, building_ids: Array) -> bool:
+	for kind in building_ids:
+		var found := false
+		for entity in entities.values():
+			if entity.side == side and entity.kind == kind and entity.hp > 0 and entity.complete:
+				found = true
+				break
+		if not found:
+			return false
+	return true
+
+func _has_techs(side: int, tech_ids: Array) -> bool:
+	for tech_id in tech_ids:
+		if tech_id not in researched[side]:
+			return false
+	return true
+
+func _queued(side: int, kind: String, role: String) -> bool:
+	for entity in entities.values():
+		if entity.side == side and entity.kind in content.buildings:
+			for order in entity.queue:
+				if order.kind == kind and order.role == role:
+					return true
+	return false
+
+func _population_alive(side: int) -> int:
+	var count := 0
+	for entity in entities.values():
+		if entity.side == side and entity.hp > 0 and entity.kind in content.units:
+			count += 1
+	return count
+
+func _population_used(side: int) -> int:
+	var count := _population_alive(side)
+	for entity in entities.values():
+		if entity.side == side and entity.kind in content.buildings:
+			for order in entity.queue:
+				if order.kind == "unit":
+					count += 1
+	return count
+
+func _population_cap(side: int) -> int:
+	var cap: int = int(content.population.base_cap)
+	for entity in entities.values():
+		if entity.side == side and entity.kind == "housing" and entity.hp > 0 and entity.complete:
+			cap += int(content.population.housing_bonus)
+	return mini(cap, int(content.population.max_cap))
+
+func _construction_rate(side: int) -> int:
+	return 1 + (int(content.techs.construction_rate_i.effect.amount) if "construction_rate_i" in researched[side] else 0)
+
+func _unit_damage(side: int, kind: String) -> int:
+	return int(content.units[kind].damage) + (int(content.techs.combat_training_i.effect.amount) if "combat_training_i" in researched[side] else 0)
+
 func _cost(side: int, kind: String) -> int:
-	var base: int = int(content.units[kind].cost) if kind in content.units else int(content.buildings[kind].cost)
-	return base + (int(content.factions[factions[side]].combat_cost_extra) if kind in ["melee", "ranged"] else 0)
+	return int(_costs(side, kind).varos)
 
 func _carry_limit(side: int) -> int:
-	return int(content.factions[factions[side]].carry_limit)
+	return int(content.factions[factions[side]].carry_limit) + (int(content.techs.carry_capacity_i.effect.amount) if "carry_capacity_i" in researched[side] else 0)
 
 func _starting_health(side: int, kind: String) -> int:
 	if kind in content.buildings:
@@ -494,6 +986,8 @@ func _finish(outcome: String, reason: String) -> void:
 func _log_target(target: Variant) -> Variant:
 	if target is Vector2i:
 		return [target.x, target.y]
+	if target is Dictionary and target.get("pos") is Vector2i:
+		return {"kind": target.kind, "pos": [target.pos.x, target.pos.y]}
 	return target
 
 func _point(pair: Array) -> Vector2i:
@@ -522,9 +1016,8 @@ func _walkable(tile: Vector2i) -> bool:
 		return false
 	if pending_footprint.x >= 0 and _contains(pending_footprint, tile):
 		return false
-	for source in sources.values():
-		if tile == source.pos:
-			return false
+	if source_tiles.has(tile):
+		return false
 	if building_tiles.has(tile):
 		return false
 	return true
@@ -533,6 +1026,21 @@ func _clear_footprint(at: Vector2i) -> bool:
 	for offset in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i(1, 1)]:
 		var tile: Vector2i = at + offset
 		if _in_district(tile) or not _walkable(tile) or _unit_at(tile) != -1:
+			return false
+	return true
+
+func _build_preserves_worker_routes(side: int) -> bool:
+	var post_id := _find(side, "command_post")
+	if post_id == -1:
+		return false
+	var post: Dictionary = entities[post_id]
+	for worker in entities.values():
+		if worker.side != side or worker.kind != "worker" or worker.hp <= 0:
+			continue
+		if _distance_to_entity(worker.pos, post) == 1:
+			continue
+		var route := _route_until(worker.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, post) == 1)
+		if route.is_empty():
 			return false
 	return true
 
@@ -549,7 +1057,7 @@ func _distance_to_footprint(tile: Vector2i, at: Vector2i) -> int:
 	return nearest
 
 func _distance_to_entity(tile: Vector2i, e: Dictionary) -> int:
-	return _distance_to_footprint(tile, e.pos) if e.kind in ["command_post", "barracks"] else _distance(tile, e.pos)
+	return _distance_to_footprint(tile, e.pos) if e.kind in content.buildings else _distance(tile, e.pos)
 
 func _unit_at(tile: Vector2i) -> int:
 	for id in entities:
@@ -564,7 +1072,7 @@ func entity_at(tile: Vector2i) -> int:
 		return unit_id
 	for id in entities:
 		var e: Dictionary = entities[id]
-		if e.hp > 0 and e.kind in ["command_post", "barracks"] and _contains(e.pos, tile):
+		if e.hp > 0 and e.kind in content.buildings and _contains(e.pos, tile):
 			return id
 	return -1
 

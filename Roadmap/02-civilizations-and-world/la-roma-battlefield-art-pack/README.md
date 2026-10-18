@@ -31,7 +31,7 @@ adopted_event: null
 retained_event: null
 retention_days: null
 satisfied_event: null
-build_order: 6
+build_order: 7
 ---
 
 # Epic: La Roma battlefield art pack v0.1

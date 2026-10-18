@@ -8,7 +8,7 @@ appetite: L
 underwritten_by: wave-2026-10
 risk: low
 epic: "02-civilizations-and-world/la-roma-battlefield-art-pack"
-build_order: 6
+build_order: 7
 updated: 2026-10-16
 intent_ask: verbatim
 hypothesis: "We believe original, readable CDMX battlefield art will help classic RTS players understand and enjoy the current La Roma match because primitives hide its setting and state. We'll know from blind comprehension checks now and first-match completion after an observed cohort."

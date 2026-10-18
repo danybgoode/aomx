@@ -20,12 +20,16 @@ func _initialize() -> void:
 			check(game.entities[barracks].hp == expected_barracks,
 				"recruitment post health follows faction on either side")
 			game.stockpile[side] = 20
+			game._add_balance(side, "comida", 20)
+			game._add_balance(side, "materiales", 20)
 			var melee_cost := 4 if game.factions[side] == Skirmish.REGIOS else 3
 			var ranged_cost := 5 if game.factions[side] == Skirmish.REGIOS else 4
-			check(game.issue(side, "train", barracks, "melee").ok and game.stockpile[side] == 20 - melee_cost,
-				"melee cost charged for selected faction")
-			check(game.issue(side, "train", barracks, "ranged").ok and game.stockpile[side] == 20 - melee_cost - ranged_cost,
-				"ranged cost charged for selected faction")
+			check(game.issue(side, "train", barracks, "melee").ok and game.stockpile[side] == 20 - melee_cost
+				and game.balance(side, "comida") == 18 and game.balance(side, "materiales") == 18,
+				"melee costs four resources with the faction Varos surcharge")
+			check(game.issue(side, "train", barracks, "ranged").ok and game.stockpile[side] == 20 - melee_cost - ranged_cost
+				and game.balance(side, "comida") == 16 and game.balance(side, "materiales") == 16,
+				"ranged costs four resources with the faction Varos surcharge")
 		var replay_a = Skirmish.new(human_faction)
 		var replay_b = Skirmish.new(human_faction)
 		for copy in [replay_a, replay_b]:
