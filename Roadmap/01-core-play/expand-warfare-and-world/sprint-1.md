@@ -59,3 +59,5 @@ Environment: the signed Restricted macOS preview; record its actual build ID and
 5. Save, quit, resume and revisit the crossing. → Visibility and positions resume consistently; no second match start is emitted.
 
 Record each step's result and failure by number. The owner checks the downloaded build; headless assertions alone do not close this sprint.
+
+**2026-10-18 checkpoint:** `preview-c5e705309257` was signed and uploaded to the Restricted channel as build #2157380; it is processing. Local rendered fog/crowd captures and deterministic checks passed. Downloaded-app steps 1–5 are pending owner execution and must be recorded individually before this sprint closes.

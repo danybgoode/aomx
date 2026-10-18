@@ -59,3 +59,5 @@ Environment: the signed Restricted macOS preview; record its actual build ID and
 5. Save during an assault, quit and resume. → Combat continues consistently without a duplicate terminal event.
 
 Record each step's result. The owner checks the downloaded build.
+
+**2026-10-18 checkpoint:** controlled counter, siege, projectile and save/replay checks passed; local rendered assault evidence is in the [QA record](../../../docs/warfare-qa-2026-10-18.md). `preview-c5e705309257` is processing on the Restricted channel as build #2157380. Downloaded-app steps 1–5 remain pending owner execution.
