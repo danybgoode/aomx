@@ -15,6 +15,10 @@ const ZOOM_MIN := 0.7
 const ZOOM_MAX := 2.1
 const ZOOM_STEP := 0.1
 const UNIT_ART_SCALE := 0.75
+const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
+const BUILD_CHOICES := ["depot", "housing", "registry", "barracks"]
+const RESOURCE_COLORS := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
+const AGE_NAMES := {"foranea": "Foránea", "universitaria": "Universitaria", "godin": "Godín", "gentrificacion": "Gentrificación"}
 
 var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
@@ -35,8 +39,9 @@ var drag_start := Vector2.ZERO
 var drag_current := Vector2.ZERO
 var drag_active := false
 var hovered_entity_id := -1
-var hovered_source_side := -1
+var hovered_source_id := ""
 var placing := false
+var build_kind := "barracks"
 var target_mode := ""
 var marker := Vector2i(-1, -1)
 var board_zoom := 1.1
@@ -182,7 +187,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_goal.add_theme_font_size_override("font_size", 18)
 	column.add_child(setup_goal)
 	var regios := Button.new()
-	regios.text = "Regios — workers deliver 5 gold; combat units cost +1 gold"
+	regios.text = "Regios — workers carry 5; fighters cost +1 Varos"
 	regios.custom_minimum_size.y = 72
 	regios.add_theme_font_size_override("font_size", 20)
 	regios.pressed.connect(_choose_faction.bind(Skirmish.REGIOS))
@@ -191,7 +196,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	column.add_child(regios)
 	setup_regios = regios
 	var poblanos := Button.new()
-	poblanos.text = "Poblanos — posts +20% HP; workers carry 4 gold; standard fighter costs"
+	poblanos.text = "Poblanos — buildings +20% HP; workers carry 4"
 	poblanos.custom_minimum_size.y = 72
 	poblanos.add_theme_font_size_override("font_size", 20)
 	poblanos.pressed.connect(_choose_faction.bind(Skirmish.POBLANOS))
@@ -224,8 +229,8 @@ func _layout_setup() -> void:
 	setup_goal.text = "Destroy enemy post or hold La Roma for 60s." if mobile and not landscape else ("Destroy the enemy post or hold La Roma for 60 seconds." if mobile else "Win by destroying the opposing command post or holding La Roma for 60 seconds.")
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_regios.text = ("REGIOS  •  +5 gold deliveries" if not landscape else "REGIOS  •  workers deliver 5 gold; fighters cost +1") if mobile else "Regios — workers deliver 5 gold; combat units cost +1 gold"
-	setup_poblanos.text = ("POBLANOS  •  tougher posts" if not landscape else "POBLANOS  •  tougher posts; workers carry 4 gold") if mobile else "Poblanos — posts +20% HP; workers carry 4 gold; standard fighter costs"
+	setup_regios.text = ("REGIOS  •  carry 5" if not landscape else "REGIOS  •  carry 5; fighters cost +1 Varos") if mobile else "Regios — workers carry 5; fighters cost +1 Varos"
+	setup_poblanos.text = ("POBLANOS  •  tougher buildings" if not landscape else "POBLANOS  •  tougher buildings; carry 4") if mobile else "Poblanos — buildings +20% HP; workers carry 4"
 	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
 	for b in [setup_regios, setup_poblanos, setup_resume]:
 		b.custom_minimum_size.y = 50 if mobile and landscape else (65 if mobile else 72)
@@ -252,7 +257,7 @@ func _show_setup() -> void:
 	last_group_signature = ""
 	last_ui_signature = ""
 	hovered_entity_id = -1
-	hovered_source_side = -1
+	hovered_source_id = ""
 	placing = false
 	target_mode = ""
 	prior_unit_positions.clear()
@@ -307,7 +312,7 @@ func _resume_match() -> void:
 	outbox.faction = sim.factions[Skirmish.HUMAN]
 	choosing_faction = false
 	setup_panel.hide()
-	instructions.text = "Click to select · Right-click to order · B build · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
+	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
 	paused = false
 	hud_ui.pause_button.text = "II"
 	hud_ui.diagnostics.hide()
@@ -317,7 +322,7 @@ func _resume_match() -> void:
 	last_group_signature = ""
 	last_ui_signature = ""
 	hovered_entity_id = -1
-	hovered_source_side = -1
+	hovered_source_id = ""
 	placing = false
 	target_mode = ""
 	prior_unit_positions.clear()
@@ -349,7 +354,7 @@ func _start_match(faction: String) -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	instructions.text = "Click to select · Right-click to order · B build · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
+	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
 	selected_id = -1
@@ -357,7 +362,7 @@ func _start_match(faction: String) -> void:
 	last_group_signature = ""
 	last_ui_signature = ""
 	hovered_entity_id = -1
-	hovered_source_side = -1
+	hovered_source_id = ""
 	placing = false
 	target_mode = ""
 	prior_unit_positions.clear()
@@ -418,6 +423,7 @@ func _process(delta: float) -> void:
 			selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
 			target_mode = ""
 			placing = false
+			hud_ui.choice_panel.hide()
 		_observe_events()
 		_update_unit_facing()
 		_update_hud()
@@ -433,7 +439,7 @@ func _observe_events() -> void:
 			if entity.kind in ["worker", "melee", "ranged"]:
 				hud_ui.show_notice("%s ready" % entity.kind.capitalize())
 		elif not last_event_entities[id].complete and entity.complete:
-			hud_ui.show_notice("Recruitment post complete")
+			hud_ui.show_notice("%s complete" % entity.kind.replace("_", " ").capitalize())
 		elif entity.hp < last_event_entities[id].hp and sim.tick_number - last_attack_notice_tick > 50:
 			hud_ui.show_notice("Unit under attack", true)
 			last_attack_notice_tick = sim.tick_number
@@ -489,6 +495,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_ESCAPE:
 				placing = false
 				target_mode = ""
+				hud_ui.choice_panel.hide()
 				sim.feedback = "Order canceled."
 			KEY_1:
 				_train("worker")
@@ -554,9 +561,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			var target_id: int = _pick_visual_entity(event.position, Skirmish.COMPUTER)
 			if target_id == -1:
 				target_id = sim.entity_at(tile)
-			var gold_tile: Vector2i = sim.sources[Skirmish.HUMAN].pos
-			if _command_state("gather").visible and (_pick_visual_source(event.position) == Skirmish.HUMAN or tile == gold_tile):
-				_issue_order("gather", gold_tile, gold_tile)
+			var source_id := _source_at(event.position, tile)
+			if _command_state("gather").visible and not source_id.is_empty():
+				_issue_order("gather", _source(source_id).pos, _source(source_id).pos)
+			elif selected.kind == "worker" and target_id != -1 and sim.entities[target_id].side == Skirmish.HUMAN and sim.entities[target_id].kind in sim.content.buildings:
+				_issue_order("assist" if not sim.entities[target_id].complete else "repair", target_id, sim.entities[target_id].pos)
 			elif _command_state("attack").visible and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER:
 				_issue_order("attack", target_id, sim.entities[target_id].pos)
 			elif _command_state("move").visible:
@@ -621,12 +630,17 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 	if result.ok:
 		match kind:
 			"move": return "Moving here."
-			"gather": return "Gathering gold."
-			"build": return "Building a recruitment post."
+			"gather": return "Gathering resource."
+			"build": return "Building %s." % str(target.kind).replace("_", " ")
+			"repair": return "Repairing building."
+			"assist": return "Assisting construction."
+			"research": return "Research started: %s." % str(target).replace("_", " ")
+			"advance": return "Advancing to %s." % _age_display(str(target))
 			"train": return "%s queued." % str(target).capitalize()
+			"cancel": return "Paid order canceled; refund returned."
 			"attack": return "Attacking target."
 	match str(result.get("reason", "invalid_order")):
-		"insufficient_stockpile": return "Not enough gold in stockpile."
+		"insufficient_stockpile": return "Missing required resources; inspect the cost."
 		"blocked_footprint": return "This 2x2 site is blocked."
 		"blocked_or_invalid_tile": return "Cannot move onto this tile."
 		"unreachable_tile", "building_unreachable", "target_unreachable", "resource_unreachable": return "No route to target."
@@ -670,6 +684,74 @@ func _selected_kind() -> String:
 				return "mixed"
 	return sim.entities[selected_id].kind
 
+func _cost_text(costs: Dictionary) -> String:
+	var parts: Array[String] = []
+	for id in RESOURCE_IDS:
+		if int(costs.get(id, 0)) > 0:
+			parts.append("%s %d" % [id.substr(0, 1).to_upper(), int(costs[id])])
+	return ", ".join(parts) if not parts.is_empty() else "free"
+
+func _missing_costs(costs: Dictionary) -> String:
+	var missing: Array[String] = []
+	for id in RESOURCE_IDS:
+		var need := int(costs.get(id, 0)) - sim.balance(Skirmish.HUMAN, id)
+		if need > 0:
+			missing.append("%s %d" % [id.capitalize(), need])
+	return "Need " + ", ".join(missing) if not missing.is_empty() else ""
+
+func _age_id() -> String:
+	return str(sim.content.ages.order[int(sim.age_index[Skirmish.HUMAN])])
+
+func _age_display(id: String) -> String:
+	return str(AGE_NAMES.get(id, id.capitalize()))
+
+func _next_age_id() -> String:
+	var index := int(sim.age_index[Skirmish.HUMAN]) + 1
+	return str(sim.content.ages.order[index]) if index < sim.content.ages.order.size() else ""
+
+func _age_gate(id: String) -> String:
+	var data: Dictionary = sim.content.buildings[id] if id in sim.content.buildings else sim.content.units[id]
+	var age := str(data.get("min_age", "foranea"))
+	return "Requires %s age" % _age_display(age) if sim.content.ages.order.find(age) > int(sim.age_index[Skirmish.HUMAN]) else ""
+
+func _building_reason(id: String) -> String:
+	var reason := _age_gate(id)
+	if reason.is_empty():
+		reason = _missing_costs(sim._costs(Skirmish.HUMAN, id))
+	return reason
+
+func _research_reason(id: String) -> String:
+	var tech: Dictionary = sim.content.techs[id]
+	if id in sim.researched[Skirmish.HUMAN]:
+		return "Already researched"
+	if sim._queued(Skirmish.HUMAN, "tech", id):
+		return "Already in queue"
+	if sim.entities[selected_id].queue.size() >= 3:
+		return "Queue full"
+	if sim.content.ages.order.find(str(tech.age)) > int(sim.age_index[Skirmish.HUMAN]):
+		return "Requires %s age" % _age_display(str(tech.age))
+	for prerequisite in tech.get("requires_techs", []):
+		if prerequisite not in sim.researched[Skirmish.HUMAN]:
+			return "Requires " + str(prerequisite).replace("_", " ")
+	return _missing_costs(tech.costs)
+
+func _advance_reason(id: String) -> String:
+	if id.is_empty():
+		return "Final age reached"
+	var transition: Dictionary = sim.content.ages.transitions[id]
+	if sim._queued(Skirmish.HUMAN, "age", id):
+		return "Already in queue"
+	if sim.entities[selected_id].queue.size() >= 3:
+		return "Queue full"
+	for building in transition.get("requires_buildings", []):
+		var building_id: int = sim._find(Skirmish.HUMAN, str(building))
+		if building_id == -1 or not sim.entities[building_id].complete:
+			return "Requires completed " + str(building).replace("_", " ")
+	for tech in transition.get("requires_techs", []):
+		if tech not in sim.researched[Skirmish.HUMAN]:
+			return "Requires " + str(tech).replace("_", " ")
+	return _missing_costs(transition.costs)
+
 func _command_state(action: String) -> Dictionary:
 	var kind := _selected_kind()
 	var roles: Array[String] = []
@@ -689,27 +771,45 @@ func _command_state(action: String) -> Dictionary:
 		"move": visible = mobile_group
 		"gather":
 			visible = worker_group
-			if visible and sim.sources[Skirmish.HUMAN].amount <= 0:
-				reason = "Gold cart empty"
+			if visible and RESOURCE_IDS.all(func(id: String) -> bool: return int(_source(id).get("amount", 0)) <= 0):
+				reason = "Sources depleted; wait for renewal"
 		"build":
 			visible = kind == "worker" and selected_ids.size() <= 1
-			label = "Build post · %d gold" % sim._cost(Skirmish.HUMAN, "barracks")
-			if visible and sim._find(Skirmish.HUMAN, "barracks") != -1:
-				reason = "One post limit"
+			label = "Choose building"
+		"repair", "assist":
+			visible = kind == "worker" and selected_ids.size() <= 1
+			label = "Choose friendly building"
 		"attack": visible = fighter_group
+		"research":
+			visible = kind == "registry" and selected_ids.size() <= 1
+			label = "Choose technology"
+			if visible and not sim.entities[selected_id].complete:
+				reason = "Construction in progress"
+		"advance":
+			visible = kind == "command_post" and selected_ids.size() <= 1
+			label = "Advance to " + _age_display(_next_age_id()) if not _next_age_id().is_empty() else "Final age"
+			if visible:
+				reason = _advance_reason(_next_age_id())
 		"train_worker", "train_melee", "train_ranged":
 			visible = (kind == "command_post" and role == "worker") or (kind == "barracks" and role in ["melee", "ranged"])
-			label = "Recruit %s · %d gold" % [role, sim._cost(Skirmish.HUMAN, role)]
+			label = "Recruit %s · %s" % [role, _cost_text(sim._costs(Skirmish.HUMAN, role))]
 			if visible and not sim.entities[selected_id].complete:
 				reason = "Construction in progress"
 			elif visible and sim.entities[selected_id].queue.size() >= 3:
 				reason = "Queue full"
+			elif visible:
+				reason = _age_gate(role)
+				if reason.is_empty() and sim._population_used(Skirmish.HUMAN) >= sim._population_cap(Skirmish.HUMAN):
+					reason = "Population cap; build housing"
+				if reason.is_empty():
+					reason = _missing_costs(sim._costs(Skirmish.HUMAN, role))
 		"cancel":
-			visible = target_mode != ""
-			label = "Cancel · Esc"
-	if visible and action not in ["move", "gather", "attack", "cancel"] and reason.is_empty() and sim.stockpile[Skirmish.HUMAN] < sim._cost(Skirmish.HUMAN, "barracks" if action == "build" else role):
-		reason = "Need %d gold" % sim._cost(Skirmish.HUMAN, "barracks" if action == "build" else role)
-	if visible and sim.result != "" and action != "cancel":
+			var construction_id := _cancelable_construction_id()
+			visible = target_mode != "" or construction_id != -1 or (kind in ["command_post", "barracks", "registry"] and sim.entities.has(selected_id) and not sim.entities[selected_id].queue.is_empty())
+			label = "Leave target mode" if target_mode != "" else "Cancel paid order"
+			if target_mode == "" and construction_id != -1 and _cancel_worker_id() == -1:
+				reason = "A worker is needed to cancel construction"
+	if visible and sim.result != "" and (action != "cancel" or target_mode == ""):
 		reason = "Match finished"
 	return {"visible": visible, "enabled": visible and reason.is_empty(), "reason": reason, "label": label}
 
@@ -717,10 +817,55 @@ func _activate_command(action: String) -> void:
 	if paused:
 		hud_ui.show_notice("Resume to issue orders")
 		return
+	if action.begins_with("build_"):
+		build_kind = action.trim_prefix("build_")
+		if sim.result != "" or _selected_kind() != "worker" or selected_ids.size() != 1 or build_kind not in BUILD_CHOICES:
+			_flash_order(Vector2i(-1, -1), "Select a living worker to build.", false)
+			return
+		var build_reason := _building_reason(build_kind)
+		if not build_reason.is_empty():
+			_flash_order(sim.entities[selected_id].pos, build_reason, false)
+			return
+		target_mode = "build"
+		placing = true
+		sim.feedback = _target_prompt()
+		_update_hud()
+		return
+	if action.begins_with("research_"):
+		var tech_id := action.trim_prefix("research_")
+		if sim.result != "" or _selected_kind() != "registry" or selected_ids.size() != 1 or not sim.entities[selected_id].complete or tech_id not in sim.content.techs:
+			_flash_order(Vector2i(-1, -1), "Select a completed registry to research.", false)
+			return
+		var research_reason := _research_reason(tech_id)
+		if not research_reason.is_empty():
+			_flash_order(sim.entities[selected_id].pos, research_reason, false)
+			return
+		_issue_order("research", tech_id, sim.entities[selected_id].pos)
+		_update_hud()
+		return
+	if action.begins_with("cancel_queue_"):
+		var queue_index := int(action.trim_prefix("cancel_queue_"))
+		if sim.entities.has(selected_id):
+			_issue_order("cancel", queue_index, sim.entities[selected_id].pos)
+		_update_hud()
+		return
+	if action.begins_with("cancel_build_"):
+		var building_id := int(action.trim_prefix("cancel_build_"))
+		var worker_id := _cancel_worker_id()
+		if worker_id != -1 and sim.entities.has(building_id):
+			var at: Vector2i = sim.entities[building_id].pos
+			var response: Dictionary = sim.issue(Skirmish.HUMAN, "cancel", worker_id, building_id)
+			_flash_order(at, _order_message("cancel", building_id, response), response.ok)
+		_update_hud()
+		return
 	if action == "cancel":
-		target_mode = ""
-		placing = false
-		sim.feedback = "Order canceled."
+		if target_mode != "":
+			target_mode = ""
+			placing = false
+			hud_ui.choice_panel.hide()
+			sim.feedback = "Order canceled."
+		else:
+			_show_cancel_choices()
 	else:
 		var state := _command_state(action)
 		if not state.enabled:
@@ -728,18 +873,78 @@ func _activate_command(action: String) -> void:
 			_flash_order(sim.entities[selected_id].pos if sim.entities.has(selected_id) else Vector2i(-1, -1), message, false)
 		elif action.begins_with("train_"):
 			_train(action.trim_prefix("train_"))
+		elif action == "build":
+			var choices: Array[Dictionary] = []
+			for id in BUILD_CHOICES:
+				var reason := _building_reason(id)
+				choices.append({"id": "build_" + id, "label": "%s · %s%s" % [id.capitalize(), _cost_text(sim._costs(Skirmish.HUMAN, id)), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
+			hud_ui.show_choices("CHOOSE BUILDING", choices)
+		elif action == "research":
+			var choices: Array[Dictionary] = []
+			for id in sim.content.techs:
+				var reason := _research_reason(id)
+				choices.append({"id": "research_" + id, "label": "%s · %s%s" % [str(id).replace("_i", "").replace("_", " ").capitalize(), _cost_text(sim.content.techs[id].costs), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
+			hud_ui.show_choices("CHOOSE RESEARCH", choices)
+		elif action == "advance":
+			_issue_order("advance", _next_age_id(), sim.entities[selected_id].pos)
 		else:
 			target_mode = action
-			placing = action == "build"
+			placing = false
 			sim.feedback = _target_prompt()
 	_update_hud()
 	queue_redraw()
 
+func _cancelable_construction_id() -> int:
+	if not sim.entities.has(selected_id):
+		return -1
+	var selected: Dictionary = sim.entities[selected_id]
+	if selected.side != Skirmish.HUMAN:
+		return -1
+	if selected.kind in sim.content.buildings and not selected.complete:
+		return selected_id
+	if selected.kind == "worker" and selected.target_id != -1 and sim.entities.has(selected.target_id):
+		var building: Dictionary = sim.entities[selected.target_id]
+		if building.side == Skirmish.HUMAN and building.kind in sim.content.buildings and not building.complete:
+			return int(selected.target_id)
+	return -1
+
+func _cancel_worker_id() -> int:
+	if sim.entities.has(selected_id) and sim.entities[selected_id].kind == "worker":
+		return selected_id
+	return sim._find(Skirmish.HUMAN, "worker")
+
+func _refund_text(costs: Dictionary, percent: int) -> String:
+	var refunded := {}
+	for resource_id in RESOURCE_IDS:
+		refunded[resource_id] = int(costs.get(resource_id, 0)) * percent / 100
+	return _cost_text(refunded)
+
+func _show_cancel_choices() -> void:
+	var choices: Array[Dictionary] = []
+	var construction_id := _cancelable_construction_id()
+	if construction_id != -1:
+		var building: Dictionary = sim.entities[construction_id]
+		choices.append({"id": "cancel_build_%d" % construction_id,
+			"label": "Cancel %s · refund %s" % [building.kind.replace("_", " ").capitalize(), _refund_text(sim._costs(Skirmish.HUMAN, building.kind), 50)],
+			"enabled": _cancel_worker_id() != -1, "reason": "A worker is needed to cancel construction"})
+	elif sim.entities.has(selected_id) and sim.entities[selected_id].kind in sim.content.buildings:
+		var queue: Array = sim.entities[selected_id].queue
+		for index in queue.size():
+			var order: Dictionary = queue[index]
+			var percent := 50 if index == 0 else 100
+			choices.append({"id": "cancel_queue_%d" % index,
+				"label": "Cancel %s · refund %s" % [str(order.role).replace("_", " ").capitalize(), _refund_text(sim._order_costs(Skirmish.HUMAN, order), percent)],
+				"enabled": true, "reason": ""})
+	if not choices.is_empty():
+		hud_ui.show_choices("CANCEL PAID ORDER", choices)
+
 func _target_prompt() -> String:
 	match target_mode:
 		"move": return "Move: click a clear ground tile. Esc cancels."
-		"gather": return "Gather: click your gold cart. Esc cancels."
-		"build": return "Build: click a clear 2×2 site outside La Roma. Esc cancels."
+		"gather": return "Gather: click a Comida, Materiales, Varos or Terrenos source. Esc cancels."
+		"build": return "Build %s: click a clear 2×2 site. Esc cancels." % build_kind.capitalize()
+		"repair": return "Repair: click a damaged friendly building. Esc cancels."
+		"assist": return "Assist: click an unfinished friendly building. Esc cancels."
 		"attack": return "Attack: click an enemy unit or post. Esc cancels."
 	return ""
 
@@ -750,13 +955,22 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 			result = _issue_order("move", tile, tile)
 			if result.ok:
 				marker = tile
-		"build": result = _issue_order("build", tile, tile)
+		"build": result = _issue_order("build", {"kind": build_kind, "pos": tile}, tile)
 		"gather":
-			var gold_tile: Vector2i = sim.sources[Skirmish.HUMAN].pos
-			if _pick_visual_source(screen) == Skirmish.HUMAN or tile == gold_tile:
-				result = _issue_order("gather", gold_tile, gold_tile)
+			var source_id := _source_at(screen, tile)
+			if not source_id.is_empty():
+				var source_tile: Vector2i = _source(source_id).pos
+				result = _issue_order("gather", source_tile, source_tile)
 			else:
-				_flash_order(tile, "Click your gold cart.", false)
+				_flash_order(tile, "Click a labeled resource source.", false)
+		"repair", "assist":
+			var building_id: int = _pick_visual_entity(screen, Skirmish.HUMAN)
+			if building_id == -1:
+				building_id = sim.entity_at(tile)
+			if building_id != -1 and sim.entities[building_id].side == Skirmish.HUMAN and sim.entities[building_id].kind in sim.content.buildings:
+				result = _issue_order(target_mode, building_id, sim.entities[building_id].pos)
+			else:
+				_flash_order(tile, "Click a friendly building.", false)
 		"attack":
 			var enemy_id: int = _pick_visual_entity(screen, Skirmish.COMPUTER)
 			if enemy_id == -1:
@@ -782,8 +996,13 @@ func _update_hud() -> void:
 	var seconds := floori(float(sim.tick_number) / 10.0)
 	ui.timer_label.text = "%02d:%02d" % [seconds / 60, seconds % 60]
 	ui.faction_label.text = sim.factions[Skirmish.HUMAN].to_upper()
-	ui.gold_label.text = str(sim.stockpile[Skirmish.HUMAN])
-	ui.gold_label.tooltip_text = "%d gold in stockpile • %d remaining at your cart" % [sim.stockpile[Skirmish.HUMAN], sim.sources[Skirmish.HUMAN].amount]
+	var stockpiles := {}
+	var source_notes := {}
+	for resource_id in RESOURCE_IDS:
+		stockpiles[resource_id] = sim.balance(Skirmish.HUMAN, resource_id)
+		var source: Dictionary = _source(resource_id)
+		source_notes[resource_id] = "%d at source; %d refreshes left" % [int(source.get("amount", 0)), int(source.get("refreshes_left", 0))]
+	ui.set_economy(stockpiles, _age_display(_age_id()), sim._population_used(Skirmish.HUMAN), sim._population_cap(Skirmish.HUMAN), source_notes)
 	ui.objective_title.text = _district_note()
 	ui.objective_progress.value = sim.district_progress
 	ui.objective_progress.tooltip_text = _district_note()
@@ -805,7 +1024,7 @@ func _update_hud() -> void:
 			var portraits: Array[Dictionary] = []
 			for id in selected_ids:
 				if sim.entities.has(id):
-					portraits.append({"id": id, "texture": art.texture(_actor_art_id(sim.entities[id]))})
+					portraits.append({"id": id, "texture": _actor_texture(sim.entities[id])})
 			ui.set_group(portraits)
 		else:
 			ui.set_group([])
@@ -815,33 +1034,31 @@ func _update_hud() -> void:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
 		var activity: String = actor.job.capitalize()
-		if actor.kind == "worker" and actor.carry > 0:
-			activity += "  •  carry %d" % actor.carry
+		if actor.kind == "worker":
+			if actor.carry > 0:
+				activity += "  •  carrying %d %s" % [actor.carry, str(actor.get("carry_resource", "resource")).capitalize()]
+			elif not str(actor.get("source_resource", "")).is_empty():
+				activity += "  •  %s source" % str(actor.source_resource).capitalize()
 		var stats := ""
 		if actor.kind in ["melee", "ranged"]:
-			stats = "⚔ %d  •  range %d" % [Skirmish.DAMAGE[actor.kind], Skirmish.RANGE[actor.kind]]
+			stats = "⚔ %d  •  range %d" % [sim._unit_damage(Skirmish.HUMAN, actor.kind), Skirmish.RANGE[actor.kind]]
 		elif actor.kind == "worker":
 			stats = "Carry cap %d" % sim._carry_limit(Skirmish.HUMAN)
 		else:
-			stats = "Construction %d%%" % roundi(100.0 * actor.progress / Skirmish.BUILD_TICKS) if not actor.complete else "Ready"
+			stats = "Construction %d%%" % roundi(100.0 * actor.progress / maxi(1, int(sim.content.buildings[actor.kind].build_ticks))) if not actor.complete else "Ready"
 			if not actor.queue.is_empty():
 				var first: Dictionary = actor.queue[0]
 				stats += "  •  Queue %d: %s %ds" % [actor.queue.size(), first.role, ceili(float(first.remaining) / 10.0)]
-		ui.set_selection(art.texture(_actor_art_id(actor)), "%d UNITS" % selected_ids.size() if selected_ids.size() > 1 else "%s #%d" % [actor.kind.replace("_", " ").capitalize(), selected_id],
+		ui.set_selection(_actor_texture(actor), "%d UNITS" % selected_ids.size() if selected_ids.size() > 1 else "%s #%d" % [actor.kind.replace("_", " ").capitalize(), selected_id],
 			sim.factions[Skirmish.HUMAN].capitalize(), actor.hp if selected_ids.size() <= 1 else 0, max_hp if selected_ids.size() <= 1 else 0,
 			"Group selected" if selected_ids.size() > 1 else activity, "%d selected • tap a portrait for one" % selected_ids.size() if selected_ids.size() > 1 else stats)
 	for action in command_buttons:
 		var state := _command_state(action)
-		var cost := 0
-		if action == "build":
-			cost = sim._cost(Skirmish.HUMAN, "barracks")
-		elif action.begins_with("train_"):
-			cost = sim._cost(Skirmish.HUMAN, action.trim_prefix("train_"))
-		ui.set_action(action, state, cost, target_mode == action)
+		ui.set_action(action, state, 0, target_mode == action)
 	ui.command_help.text = _target_prompt() if target_mode != "" else ""
 	ui.reflow_commands()
 	_update_secondary()
-	var queue: Array = sim.entities[selected_id].queue if sim.entities.has(selected_id) and _selected_kind() in ["command_post", "barracks"] else []
+	var queue: Array = sim.entities[selected_id].queue if sim.entities.has(selected_id) and _selected_kind() in ["command_post", "barracks", "registry"] else []
 	ui.set_queue(queue)
 	var support := "%s · %s\n%s\n%s" % [AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID, _sync_brief(), sync_note]
 	ui.diagnostics_label.text = support
@@ -863,7 +1080,17 @@ func _update_hud() -> void:
 func _update_secondary() -> void:
 	var ui = hud_ui
 	var kind := _selected_kind()
-	var signature := "%s:%d:%d:%d:%d" % [kind, selected_id, selected_ids.size(), sim.stockpile[Skirmish.HUMAN], sim._find(Skirmish.HUMAN, "barracks")]
+	var balances: Array[String] = []
+	for id in RESOURCE_IDS:
+		balances.append(str(sim.balance(Skirmish.HUMAN, id)))
+	var actor_state := ""
+	if sim.entities.has(selected_id):
+		actor_state = "%s:%d" % [str(sim.entities[selected_id].complete), sim.entities[selected_id].queue.size()]
+	var building_state: Array[String] = []
+	for entity in sim.entities.values():
+		if entity.side == Skirmish.HUMAN and entity.kind in sim.content.buildings:
+			building_state.append("%s:%s" % [entity.kind, str(entity.complete)])
+	var signature := "%s:%d:%d:%s:%d:%s:%s:%s" % [kind, selected_id, selected_ids.size(), ",".join(balances), int(sim.age_index[Skirmish.HUMAN]), str(sim.researched[Skirmish.HUMAN]), actor_state, ",".join(building_state)]
 	if signature == last_ui_signature:
 		return
 	last_ui_signature = signature
@@ -874,15 +1101,21 @@ func _update_secondary() -> void:
 	elif kind == "worker":
 		title = "CONSTRUCTION"
 		var state := _command_state("build")
-		cards.append({"texture": art.texture("building_barracks_blue"), "label": "POST\n%d GOLD" % sim._cost(Skirmish.HUMAN, "barracks"),
-			"enabled": state.enabled, "reason": state.reason, "cost": sim._cost(Skirmish.HUMAN, "barracks"), "tooltip": "Recruitment post • %d gold\n%s" % [sim._cost(Skirmish.HUMAN, "barracks"), state.reason if not state.reason.is_empty() else "Click, then place on clear ground"], "action": "build"})
+		cards.append({"texture": art.texture("building_barracks_blue"), "label": "BUILD\nB", "enabled": state.enabled, "reason": state.reason, "tooltip": "Choose depot, housing, registry or recruitment post", "action": "build"})
 	elif kind in ["command_post", "barracks"]:
 		title = "PRODUCTION"
 		for role: String in (["worker"] if kind == "command_post" else ["melee", "ranged"]):
 			var action: String = "train_" + role
 			var state := _command_state(action)
-			cards.append({"texture": art.texture("unit_%s_blue" % role), "label": "%s\n%d GOLD" % [role.to_upper(), sim._cost(Skirmish.HUMAN, role)],
-				"enabled": state.enabled, "reason": state.reason, "cost": sim._cost(Skirmish.HUMAN, role), "tooltip": "%s • %d gold\n%s" % [role.capitalize(), sim._cost(Skirmish.HUMAN, role), state.reason if not state.reason.is_empty() else "Recruit here"], "action": action})
+			cards.append({"texture": art.texture("unit_%s_blue" % role), "label": "%s\n%s" % [role.to_upper(), _cost_text(sim._costs(Skirmish.HUMAN, role))],
+				"enabled": state.enabled, "reason": state.reason, "tooltip": "%s • %s\n%s" % [role.capitalize(), _cost_text(sim._costs(Skirmish.HUMAN, role)), state.reason if not state.reason.is_empty() else "Recruit here"], "action": action})
+		if kind == "command_post" and not _next_age_id().is_empty():
+			var age_state := _command_state("advance")
+			cards.append({"label": "AGE\nUP", "enabled": age_state.enabled, "reason": age_state.reason, "tooltip": "%s • %s" % [age_state.label, _cost_text(sim.content.ages.transitions[_next_age_id()].costs)], "action": "advance"})
+	elif kind == "registry":
+		title = "RESEARCH"
+		var research_state := _command_state("research")
+		cards.append({"label": "TECH\nTREE", "enabled": research_state.enabled, "reason": research_state.reason, "tooltip": "Choose an available technology", "action": "research"})
 	elif kind in ["melee", "ranged"]:
 		title = "FIELD ORDERS"
 		cards.append({"texture": art.texture(_actor_art_id(sim.entities[selected_id])), "label": "ATTACK\nA", "enabled": true, "tooltip": "Choose an enemy target • A", "action": "attack"})
@@ -890,9 +1123,11 @@ func _update_secondary() -> void:
 		title = "LA ROMA"
 	ui.set_secondary(title, cards)
 	if kind == "worker":
-		ui.secondary_details.text = "RECRUITMENT POST\n2 × 2 site  •  one allowed"
+		ui.secondary_details.text = "EXPAND\nBuild, assist or repair"
 	elif kind in ["command_post", "barracks"]:
-		ui.secondary_details.text = "RECRUIT UNITS\nSpend stockpiled gold"
+		ui.secondary_details.text = "RECRUIT UNITS\nOr advance the age"
+	elif kind == "registry":
+		ui.secondary_details.text = "RESEARCH\nInspect costs and prerequisites"
 	elif kind in ["melee", "ranged"]:
 		ui.secondary_details.text = "COMBAT\nChoose an enemy target"
 	else:
@@ -1015,17 +1250,24 @@ func _sorted_entity_ids() -> Array:
 	ids.sort_custom(func(a: int, b: int) -> bool:
 		var ea: Dictionary = sim.entities[a]
 		var eb: Dictionary = sim.entities[b]
-		var ya: int = ea.pos.x + ea.pos.y + (3 if ea.kind in ["command_post", "barracks"] else 0)
-		var yb: int = eb.pos.x + eb.pos.y + (3 if eb.kind in ["command_post", "barracks"] else 0)
+		var ya: int = ea.pos.x + ea.pos.y + (3 if ea.kind in sim.content.buildings else 0)
+		var yb: int = eb.pos.x + eb.pos.y + (3 if eb.kind in sim.content.buildings else 0)
 		return ya < yb if ya != yb else a < b)
 	return ids
 
 func _actor_ground(entity: Dictionary) -> Vector2:
-	return _tile_to_screen(entity.pos) + (Vector2(0, 36) if entity.kind in ["command_post", "barracks"] else Vector2.ZERO)
+	return _tile_to_screen(entity.pos) + (Vector2(0, 36) if entity.kind in sim.content.buildings else Vector2.ZERO)
 
 func _actor_art_id(entity: Dictionary) -> String:
-	var is_building: bool = entity.kind in ["command_post", "barracks"]
-	return ("building_" if is_building else "unit_") + entity.kind + "_" + _faction_color(entity.side)
+	var is_building: bool = entity.kind in sim.content.buildings
+	var id: String = ("building_" if is_building else "unit_") + str(entity.kind) + "_" + _faction_color(entity.side)
+	return id if art.records.has(id) else "building_barracks_" + _faction_color(entity.side)
+
+func _actor_texture(entity: Dictionary) -> Texture2D:
+	var id := _actor_art_id(entity)
+	if art.records.has(id):
+		return art.texture(id)
+	return art.texture("building_barracks_" + _faction_color(entity.side))
 
 func _pick_visual_entity(screen: Vector2, side: int) -> int:
 	var board := _screen_to_board(screen)
@@ -1035,7 +1277,7 @@ func _pick_visual_entity(screen: Vector2, side: int) -> int:
 	for want_building in [false, true]:
 		for id in ids:
 			var entity: Dictionary = sim.entities[id]
-			var is_building: bool = entity.kind in ["command_post", "barracks"]
+			var is_building: bool = entity.kind in sim.content.buildings
 			if entity.side != side or is_building != want_building:
 				continue
 			var scale := 1.0 if is_building else UNIT_ART_SCALE
@@ -1043,31 +1285,45 @@ func _pick_visual_entity(screen: Vector2, side: int) -> int:
 			if not is_building and unit_facing.get(id, 1) < 0:
 				delta.x = -delta.x
 			var art_id := _actor_art_id(entity)
-			if art.hit_test(art_id, art.pivot(art_id) + delta):
+			if (art.records.has(art_id) and art.hit_test(art_id, art.pivot(art_id) + delta)) or (is_building and not art.records.has(art_id) and Rect2(Vector2(-38, -58), Vector2(76, 72)).has_point(delta)):
 				return id
 	return -1
 
-func _pick_visual_source(screen: Vector2) -> int:
-	var source: Dictionary = sim.sources[Skirmish.HUMAN]
-	if source.amount <= 0:
-		return -1
-	var pixel := art.pivot("prop_gold_cart") + _screen_to_board(screen) - _tile_to_screen(source.pos)
-	return Skirmish.HUMAN if art.hit_test("prop_gold_cart", pixel) else -1
+func _source(id: String) -> Dictionary:
+	return sim.resource_sources[Skirmish.HUMAN].get(id, {})
+
+func _pick_visual_source(screen: Vector2) -> String:
+	var board := _screen_to_board(screen)
+	for id in RESOURCE_IDS:
+		var source := _source(id)
+		if int(source.get("amount", 0)) > 0 and board.distance_to(_tile_to_screen(source.pos) + Vector2(0, -8)) <= 17:
+			return id
+	return ""
+
+func _source_at(screen: Vector2, tile: Vector2i) -> String:
+	var id := _pick_visual_source(screen)
+	if not id.is_empty():
+		return id
+	for resource_id in RESOURCE_IDS:
+		var source := _source(resource_id)
+		if source.get("pos", Vector2i(-1, -1)) == tile and int(source.get("amount", 0)) > 0:
+			return resource_id
+	return ""
 
 func _refresh_hover() -> void:
 	if choosing_faction or placing:
-		if hovered_entity_id != -1 or hovered_source_side != -1 or not hover_hint.text.is_empty():
+		if hovered_entity_id != -1 or not hovered_source_id.is_empty() or not hover_hint.text.is_empty():
 			hovered_entity_id = -1
-			hovered_source_side = -1
+			hovered_source_id = ""
 			hover_hint.text = ""
 			queue_redraw()
 		return
 	var screen := get_viewport().get_mouse_position()
 	var next_entity := _pick_visual_entity(screen, Skirmish.HUMAN)
-	var next_source := -1
+	var next_source := ""
 	if next_entity == -1:
 		next_source = _pick_visual_source(screen)
-	if next_entity == -1 and next_source == -1 and _selected_kind() in ["melee", "ranged"]:
+	if next_entity == -1 and next_source.is_empty() and _selected_kind() in ["melee", "ranged"]:
 		next_entity = _pick_visual_entity(screen, Skirmish.COMPUTER)
 	var next_hint := ""
 	if next_entity != -1:
@@ -1076,11 +1332,11 @@ func _refresh_hover() -> void:
 			next_hint = "Selected %s #%d" % [e.kind.replace("_", " ").capitalize(), next_entity] if next_entity == selected_id else "Click to select %s #%d" % [e.kind.replace("_", " ").capitalize(), next_entity]
 		else:
 			next_hint = "Right-click to attack %s #%d" % [e.kind.replace("_", " ").capitalize(), next_entity]
-	elif next_source != -1:
-		next_hint = "Right-click to gather gold" if _selected_kind() == "worker" else "Gold source · select a worker to gather"
-	if next_entity != hovered_entity_id or next_source != hovered_source_side or next_hint != hover_hint.text:
+	elif not next_source.is_empty():
+		next_hint = "%s source · %d left%s" % [next_source.capitalize(), int(_source(next_source).amount), " · right-click to gather" if _selected_kind() == "worker" else " · select a worker"]
+	if next_entity != hovered_entity_id or next_source != hovered_source_id or next_hint != hover_hint.text:
 		hovered_entity_id = next_entity
-		hovered_source_side = next_source
+		hovered_source_id = next_source
 		hover_hint.text = next_hint
 		hover_hint.position = (screen + Vector2(14, -34)).clamp(Vector2(8, 65), get_viewport().get_visible_rect().size - Vector2(240, 25))
 		queue_redraw()
@@ -1164,21 +1420,23 @@ func _draw() -> void:
 	draw_texture(art.texture(medallion_id), _tile_to_screen(Vector2i(10, 10)) - art.pivot(medallion_id))
 	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), "LA ROMA", HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
-		var source: Dictionary = sim.sources[side]
-		if source.amount > 0:
-			var center := _tile_to_screen(source.pos)
-			var cart_id := "prop_gold_cart"
-			if side == hovered_source_side:
-				draw_circle(center + Vector2(0, -5), 17, Color(1.0, 0.82, 0.3, 0.24))
-				draw_arc(center + Vector2(0, -5), 18, 0, TAU, 24, Color("ffe391"), 2.0)
-				_draw_sprite_outline(cart_id, Rect2(center - art.pivot(cart_id), art.texture(cart_id).get_size()), Color("ffe391"))
-			draw_texture(art.texture(cart_id), center - art.pivot(cart_id))
-			draw_string(ThemeDB.fallback_font, center + Vector2(-22, -45), "GOLD %d" % source.amount,
-				HORIZONTAL_ALIGNMENT_CENTER, 44, 12, Color("fff0ba"))
+		for resource_id in RESOURCE_IDS:
+			var source: Dictionary = sim.resource_sources[side].get(resource_id, {})
+			if source.is_empty():
+				continue
+			var center := _tile_to_screen(source.pos) + Vector2(0, -8)
+			var color: Color = RESOURCE_COLORS[resource_id]
+			var active := int(source.get("amount", 0)) > 0
+			draw_circle(center, 13, color.darkened(0.45) if active else Color("60646a"))
+			draw_arc(center, 13, 0, TAU, 24, Color.WHITE if resource_id == hovered_source_id and side == Skirmish.HUMAN else color, 2.0)
+			draw_arc(center, 16, 0, TAU, 24, Color("70d5e7") if side == Skirmish.HUMAN else Color("ed796a"), 1.5)
+			draw_string(ThemeDB.fallback_font, center + Vector2(-9, 5), resource_id.substr(0, 1).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 18, 15, Color.WHITE)
+			draw_string(ThemeDB.fallback_font, center + Vector2(-35, -22), "%s %d" % [resource_id.substr(0, 1).to_upper(), int(source.get("amount", 0))],
+				HORIZONTAL_ALIGNMENT_CENTER, 70, 12, Color.WHITE)
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
-		var is_building: bool = e.kind in ["command_post", "barracks"]
+		var is_building: bool = e.kind in sim.content.buildings
 		var ground := _actor_ground(e)
 		var art_id := _actor_art_id(e)
 		var art_scale := 1.0 if is_building else UNIT_ART_SCALE
@@ -1199,12 +1457,15 @@ func _draw() -> void:
 		if id == selected_id or id == hovered_entity_id:
 			_draw_sprite_outline(art_id, sprite_rect, Color("7eeaff") if id == selected_id else Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)
+		if is_building and e.kind not in ["command_post", "barracks"]:
+			draw_rect(Rect2(ground + Vector2(-35, -54), Vector2(70, 18)), Color("1b2430"))
+			draw_string(ThemeDB.fallback_font, ground + Vector2(-33, -40), e.kind.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 12, Color.WHITE)
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
 		if is_building and not e.complete:
 			draw_rect(Rect2(ground + Vector2(-47, -27), Vector2(94, 26)), Color(0.63, 0.46, 0.28, 0.35))
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44, 4)), Color("3b3029"))
-			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44.0 * e.progress / Skirmish.BUILD_TICKS, 4)), Color("e5c36f"))
+			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44.0 * e.progress / maxi(1, int(sim.content.buildings[e.kind].build_ticks)), 4)), Color("e5c36f"))
 		if is_building and e.hp <= 0:
 			draw_rect(Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size()),
 				Color(0.15, 0.1, 0.1, 0.6))
@@ -1220,7 +1481,7 @@ func _draw() -> void:
 			draw_circle(ground + Vector2(-11 * art_scale * unit_facing.get(id, 1), -22 * art_scale + bob), 3.0, Color("f9c45e"))
 	if sim.entities.has(selected_id):
 		var active: Dictionary = sim.entities[selected_id]
-		var active_building: bool = active.kind in ["command_post", "barracks"]
+		var active_building: bool = active.kind in sim.content.buildings
 		var active_ground := _actor_ground(active)
 		draw_arc(active_ground + Vector2(0, -24 if active_building else -5),
 			23 if active_building else 16, 0, TAU, 24, Color("7eeaff"), 3.0)
@@ -1230,7 +1491,7 @@ func _draw() -> void:
 				Color("7eeaff"))
 	if placing:
 		var preview_tile := _screen_to_tile(get_global_mouse_position())
-		var valid: bool = sim._clear_footprint(preview_tile) and sim.stockpile[Skirmish.HUMAN] >= sim._cost(Skirmish.HUMAN, "barracks")
+		var valid: bool = sim._clear_footprint(preview_tile) and _building_reason(build_kind).is_empty()
 		for oy in range(2):
 			for ox in range(2):
 				draw_colored_polygon(_diamond(_tile_to_screen(preview_tile + Vector2i(ox, oy))),

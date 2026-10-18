@@ -28,16 +28,18 @@ func _draw() -> void:
 				color = HudSkin.BRONZE
 			draw_rect(cell, color)
 	if sim != null:
+		var resource_colors := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
 		for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
-			var source: Dictionary = sim.sources[side]
-			if source.amount > 0:
-				draw_circle(_point(inner, source.pos), 3, HudSkin.GOLD)
+			for id in Skirmish.RESOURCE_IDS:
+				var source: Dictionary = sim.resource_sources[side][id]
+				if source.amount > 0:
+					draw_circle(_point(inner, source.pos), 2.5, resource_colors[id])
 		for entity in sim.entities.values():
 			if entity.hp <= 0:
 				continue
 			var c: Color = Color("70d5e7") if entity.side == Skirmish.HUMAN else Color("ed796a")
 			var p := _point(inner, entity.pos)
-			if entity.kind in ["command_post", "barracks"]:
+			if entity.kind in sim.content.buildings:
 				draw_rect(Rect2(p - Vector2(4, 4), Vector2(8, 8)), c)
 			else:
 				draw_circle(p, 3, c)
