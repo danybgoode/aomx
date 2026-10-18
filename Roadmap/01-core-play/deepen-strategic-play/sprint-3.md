@@ -41,3 +41,5 @@ Run the full Godot and Node contract suite, cross-platform hash, rendered deskto
 ## QA record, 2026-10-17
 
 Both AI faction fixtures reached Gentrificación and completed research. The normal idle-match test confirms fourth-age progression before AI district pressure wins; district contest, post loss and deterministic replay still pass. The full Godot CI script list, Node suite, ingest contract and art manifest passed locally. Independent high-risk review rechecked cancellation, AI pacing, path obstruction and stale modal fixes. Signed Restricted build upload, downloaded-build wins for both factions/routes and release outbox QA remain open.
+
+The Restricted upload completed as `preview-9053c3808441`, itch build `#2150671`; the authenticated fetch matched the signed source archive. Four downloaded match combinations, save/quit/resume and synced test receipts remain open. The owner download made before this upload is the previous build.
