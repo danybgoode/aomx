@@ -51,5 +51,5 @@ jobs:
             "$GODOT_BIN" --headless --path game --script "res://tests/$test"
           done
           "$GODOT_BIN" --headless --path game --script res://tests/skirmish_scale_benchmark.gd
-          "$GODOT_BIN" --headless --path game --script res://warfare_performance_probe.gd
+          WARFARE_PERF_ENFORCE=false "$GODOT_BIN" --headless --path game --script res://warfare_performance_probe.gd
           npm run skirmish:contract

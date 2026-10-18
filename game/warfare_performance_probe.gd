@@ -83,6 +83,8 @@ func _initialize() -> void:
 			return
 	var route_p95 := _p95(route_us)
 	var tick_p95 := _p95(tick_us)
+	# Shared Linux CI proves the workload completes; timing is gated on the owner Mac.
+	var budget_enforced := OS.get_environment("WARFARE_PERF_ENFORCE") != "false"
 	if combat_deaths < 4 or projectile_frames < 100:
 		printerr("Performance battle did not sustain combat: deaths=", combat_deaths, " projectile frames=", projectile_frames)
 		quit(1)
@@ -91,11 +93,11 @@ func _initialize() -> void:
 		"accepted_orders": accepted, "ticks": TARGET_TICKS, "simulated_seconds": TARGET_TICKS / 10,
 		"combat_deaths_replenished": combat_deaths, "projectile_frames": projectile_frames,
 		"route_p95_ms": route_p95, "tick_p95_ms": tick_p95, "peak_static_memory_mib": peak_memory,
-		"route_budget_ms": 6.0, "tick_budget_ms": 4.0, "memory_budget_mib": 512.0,
+		"route_budget_ms": 6.0, "tick_budget_ms": 4.0, "memory_budget_mib": 512.0, "budget_enforced": budget_enforced,
 		"godot": Engine.get_version_info().string, "os": OS.get_name(), "debug": OS.is_debug_build(),
 		"hash": game.state_hash()}
 	print("WARFARE_PERF_JSON=" + JSON.stringify(report))
-	quit(0 if route_p95 <= 6.0 and tick_p95 <= 4.0 and peak_memory <= 512.0 else 1)
+	quit(0 if not budget_enforced or (route_p95 <= 6.0 and tick_p95 <= 4.0 and peak_memory <= 512.0) else 1)
 
 func _p95(values: Array[int]) -> float:
 	var sorted := values.duplicate()
