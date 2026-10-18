@@ -349,7 +349,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				rejected.reason = "combat_unit_and_target_required"
 			elif entities[target].side == side or entities[target].hp <= 0:
 				rejected.reason = "invalid_enemy_target"
-			elif not is_visible(side, entities[target].pos):
+			elif not is_entity_visible(side, entities[target]):
 				rejected.reason = "target_not_visible"
 			else:
 				var reach := int(content.units[actor.kind].range)
@@ -398,7 +398,7 @@ func tick() -> void:
 			continue
 		if entity.cooldown > 0:
 			entity.cooldown -= 1
-		if entity.job == "attack" and (not entities.has(entity.target_id) or not is_visible(entity.side, entities[entity.target_id].pos)):
+		if entity.job == "attack" and (not entities.has(entity.target_id) or entities[entity.target_id].hp <= 0 or not is_entity_visible(entity.side, entities[entity.target_id])):
 			entity.job = "idle"
 			entity.path.clear()
 			entity.target_id = -1
@@ -411,7 +411,7 @@ func tick() -> void:
 				if moved_ids.has(id):
 					continue
 				var occupied_by := _unit_at(entity.path[0])
-				if occupied_by != -1 and occupied_by != id and not moved_ids.has(occupied_by) and not entities[occupied_by].path.is_empty() and entities[occupied_by].path[0] == entity.pos:
+				if occupied_by != -1 and occupied_by != id and entities[occupied_by].side == entity.side and not moved_ids.has(occupied_by) and not entities[occupied_by].path.is_empty() and entities[occupied_by].path[0] == entity.pos:
 					var old_pos: Vector2i = entity.pos
 					entity.pos = entity.path.pop_front()
 					entities[occupied_by].pos = old_pos
@@ -774,7 +774,7 @@ func _tick_attack(e: Dictionary, damages: Dictionary) -> void:
 		e.job = "idle"
 		return
 	var target: Dictionary = entities[e.target_id]
-	if not is_visible(e.side, target.pos):
+	if not is_entity_visible(e.side, target):
 		e.job = "idle"
 		e.path.clear()
 		if e.side == HUMAN:
@@ -802,7 +802,7 @@ func _tick_auto_attack(e: Dictionary, damages: Dictionary) -> bool:
 	ids.sort()
 	for id in ids:
 		var target: Dictionary = entities[id]
-		if target.side != e.side and target.hp > 0 and is_visible(e.side, target.pos) and _distance_to_entity(e.pos, target) <= int(content.units[e.kind].range):
+		if target.side != e.side and target.hp > 0 and is_entity_visible(e.side, target) and _distance_to_entity(e.pos, target) <= int(content.units[e.kind].range):
 			target_id = id
 			break
 	if target_id == -1:
@@ -1143,6 +1143,14 @@ func _wall(tile: Vector2i) -> bool:
 func is_visible(side: int, tile: Vector2i) -> bool:
 	return visible_tiles[side].has(tile)
 
+func is_entity_visible(side: int, entity: Dictionary) -> bool:
+	if entity.kind in content.buildings:
+		for offset in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i(1, 1)]:
+			if is_visible(side, entity.pos + offset):
+				return true
+		return false
+	return is_visible(side, entity.pos)
+
 func is_explored(side: int, tile: Vector2i) -> bool:
 	return explored_tiles[side].has(tile)
 
@@ -1164,7 +1172,7 @@ func _refresh_visibility() -> void:
 	for side in [HUMAN, COMPUTER]:
 		for id in ids:
 			var e: Dictionary = entities[id]
-			if e.side != side and e.hp > 0 and is_visible(side, e.pos):
+			if e.side != side and e.hp > 0 and is_entity_visible(side, e):
 				last_seen[side][id] = e.pos
 
 func _visible_enemy_ids(side: int) -> Array:
@@ -1173,7 +1181,7 @@ func _visible_enemy_ids(side: int) -> Array:
 	ids.sort()
 	for id in ids:
 		var e: Dictionary = entities[id]
-		if e.side != side and e.hp > 0 and is_visible(side, e.pos):
+		if e.side != side and e.hp > 0 and is_entity_visible(side, e):
 			observed.append(id)
 	return observed
 

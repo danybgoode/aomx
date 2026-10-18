@@ -3,12 +3,25 @@ extends SceneTree
 const Scene = preload("res://skirmish_main.tscn")
 const Outbox = preload("res://funnel_outbox.gd")
 const Skirmish = preload("res://skirmish.gd")
+const Minimap = preload("res://ui/minimap_panel.gd")
 var failed := false
 
 func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	var unbound_map = Minimap.new()
+	unbound_map.size = Vector2(120, 120)
+	root.add_child(unbound_map)
+	await process_frame
+	var unbound_click := InputEventMouseButton.new()
+	unbound_click.button_index = MOUSE_BUTTON_LEFT
+	unbound_click.position = Vector2(40, 40)
+	unbound_click.pressed = true
+	unbound_map._gui_input(unbound_click)
+	check(unbound_map._point(Rect2(Vector2(7, 7), Vector2(106, 106)), Vector2i(10, 10)).is_finite(),
+		"minimap draws and ignores clicks before a simulation is attached")
+	unbound_map.queue_free()
 	var path := "user://skirmish-client-check-%d.json" % Time.get_ticks_usec()
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new(path)

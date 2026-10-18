@@ -30,6 +30,37 @@ func _initialize() -> void:
 	for i in range(30):
 		crowd.tick()
 		check(crowd.entities[first].pos != crowd.entities[second].pos, "fighters never overlap")
+	var opponents = Skirmish.new()
+	opponents.ai_enabled = false
+	var human_opponent := opponents._add_entity(Skirmish.HUMAN, "melee", Vector2i(5, 20))
+	var computer_opponent := opponents._add_entity(Skirmish.COMPUTER, "melee", Vector2i(6, 20))
+	opponents.entities[human_opponent].path = [Vector2i(6, 20)]
+	opponents.entities[computer_opponent].path = [Vector2i(5, 20)]
+	opponents.entities[human_opponent].job = "move"
+	opponents.entities[computer_opponent].job = "move"
+	for i in range(3):
+		opponents.tick()
+	check(opponents.entities[human_opponent].pos == Vector2i(5, 20) and opponents.entities[computer_opponent].pos == Vector2i(6, 20),
+		"opposing units cannot swap through each other")
+	var edge_sight = Skirmish.new()
+	edge_sight.ai_enabled = false
+	var enemy_post: int = edge_sight._find(Skirmish.COMPUTER, "command_post")
+	var edge_siege := edge_sight._add_entity(Skirmish.HUMAN, "siege", Vector2i(19, 17))
+	edge_sight.visible_tiles[Skirmish.HUMAN] = {Vector2i(17, 17): true}
+	check(not edge_sight.is_visible(Skirmish.HUMAN, edge_sight.entities[enemy_post].pos) and edge_sight.is_entity_visible(Skirmish.HUMAN, edge_sight.entities[enemy_post]),
+		"a visible building footprint reveals its hidden anchor")
+	check(enemy_post in edge_sight._visible_enemy_ids(Skirmish.HUMAN) and edge_sight.issue(Skirmish.HUMAN, "attack", edge_siege, enemy_post).ok,
+		"building is targetable from a visible south-east footprint tile")
+	var slain_target = Skirmish.new()
+	slain_target.ai_enabled = false
+	var pursuer := slain_target._add_entity(Skirmish.HUMAN, "melee", Vector2i(13, 16))
+	var doomed := slain_target._add_entity(Skirmish.COMPUTER, "ranged", Vector2i(15, 16))
+	slain_target._refresh_visibility()
+	check(slain_target.issue(Skirmish.HUMAN, "attack", pursuer, doomed).ok, "pursuer starts a legal attack")
+	slain_target.entities[doomed].hp = 0
+	slain_target.tick()
+	check(slain_target.entities[pursuer].job == "idle" and slain_target.entities[pursuer].path.is_empty(),
+		"pursuit ends immediately when visible target dies")
 	var fight = Skirmish.new()
 	fight.ai_enabled = false
 	var armored := fight._add_entity(Skirmish.COMPUTER, "armored", Vector2i(13, 9))
@@ -69,10 +100,13 @@ func _initialize() -> void:
 	fight.tick()
 	check(fight.entities[post].hp == post_hp and fight.projectiles.size() > 0, "siege projectile travels before impact")
 	var payload := Save.capture(fight, "solo_0123456789abcdef0123456789abcdef")
-	check(Save.restore(payload).ok, "in-flight projectile and fog survive save")
+	var restored: Dictionary = Save.restore(payload)
+	check(restored.ok and restored.game.projectiles.size() == fight.projectiles.size(), "in-flight projectile and fog survive save")
 	for i in range(5):
 		fight.tick()
-	check(fight.entities[post].hp < post_hp, "siege projectile impacts after travel")
+		restored.game.tick()
+	check(fight.entities[post].hp < post_hp and restored.game.entities[post].hp == fight.entities[post].hp,
+		"restored siege projectile impacts after travel")
 	var ballistics = Skirmish.new()
 	ballistics.ai_enabled = false
 	var shooter := ballistics._add_entity(Skirmish.HUMAN, "ranged", Vector2i(12, 9))

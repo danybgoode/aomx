@@ -565,7 +565,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_issue_order("gather", _source(source_id).pos, _source(source_id).pos)
 			elif selected.kind == "worker" and target_id != -1 and sim.entities[target_id].side == Skirmish.HUMAN and sim.entities[target_id].kind in sim.content.buildings:
 				_issue_order("assist" if not sim.entities[target_id].complete else "repair", target_id, sim.entities[target_id].pos)
-			elif _command_state("attack").visible and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER and sim.is_visible(Skirmish.HUMAN, sim.entities[target_id].pos):
+			elif _command_state("attack").visible and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[target_id]):
 				_issue_order("attack", target_id, sim.entities[target_id].pos)
 			elif _command_state("move").visible:
 				var moved: Dictionary = _issue_order("move", tile, tile)
@@ -981,7 +981,7 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 			var enemy_id: int = _pick_visual_entity(screen, Skirmish.COMPUTER)
 			if enemy_id == -1:
 				enemy_id = sim.entity_at(tile)
-			if enemy_id != -1 and sim.entities[enemy_id].side == Skirmish.COMPUTER and sim.is_visible(Skirmish.HUMAN, sim.entities[enemy_id].pos):
+			if enemy_id != -1 and sim.entities[enemy_id].side == Skirmish.COMPUTER and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_id]):
 				result = _issue_order("attack", enemy_id, sim.entities[enemy_id].pos)
 			else:
 				_flash_order(tile, "Click an enemy unit or post.", false)
@@ -1020,7 +1020,7 @@ func _update_hud() -> void:
 	var own_post := sim._find(Skirmish.HUMAN, "command_post")
 	var enemy_post := sim._find(Skirmish.COMPUTER, "command_post")
 	var own_hp: int = maxi(0, sim.entities[own_post].hp) if own_post != -1 else 0
-	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 and sim.is_visible(Skirmish.HUMAN, sim.entities[enemy_post].pos) else -1
+	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_post]) else -1
 	var hold_seconds: int = int(sim.content.objectives.district_hold_ticks) / 10
 	ui.secondary_status.text = "CENTER  %s\nHOLD  %02d:%02d / %02d:%02d\n\nCommand posts\nOurs %d HP  •  Enemy %s" % [sim.district_state.replace("_", " ").capitalize(),
 		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
@@ -1293,7 +1293,7 @@ func _pick_visual_entity(screen: Vector2, side: int) -> int:
 		for id in ids:
 			var entity: Dictionary = sim.entities[id]
 			var is_building: bool = entity.kind in sim.content.buildings
-			if entity.side != side or is_building != want_building or (side == Skirmish.COMPUTER and not sim.is_visible(Skirmish.HUMAN, entity.pos)):
+			if entity.side != side or is_building != want_building or (side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue
 			var scale := 1.0 if is_building else UNIT_ART_SCALE
 			var delta := (board - _actor_ground(entity)) / scale
@@ -1460,7 +1460,7 @@ func _draw() -> void:
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
-		if e.side == Skirmish.COMPUTER and not sim.is_visible(Skirmish.HUMAN, e.pos):
+		if e.side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, e):
 			continue
 		var is_building: bool = e.kind in sim.content.buildings
 		var ground := _actor_ground(e)

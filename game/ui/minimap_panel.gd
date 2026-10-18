@@ -41,7 +41,7 @@ func _draw() -> void:
 				if source.amount > 0 and sim.is_visible(Skirmish.HUMAN, source.pos):
 					draw_circle(_point(inner, source.pos), 2.5, resource_colors[id])
 		for entity in sim.entities.values():
-			if entity.hp <= 0 or (entity.side == Skirmish.COMPUTER and not sim.is_visible(Skirmish.HUMAN, entity.pos)):
+			if entity.hp <= 0 or (entity.side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue
 			var c: Color = Color("70d5e7") if entity.side == Skirmish.HUMAN else Color("ed796a")
 			var p := _point(inner, entity.pos)
@@ -56,9 +56,13 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), HudSkin.BRONZE, false, 2)
 
 func _point(inner: Rect2, tile: Vector2i) -> Vector2:
-	return inner.position + (Vector2(tile) + Vector2(0.5, 0.5)) / Vector2(sim.map_width, sim.map_height) * inner.size
+	var width: int = sim.map_width if sim != null else Skirmish.WIDTH
+	var height: int = sim.map_height if sim != null else Skirmish.HEIGHT
+	return inner.position + (Vector2(tile) + Vector2(0.5, 0.5)) / Vector2(width, height) * inner.size
 
 func _gui_input(event: InputEvent) -> void:
+	if sim == null:
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var inner := Rect2(Vector2(7, 7), size - Vector2(14, 14))
 		var p: Vector2 = ((event.position - inner.position) / inner.size).clamp(Vector2.ZERO, Vector2.ONE * 0.999)

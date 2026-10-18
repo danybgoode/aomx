@@ -4,7 +4,7 @@
 
 | Scenario | Map / units / load | Route p95 (≤ 6 ms) | Tick p95 (≤ 4 ms) | Frame p95 (≤ 33.3 ms) | Static memory (≤ 512 MiB) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| Sustained routing and combat, debug/headless | 28×28 / 80 active / 4,200 accepted orders, 324 duel casualties replenished, 3,250 projectile frames, 6,000 ticks (10 logical minutes) | 1.235 ms | 1.448 ms | — | 30.28 MiB |
+| Sustained routing and combat, debug/headless | 28×28 / 80 active / 4,200 accepted orders, 324 duel casualties replenished, 3,250 projectile frames, 6,000 ticks (10 logical minutes) | 1.211 ms | 1.487 ms | — | 30.28 MiB |
 | Render, 1280×800 normal | 28×28 / 80 / 180 frames, 110% fit | — | — | 24.949 ms | 37.80 MiB |
 | Render, 1280×800 enlarged | 28×28 / 80 / 180 frames, 120% | — | — | 24.720 ms | 37.81 MiB |
 | Render, 1024×700 normal | 28×28 / 80 / 180 frames, 88% fit | — | — | 25.385 ms | 37.81 MiB |
@@ -21,7 +21,7 @@ The stress probe intentionally packs both armies near the starting view. At 120%
 
 ## Deterministic and data checks
 
-`warfare_test.gd` covers hidden targeting, explored memory, congestion, a controlled unsupported-melee loss to armor followed by a two-ranged counter win, normal recruitment, attack-move/hold/stop, moving-target projectile miss after shooter death, projectile save, replay and Conquest with surviving enemy units. `skirmish_client_test.gd` additionally covers armored/siege drag selection, fogged source hit testing, and a projectile becoming visible only after entering sight. `district_test.gd` covers contest/empty resets, both factions, 750-tick hold and command-post precedence. The pinned 700-tick macOS hashes are in `cross-platform-hashes.v3.json`. The Godot-to-ingest contract accepts one test-tagged completion and excludes it from public cohorts. The Node suite and affected Godot suites pass locally.
+`warfare_test.gd` covers hidden targeting, explored memory, same-side crowd movement without enemy phasing, full building-footprint sight, immediate dead-target cancellation, a controlled unsupported-melee loss to armor followed by a two-ranged counter win, normal recruitment, attack-move/hold/stop, moving-target projectile miss after shooter death, restored projectile impact, replay and Conquest with surviving enemy units. `skirmish_client_test.gd` additionally covers unbound minimap rendering/input, armored/siege drag selection, fogged source hit testing, and a projectile becoming visible only after entering sight. `district_test.gd` covers contest/empty resets, both factions, 750-tick hold and command-post precedence. The pinned 700-tick macOS hashes are in `cross-platform-hashes.v3.json`. The Godot-to-ingest contract accepts one test-tagged completion and excludes it from public cohorts. The Node suite and affected Godot suites pass locally.
 
 ## Restricted release evidence
 
