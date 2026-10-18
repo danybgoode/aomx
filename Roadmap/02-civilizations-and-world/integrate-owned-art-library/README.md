@@ -78,6 +78,6 @@ Build on `feat/integrate-owned-art-library`. Review and merge to `master`, then 
 
 ## Closeout state, 2026-10-17
 
-The downloaded preview passed flower rendering, core commands, offline save/quit/resume and local test-tagged outbox checks. The required wins by both factions and both victory routes have not passed on this build; Sprint 3 and this epic remain in progress. See the [Sprint 3 QA log](sprint-3.md#downloaded-build-qa-2026-10-17) and [retrospective](RETROSPECTIVE.md#open-evidence). The generated board's **Ready** column describes the remaining work after the merged code PR, not this epic's completion status.
+The downloaded preview passed flower rendering, core commands, offline save/quit/resume and local test-tagged outbox checks. The required wins by both factions and both victory routes have not passed on this build; Sprint 3 and this epic remain in progress. See the [Sprint 3 QA log](sprint-3.md#downloaded-build-qa-2026-10-17) and [retrospective](RETROSPECTIVE.md#open-evidence). The live Hub should show **QA** after the roadmap artifact is refreshed: PR #42 merged and Sprint 3 is active.
 
 The later Restricted `preview-9053c3808441` contains the same owned flower prop alongside strategic play. Its authenticated fetch and signature passed on 2026-10-18. Full downloaded-build wins on that exact build can close the outstanding art behavior check, but upload and artifact verification alone do not.

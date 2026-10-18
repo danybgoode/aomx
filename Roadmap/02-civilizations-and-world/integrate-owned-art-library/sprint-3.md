@@ -16,6 +16,8 @@ stories:
 ---
 # Integrate the owned art library — Sprint 3
 
+**Status:** 🏗 In progress — merged prop integration; downloaded-build match QA remains open.
+
 ### Story 3.1 — Use a safe owned prop and verify the match
 
 **Acceptance:** An owner-supplied flower tile is drawn through the manifest in two nonblocking locations. Existing tests pass; normal and enlarged zoom, selection, placement, save, test-tagged sync and both victory routes remain usable. Record actual full-match and owner visual results rather than inferring them from headless checks.

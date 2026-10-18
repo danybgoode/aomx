@@ -17,6 +17,8 @@ stories:
 
 # Deepen strategic play — Sprint 1
 
+**Status:** 🏗 In progress — merged implementation; downloaded-build economy walkthrough remains open.
+
 ### Story 1.1 — Gather four resources and grow a settlement
 
 As a returning player, I can send workers to Comida, Materiales, Varos and vacant-lot Terrenos sources, watch cargo reach a valid drop-off, recover from exhaustion or lost drop-off, and build/repair with multiple workers. Housing raises a population cap that constrains recruitment. Each resource is required by at least one useful choice in the same match.
