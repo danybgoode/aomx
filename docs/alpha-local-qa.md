@@ -11,7 +11,7 @@ Owner downloaded-build checks on **this exact build** remain open:
 3. Save an unfinished strategic match, quit the app, reopen the same downloaded build and resume. Confirm faction, match time/ID, four balances, worker cargo, source refresh, age, research and queue. The outbox should have one test-tagged start and one completion per finished match, without a duplicate start on resume.
 4. Enter a fresh internal invite only after the VM ingest image supports this game/content pair. Sync the pending test events, retry once and confirm stable receipts and no public cohort reading. The older `owner_qa_20261014` invite was revoked.
 
-The VM ingest update and the four downloaded-build matches remain unverified. The earlier walkthroughs below document prior versions and do not close these checks.
+The VM ingest update is verified: reviewed `master` commit `8fe3152` runs as healthy `aomx-ingest:8fe3152`, the restricted HTTPS `/healthz` returned `{"ok":true}`, and the live `alpha:smoke` passed with this game/content pair. It checked replay idempotency, test-account exclusion, preview exclusion for a forged non-test claim, and unsupported-version rejection. The database recorded four excluded and one rejected smoke audit rows, with no accepted public event; the temporary invite was revoked and its files removed. The four downloaded-build matches and save/quit/resume remain unverified. A direct app-control attempt against `/Users/cosmo/Downloads/Battle for La Roma Alpha.app` returned `Running application not found: com.battleforlaroma.alpha`; no gameplay result is inferred from it. The earlier walkthroughs below document prior versions and do not close these checks.
 
 ## Owned art preview · 2026-10-17
 
