@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Shaping
+status: in-progress
+phase: Building
 slug: expand-warfare-and-world
 title: "Expand warfare and world"
 area: 01-core-play
@@ -52,6 +52,8 @@ A player who has finished the current skirmish needs new reasons to scout, choos
 - **D6 — Two explicit finishes.** Conquest is loss of the final non-rebuildable command post even when other units/buildings survive. La Roma is a fixed uncontested hold, with contest or emptiness resetting progress; its footprint and duration scale to the authored map. Command-post loss takes precedence if simultaneous. A match ID yields one terminal result/event.
 - **D7 — Rollout and measurement.** A Restricted build version pins match rules; no mid-match live gameplay flag. Preview events remain test-tagged and excluded from public retention. Real later-day completion uses the existing accepted match-event contract after an eligible cohort exists. No second telemetry or flag store.
 - **D8 — Review boundaries.** Use high-risk independent review, Godot/Node/CI checks and a numbered rendered smoke at each sprint. Merging to `master` is integration; a signed Restricted owner download is separately published and verified. No public invitation or AoE2 parity claim follows from this epic.
+
+Architecture locked 2026-10-18 before implementation. The owner Mac target is a 28×28 authored match with up to 80 live units: route p95 ≤ 6 ms, simulation tick p95 ≤ 4 ms, rendered frame p95 ≤ 33.3 ms at 1280×800, and process memory ≤ 512 MiB. Measure over a ten-minute representative battle in a release export; the existing 48×48/163-entity headless case remains a regression comparison. A failed budget requires an explicit scope decision before release.
 
 ## What already exists (reuse, don't rebuild)
 

@@ -41,7 +41,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [La Roma battlefield art pack v0.1](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) — #7 · 02 Civilizations And World · 5/6 stories · risk: Low · appetite L · _docs: status in-progress_
 - [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #9 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Integrate the owned art library](../02-civilizations-and-world/integrate-owned-art-library/README.md) — #10 · 02 Civilizations And World · 2/3 stories · risk: Low · appetite M · _docs: status in-progress_
-- [Expand warfare and world](../01-core-play/expand-warfare-and-world/README.md) — #11 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status scaffolded_
+- [Expand warfare and world](../01-core-play/expand-warfare-and-world/README.md) — #11 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
 
 ## Building — live only
 

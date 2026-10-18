@@ -3,7 +3,7 @@ epic: expand-warfare-and-world
 sprint: 1
 title: "Scout and move on a larger map"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S1.1
@@ -24,7 +24,7 @@ stories:
 
 # Expand warfare and world — Sprint 1: Scout and move on a larger map
 
-**Status:** ⬜ not started
+**Status:** 🟨 Building
 
 ### Story 1.1 — Scout an authored larger battlefield
 
