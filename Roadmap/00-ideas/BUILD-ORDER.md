@@ -10,11 +10,10 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (7)
+## Backlog (6)
 
 _seeds with no pitch yet._
 
-- [Build a strategic opponent](seeds/build-strategic-opponent.md) — #12 · 01 Core Play · seed · Feature · risk: Low · _docs: status raw_
 - [Expand civilizations and world](seeds/expand-civilizations-and-world.md) — #13 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Prove multiplayer and replays](seeds/prove-multiplayer.md) — #14 · 03 · seed · Feature · risk: High · _docs: status raw_
 - [Add more ways to play](seeds/add-more-ways-to-play.md) — #15 · 03 · seed · Feature · risk: Low · _docs: status raw_
@@ -28,7 +27,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (10)
+## Ready (11)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -42,6 +41,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Readable battlefield HUD](../02-civilizations-and-world/readable-battlefield-hud/README.md) — #9 · 02 Civilizations And World · 6/6 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Integrate the owned art library](../02-civilizations-and-world/integrate-owned-art-library/README.md) — #10 · 02 Civilizations And World · 2/3 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Expand warfare and world](../01-core-play/expand-warfare-and-world/README.md) — #11 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
+- [Build a strategic opponent](../01-core-play/build-strategic-opponent/README.md) — #12 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status scaffolded_
 
 ## Building — live only
 
