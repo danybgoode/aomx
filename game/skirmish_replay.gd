@@ -2,7 +2,8 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const RulesContent = preload("res://rules_content.gd")
-const REPLAY_SCHEMA_VERSION := 1
+const Save = preload("res://skirmish_persistence.gd")
+const REPLAY_SCHEMA_VERSION := 2
 
 static func record(game: RefCounted) -> Dictionary:
 	var human: Array[Dictionary] = []
@@ -40,6 +41,8 @@ static func verify(recording: Dictionary) -> Dictionary:
 	for entry in commands:
 		if not entry is Dictionary or not _integer(entry.get("issued_tick"), 0) or int(entry.issued_tick) < last_command_tick or int(entry.issued_tick) > end_tick:
 			return _bad("replay_history_invalid", 0)
+		if entry.get("schema_version") != Skirmish.COMMAND_SCHEMA_VERSION or entry.get("side") != Skirmish.HUMAN or not _integer(entry.get("actor_id"), 1) or not Save._command_target(entry.get("kind"), entry.get("target"), loaded.data):
+			return _bad("replay_history_invalid", int(entry.issued_tick))
 		last_command_tick = int(entry.issued_tick)
 	var last_checkpoint_tick := -1
 	for entry in checkpoints:
