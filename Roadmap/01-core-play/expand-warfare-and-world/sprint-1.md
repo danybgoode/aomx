@@ -24,7 +24,7 @@ stories:
 
 # Expand warfare and world — Sprint 1: Scout and move on a larger map
 
-**Status:** 🟨 Verifying — local rules and rendered probes pass; signed downloaded-build smoke remains open.
+**Status:** 🏗 In progress — local rules and rendered probes pass; signed downloaded-build smoke remains open.
 
 ### Story 1.1 — Scout an authored larger battlefield
 

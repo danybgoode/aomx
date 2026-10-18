@@ -24,7 +24,7 @@ stories:
 
 # Expand warfare and world — Sprint 3: Complete both victory routes
 
-**Status:** 🟨 Verifying — deterministic victory rules and ingest contract pass; four downloaded-build matches remain open.
+**Status:** 🏗 In progress — deterministic victory rules and ingest contract pass; four downloaded-build matches remain open.
 
 ### Story 3.1 — Finish by explicit Conquest or La Roma rules
 
