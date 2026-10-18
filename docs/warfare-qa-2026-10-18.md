@@ -5,12 +5,12 @@
 | Scenario | Map / units / load | Route p95 (≤ 6 ms) | Tick p95 (≤ 4 ms) | Frame p95 (≤ 33.3 ms) | Static memory (≤ 512 MiB) |
 | --- | --- | ---: | ---: | ---: | ---: |
 | Sustained routing and combat, debug/headless | 28×28 / 80 active / 4,200 accepted orders, 324 duel casualties replenished, 3,250 projectile frames, 6,000 ticks (10 logical minutes) | 1.211 ms | 1.487 ms | — | 30.28 MiB |
-| Render, 1280×800 normal | 28×28 / 80 / 180 frames, 110% fit | — | — | 24.949 ms | 37.80 MiB |
-| Render, 1280×800 enlarged | 28×28 / 80 / 180 frames, 120% | — | — | 24.720 ms | 37.81 MiB |
-| Render, 1024×700 normal | 28×28 / 80 / 180 frames, 88% fit | — | — | 25.385 ms | 37.81 MiB |
-| Render, 1024×700 enlarged | 28×28 / 80 / 180 frames, 120% | — | — | 24.745 ms | 37.81 MiB |
+| Rendered combat, 1280×800 normal | 28×28 / 80 / 600 frames, 100 combat ticks, 408 projectile frames, 110% fit | — | — | 22.689 ms | 37.87 MiB |
+| Rendered combat, 1280×800 enlarged | 28×28 / 80 / 600 frames, 100 combat ticks, 120% | — | — | 22.883 ms | 37.87 MiB |
+| Rendered combat, 1024×700 normal | 28×28 / 80 / 600 frames, 100 combat ticks, 88% fit | — | — | 22.604 ms | 37.87 MiB |
+| Rendered combat, 1024×700 enlarged | 28×28 / 80 / 600 frames, 100 combat ticks, 120% | — | — | 22.775 ms | 37.87 MiB |
 
-The sustained probe keeps AI off to make routing load repeatable. Four fighters conduct a live ranged/armored/siege duel while the remaining roster receives route orders; casualties are replenished so combat persists. This is a diagnostic workload, not the required downloaded-build representative match. The 48×48 comparison ran 162 entities and 800 orders for 300 ticks: route p95 6.369 ms against its earlier 12 ms budget, tick p95 7.599 ms against 8 ms, static memory 27.28 MB. These are a regression comparison, not release device evidence. Fog line-of-sight footprints are cached by tile; crowd waits make one bounded reroute decision, report blockage, and fail explicitly at 90 blocked ticks. A swap lets two workers pass without overlapping. The earlier repeated path search exceeded the baseline and crowded tick budgets, so it was removed before these results.
+The sustained probe keeps AI off to make routing load repeatable. Four fighters conduct a live ranged/armored/siege duel while the remaining roster receives route orders; casualties are replenished so combat persists. The rendered probe advances that duel at the game's actual 10 Hz logical cadence under an 80-unit render load, with 3 replenished casualties. A preliminary probe that forced a tick on every rendered frame measured 37.887 ms p95; that was a six-times-faster simulation workload, so it was replaced by the actual cadence before recording frame evidence. These are diagnostic workloads, not the required downloaded-build representative match. The 48×48 comparison ran 162 entities and 800 orders for 300 ticks: route p95 6.369 ms against its earlier 12 ms budget, tick p95 7.599 ms against 8 ms, static memory 27.28 MB. These are a regression comparison, not release device evidence. Fog line-of-sight footprints are cached by tile; crowd waits make one bounded reroute decision, report blockage, and fail explicitly at 90 blocked ticks. A same-side swap lets two workers pass without overlapping. The earlier repeated path search exceeded the baseline and crowded tick budgets, so it was removed before these results.
 
 ## Rendered evidence
 
