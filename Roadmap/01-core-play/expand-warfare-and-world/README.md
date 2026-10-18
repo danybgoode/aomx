@@ -1,6 +1,6 @@
 ---
 status: in-progress
-phase: Building
+phase: Verifying
 slug: expand-warfare-and-world
 title: "Expand warfare and world"
 area: 01-core-play

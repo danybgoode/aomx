@@ -3,7 +3,7 @@ epic: expand-warfare-and-world
 sprint: 3
 title: "Complete both victory routes"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,19 +12,19 @@ stories:
     i_want: "each victory route to resolve clearly"
     so_that: "I know what to defend and why the match ended"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Finish the larger match as either faction"
     as_a: "classic RTS player"
     i_want: "a complete match against the computer"
     so_that: "the new battlefield is a replayable game, not isolated mechanics"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Expand warfare and world — Sprint 3: Complete both victory routes
 
-**Status:** ⬜ not started
+**Status:** 🟨 Verifying — deterministic victory rules and ingest contract pass; four downloaded-build matches remain open.
 
 ### Story 3.1 — Finish by explicit Conquest or La Roma rules
 

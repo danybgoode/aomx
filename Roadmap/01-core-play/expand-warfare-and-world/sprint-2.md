@@ -3,7 +3,7 @@ epic: expand-warfare-and-world
 sprint: 2
 title: "Counters and siege"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,19 +12,19 @@ stories:
     i_want: "armor and role differences I can understand"
     so_that: "army composition changes a fight predictably"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Assault and defend with siege"
     as_a: "classic RTS player"
     i_want: "costly siege and a small useful order set"
     so_that: "breaching a defended post takes planning"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Expand warfare and world — Sprint 2: Counters and siege
 
-**Status:** ⬜ not started
+**Status:** 🟨 Verifying — controlled combat and save/replay pass; signed downloaded-build smoke remains open.
 
 ### Story 2.1 — Choose a predictable counter
 

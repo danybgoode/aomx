@@ -21,7 +21,7 @@ The stress probe intentionally packs both armies near the starting view. At 120%
 
 ## Deterministic and data checks
 
-`warfare_test.gd` covers hidden targeting, explored memory, congestion, armor, normal recruitment, attack-move/hold/stop, moving-target projectile miss after shooter death, projectile save, replay and Conquest with surviving enemy units. `skirmish_client_test.gd` additionally covers armored/siege drag selection, fogged source hit testing, and a projectile becoming visible only after entering sight. `district_test.gd` covers contest/empty resets, both factions, 750-tick hold and command-post precedence. The pinned 700-tick macOS hashes are in `cross-platform-hashes.v3.json`. The Godot-to-ingest contract accepts one test-tagged completion and excludes it from public cohorts. The Node suite and affected Godot suites pass locally.
+`warfare_test.gd` covers hidden targeting, explored memory, congestion, a controlled unsupported-melee loss to armor followed by a two-ranged counter win, normal recruitment, attack-move/hold/stop, moving-target projectile miss after shooter death, projectile save, replay and Conquest with surviving enemy units. `skirmish_client_test.gd` additionally covers armored/siege drag selection, fogged source hit testing, and a projectile becoming visible only after entering sight. `district_test.gd` covers contest/empty resets, both factions, 750-tick hold and command-post precedence. The pinned 700-tick macOS hashes are in `cross-platform-hashes.v3.json`. The Godot-to-ingest contract accepts one test-tagged completion and excludes it from public cohorts. The Node suite and affected Godot suites pass locally.
 
 ## Restricted release evidence
 

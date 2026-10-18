@@ -39,6 +39,28 @@ func _initialize() -> void:
 	var hp: int = fight.entities[armored].hp
 	fight.tick()
 	check(fight.entities[armored].hp == hp - 1, "armor reduces blunt damage to floor one")
+	var blunt_duel = Skirmish.new()
+	blunt_duel.ai_enabled = false
+	var lone_melee := blunt_duel._add_entity(Skirmish.HUMAN, "melee", Vector2i(12, 21))
+	var defended_armor := blunt_duel._add_entity(Skirmish.COMPUTER, "armored", Vector2i(13, 21))
+	blunt_duel._refresh_visibility()
+	check(blunt_duel.issue(Skirmish.HUMAN, "attack", lone_melee, defended_armor).ok and blunt_duel.issue(Skirmish.COMPUTER, "attack", defended_armor, lone_melee).ok,
+		"controlled blunt duel uses legal attacks")
+	for i in range(250):
+		blunt_duel.tick()
+	check(not blunt_duel.entities.has(lone_melee) and blunt_duel.entities.has(defended_armor), "armored fighter withstands unsupported melee")
+	var piercing_team = Skirmish.new()
+	piercing_team.ai_enabled = false
+	var first_ranged := piercing_team._add_entity(Skirmish.HUMAN, "ranged", Vector2i(12, 21))
+	var second_ranged := piercing_team._add_entity(Skirmish.HUMAN, "ranged", Vector2i(12, 22))
+	var countered_armor := piercing_team._add_entity(Skirmish.COMPUTER, "armored", Vector2i(14, 21))
+	piercing_team._refresh_visibility()
+	check(piercing_team.issue(Skirmish.HUMAN, "attack", first_ranged, countered_armor).ok and piercing_team.issue(Skirmish.HUMAN, "attack", second_ranged, countered_armor).ok and piercing_team.issue(Skirmish.COMPUTER, "attack", countered_armor, first_ranged).ok,
+		"piercing counter team uses legal attacks")
+	for i in range(250):
+		piercing_team.tick()
+	check(not piercing_team.entities.has(countered_armor) and (piercing_team.entities.has(first_ranged) or piercing_team.entities.has(second_ranged)),
+		"two screened ranged fighters reverse the armored matchup")
 	var siege := fight._add_entity(Skirmish.HUMAN, "siege", Vector2i(14, 14))
 	var post := fight._find(Skirmish.COMPUTER, "command_post")
 	fight._refresh_visibility()

@@ -3,7 +3,7 @@ epic: expand-warfare-and-world
 sprint: 1
 title: "Scout and move on a larger map"
 risk: high
-phase: Building
+phase: Verifying
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,19 +12,19 @@ stories:
     i_want: "to reveal routes and threats on a larger map"
     so_that: "exploration changes my plan without hiding the objective"
     risk: high
-    status: planned
+    status: in-progress
   - id: S1.2
     title: "Move an army through congestion"
     as_a: "classic RTS player"
     i_want: "my group to reach a lane or receive a clear no-route result"
     so_that: "movement orders remain trustworthy in a larger battle"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Expand warfare and world — Sprint 1: Scout and move on a larger map
 
-**Status:** 🟨 Building
+**Status:** 🟨 Verifying — local rules and rendered probes pass; signed downloaded-build smoke remains open.
 
 ### Story 1.1 — Scout an authored larger battlefield
 
