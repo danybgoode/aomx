@@ -28,9 +28,10 @@ try {
   for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd',
     'rules_content_test.gd', 'strategic_economy_test.gd', 'strategic_progression_test.gd', 'strategic_ai_test.gd',
     'skirmish_persistence_test.gd', 'skirmish_replay_test.gd', 'cross_platform_hash_test.gd', 'skirmish_save_client_test.gd',
-    'skirmish_scale_benchmark.gd', 'art_pipeline_test.gd']) {
+    'skirmish_scale_benchmark.gd', 'art_pipeline_test.gd', 'warfare_test.gd']) {
     run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', `res://tests/${test}`]);
   }
+  run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', 'res://warfare_performance_probe.gd']);
   run('npm', ['run', 'skirmish:contract'], { cwd: root, env: { ...process.env, GODOT_BIN: godot } });
   fs.cpSync(path.join(root, 'game'), game, { recursive: true, filter: source => !source.includes(`${path.sep}.godot`) && !source.includes(`${path.sep}tests`) });
   const projectFile = path.join(game, 'project.godot');

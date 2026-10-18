@@ -2,13 +2,13 @@ extends SceneTree
 
 const Skirmish = preload("res://skirmish.gd")
 const Replay = preload("res://skirmish_replay.gd")
-const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v2.json"
+const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v3.json"
 var failed := false
 
 func _initialize() -> void:
 	var fixture: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
-	check(fixture.schema_version == 2 and fixture.content_version == Skirmish.CONTENT_VERSION,
-		"hash fixture is pinned to strategy content version")
+	check(fixture.schema_version == 3 and fixture.content_version == Skirmish.CONTENT_VERSION,
+		"hash fixture is pinned to warfare content version")
 	for faction in [Skirmish.REGIOS, Skirmish.POBLANOS]:
 		var game = Skirmish.new(faction)
 		var worker: int = game._find(Skirmish.HUMAN, "worker")

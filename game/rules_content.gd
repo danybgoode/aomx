@@ -2,7 +2,7 @@ extends RefCounted
 
 const DEFAULT_PATH := "res://content/skirmish.v1.json"
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
-const UNIT_IDS := ["worker", "melee", "ranged"]
+const UNIT_IDS := ["worker", "melee", "ranged", "armored", "siege"]
 const BUILDING_IDS := ["command_post", "barracks", "depot", "housing", "registry"]
 const FACTION_IDS := ["regios", "poblanos"]
 const AGE_IDS := ["foranea", "universitaria", "godin", "gentrificacion"]
@@ -24,7 +24,7 @@ static func validate(value: Variant) -> Dictionary:
 	if not value is Dictionary:
 		return _bad("content_not_object")
 	var d: Dictionary = value
-	if not _whole(d.get("schema_version"), 1) or int(d.schema_version) != 2:
+	if not _whole(d.get("schema_version"), 1) or int(d.schema_version) != 3:
 		return _bad("unsupported_content_schema")
 	if not d.get("content_id") is String or d.content_id.is_empty():
 		return _bad("content_id_missing")
@@ -52,6 +52,11 @@ static func validate(value: Variant) -> Dictionary:
 		return _bad("unit_ids_invalid")
 	for id in UNIT_IDS:
 		var u: Dictionary = d.units[id]
+		if not _whole(u.get("armor"), 0) or u.get("attack_class") not in ["none", "blunt", "piercing", "siege"] or not u.get("bonuses") is Dictionary or not _whole(u.get("projectile_ticks"), 0):
+			return _bad("invalid_%s_combat" % id)
+		for bonus in u.bonuses:
+			if bonus not in UNIT_IDS and bonus != "structure" or not _whole(u.bonuses[bonus], 1):
+				return _bad("invalid_%s_bonus" % id)
 		for key in ["health", "cost", "train_ticks"]:
 			if not _whole(u.get(key), 1 if key != "cost" else 0):
 				return _bad("invalid_%s_%s" % [id, key])
@@ -67,6 +72,8 @@ static func validate(value: Variant) -> Dictionary:
 		return _bad("building_ids_invalid")
 	for id in BUILDING_IDS:
 		var b: Dictionary = d.buildings[id]
+		if not _whole(b.get("armor"), 0):
+			return _bad("invalid_%s_armor" % id)
 		if not _whole(b.get("health"), 1) or not b.get("trains") is Array:
 			return _bad("invalid_building_" + id)
 		for role in b.trains:
@@ -162,6 +169,38 @@ static func _map(value: Variant) -> Dictionary:
 		return _bad("map_resource_amount_invalid")
 	if int(m.district_min[0]) > int(m.district_max[0]) or int(m.district_min[1]) > int(m.district_max[1]):
 		return _bad("district_bounds_invalid")
+	var blocked_lookup := {}
+	for p in m.blocked_tiles:
+		blocked_lookup[Vector2i(int(p[0]), int(p[1]))] = true
+	var terrain_lookup := blocked_lookup.duplicate()
+	for key in ["elevated_tiles", "cliff_tiles"]:
+		if not m.get(key) is Array:
+			return _bad("map_" + key + "_invalid")
+		for p in m[key]:
+			if not _point(p, w, h):
+				return _bad("map_" + key + "_invalid")
+			var terrain_tile := Vector2i(int(p[0]), int(p[1]))
+			if terrain_lookup.has(terrain_tile):
+				return _bad("map_" + key + "_invalid")
+			terrain_lookup[terrain_tile] = true
+	var impassable := {}
+	for p in m.blocked_tiles + m.cliff_tiles:
+		impassable[Vector2i(int(p[0]), int(p[1]))] = true
+	var start := Vector2i(int(m.workers[0][0]), int(m.workers[0][1]))
+	var finish := Vector2i(int(m.workers[1][0]), int(m.workers[1][1]))
+	var frontier: Array[Vector2i] = [start]
+	var reached := {start: true}
+	var cursor := 0
+	while cursor < frontier.size():
+		var tile := frontier[cursor]
+		cursor += 1
+		for step in [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]:
+			var next: Vector2i = tile + step
+			if next.x >= 0 and next.y >= 0 and next.x < w and next.y < h and not impassable.has(next) and not reached.has(next):
+				reached[next] = true
+				frontier.append(next)
+	if not reached.has(finish) or not reached.has(Vector2i(int(m.ai_district_target[0]), int(m.ai_district_target[1]))):
+		return _bad("critical_route_disconnected")
 	return {"ok": true}
 
 static func _known_keys(value: Variant, ids: Array) -> bool:

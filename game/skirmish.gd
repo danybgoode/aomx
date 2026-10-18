@@ -2,15 +2,15 @@ extends RefCounted
 
 const RulesContent = preload("res://rules_content.gd")
 
-const WIDTH := 20
-const HEIGHT := 20
+const WIDTH := 28
+const HEIGHT := 28
 const HUMAN := 0
 const COMPUTER := 1
 const REGIOS := "regios"
 const POBLANOS := "poblanos"
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const BUILDING_KINDS := ["command_post", "barracks", "depot", "housing", "registry"]
-const COMBAT_KINDS := ["melee", "ranged"]
+const COMBAT_KINDS := ["melee", "ranged", "armored", "siege"]
 const DRAW_TICK := 9000
 const RESOURCE_POS := {HUMAN: Vector2i(6, 4), COMPUTER: Vector2i(13, 15)}
 const BARRACKS_POS := {HUMAN: Vector2i(5, 6), COMPUTER: Vector2i(13, 11)}
@@ -24,13 +24,13 @@ const BUILD_TICKS := 40
 const CARRY_LIMIT := 4
 const AI_ATTACK_TICK := 2600
 const AI_DISTRICT_TICK := 2400
-const DISTRICT_MIN := Vector2i(9, 9)
+const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
-const HOLD_TICKS := 600
-const GAME_VERSION := "godot-4.7.2-skirmish-2"
-const CONTENT_VERSION := "la-roma-strategy-2"
-const COMMAND_SCHEMA_VERSION := 2
-const STATE_SCHEMA_VERSION := 2
+const HOLD_TICKS := 750
+const GAME_VERSION := "godot-4.7.2-skirmish-3"
+const CONTENT_VERSION := "la-roma-warfare-3"
+const COMMAND_SCHEMA_VERSION := 3
+const STATE_SCHEMA_VERSION := 3
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
@@ -38,7 +38,14 @@ var content_hash := ""
 var map_width := WIDTH
 var map_height := HEIGHT
 var blocked_tiles: Dictionary = {}
+var cliff_tiles: Dictionary = {}
+var elevated_tiles: Dictionary = {}
+var visible_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
+var explored_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
+var last_seen: Dictionary = {HUMAN: {}, COMPUTER: {}}
+var sight_cache: Dictionary = {}
 var building_tiles: Dictionary = {}
+var projectiles: Array[Dictionary] = []
 var rng_state := 1
 var initial_seed := 1
 var hash_checkpoints: Array[Dictionary] = []
@@ -81,6 +88,10 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	map_height = int(content.map.height)
 	for point in content.map.blocked_tiles:
 		blocked_tiles[Vector2i(int(point[0]), int(point[1]))] = true
+	for point in content.map.cliff_tiles:
+		cliff_tiles[Vector2i(int(point[0]), int(point[1]))] = true
+	for point in content.map.elevated_tiles:
+		elevated_tiles[Vector2i(int(point[0]), int(point[1]))] = true
 	rng_state = seed if seed != 0 else 1
 	initial_seed = rng_state
 	factions = {HUMAN: human_faction, COMPUTER: POBLANOS if human_faction == REGIOS else REGIOS}
@@ -97,6 +108,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	for side in [HUMAN, COMPUTER]:
 		_add_entity(side, "command_post", _point(content.map.command_posts[side]))
 		_add_entity(side, "worker", _point(content.map.workers[side]))
+	_refresh_visibility()
 
 func issue_command(command: Dictionary) -> Dictionary:
 	if command.get("schema_version") != COMMAND_SCHEMA_VERSION:
@@ -109,7 +121,7 @@ func issue_command(command: Dictionary) -> Dictionary:
 	if not _whole_number(command.side) or not _whole_number(command.actor_id) or not command.kind is String:
 		return {"ok": false, "reason": "command_type_invalid"}
 	var target: Variant = command.target
-	if command.kind in ["move", "gather"]:
+	if command.kind in ["move", "gather", "attack_move"]:
 		if not target is Array or target.size() != 2 or not _whole_number(target[0]) or not _whole_number(target[1]):
 			return {"ok": false, "reason": "command_target_invalid"}
 		target = Vector2i(int(target[0]), int(target[1]))
@@ -124,7 +136,7 @@ func issue_command(command: Dictionary) -> Dictionary:
 		if not _whole_number(target):
 			return {"ok": false, "reason": "command_target_invalid"}
 		target = int(target)
-	elif command.kind in ["train", "research", "advance"]:
+	elif command.kind in ["train", "research", "advance", "stop", "hold"]:
 		if not target is String:
 			return {"ok": false, "reason": "command_target_invalid"}
 	else:
@@ -141,6 +153,26 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 	if actor.side != side or actor.hp <= 0:
 		return {"ok": false, "reason": "wrong_side_or_dead"}
 	match kind:
+		"stop", "hold":
+			if actor.kind in content.buildings:
+				rejected.reason = "mobile_unit_required"
+			else:
+				actor.path.clear()
+				actor.job = "hold" if kind == "hold" else "idle"
+				actor.target_id = -1
+				rejected = {"ok": true, "reason": "holding" if kind == "hold" else "stopped"}
+		"attack_move":
+			if actor.kind not in COMBAT_KINDS or not target is Vector2i or not _walkable(target):
+				rejected.reason = "combat_unit_and_tile_required"
+			else:
+				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return tile == target)
+				if route.is_empty() and actor.pos != target:
+					rejected.reason = "unreachable_tile"
+				else:
+					actor.path = route
+					actor.job = "attack_move"
+					actor.order_pos = target
+					rejected = {"ok": true, "reason": "advancing"}
 		"move":
 			if actor.kind in content.buildings or not target is Vector2i or not _walkable(target):
 				rejected.reason = "blocked_or_invalid_tile"
@@ -151,6 +183,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				else:
 					actor.path = route
 					actor.job = "move" if not route.is_empty() else "idle"
+					actor.order_pos = target
 					rejected = {"ok": true, "reason": "moving"}
 		"gather":
 			var resource_id := _resource_at(side, target) if target is Vector2i else ""
@@ -316,6 +349,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				rejected.reason = "combat_unit_and_target_required"
 			elif entities[target].side == side or entities[target].hp <= 0:
 				rejected.reason = "invalid_enemy_target"
+			elif not is_entity_visible(side, entities[target]):
+				rejected.reason = "target_not_visible"
 			else:
 				var reach := int(content.units[actor.kind].range)
 				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, entities[target]) <= reach)
@@ -342,8 +377,14 @@ func tick() -> void:
 	tick_number += 1
 	_tick_sources()
 	if ai_enabled and tick_number % int(content.ai.step_ticks) == 0:
+		_refresh_visibility()
 		_ai_step()
 	var damages: Dictionary = {}
+	var moved_ids: Dictionary = {}
+	for projectile in projectiles:
+		if int(projectile.arrival) <= tick_number and entities.has(int(projectile.target_id)) and entities[projectile.target_id].hp > 0 and entities[projectile.target_id].pos == projectile.tile:
+			damages[projectile.target_id] = int(damages.get(projectile.target_id, 0)) + int(projectile.damage)
+	projectiles = projectiles.filter(func(p: Dictionary) -> bool: return int(p.arrival) > tick_number)
 	var ids: Array = entities.keys()
 	ids.sort()
 	for id in ids:
@@ -357,10 +398,40 @@ func tick() -> void:
 			continue
 		if entity.cooldown > 0:
 			entity.cooldown -= 1
+		if entity.job == "attack" and (not entities.has(entity.target_id) or entities[entity.target_id].hp <= 0 or not is_entity_visible(entity.side, entities[entity.target_id])):
+			entity.job = "idle"
+			entity.path.clear()
+			entity.target_id = -1
+			if entity.side == HUMAN:
+				feedback = "Target lost from sight. Scout before attacking again."
+		if entity.job in ["attack_move", "hold"] and _tick_auto_attack(entity, damages):
+			continue
 		if not entity.path.is_empty():
 			if tick_number % 3 == 0:
-				if _walkable(entity.path[0]):
+				if moved_ids.has(id):
+					continue
+				var occupied_by := _unit_at(entity.path[0])
+				if occupied_by != -1 and occupied_by != id and entities[occupied_by].side == entity.side and not moved_ids.has(occupied_by) and not entities[occupied_by].path.is_empty() and entities[occupied_by].path[0] == entity.pos:
+					var old_pos: Vector2i = entity.pos
 					entity.pos = entity.path.pop_front()
+					entities[occupied_by].pos = old_pos
+					entities[occupied_by].path.pop_front()
+					entity.blocked_ticks = 0
+					entities[occupied_by].blocked_ticks = 0
+					moved_ids[id] = true
+					moved_ids[occupied_by] = true
+				elif _walkable(entity.path[0]) and occupied_by == -1:
+					entity.pos = entity.path.pop_front()
+					entity.blocked_ticks = 0
+				elif _walkable(entity.path[0]):
+					entity.blocked_ticks += 3
+					if entity.blocked_ticks == 30:
+						_reroute_occupied(entity)
+					elif entity.blocked_ticks >= 90:
+						entity.path.clear()
+						entity.job = "idle"
+						if entity.side == HUMAN:
+							feedback = "No free route. Choose another destination."
 				else:
 					_reroute_blocked(entity)
 			continue
@@ -372,6 +443,7 @@ func tick() -> void:
 			"build": _tick_build(entity)
 			"repair": _tick_repair(entity)
 			"attack": _tick_attack(entity, damages)
+			"attack_move", "hold": _tick_auto_attack(entity, damages)
 			"move": entity.job = "idle"
 	var damage_ids: Array = damages.keys()
 	damage_ids.sort()
@@ -397,6 +469,7 @@ func tick() -> void:
 		_tick_district()
 		if result == "" and tick_number >= int(content.objectives.draw_tick):
 			_finish("draw", "time_limit")
+	_refresh_visibility()
 	if tick_number % 50 == 0 or result != "":
 		hash_checkpoints.append({"tick": tick_number, "hash": state_hash()})
 
@@ -427,11 +500,19 @@ func _reroute_blocked(entity: Dictionary) -> void:
 				if not entity.path.is_empty() or _distance_to_entity(entity.pos, target) <= reach:
 					return
 	entity.job = "idle"
+	if entity.side == HUMAN:
+		feedback = "No route to the ordered destination."
+
+func _reroute_occupied(entity: Dictionary) -> void:
+	# Crowds are transient obstacles. Static paths remain valid when a neighbor
+	# steps away (or swaps); abort explicitly after a bounded wait below.
+	if entity.side == HUMAN:
+		feedback = "Crowded route; unit waiting for a free tile."
 
 func _tick_district() -> void:
 	var present := {HUMAN: false, COMPUTER: false}
 	for e in entities.values():
-		if e.hp > 0 and e.kind in ["melee", "ranged"] and _in_district(e.pos):
+		if e.hp > 0 and e.kind in COMBAT_KINDS and _in_district(e.pos):
 			present[e.side] = true
 	if present[HUMAN] and present[COMPUTER]:
 		district_state = "contested"
@@ -463,6 +544,7 @@ func snapshot() -> Dictionary:
 			"hp": e.hp, "complete": e.complete, "progress": e.progress, "carry": e.carry,
 			"carry_resource": e.carry_resource, "source_resource": e.source_resource,
 			"job": e.job, "target_id": e.target_id, "cooldown": e.cooldown,
+			"blocked_ticks": e.blocked_ticks, "order_pos": [e.order_pos.x, e.order_pos.y],
 			"path": e.path.map(func(p: Vector2i) -> Array: return [p.x, p.y]), "queue": e.queue.duplicate(true)})
 	var balances: Array = []
 	var source_states: Array = []
@@ -485,7 +567,9 @@ func snapshot() -> Dictionary:
 		"balances": balances, "resource_sources": source_states,
 		"age_index": [age_index[HUMAN], age_index[COMPUTER]],
 		"researched": [researched[HUMAN].duplicate(), researched[COMPUTER].duplicate()],
-		"entities": list,
+		"entities": list, "projectiles": projectiles.map(func(p: Dictionary) -> Dictionary: return {"target_id": p.target_id, "tile": [p.tile.x, p.tile.y], "origin": [p.origin.x, p.origin.y], "damage": p.damage, "launch": p.launch, "arrival": p.arrival}),
+		"explored": [_sorted_points(explored_tiles[HUMAN]), _sorted_points(explored_tiles[COMPUTER])],
+		"last_seen": [_sorted_sight_memory(HUMAN), _sorted_sight_memory(COMPUTER)],
 		"next_id": next_id, "next_command": next_command, "ai_next_role": ai_next_role,
 		"ai_enabled": ai_enabled}
 
@@ -502,7 +586,7 @@ func _add_entity(side: int, kind: String, pos: Vector2i) -> int:
 	entities[id] = {"id": id, "side": side, "kind": kind, "pos": pos, "hp": _starting_health(side, kind),
 		"complete": true, "progress": 0, "carry": 0, "carry_resource": "", "source_resource": "",
 		"job": "idle", "path": [],
-		"target_id": -1, "cooldown": 0, "queue": []}
+		"target_id": -1, "cooldown": 0, "queue": [], "blocked_ticks": 0, "order_pos": pos}
 	if kind in content.buildings:
 		_occupy_building(pos)
 	return id
@@ -690,14 +774,52 @@ func _tick_attack(e: Dictionary, damages: Dictionary) -> void:
 		e.job = "idle"
 		return
 	var target: Dictionary = entities[e.target_id]
+	if not is_entity_visible(e.side, target):
+		e.job = "idle"
+		e.path.clear()
+		if e.side == HUMAN:
+			feedback = "Target lost from sight. Scout before attacking again."
+		return
 	if _distance_to_entity(e.pos, target) > int(content.units[e.kind].range):
 		e.path = _route_until(e.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= int(content.units[e.kind].range))
 		if e.path.is_empty():
 			e.job = "idle"
 		return
 	if e.cooldown == 0:
-		damages[e.target_id] = damages.get(e.target_id, 0) + _unit_damage(e.side, e.kind)
+		var damage := _attack_damage(e, target)
+		var travel := int(content.units[e.kind].projectile_ticks)
+		if travel > 0:
+			projectiles.append({"target_id": e.target_id, "tile": target.pos, "origin": e.pos, "damage": damage, "launch": tick_number, "arrival": tick_number + travel})
+		else:
+			damages[e.target_id] = int(damages.get(e.target_id, 0)) + damage
 		e.cooldown = int(content.units[e.kind].cooldown_ticks)
+
+func _tick_auto_attack(e: Dictionary, damages: Dictionary) -> bool:
+	if e.kind not in COMBAT_KINDS:
+		return false
+	var target_id := -1
+	var ids: Array = entities.keys()
+	ids.sort()
+	for id in ids:
+		var target: Dictionary = entities[id]
+		if target.side != e.side and target.hp > 0 and is_entity_visible(e.side, target) and _distance_to_entity(e.pos, target) <= int(content.units[e.kind].range):
+			target_id = id
+			break
+	if target_id == -1:
+		return false
+	var old_job: String = e.job
+	var old_target: int = e.target_id
+	e.target_id = target_id
+	_tick_attack(e, damages)
+	e.target_id = old_target
+	e.job = old_job
+	return true
+
+func _attack_damage(attacker: Dictionary, target: Dictionary) -> int:
+	var rule: Dictionary = content.units[attacker.kind]
+	var armor := int(content.buildings[target.kind].armor) if target.kind in content.buildings else int(content.units[target.kind].armor)
+	var bonus_key := "structure" if target.kind in content.buildings else str(target.kind)
+	return maxi(1, _unit_damage(attacker.side, attacker.kind) + int(rule.bonuses.get(bonus_key, 0)) - armor)
 
 func _ai_goal() -> Dictionary:
 	var side := COMPUTER
@@ -714,7 +836,7 @@ func _ai_goal() -> Dictionary:
 		if not entities[building_id].complete:
 			return {"kind": "wait", "id": building_id, "costs": {}}
 	var barracks_id := _find(side, "barracks")
-	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _count_queued_role(side, "melee") + _count_queued_role(side, "ranged") < 2:
+	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _queued_fighters(side) < 2:
 		var role := ai_next_role
 		return {"kind": "train", "id": role, "costs": _costs(side, role)}
 	if age_index[side] == 0 and not _queued(side, "age", "universitaria"):
@@ -735,8 +857,8 @@ func _ai_goal() -> Dictionary:
 		return {"kind": "advance", "id": "gentrificacion", "costs": content.ages.transitions.gentrificacion.costs}
 	if age_index[side] >= 3 and "combat_training_i" not in researched[side] and not _queued(side, "tech", "combat_training_i"):
 		return {"kind": "research", "id": "combat_training_i", "costs": content.techs.combat_training_i.costs}
-	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _count_queued_role(side, "melee") + _count_queued_role(side, "ranged") < int(content.ai.army_cap):
-		var role := ai_next_role
+	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _queued_fighters(side) < int(content.ai.army_cap):
+		var role := "siege" if age_index[side] >= 2 and _find(side, "siege") == -1 and _count_queued_role(side, "siege") == 0 else "armored" if age_index[side] >= 1 and _find(side, "armored") == -1 and _count_queued_role(side, "armored") == 0 else ai_next_role
 		return {"kind": "train", "id": role, "costs": _costs(side, role)}
 	return {}
 
@@ -745,6 +867,12 @@ func _count_fighters(side: int) -> int:
 	for entity in entities.values():
 		if entity.side == side and entity.hp > 0 and entity.kind in COMBAT_KINDS:
 			count += 1
+	return count
+
+func _queued_fighters(side: int) -> int:
+	var count := 0
+	for role in COMBAT_KINDS:
+		count += _count_queued_role(side, role)
 	return count
 
 func _count_queued_role(side: int, role: String) -> int:
@@ -835,8 +963,9 @@ func _ai_step() -> void:
 		return
 	var human_post := _find(HUMAN, "command_post")
 	var human_district := -1
-	for id in ids:
-		if entities.has(id) and entities[id].side == HUMAN and entities[id].hp > 0 and entities[id].kind in COMBAT_KINDS and _in_district(entities[id].pos):
+	var visible_enemies := _visible_enemy_ids(side)
+	for id in visible_enemies:
+		if entities[id].kind in COMBAT_KINDS and _in_district(entities[id].pos):
 			human_district = id
 			break
 	for id in ids:
@@ -846,22 +975,27 @@ func _ai_step() -> void:
 		if human_district != -1:
 			if unit.job != "attack" or unit.target_id != human_district:
 				issue(side, "attack", id, human_district)
-		elif unit.kind == "melee" and tick_number >= int(content.ai.attack_tick) and human_post != -1:
-			if (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)) and unit.job in ["idle", "move"]:
-				issue(side, "attack", id, human_post)
+		elif tick_number >= int(content.ai.attack_tick) and human_post != -1 and (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
+			if human_post in visible_enemies:
+				if unit.job != "attack" or unit.target_id != human_post:
+					issue(side, "attack", id, human_post)
+			elif unit.job in ["idle", "move"]:
+				var remembered: Vector2i = last_seen[side].get(human_post, _point(content.map.command_posts[HUMAN]))
+				var approach := remembered + Vector2i(2, 2)
+				issue(side, "attack_move", id, approach)
 		elif unit.job == "idle" and not _in_district(unit.pos):
 			issue(side, "move", id, _point(content.map.ai_district_target))
 
 func _other_computer_fighter_in_district(except_id: int) -> bool:
 	for id in entities:
-		if id != except_id and entities[id].side == COMPUTER and entities[id].hp > 0 and entities[id].kind in ["melee", "ranged"] and _in_district(entities[id].pos):
+		if id != except_id and entities[id].side == COMPUTER and entities[id].hp > 0 and entities[id].kind in COMBAT_KINDS and _in_district(entities[id].pos):
 			return true
 	return false
 
 func _count_units(side: int) -> int:
 	var count := 0
 	for e in entities.values():
-		if e.side == side and e.kind in ["worker", "melee", "ranged"]:
+		if e.side == side and e.kind in content.units:
 			count += 1
 	return count
 
@@ -1004,7 +1138,86 @@ func _next_random() -> int:
 	return rng_state
 
 func _wall(tile: Vector2i) -> bool:
-	return blocked_tiles.has(tile)
+	return blocked_tiles.has(tile) or cliff_tiles.has(tile)
+
+func is_visible(side: int, tile: Vector2i) -> bool:
+	return visible_tiles[side].has(tile)
+
+func is_entity_visible(side: int, entity: Dictionary) -> bool:
+	if entity.kind in content.buildings:
+		for offset in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i(1, 1)]:
+			if is_visible(side, entity.pos + offset):
+				return true
+		return false
+	return is_visible(side, entity.pos)
+
+func is_explored(side: int, tile: Vector2i) -> bool:
+	return explored_tiles[side].has(tile)
+
+func _refresh_visibility() -> void:
+	visible_tiles = {HUMAN: {}, COMPUTER: {}}
+	var ids: Array = entities.keys()
+	ids.sort()
+	for id in ids:
+		var observer: Dictionary = entities[id]
+		if observer.hp <= 0:
+			continue
+		var side: int = observer.side
+		var radius := 7 if elevated_tiles.has(observer.pos) else 5
+		if observer.kind in content.buildings:
+			radius = 6
+		for tile in _sight_for(observer.pos, radius):
+			visible_tiles[side][tile] = true
+			explored_tiles[side][tile] = true
+	for side in [HUMAN, COMPUTER]:
+		for id in ids:
+			var e: Dictionary = entities[id]
+			if e.side != side and e.hp > 0 and is_entity_visible(side, e):
+				last_seen[side][id] = e.pos
+
+func _visible_enemy_ids(side: int) -> Array:
+	var observed: Array = []
+	var ids: Array = entities.keys()
+	ids.sort()
+	for id in ids:
+		var e: Dictionary = entities[id]
+		if e.side != side and e.hp > 0 and is_entity_visible(side, e):
+			observed.append(id)
+	return observed
+
+func _sight_for(origin: Vector2i, radius: int) -> Array[Vector2i]:
+	var key := Vector3i(origin.x, origin.y, radius)
+	if sight_cache.has(key):
+		return sight_cache[key]
+	var points: Array[Vector2i] = []
+	for y in range(maxi(0, origin.y - radius), mini(map_height, origin.y + radius + 1)):
+		for x in range(maxi(0, origin.x - radius), mini(map_width, origin.x + radius + 1)):
+			var tile := Vector2i(x, y)
+			if _distance(origin, tile) <= radius and _line_visible(origin, tile):
+				points.append(tile)
+	sight_cache[key] = points
+	return points
+
+func _line_visible(from: Vector2i, to: Vector2i) -> bool:
+	var steps := maxi(absi(to.x - from.x), absi(to.y - from.y))
+	if steps == 0:
+		return true
+	for index in range(1, steps):
+		var fraction := float(index) / float(steps)
+		var tile := Vector2i(roundi(lerpf(from.x, to.x, fraction)), roundi(lerpf(from.y, to.y, fraction)))
+		if _wall(tile) or (elevated_tiles.has(tile) and not elevated_tiles.has(from)):
+			return false
+	return true
+
+func _sorted_points(points: Dictionary) -> Array:
+	var keys: Array = points.keys()
+	keys.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return a.y < b.y if a.y != b.y else a.x < b.x)
+	return keys.map(func(p: Vector2i) -> Array: return [p.x, p.y])
+
+func _sorted_sight_memory(side: int) -> Array:
+	var ids: Array = last_seen[side].keys()
+	ids.sort()
+	return ids.map(func(id: int) -> Dictionary: return {"id": id, "pos": [last_seen[side][id].x, last_seen[side][id].y]})
 
 func _in_district(tile: Vector2i) -> bool:
 	var low := _point(content.map.district_min)
@@ -1062,7 +1275,7 @@ func _distance_to_entity(tile: Vector2i, e: Dictionary) -> int:
 func _unit_at(tile: Vector2i) -> int:
 	for id in entities:
 		var e: Dictionary = entities[id]
-		if e.hp > 0 and e.kind in ["worker", "melee", "ranged"] and e.pos == tile:
+		if e.hp > 0 and e.kind in content.units and e.pos == tile:
 			return id
 	return -1
 
@@ -1081,7 +1294,7 @@ func _perimeter(at: Vector2i) -> Array[Vector2i]:
 		at + Vector2i(1, -1), at + Vector2i(2, 0), at + Vector2i(2, 1),
 		at + Vector2i(0, 2), at + Vector2i(1, 2)]
 
-func _route_until(from: Vector2i, condition: Callable) -> Array[Vector2i]:
+func _route_until(from: Vector2i, condition: Callable, avoid_occupied: bool = false) -> Array[Vector2i]:
 	var empty: Array[Vector2i] = []
 	if condition.call(from):
 		return empty
@@ -1093,7 +1306,7 @@ func _route_until(from: Vector2i, condition: Callable) -> Array[Vector2i]:
 		index += 1
 		for step in [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]:
 			var next: Vector2i = tile + step
-			if _walkable(next) and not parent.has(next):
+			if _walkable(next) and (not avoid_occupied or _unit_at(next) == -1) and not parent.has(next):
 				parent[next] = tile
 				if condition.call(next):
 					var route: Array[Vector2i] = []

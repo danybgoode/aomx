@@ -3,12 +3,25 @@ extends SceneTree
 const Scene = preload("res://skirmish_main.tscn")
 const Outbox = preload("res://funnel_outbox.gd")
 const Skirmish = preload("res://skirmish.gd")
+const Minimap = preload("res://ui/minimap_panel.gd")
 var failed := false
 
 func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	var unbound_map = Minimap.new()
+	unbound_map.size = Vector2(120, 120)
+	root.add_child(unbound_map)
+	await process_frame
+	var unbound_click := InputEventMouseButton.new()
+	unbound_click.button_index = MOUSE_BUTTON_LEFT
+	unbound_click.position = Vector2(40, 40)
+	unbound_click.pressed = true
+	unbound_map._gui_input(unbound_click)
+	check(unbound_map._point(Rect2(Vector2(7, 7), Vector2(106, 106)), Vector2i(10, 10)).is_finite(),
+		"minimap draws and ignores clicks before a simulation is attached")
+	unbound_map.queue_free()
 	var path := "user://skirmish-client-check-%d.json" % Time.get_ticks_usec()
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new(path)
@@ -73,7 +86,7 @@ func _run() -> void:
 	map_click.position = Vector2(7, 7) + (client.hud_ui.minimap.size - Vector2(14, 14)) * Vector2(0.375, 0.325)
 	map_click.pressed = true
 	client.hud_ui.minimap._gui_input(map_click)
-	check(client.hud_ui.minimap.camera_tile == Vector2i(7, 6), "clicking the minimap moves the camera")
+	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 9), "clicking the minimap moves the camera")
 	client._toggle_pause()
 	var paused_tick: int = client.sim.tick_number
 	client._process(0.5)
@@ -83,6 +96,16 @@ func _run() -> void:
 	check(client.hud_ui.diagnostics.visible and client.invite_input != null, "menu exposes preserved alpha diagnostics")
 	client._toggle_diagnostics()
 	client.board_pan = Vector2.ZERO
+	var armored_id: int = client.sim._add_entity(Skirmish.HUMAN, "armored", Vector2i(5, 12))
+	var siege_id: int = client.sim._add_entity(Skirmish.HUMAN, "siege", Vector2i(6, 12))
+	var armored_screen: Vector2 = Vector2(640, 305) + (client._actor_ground(client.sim.entities[armored_id]) - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
+	var siege_screen: Vector2 = Vector2(640, 305) + (client._actor_ground(client.sim.entities[siege_id]) - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
+	client._select_drag(Rect2(armored_screen, siege_screen - armored_screen).grow(2), false)
+	check(armored_id in client.selected_ids and siege_id in client.selected_ids, "drag selection includes armored and siege roles")
+	client.sim.entities.erase(armored_id)
+	client.sim.entities.erase(siege_id)
+	client.selected_ids.clear()
+	client.selected_id = -1
 	var worker_id: int = client.sim._find(Skirmish.HUMAN, "worker")
 	var worker_tile: Vector2i = client.sim.entities[worker_id].pos
 	var worker_body: Vector2 = client._tile_to_screen(worker_tile) + Vector2(0, -27)
@@ -113,7 +136,22 @@ func _run() -> void:
 		var source_tile: Vector2i = client.sim.resource_sources[Skirmish.HUMAN][resource_id].pos
 		var source_body: Vector2 = client._tile_to_screen(source_tile) + Vector2(0, -8)
 		var source_screen: Vector2 = Vector2(640, 305) + (source_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
-		check(client._pick_visual_source(source_screen) == resource_id, "%s labeled source is targetable" % resource_id)
+		check(client._pick_visual_source(source_screen) == (resource_id if client.sim.is_visible(Skirmish.HUMAN, source_tile) else ""), "%s source targetability follows sight" % resource_id)
+	var hidden_source: Dictionary = client.sim.resource_sources[Skirmish.HUMAN].terrenos
+	var original_source_pos: Vector2i = hidden_source.pos
+	hidden_source.pos = Vector2i(26, 2)
+	client.sim._refresh_visibility()
+	var hidden_body: Vector2 = client._tile_to_screen(hidden_source.pos) + Vector2(0, -8)
+	var hidden_screen: Vector2 = Vector2(640, 305) + (hidden_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
+	check(not client.sim.is_visible(Skirmish.HUMAN, hidden_source.pos) and client._pick_visual_source(hidden_screen).is_empty() and client._source_at(hidden_screen, hidden_source.pos).is_empty(),
+		"fogged source cannot be hovered or ordered")
+	hidden_source.pos = original_source_pos
+	client.sim._refresh_visibility()
+	var hidden_shot := {"origin": Vector2i(26, 2), "tile": Vector2i(4, 2), "launch": client.sim.tick_number, "arrival": client.sim.tick_number + 5}
+	check(not client._projectile_visible(hidden_shot), "projectile launch in fog does not reveal shooter position")
+	client.sim.tick_number += 5
+	check(client._projectile_visible(hidden_shot), "projectile appears after entering visible ground")
+	client.sim.tick_number -= 5
 	var comida_tile: Vector2i = client.sim.resource_sources[Skirmish.HUMAN].comida.pos
 	var comida_body: Vector2 = client._tile_to_screen(comida_tile) + Vector2(0, -8)
 	var comida_screen: Vector2 = Vector2(640, 305) + (comida_body - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()

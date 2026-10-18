@@ -1,0 +1,9 @@
+{
+  "schema_version": 3,
+  "godot": "4.7.2",
+  "content_version": "la-roma-warfare-3",
+  "cases": {
+    "regios_700": "850a4a29eb25bcd417e4e49faa86d285e9389a5719253f036c21ba39e48b136f",
+    "poblanos_700": "7d34bce3706c03ba64109d8506f01f6052294f4ff71a7c521ab52fadf35d4d8d"
+  }
+}

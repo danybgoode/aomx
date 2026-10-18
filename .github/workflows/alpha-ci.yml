@@ -47,8 +47,9 @@ jobs:
           GODOT_BIN: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
         run: |
           "$GODOT_BIN" --headless --path game --import
-          for test in simulation_test.gd outbox_test.gd skirmish_test.gd faction_test.gd district_test.gd skirmish_client_test.gd rules_content_test.gd strategic_economy_test.gd strategic_progression_test.gd strategic_ai_test.gd skirmish_persistence_test.gd skirmish_replay_test.gd cross_platform_hash_test.gd skirmish_save_client_test.gd; do
+          for test in simulation_test.gd outbox_test.gd skirmish_test.gd faction_test.gd district_test.gd skirmish_client_test.gd rules_content_test.gd strategic_economy_test.gd strategic_progression_test.gd strategic_ai_test.gd skirmish_persistence_test.gd skirmish_replay_test.gd cross_platform_hash_test.gd skirmish_save_client_test.gd warfare_test.gd; do
             "$GODOT_BIN" --headless --path game --script "res://tests/$test"
           done
           "$GODOT_BIN" --headless --path game --script res://tests/skirmish_scale_benchmark.gd
+          WARFARE_PERF_ENFORCE=false "$GODOT_BIN" --headless --path game --script res://warfare_performance_probe.gd
           npm run skirmish:contract

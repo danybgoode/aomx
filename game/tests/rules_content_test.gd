@@ -10,7 +10,7 @@ func _initialize() -> void:
 	if not loaded.ok:
 		quit(1)
 		return
-	check(loaded.data.schema_version == 2 and loaded.data.resources.size() == 4 and loaded.data.ages.order.size() == 4,
+	check(loaded.data.schema_version == 3 and loaded.data.resources.size() == 4 and loaded.data.ages.order.size() == 4,
 		"four-resource four-age strategy content loads")
 	check(loaded.data.techs.size() == 3 and loaded.data.buildings.size() == 5,
 		"mechanics-first techs and building roster load")
@@ -29,6 +29,17 @@ func _initialize() -> void:
 	bad = loaded.data.duplicate(true)
 	bad.units.worker.costs.comida = -1
 	check(RulesContent.validate(bad).reason == "invalid_worker_costs", "negative resource cost rejected")
+	bad = loaded.data.duplicate(true)
+	bad.units.siege.bonuses.unknown = 3
+	check(RulesContent.validate(bad).reason == "invalid_siege_bonus", "unknown counter reference rejected")
+	bad = loaded.data.duplicate(true)
+	bad.map.cliff_tiles.append([10, 8])
+	check(RulesContent.validate(bad).reason == "map_cliff_tiles_invalid", "cliff cannot overlap a blocked wall")
+	bad = loaded.data.duplicate(true)
+	for y in range(int(bad.map.height)):
+		if y != 17:
+			bad.map.blocked_tiles.append([11, y])
+	check(RulesContent.validate(bad).reason == "critical_route_disconnected", "isolated starting routes rejected")
 	bad = loaded.data.duplicate(true)
 	bad.buildings.depot.costs.extra = 1
 	check(RulesContent.validate(bad).reason == "invalid_depot_costs", "unknown resource ID rejected")

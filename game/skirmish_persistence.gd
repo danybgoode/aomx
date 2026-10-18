@@ -2,9 +2,9 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
-const SAVE_SCHEMA_VERSION := 2
+const SAVE_SCHEMA_VERSION := 3
 const MAX_SAVE_BYTES := 16777216
-const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair"]
+const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const QUEUE_KINDS := ["unit", "tech", "age"]
 const RESULTS := ["", "win", "loss", "draw"]
@@ -119,7 +119,19 @@ static func restore(payload: Dictionary) -> Dictionary:
 			"complete": e.complete, "progress": int(e.progress), "carry": int(e.carry),
 			"carry_resource": e.carry_resource, "source_resource": e.source_resource,
 			"job": e.job, "target_id": int(e.target_id), "cooldown": int(e.cooldown),
+			"blocked_ticks": int(e.blocked_ticks), "order_pos": Vector2i(int(e.order_pos[0]), int(e.order_pos[1])),
 			"path": path, "queue": queue}
+	game.projectiles.clear()
+	for p in state.projectiles:
+		game.projectiles.append({"target_id": int(p.target_id), "tile": Vector2i(int(p.tile[0]), int(p.tile[1])), "origin": Vector2i(int(p.origin[0]), int(p.origin[1])), "damage": int(p.damage), "launch": int(p.launch), "arrival": int(p.arrival)})
+	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+		game.explored_tiles[side].clear()
+		for p in state.explored[side]:
+			game.explored_tiles[side][Vector2i(int(p[0]), int(p[1]))] = true
+		game.last_seen[side].clear()
+		for memory in state.last_seen[side]:
+			game.last_seen[side][int(memory.id)] = Vector2i(int(memory.pos[0]), int(memory.pos[1]))
+	game._refresh_visibility()
 	game.rebuild_navigation()
 	game.command_log.clear()
 	for command in payload.command_log:
@@ -186,6 +198,18 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 			seen_techs[tech_id] = true
 	if s.get("ai_next_role") not in ["melee", "ranged"] or not s.get("ai_enabled") is bool:
 		return _bad("state_ai_invalid")
+	if not s.get("projectiles") is Array or s.projectiles.size() > 10000 or not s.get("explored") is Array or s.explored.size() != 2 or not s.get("last_seen") is Array or s.last_seen.size() != 2:
+		return _bad("state_visibility_invalid")
+	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+		for p in s.explored[side]:
+			if not _point(p, int(content.map.width), int(content.map.height)):
+				return _bad("state_visibility_invalid")
+		for memory in s.last_seen[side]:
+			if not memory is Dictionary or not _integer(memory.get("id"), 1) or not _point(memory.get("pos"), int(content.map.width), int(content.map.height)):
+				return _bad("state_visibility_invalid")
+	for p in s.projectiles:
+		if not p is Dictionary or not _integer(p.get("target_id"), 1) or not _point(p.get("tile"), int(content.map.width), int(content.map.height)) or not _point(p.get("origin"), int(content.map.width), int(content.map.height)) or not _integer(p.get("damage"), 1) or not _integer(p.get("launch"), 0) or not _integer(p.get("arrival"), 1) or int(p.arrival) <= int(p.launch):
+			return _bad("state_projectile_invalid")
 	if not s.get("entities") is Array or s.entities.size() > 10000:
 		return _bad("state_entities_invalid")
 	var last_id := 0
@@ -200,11 +224,13 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 			return _bad("state_entity_kind_invalid")
 		if not _point(e.get("pos"), int(content.map.width), int(content.map.height)):
 			return _bad("state_entity_position_invalid")
-		for key in ["hp", "progress", "carry", "cooldown"]:
+		for key in ["hp", "progress", "carry", "cooldown", "blocked_ticks"]:
 			if not _integer(e.get(key), -10000 if key == "hp" else 0):
 				return _bad("state_entity_" + key + "_invalid")
 		if not _integer(e.get("target_id"), -1) or not e.get("complete") is bool or e.get("job") not in JOBS:
 			return _bad("state_entity_job_invalid")
+		if not _point(e.get("order_pos"), int(content.map.width), int(content.map.height)):
+			return _bad("state_entity_order_invalid")
 		if not _resource_or_empty(e.get("carry_resource")) or not _resource_or_empty(e.get("source_resource")):
 			return _bad("state_entity_resource_invalid")
 		if not e.get("path") is Array or e.path.size() > int(content.map.width) * int(content.map.height):
@@ -258,7 +284,7 @@ static func _command_target(kind: Variant, target: Variant, content: Dictionary)
 	var width := int(content.map.width)
 	var height := int(content.map.height)
 	match kind:
-		"move", "gather":
+		"move", "gather", "attack_move":
 			return _point(target, width, height)
 		"build":
 			if _point(target, width, height):
@@ -270,6 +296,8 @@ static func _command_target(kind: Variant, target: Variant, content: Dictionary)
 			return target is String and target in content.techs
 		"advance":
 			return target is String and target in content.ages.transitions
+		"stop", "hold":
+			return target is String and target == ""
 		"attack", "assist", "repair":
 			return _integer(target, 1)
 		"cancel":
