@@ -585,7 +585,7 @@ func _select_drag(rect: Rect2, additive: bool) -> void:
 		ids.assign(selected_ids)
 	for id in sim.entities:
 		var e: Dictionary = sim.entities[id]
-		if e.side != Skirmish.HUMAN or e.kind not in ["worker", "melee", "ranged"]:
+		if e.side != Skirmish.HUMAN or e.kind not in sim.content.units:
 			continue
 		var screen := BOARD_CENTER + (_actor_ground(e) - BOARD_CENTER) * board_zoom + board_pan + _board_view_offset()
 		if rect.has_point(screen) and id not in ids:
@@ -1311,7 +1311,7 @@ func _pick_visual_source(screen: Vector2) -> String:
 	var board := _screen_to_board(screen)
 	for id in RESOURCE_IDS:
 		var source := _source(id)
-		if int(source.get("amount", 0)) > 0 and board.distance_to(_tile_to_screen(source.pos) + Vector2(0, -8)) <= 17:
+		if int(source.get("amount", 0)) > 0 and sim.is_visible(Skirmish.HUMAN, source.pos) and board.distance_to(_tile_to_screen(source.pos) + Vector2(0, -8)) <= 17:
 			return id
 	return ""
 
@@ -1321,9 +1321,14 @@ func _source_at(screen: Vector2, tile: Vector2i) -> String:
 		return id
 	for resource_id in RESOURCE_IDS:
 		var source := _source(resource_id)
-		if source.get("pos", Vector2i(-1, -1)) == tile and int(source.get("amount", 0)) > 0:
+		if source.get("pos", Vector2i(-1, -1)) == tile and int(source.get("amount", 0)) > 0 and sim.is_visible(Skirmish.HUMAN, tile):
 			return resource_id
 	return ""
+
+func _projectile_visible(projectile: Dictionary) -> bool:
+	var flight := clampf(float(sim.tick_number - int(projectile.launch)) / float(int(projectile.arrival) - int(projectile.launch)), 0.0, 1.0)
+	var world: Vector2 = Vector2(projectile.origin).lerp(Vector2(projectile.tile), flight)
+	return sim.is_visible(Skirmish.HUMAN, Vector2i(roundi(world.x), roundi(world.y)))
 
 func _refresh_hover() -> void:
 	if choosing_faction or placing:
@@ -1338,7 +1343,7 @@ func _refresh_hover() -> void:
 	var next_source := ""
 	if next_entity == -1:
 		next_source = _pick_visual_source(screen)
-	if next_entity == -1 and next_source.is_empty() and _selected_kind() in ["melee", "ranged"]:
+	if next_entity == -1 and next_source.is_empty() and _selected_kind() in Skirmish.COMBAT_KINDS:
 		next_entity = _pick_visual_entity(screen, Skirmish.COMPUTER)
 	var next_hint := ""
 	if next_entity != -1:
@@ -1507,7 +1512,7 @@ func _draw() -> void:
 		if not is_building and e.kind == "worker" and e.carry > 0:
 			draw_circle(ground + Vector2(-11 * art_scale * unit_facing.get(id, 1), -22 * art_scale + bob), 3.0, Color("f9c45e"))
 	for projectile in sim.projectiles:
-		if sim.is_visible(Skirmish.HUMAN, projectile.tile):
+		if _projectile_visible(projectile):
 			var flight := clampf(float(sim.tick_number - int(projectile.launch)) / float(int(projectile.arrival) - int(projectile.launch)), 0.0, 1.0)
 			var point := _tile_to_screen(projectile.origin).lerp(_tile_to_screen(projectile.tile), flight)
 			draw_circle(point + Vector2(0, -18), 5.0, Color("ffe2a1"))

@@ -4,13 +4,13 @@
 
 | Scenario | Map / units / load | Route p95 (≤ 6 ms) | Tick p95 (≤ 4 ms) | Frame p95 (≤ 33.3 ms) | Static memory (≤ 512 MiB) |
 | --- | --- | ---: | ---: | ---: | ---: |
-| Representative logical match | 28×28 / 80 / 4,440 accepted orders, 6,000 ticks (10 logical minutes) | 1.247 ms | 1.198 ms | — | 30.54 MiB |
+| Sustained routing and combat, debug/headless | 28×28 / 80 active / 4,200 accepted orders, 324 duel casualties replenished, 3,250 projectile frames, 6,000 ticks (10 logical minutes) | 1.235 ms | 1.448 ms | — | 30.28 MiB |
 | Render, 1280×800 normal | 28×28 / 80 / 180 frames, 110% fit | — | — | 24.949 ms | 37.80 MiB |
 | Render, 1280×800 enlarged | 28×28 / 80 / 180 frames, 120% | — | — | 24.720 ms | 37.81 MiB |
 | Render, 1024×700 normal | 28×28 / 80 / 180 frames, 88% fit | — | — | 25.385 ms | 37.81 MiB |
 | Render, 1024×700 enlarged | 28×28 / 80 / 180 frames, 120% | — | — | 24.745 ms | 37.81 MiB |
 
-The 48×48 comparison ran 162 entities and 800 orders for 300 ticks: route p95 6.369 ms against its earlier 12 ms budget, tick p95 7.599 ms against 8 ms, static memory 27.28 MB. These are a regression comparison, not release device evidence. Fog line-of-sight footprints are cached by tile; crowd waits make one bounded reroute decision, report blockage, and fail explicitly at 90 blocked ticks. A swap lets two workers pass without overlapping. The earlier repeated path search exceeded the baseline and crowded tick budgets, so it was removed before these results.
+The sustained probe keeps AI off to make routing load repeatable. Four fighters conduct a live ranged/armored/siege duel while the remaining roster receives route orders; casualties are replenished so combat persists. This is a diagnostic workload, not the required downloaded-build representative match. The 48×48 comparison ran 162 entities and 800 orders for 300 ticks: route p95 6.369 ms against its earlier 12 ms budget, tick p95 7.599 ms against 8 ms, static memory 27.28 MB. These are a regression comparison, not release device evidence. Fog line-of-sight footprints are cached by tile; crowd waits make one bounded reroute decision, report blockage, and fail explicitly at 90 blocked ticks. A swap lets two workers pass without overlapping. The earlier repeated path search exceeded the baseline and crowded tick budgets, so it was removed before these results.
 
 ## Rendered evidence
 
@@ -21,7 +21,7 @@ The stress probe intentionally packs both armies near the starting view. At 120%
 
 ## Deterministic and data checks
 
-`warfare_test.gd` covers hidden targeting, explored memory, congestion, armor, normal recruitment, attack-move/hold/stop, moving-target projectile miss after shooter death, projectile save, replay and Conquest with surviving enemy units. `district_test.gd` covers contest/empty resets, both factions, 750-tick hold and command-post precedence. The pinned 700-tick macOS hashes are in `cross-platform-hashes.v3.json`. The Godot-to-ingest contract accepts one test-tagged completion and excludes it from public cohorts. The Node suite and affected Godot suites pass locally.
+`warfare_test.gd` covers hidden targeting, explored memory, congestion, armor, normal recruitment, attack-move/hold/stop, moving-target projectile miss after shooter death, projectile save, replay and Conquest with surviving enemy units. `skirmish_client_test.gd` additionally covers armored/siege drag selection, fogged source hit testing, and a projectile becoming visible only after entering sight. `district_test.gd` covers contest/empty resets, both factions, 750-tick hold and command-post precedence. The pinned 700-tick macOS hashes are in `cross-platform-hashes.v3.json`. The Godot-to-ingest contract accepts one test-tagged completion and excludes it from public cohorts. The Node suite and affected Godot suites pass locally.
 
 ## Restricted release evidence
 
