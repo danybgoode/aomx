@@ -1,33 +1,467 @@
 {
-  "schema_version": 1,
-  "content_id": "la-roma-prototype-1",
+  "schema_version": 2,
+  "content_id": "la-roma-strategy-2",
   "tick_ms": 100,
   "map": {
     "width": 20,
     "height": 20,
-    "blocked_tiles": [[10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,12],[10,13],[10,14],[10,15],[10,16],[10,17],[10,18],[10,19],[14,15],[16,15],[15,14],[15,16]],
-    "district_min": [9,9],
-    "district_max": [11,11],
-    "resource_positions": [[6,4],[13,15]],
+    "blocked_tiles": [
+      [
+        10,
+        0
+      ],
+      [
+        10,
+        1
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        10,
+        3
+      ],
+      [
+        10,
+        4
+      ],
+      [
+        10,
+        5
+      ],
+      [
+        10,
+        6
+      ],
+      [
+        10,
+        7
+      ],
+      [
+        10,
+        8
+      ],
+      [
+        10,
+        12
+      ],
+      [
+        10,
+        13
+      ],
+      [
+        10,
+        14
+      ],
+      [
+        10,
+        15
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        10,
+        17
+      ],
+      [
+        10,
+        18
+      ],
+      [
+        10,
+        19
+      ],
+      [
+        14,
+        15
+      ],
+      [
+        16,
+        15
+      ],
+      [
+        15,
+        14
+      ],
+      [
+        15,
+        16
+      ]
+    ],
+    "district_min": [
+      9,
+      9
+    ],
+    "district_max": [
+      11,
+      11
+    ],
+    "resource_positions": [
+      [
+        6,
+        4
+      ],
+      [
+        13,
+        15
+      ]
+    ],
     "resource_amount": 60,
-    "command_posts": [[2,2],[16,16]],
-    "workers": [[4,2],[15,17]],
-    "barracks_positions": [[5,6],[13,11]],
-    "ai_district_target": [11,10]
+    "command_posts": [
+      [
+        2,
+        2
+      ],
+      [
+        16,
+        16
+      ]
+    ],
+    "workers": [
+      [
+        4,
+        2
+      ],
+      [
+        15,
+        17
+      ]
+    ],
+    "barracks_positions": [
+      [
+        5,
+        6
+      ],
+      [
+        13,
+        11
+      ]
+    ],
+    "ai_district_target": [
+      11,
+      10
+    ]
   },
   "units": {
-    "worker": {"health": 8, "cost": 4, "train_ticks": 40},
-    "melee": {"health": 14, "cost": 3, "train_ticks": 45, "damage": 3, "range": 1, "cooldown_ticks": 10},
-    "ranged": {"health": 8, "cost": 4, "train_ticks": 55, "damage": 2, "range": 3, "cooldown_ticks": 14}
+    "worker": {
+      "health": 8,
+      "cost": 4,
+      "train_ticks": 40,
+      "costs": {
+        "comida": 2,
+        "materiales": 0,
+        "varos": 4,
+        "terrenos": 0
+      },
+      "min_age": "foranea"
+    },
+    "melee": {
+      "health": 14,
+      "cost": 3,
+      "train_ticks": 45,
+      "damage": 3,
+      "range": 1,
+      "cooldown_ticks": 10,
+      "costs": {
+        "comida": 2,
+        "materiales": 2,
+        "varos": 3,
+        "terrenos": 0
+      },
+      "min_age": "foranea"
+    },
+    "ranged": {
+      "health": 8,
+      "cost": 4,
+      "train_ticks": 55,
+      "damage": 2,
+      "range": 3,
+      "cooldown_ticks": 14,
+      "costs": {
+        "comida": 2,
+        "materiales": 2,
+        "varos": 4,
+        "terrenos": 0
+      },
+      "min_age": "foranea"
+    }
   },
   "buildings": {
-    "command_post": {"health": 50, "trains": ["worker"]},
-    "barracks": {"health": 30, "cost": 6, "build_ticks": 40, "trains": ["melee", "ranged"]}
+    "command_post": {
+      "health": 50,
+      "trains": [
+        "worker"
+      ],
+      "cost": 0,
+      "costs": {
+        "comida": 0,
+        "materiales": 0,
+        "varos": 0,
+        "terrenos": 0
+      },
+      "build_ticks": 1,
+      "min_age": "foranea",
+      "population_bonus": 0
+    },
+    "barracks": {
+      "health": 30,
+      "cost": 6,
+      "build_ticks": 40,
+      "trains": [
+        "melee",
+        "ranged"
+      ],
+      "costs": {
+        "comida": 0,
+        "materiales": 4,
+        "varos": 6,
+        "terrenos": 0
+      },
+      "min_age": "foranea",
+      "population_bonus": 0
+    },
+    "depot": {
+      "health": 24,
+      "cost": 4,
+      "costs": {
+        "comida": 0,
+        "materiales": 3,
+        "varos": 4,
+        "terrenos": 0
+      },
+      "build_ticks": 30,
+      "trains": [],
+      "min_age": "foranea",
+      "population_bonus": 0
+    },
+    "housing": {
+      "health": 24,
+      "cost": 3,
+      "costs": {
+        "comida": 0,
+        "materiales": 4,
+        "varos": 3,
+        "terrenos": 0
+      },
+      "build_ticks": 30,
+      "trains": [],
+      "min_age": "foranea",
+      "population_bonus": 4
+    },
+    "registry": {
+      "health": 28,
+      "cost": 5,
+      "costs": {
+        "comida": 0,
+        "materiales": 5,
+        "varos": 5,
+        "terrenos": 3
+      },
+      "build_ticks": 45,
+      "trains": [],
+      "min_age": "universitaria",
+      "population_bonus": 0
+    }
   },
   "factions": {
-    "regios": {"carry_limit": 5, "combat_cost_extra": 1, "building_health_percent": 100},
-    "poblanos": {"carry_limit": 4, "combat_cost_extra": 0, "building_health_percent": 120}
+    "regios": {
+      "carry_limit": 5,
+      "combat_cost_extra": 1,
+      "building_health_percent": 100
+    },
+    "poblanos": {
+      "carry_limit": 4,
+      "combat_cost_extra": 0,
+      "building_health_percent": 120
+    }
   },
-  "objectives": {"draw_tick": 9000, "district_hold_ticks": 600},
-  "ai": {"step_ticks": 20, "district_tick": 350, "attack_tick": 800, "army_cap": 3}
+  "objectives": {
+    "draw_tick": 9000,
+    "district_hold_ticks": 600
+  },
+  "ai": {
+    "step_ticks": 20,
+    "district_tick": 2400,
+    "attack_tick": 2600,
+    "army_cap": 3
+  },
+  "resources": {
+    "comida": {
+      "source_positions": [
+        [
+          5,
+          3
+        ],
+        [
+          14,
+          18
+        ]
+      ],
+      "amount": 80,
+      "refresh_amount": 12,
+      "refresh_ticks": 200,
+      "refresh_count": 4
+    },
+    "materiales": {
+      "source_positions": [
+        [
+          5,
+          5
+        ],
+        [
+          12,
+          18
+        ]
+      ],
+      "amount": 80,
+      "refresh_amount": 12,
+      "refresh_ticks": 200,
+      "refresh_count": 4
+    },
+    "varos": {
+      "source_positions": [
+        [
+          6,
+          4
+        ],
+        [
+          13,
+          15
+        ]
+      ],
+      "amount": 80,
+      "refresh_amount": 12,
+      "refresh_ticks": 200,
+      "refresh_count": 4
+    },
+    "terrenos": {
+      "source_positions": [
+        [
+          7,
+          7
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "amount": 70,
+      "refresh_amount": 10,
+      "refresh_ticks": 250,
+      "refresh_count": 4
+    }
+  },
+  "population": {
+    "base_cap": 4,
+    "max_cap": 24,
+    "housing_bonus": 4
+  },
+  "ages": {
+    "order": [
+      "foranea",
+      "universitaria",
+      "godin",
+      "gentrificacion"
+    ],
+    "transitions": {
+      "universitaria": {
+        "costs": {
+          "comida": 8,
+          "materiales": 10,
+          "varos": 10,
+          "terrenos": 4
+        },
+        "duration_ticks": 80,
+        "requires_buildings": [
+          "depot",
+          "housing"
+        ],
+        "requires_techs": []
+      },
+      "godin": {
+        "costs": {
+          "comida": 12,
+          "materiales": 12,
+          "varos": 12,
+          "terrenos": 8
+        },
+        "duration_ticks": 120,
+        "requires_buildings": [
+          "registry"
+        ],
+        "requires_techs": [
+          "carry_capacity_i"
+        ]
+      },
+      "gentrificacion": {
+        "costs": {
+          "comida": 16,
+          "materiales": 16,
+          "varos": 16,
+          "terrenos": 12
+        },
+        "duration_ticks": 160,
+        "requires_buildings": [
+          "barracks"
+        ],
+        "requires_techs": [
+          "construction_rate_i"
+        ]
+      }
+    }
+  },
+  "techs": {
+    "carry_capacity_i": {
+      "age": "universitaria",
+      "costs": {
+        "comida": 4,
+        "materiales": 3,
+        "varos": 3,
+        "terrenos": 2
+      },
+      "duration_ticks": 50,
+      "requires_techs": [],
+      "effect": {
+        "kind": "carry_capacity",
+        "amount": 1
+      }
+    },
+    "construction_rate_i": {
+      "age": "godin",
+      "costs": {
+        "comida": 5,
+        "materiales": 5,
+        "varos": 5,
+        "terrenos": 3
+      },
+      "duration_ticks": 60,
+      "requires_techs": [
+        "carry_capacity_i"
+      ],
+      "effect": {
+        "kind": "construction_rate",
+        "amount": 1
+      }
+    },
+    "combat_training_i": {
+      "age": "gentrificacion",
+      "costs": {
+        "comida": 6,
+        "materiales": 6,
+        "varos": 6,
+        "terrenos": 4
+      },
+      "duration_ticks": 70,
+      "requires_techs": [
+        "construction_rate_i"
+      ],
+      "effect": {
+        "kind": "combat_training",
+        "amount": 1
+      }
+    }
+  }
 }

@@ -70,14 +70,16 @@ func _initialize() -> void:
 		var counter = Skirmish.new(faction)
 		counter._add_entity(Skirmish.HUMAN, "melee", Vector2i(9, 10))
 		counter._add_entity(Skirmish.COMPUTER, "ranged", Vector2i(13, 10))
-		counter.tick_number = Skirmish.AI_DISTRICT_TICK + 9
+		counter.age_index[Skirmish.COMPUTER] = 3
+		counter.tick_number = Skirmish.AI_DISTRICT_TICK + 19
 		counter.tick()
 		var ai_order: bool = counter.command_log.any(func(order: Dictionary) -> bool:
 			return order.side == Skirmish.COMPUTER and order.kind == "attack" and order.target == counter._find(Skirmish.HUMAN, "melee"))
 		check(ai_order, "computer counters human presence through a validated attack order")
 		var open_center = Skirmish.new(faction)
 		open_center._add_entity(Skirmish.COMPUTER, "ranged", Vector2i(13, 10))
-		open_center.tick_number = Skirmish.AI_DISTRICT_TICK + 9
+		open_center.age_index[Skirmish.COMPUTER] = 3
+		open_center.tick_number = Skirmish.AI_DISTRICT_TICK + 19
 		open_center.tick()
 		var move_order: bool = open_center.command_log.any(func(order: Dictionary) -> bool:
 			return order.side == Skirmish.COMPUTER and order.kind == "move" and order.target == [11, 10])
@@ -85,6 +87,7 @@ func _initialize() -> void:
 		check(not open_center.entities[open_center._find(Skirmish.COMPUTER, "ranged")].path.is_empty(), "computer has a center route")
 		var sole_guard = Skirmish.new(faction)
 		var guard_id: int = sole_guard._add_entity(Skirmish.COMPUTER, "melee", Vector2i(11, 10))
+		sole_guard.age_index[Skirmish.COMPUTER] = 3
 		sole_guard.tick_number = Skirmish.AI_ATTACK_TICK - 1
 		sole_guard.district_side = Skirmish.COMPUTER
 		sole_guard.district_progress = 450
@@ -94,16 +97,21 @@ func _initialize() -> void:
 		var covered_guard = Skirmish.new(faction)
 		covered_guard._add_entity(Skirmish.COMPUTER, "melee", Vector2i(11, 10))
 		covered_guard._add_entity(Skirmish.COMPUTER, "ranged", Vector2i(11, 9))
+		covered_guard.age_index[Skirmish.COMPUTER] = 3
 		covered_guard.tick_number = Skirmish.AI_ATTACK_TICK - 1
 		covered_guard.tick()
 		check(covered_guard.command_log.any(func(order: Dictionary) -> bool:
 			return order.side == Skirmish.COMPUTER and order.kind == "attack" and order.target == covered_guard._find(Skirmish.HUMAN, "command_post")),
 			"covered melee can still pressure the command post")
 		var idle_player = Skirmish.new(faction)
-		for i in range(1200):
+		var reached_fourth_age := false
+		for i in range(4000):
 			idle_player.tick()
+			if idle_player.age_index[Skirmish.COMPUTER] == 3:
+				reached_fourth_age = true
 			if idle_player.result != "":
 				break
+		check(reached_fourth_age, "normal AI reaches fourth age before ending an idle match")
 		check(idle_player.result == "loss", "active opponent can finish against an idle human")
 		check(idle_player.command_log.any(func(order: Dictionary) -> bool:
 			return order.side == Skirmish.COMPUTER and order.kind == "move" and order.target == [11, 10]),

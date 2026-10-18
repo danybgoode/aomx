@@ -16,12 +16,20 @@ func _initialize() -> void:
 		if game.stockpile[Skirmish.HUMAN] >= 12:
 			break
 	check(game.stockpile[Skirmish.HUMAN] >= 12, "worker delivered resource")
+	game._add_balance(Skirmish.HUMAN, "materiales", 20)
+	game._add_balance(Skirmish.HUMAN, "comida", 20)
 	var before: int = game.stockpile[Skirmish.HUMAN]
-	check(not game.issue(Skirmish.HUMAN, "build", worker, Vector2i(10, 2)).ok, "wall footprint rejected")
-	check(game.stockpile[Skirmish.HUMAN] == before, "rejected build spends nothing")
+	var material_before: int = game.balance(Skirmish.HUMAN, "materiales")
+	check(game.issue(Skirmish.HUMAN, "build", worker, Vector2i(10, 2)).reason == "blocked_footprint", "wall footprint rejected")
+	check(game.stockpile[Skirmish.HUMAN] == before and game.balance(Skirmish.HUMAN, "materiales") == material_before,
+		"rejected build spends nothing")
 	check(game.issue(Skirmish.HUMAN, "build", worker, Skirmish.BARRACKS_POS[Skirmish.HUMAN]).ok, "recruitment post placed")
-	check(game.stockpile[Skirmish.HUMAN] == before - Skirmish.COST.barracks, "construction cost charged once")
+	check(game.stockpile[Skirmish.HUMAN] == before - Skirmish.COST.barracks and game.balance(Skirmish.HUMAN, "materiales") == material_before - 4,
+		"construction cost charged once across resources")
 	var barracks := game._find(Skirmish.HUMAN, "barracks")
+	if barracks == -1:
+		quit(1)
+		return
 	check(not game.issue(Skirmish.HUMAN, "train", barracks, "melee").ok, "incomplete barracks cannot train")
 	for i in range(130):
 		game.tick()
@@ -73,7 +81,7 @@ func _initialize() -> void:
 	check(replay_a.state_hash() == replay_b.state_hash(), "replay final state hash equal")
 	check(replay_a.command_log == replay_b.command_log, "replay command log equal")
 	var opponent = Skirmish.new()
-	for i in range(850):
+	for i in range(Skirmish.AI_ATTACK_TICK + 50):
 		opponent.tick()
 	var ai_melee: bool = opponent.command_log.any(func(order: Dictionary) -> bool: return order.side == Skirmish.COMPUTER and order.kind == "train" and order.target == "melee")
 	var ai_ranged: bool = opponent.command_log.any(func(order: Dictionary) -> bool: return order.side == Skirmish.COMPUTER and order.kind == "train" and order.target == "ranged")

@@ -10,6 +10,10 @@ func _initialize() -> void:
 	if not loaded.ok:
 		quit(1)
 		return
+	check(loaded.data.schema_version == 2 and loaded.data.resources.size() == 4 and loaded.data.ages.order.size() == 4,
+		"four-resource four-age strategy content loads")
+	check(loaded.data.techs.size() == 3 and loaded.data.buildings.size() == 5,
+		"mechanics-first techs and building roster load")
 	var bad: Dictionary = loaded.data.duplicate(true)
 	bad.units.melee.cost = -1
 	check(RulesContent.validate(bad).reason == "invalid_melee_cost", "invalid cost rejected")
@@ -19,6 +23,25 @@ func _initialize() -> void:
 	bad = loaded.data.duplicate(true)
 	bad.buildings.barracks.trains = ["unknown_unit"]
 	check(RulesContent.validate(bad).reason == "invalid_train_role_unknown_unit", "unknown role ID rejected")
+	bad = loaded.data.duplicate(true)
+	bad.resources.terrenos.source_positions[0] = [500, 1]
+	check(RulesContent.validate(bad).reason == "invalid_terrenos_positions", "out-of-bounds survey lot rejected")
+	bad = loaded.data.duplicate(true)
+	bad.units.worker.costs.comida = -1
+	check(RulesContent.validate(bad).reason == "invalid_worker_costs", "negative resource cost rejected")
+	bad = loaded.data.duplicate(true)
+	bad.buildings.depot.costs.extra = 1
+	check(RulesContent.validate(bad).reason == "invalid_depot_costs", "unknown resource ID rejected")
+	bad = loaded.data.duplicate(true)
+	bad.ages.transitions.godin.requires_buildings = ["unknown_building"]
+	check(RulesContent.validate(bad).reason == "invalid_godin_prerequisites", "unknown age building prerequisite rejected")
+	bad = loaded.data.duplicate(true)
+	bad.techs.carry_capacity_i.requires_techs = ["construction_rate_i"]
+	bad.techs.construction_rate_i.age = "universitaria"
+	check(RulesContent.validate(bad).reason == "tech_cycle", "technology prerequisite cycle rejected")
+	bad = loaded.data.duplicate(true)
+	bad.ages.transitions.universitaria.requires_techs = ["carry_capacity_i"]
+	check(RulesContent.validate(bad).reason == "invalid_universitaria_prerequisite_age", "age cannot require a same-age tech")
 	var game = Skirmish.new()
 	check(game.content_hash == loaded.hash, "simulation pins content digest")
 	var worker: int = game._find(Skirmish.HUMAN, "worker")
@@ -36,6 +59,7 @@ func _initialize() -> void:
 		"unknown command version rejected before mutation")
 	var custom: Dictionary = loaded.data.duplicate(true)
 	custom.units.melee.cost = 9
+	custom.units.melee.costs.varos = 9
 	custom.factions.regios.carry_limit = 7
 	var changed = Skirmish.new(Skirmish.REGIOS, custom)
 	check(changed._cost(Skirmish.HUMAN, "melee") == 10 and changed._carry_limit(Skirmish.HUMAN) == 7,
