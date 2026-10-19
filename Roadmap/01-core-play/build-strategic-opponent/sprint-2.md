@@ -3,7 +3,7 @@ epic: build-strategic-opponent
 sprint: 2
 title: "Adaptive plans and objectives"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,19 +12,19 @@ stories:
     i_want: "the opponent to respond to discoveries"
     so_that: "counterplay matters"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Defend and choose an objective"
     as_a: "solo player"
     i_want: "the opponent to defend and change its plan"
     so_that: "both victory routes stay meaningful"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Build a strategic opponent — Sprint 2: Adaptive plans and objectives
 
-**Status:** ⬜ not started
+**Status:** 🟦 In review — local scout, visible counter, defense, district and controlled Conquest checks pass; downloaded-build full matches remain open.
 
 ## Stories
 

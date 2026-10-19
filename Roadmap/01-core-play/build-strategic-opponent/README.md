@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Locking architecture
+status: in-progress
+phase: Verifying
 slug: build-strategic-opponent
 title: "Build a strategic opponent"
 area: 01-core-play
@@ -52,7 +52,7 @@ A solo player who has finished one La Roma skirmish needs a clear next challenge
 - **D6 — Scope and measurement.** Use the existing two factions, authored map, win rules, outbox and test exclusions. No new gameplay rule, telemetry pipeline, remote inference or client-embedded flag key. A signed Restricted build is separate from merging to `master`; no public invitation or retention claim follows.
 - **D7 — Dependency and review.** Confirm warfare and strategic-economy contracts from current source at implementation lock. Independent high-risk review covers shared simulation, persistence, visibility and client changes. Each sprint has headless and rendered evidence plus a numbered owner smoke; final acceptance includes a downloaded build and an approved human read.
 
-The owner approved the plan on 2026-10-18. Before code, inspect current source and record exact preset values, scenario seeds, save/content version handling and measured AI tick budget. The existing warfare target on the owner Mac is a 28×28 match with up to 80 units: route p95 ≤ 6 ms, simulation tick p95 ≤ 4 ms, rendered frame p95 ≤ 33.3 ms at 1280×800, and memory ≤ 512 MiB for a ten-minute release-export battle. AI must preserve those budgets; the baseline is not proof that this new policy passes.
+The owner approved the plan on 2026-10-18. The implementation uses 40/20/10-tick reaction cadences, 4/6/8-fighter caps, visible-role countering in Standard/Challenger, seed-selected opening order and a version-4 save/replay pair. The [dated QA record](../../../docs/opponent-qa-2026-10-18.md) contains the 12-case matrix and owner-Mac debug performance results. The existing warfare target on the owner Mac is a 28×28 match with up to 80 units: route p95 ≤ 6 ms, simulation tick p95 ≤ 4 ms, rendered frame p95 ≤ 33.3 ms at 1280×800, and memory ≤ 512 MiB for a ten-minute release-export battle. Release-export and minimum-device measurements remain open.
 
 ## What already exists
 
@@ -67,6 +67,8 @@ The owner approved the plan on 2026-10-18. Before code, inspect current source a
 | [3 — Difficulty ladder and human read](sprint-3.md) | S3.1 matrix/report; S3.2 human clarity | Three-level report, signed downloaded build, owner QA and approved uncoached read. |
 
 Review the L appetite after each sprint. Do not add new units, maps, campaign behavior or online bot policy to rescue a weak case.
+
+Local headless and rendered evidence is recorded for all three slices. The integration PR and independent review remain the next engineering gate. Downloaded-build owner walkthroughs, Linux hash run, excluded in-app sync and the approved four-player read remain open. These are not inferred from automated victories.
 
 ## Build and release
 

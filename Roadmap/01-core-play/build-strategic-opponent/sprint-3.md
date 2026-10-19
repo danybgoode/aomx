@@ -3,7 +3,7 @@ epic: build-strategic-opponent
 sprint: 3
 title: "Difficulty ladder and human read"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,19 +12,19 @@ stories:
     i_want: "levels with observable strategic differences"
     so_that: "I can choose my next challenge"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Human clarity read"
     as_a: "solo player"
     i_want: "difficulty descriptions that match play"
     so_that: "I can trust the choice"
     risk: low
-    status: planned
+    status: in-progress
 ---
 
 # Build a strategic opponent — Sprint 3: Difficulty ladder and human read
 
-**Status:** ⬜ not started
+**Status:** 🟦 In review — the 12-case local report passes; Linux hash, Restricted download, owner smoke and approved uncoached player read remain open.
 
 ## Stories
 

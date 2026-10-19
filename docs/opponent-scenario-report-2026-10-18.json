@@ -1,0 +1,822 @@
+{
+  "cases": [
+    {
+      "ai_age": 3,
+      "ai_commands": {
+        "advance": 3,
+        "assist": 4,
+        "attack_move": 20,
+        "build": 4,
+        "gather": 56,
+        "research": 3,
+        "train": 6
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "regios",
+      "level": "learner",
+      "opening": 1,
+      "plans": {
+        "advance": 280,
+        "build": 280,
+        "hold": 120,
+        "opening": 39,
+        "research": 80,
+        "scout": 793,
+        "train": 440,
+        "wait": 160
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 1,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 40
+      },
+      "state_hash": "c61f5ead83237bfa3a0a623e90723b6ee2124f9befd1a174c2b8e5b7818eb29c",
+      "tick_max_us": 2430,
+      "tick_p95_us": 373,
+      "ticks": 2192,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 48,
+            "materiales": 13,
+            "terrenos": 0,
+            "varos": 23
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 56,
+            "materiales": 28,
+            "terrenos": 23,
+            "varos": 3
+          },
+          "fighters": 4,
+          "tick": 1200,
+          "workers": 3
+        },
+        {
+          "age": 3,
+          "balances": {
+            "comida": 41,
+            "materiales": 16,
+            "terrenos": 34,
+            "varos": 0
+          },
+          "fighters": 4,
+          "tick": 1800,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 3,
+      "ai_commands": {
+        "advance": 3,
+        "assist": 4,
+        "attack_move": 20,
+        "build": 4,
+        "gather": 56,
+        "research": 3,
+        "train": 6
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "regios",
+      "level": "learner",
+      "opening": 0,
+      "plans": {
+        "advance": 280,
+        "build": 280,
+        "hold": 120,
+        "opening": 39,
+        "research": 80,
+        "scout": 793,
+        "train": 440,
+        "wait": 160
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 2,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 40
+      },
+      "state_hash": "0c9c1b3c2bb86d7cbc68c85b21e6bbaeab073d350f7065a72f26c6d05352ded8",
+      "tick_max_us": 2207,
+      "tick_p95_us": 562,
+      "ticks": 2192,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 48,
+            "materiales": 13,
+            "terrenos": 0,
+            "varos": 23
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 56,
+            "materiales": 28,
+            "terrenos": 23,
+            "varos": 3
+          },
+          "fighters": 4,
+          "tick": 1200,
+          "workers": 3
+        },
+        {
+          "age": 3,
+          "balances": {
+            "comida": 41,
+            "materiales": 16,
+            "terrenos": 34,
+            "varos": 0
+          },
+          "fighters": 4,
+          "tick": 1800,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 3,
+        "assist": 6,
+        "attack_move": 38,
+        "build": 5,
+        "gather": 33,
+        "research": 2,
+        "train": 8
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "regios",
+      "level": "standard",
+      "opening": 1,
+      "plans": {
+        "advance": 260,
+        "build": 300,
+        "hold": 20,
+        "opening": 19,
+        "scout": 754,
+        "train": 220,
+        "wait": 100
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 1,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 80
+      },
+      "state_hash": "30558c3942b93582e7d18acdaf5a2d159a8f0bca0a0df96cfeabc19792e1c998",
+      "tick_max_us": 2890,
+      "tick_p95_us": 658,
+      "ticks": 1673,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 72,
+            "materiales": 1,
+            "terrenos": 0,
+            "varos": 4
+          },
+          "fighters": 1,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 2,
+          "balances": {
+            "comida": 62,
+            "materiales": 13,
+            "terrenos": 13,
+            "varos": 2
+          },
+          "fighters": 6,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 2,
+        "assist": 7,
+        "attack_move": 37,
+        "build": 6,
+        "gather": 53,
+        "research": 1,
+        "train": 7
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "regios",
+      "level": "standard",
+      "opening": 0,
+      "plans": {
+        "advance": 180,
+        "build": 400,
+        "opening": 19,
+        "research": 40,
+        "scout": 735,
+        "train": 240,
+        "wait": 140
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 2,
+      "stall_ticks": {},
+      "state_hash": "ffcf22ecb704f70a3dacf8a58ba16f21cb737a5f99f821979a2da352b8d907bf",
+      "tick_max_us": 3671,
+      "tick_p95_us": 508,
+      "ticks": 1754,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 76,
+            "materiales": 17,
+            "terrenos": 0,
+            "varos": 3
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 52,
+            "materiales": 21,
+            "terrenos": 2,
+            "varos": 3
+          },
+          "fighters": 4,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 2,
+        "assist": 7,
+        "attack_move": 71,
+        "build": 7,
+        "gather": 50,
+        "research": 2,
+        "train": 7
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "regios",
+      "level": "challenger",
+      "opening": 1,
+      "plans": {
+        "advance": 160,
+        "build": 410,
+        "opening": 9,
+        "scout": 704,
+        "train": 220,
+        "wait": 140
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 1,
+      "stall_ticks": {
+        "building_site_unreachable": 20
+      },
+      "state_hash": "00713fcad1196e456ab704774cba69db5b9c4a65d47be1c61892ec38dff80fec",
+      "tick_max_us": 11512,
+      "tick_p95_us": 667,
+      "ticks": 1643,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 76,
+            "materiales": 5,
+            "terrenos": 0,
+            "varos": 7
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 51,
+            "materiales": 17,
+            "terrenos": 11,
+            "varos": 3
+          },
+          "fighters": 5,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 2,
+        "assist": 8,
+        "attack_move": 71,
+        "build": 5,
+        "gather": 32,
+        "research": 2,
+        "train": 8
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "regios",
+      "level": "challenger",
+      "opening": 0,
+      "plans": {
+        "advance": 190,
+        "build": 340,
+        "opening": 9,
+        "scout": 703,
+        "train": 190,
+        "wait": 220
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 2,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 53
+      },
+      "state_hash": "b1269e19289b5e232479d754d25150e2271abc77145810f40853d90673423774",
+      "tick_max_us": 2904,
+      "tick_p95_us": 668,
+      "ticks": 1652,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 30,
+            "materiales": 23,
+            "terrenos": 0,
+            "varos": 4
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 54,
+            "materiales": 21,
+            "terrenos": 3,
+            "varos": 21
+          },
+          "fighters": 5,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 3,
+      "ai_commands": {
+        "advance": 3,
+        "assist": 1,
+        "attack_move": 20,
+        "build": 4,
+        "gather": 49,
+        "research": 3,
+        "train": 6
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "poblanos",
+      "level": "learner",
+      "opening": 1,
+      "plans": {
+        "advance": 200,
+        "build": 400,
+        "hold": 160,
+        "opening": 39,
+        "research": 40,
+        "scout": 793,
+        "train": 440,
+        "wait": 120
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 1,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 160
+      },
+      "state_hash": "b4b0aa60c099387d5bb8030a1a47b4dcca3cac493b65843e922790ce6968eea9",
+      "tick_max_us": 1902,
+      "tick_p95_us": 362,
+      "ticks": 2192,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 76,
+            "materiales": 23,
+            "terrenos": 0,
+            "varos": 0
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 68,
+            "materiales": 55,
+            "terrenos": 16,
+            "varos": 23
+          },
+          "fighters": 4,
+          "tick": 1200,
+          "workers": 3
+        },
+        {
+          "age": 3,
+          "balances": {
+            "comida": 53,
+            "materiales": 40,
+            "terrenos": 34,
+            "varos": 20
+          },
+          "fighters": 4,
+          "tick": 1800,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 3,
+      "ai_commands": {
+        "advance": 3,
+        "assist": 1,
+        "attack_move": 20,
+        "build": 4,
+        "gather": 49,
+        "research": 3,
+        "train": 6
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "poblanos",
+      "level": "learner",
+      "opening": 0,
+      "plans": {
+        "advance": 200,
+        "build": 400,
+        "hold": 160,
+        "opening": 39,
+        "research": 40,
+        "scout": 793,
+        "train": 440,
+        "wait": 120
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 2,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 160
+      },
+      "state_hash": "55b180afbe56e035872c1efa9a866a4dd02be8f2850d32d73dc3f178e894e4f5",
+      "tick_max_us": 1762,
+      "tick_p95_us": 511,
+      "ticks": 2192,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 76,
+            "materiales": 23,
+            "terrenos": 0,
+            "varos": 0
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 68,
+            "materiales": 55,
+            "terrenos": 16,
+            "varos": 23
+          },
+          "fighters": 4,
+          "tick": 1200,
+          "workers": 3
+        },
+        {
+          "age": 3,
+          "balances": {
+            "comida": 53,
+            "materiales": 40,
+            "terrenos": 34,
+            "varos": 20
+          },
+          "fighters": 4,
+          "tick": 1800,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 2,
+        "assist": 6,
+        "attack_move": 38,
+        "build": 5,
+        "gather": 55,
+        "research": 2,
+        "train": 7
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "poblanos",
+      "level": "standard",
+      "opening": 1,
+      "plans": {
+        "advance": 140,
+        "build": 400,
+        "opening": 19,
+        "scout": 753,
+        "train": 320,
+        "wait": 140
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 1,
+      "stall_ticks": {},
+      "state_hash": "538f8a7efc5c343ee7c96c690d565de8128a57f325b400c6066524b295f9d9fd",
+      "tick_max_us": 3043,
+      "tick_p95_us": 655,
+      "ticks": 1772,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 76,
+            "materiales": 8,
+            "terrenos": 0,
+            "varos": 5
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 66,
+            "materiales": 25,
+            "terrenos": 20,
+            "varos": 4
+          },
+          "fighters": 5,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 2,
+        "assist": 7,
+        "attack_move": 38,
+        "build": 5,
+        "gather": 36,
+        "research": 2,
+        "train": 8
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "poblanos",
+      "level": "standard",
+      "opening": 0,
+      "plans": {
+        "advance": 160,
+        "build": 400,
+        "opening": 19,
+        "scout": 755,
+        "train": 320,
+        "wait": 160
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 2,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 95
+      },
+      "state_hash": "b363c15a48780f195b9bce1c8f35ca5b93c58c749e0804402e3a117e4af99b34",
+      "tick_max_us": 2731,
+      "tick_p95_us": 603,
+      "ticks": 1814,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 76,
+            "materiales": 13,
+            "terrenos": 0,
+            "varos": 5
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 66,
+            "materiales": 37,
+            "terrenos": 11,
+            "varos": 16
+          },
+          "fighters": 5,
+          "tick": 1200,
+          "workers": 3
+        },
+        {
+          "age": 2,
+          "balances": {
+            "comida": 75,
+            "materiales": 38,
+            "terrenos": 49,
+            "varos": 15
+          },
+          "fighters": 6,
+          "tick": 1800,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 2,
+        "assist": 6,
+        "attack_move": 71,
+        "build": 7,
+        "gather": 90,
+        "research": 1,
+        "train": 8
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "poblanos",
+      "level": "challenger",
+      "opening": 1,
+      "plans": {
+        "advance": 220,
+        "build": 330,
+        "hold": 40,
+        "opening": 9,
+        "research": 10,
+        "scout": 704,
+        "train": 160,
+        "wait": 140
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 1,
+      "stall_ticks": {
+        "building_site_unreachable": 20
+      },
+      "state_hash": "ca985ddd8a33daf8e5eb915ca116743f16a95cf54bfff528b4ca1457066a4c06",
+      "tick_max_us": 5462,
+      "tick_p95_us": 973,
+      "ticks": 1613,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 50,
+            "materiales": 5,
+            "terrenos": 0,
+            "varos": 15
+          },
+          "fighters": 1,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 16,
+            "materiales": 10,
+            "terrenos": 2,
+            "varos": 2
+          },
+          "fighters": 5,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    },
+    {
+      "ai_age": 2,
+      "ai_commands": {
+        "advance": 3,
+        "assist": 8,
+        "attack_move": 70,
+        "build": 5,
+        "gather": 43,
+        "research": 2,
+        "train": 7
+      },
+      "ai_last_rejection": "",
+      "ai_rejections": 0,
+      "faction": "poblanos",
+      "level": "challenger",
+      "opening": 0,
+      "plans": {
+        "advance": 180,
+        "build": 310,
+        "hold": 20,
+        "opening": 9,
+        "research": 10,
+        "scout": 695,
+        "train": 210,
+        "wait": 200
+      },
+      "reason": "district",
+      "replay_ok": true,
+      "result": "loss",
+      "scenario_seed": 2,
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 25
+      },
+      "state_hash": "2d395e54e7c7d740d1bd7384fee33450ef7331224dc88578609582745b0cc352",
+      "tick_max_us": 2282,
+      "tick_p95_us": 609,
+      "ticks": 1634,
+      "trajectory": [
+        {
+          "age": 0,
+          "balances": {
+            "comida": 50,
+            "materiales": 0,
+            "terrenos": 0,
+            "varos": 10
+          },
+          "fighters": 0,
+          "tick": 600,
+          "workers": 3
+        },
+        {
+          "age": 1,
+          "balances": {
+            "comida": 52,
+            "materiales": 21,
+            "terrenos": 15,
+            "varos": 0
+          },
+          "fighters": 4,
+          "tick": 1200,
+          "workers": 3
+        }
+      ]
+    }
+  ],
+  "content_version": "la-roma-opponent-4",
+  "game_version": "godot-4.7.2-skirmish-4",
+  "map": "authored_28x28",
+  "max_ticks": 4200
+}

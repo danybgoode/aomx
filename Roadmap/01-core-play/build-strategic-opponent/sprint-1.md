@@ -3,7 +3,7 @@ epic: build-strategic-opponent
 sprint: 1
 title: "Fair planner and recovery"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,19 +12,19 @@ stories:
     i_want: "to choose an explained opponent level"
     so_that: "I know the challenge and it follows my rules"
     risk: high
-    status: planned
+    status: in-progress
   - id: S1.2
     title: "Economy and recovery"
     as_a: "solo player"
     i_want: "an opponent that recovers from economic setbacks"
     so_that: "a match stays contestable"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Build a strategic opponent — Sprint 1: Fair planner and recovery
 
-**Status:** ⬜ not started
+**Status:** 🟦 In review — local level UI, hidden-information, recovery, save/replay and contract checks pass; downloaded-build owner steps remain open.
 
 ## Stories
 
