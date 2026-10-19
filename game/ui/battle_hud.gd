@@ -46,6 +46,8 @@ var event_log: Array[String] = []
 var event_log_label: Label
 var diagnostics: Panel
 var diagnostics_label: Label
+var sound_mute: CheckButton
+var sound_volume: HSlider
 var invite_input: LineEdit
 var invite_save: Button
 var support_copy: Button
@@ -270,9 +272,13 @@ func _build() -> void:
 
 	diagnostics = _panel(self, 14, true)
 	diagnostics.z_index = 20
+	var diag_scroll := ScrollContainer.new()
+	diag_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	diagnostics.add_child(diag_scroll)
 	var diag_col := VBoxContainer.new()
+	diag_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	diag_col.add_theme_constant_override("separation", 8)
-	diagnostics.add_child(diag_col)
+	diag_scroll.add_child(diag_col)
 	var head := HBoxContainer.new()
 	diag_col.add_child(head)
 	_label(head, "SETTINGS / ALPHA SUPPORT", 19, HudSkin.GOLD)
@@ -281,6 +287,19 @@ func _build() -> void:
 	head.add_child(grow)
 	close_diagnostics = _button(head, "X")
 	close_diagnostics.pressed.connect(func() -> void: diagnostics.hide())
+	var sound_row := HBoxContainer.new()
+	diag_col.add_child(sound_row)
+	sound_mute = CheckButton.new()
+	sound_mute.text = "Mute cues"
+	sound_row.add_child(sound_mute)
+	sound_volume = HSlider.new()
+	sound_volume.min_value = 0
+	sound_volume.max_value = 100
+	sound_volume.step = 5
+	sound_volume.value = 55
+	sound_volume.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sound_volume.tooltip_text = "Order cue volume"
+	sound_row.add_child(sound_volume)
 	diagnostics_label = _label(diag_col, "", 13)
 	diagnostics_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	save_button = _button(diag_col, "Save current match")
@@ -420,9 +439,12 @@ func _layout() -> void:
 	notification_panel.size = Vector2(minf(340, w - 2 * margin), 36)
 	diagnostics.size = Vector2(minf(480, w - 22), minf(420, h - 22))
 	diagnostics.position = (size - diagnostics.size) * 0.5
-	var diag_content: VBoxContainer = diagnostics.get_child(0)
+	var diag_scroll: ScrollContainer = diagnostics.get_child(0)
+	diag_scroll.position = Vector2(12, 12)
+	diag_scroll.size = diagnostics.size - Vector2(24, 24)
+	var diag_content: VBoxContainer = diag_scroll.get_child(0)
 	diag_content.position = Vector2(12, 12)
-	diag_content.size = diagnostics.size - Vector2(24, 24)
+	diag_content.size.x = diag_scroll.size.x - 24
 	restart_scrim.position = Vector2.ZERO
 	restart_scrim.size = size
 	restart_dialog.size = Vector2(minf(370, w - 24), 148)

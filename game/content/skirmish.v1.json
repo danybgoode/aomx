@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "content_id": "la-roma-opponent-4",
+  "content_id": "la-roma-world-5",
   "tick_ms": 100,
   "map": {
     "width": 28,
@@ -397,12 +397,30 @@
     "regios": {
       "carry_limit": 5,
       "combat_cost_extra": 1,
-      "building_health_percent": 100
+      "building_health_percent": 100,
+      "gather_ticks": 3,
+      "move_ticks": 3
     },
     "poblanos": {
       "carry_limit": 4,
       "combat_cost_extra": 0,
-      "building_health_percent": 120
+      "building_health_percent": 120,
+      "gather_ticks": 3,
+      "move_ticks": 3
+    },
+    "oaxaquenos": {
+      "carry_limit": 4,
+      "combat_cost_extra": 0,
+      "building_health_percent": 90,
+      "gather_ticks": 2,
+      "move_ticks": 3
+    },
+    "veracruzanos": {
+      "carry_limit": 4,
+      "combat_cost_extra": 1,
+      "building_health_percent": 85,
+      "gather_ticks": 3,
+      "move_ticks": 2
     }
   },
   "objectives": {
@@ -415,9 +433,36 @@
     "attack_tick": 2600,
     "army_cap": 6,
     "levels": {
-      "learner": {"step_ticks": 40, "scout_tick": 1400, "district_tick": 3100, "attack_tick": 3600, "army_cap": 4, "workers": 3, "counter": false, "memory_ticks": 400},
-      "standard": {"step_ticks": 20, "scout_tick": 900, "district_tick": 2400, "attack_tick": 2600, "army_cap": 6, "workers": 3, "counter": true, "memory_ticks": 600},
-      "challenger": {"step_ticks": 10, "scout_tick": 600, "district_tick": 1800, "attack_tick": 2100, "army_cap": 8, "workers": 3, "counter": true, "memory_ticks": 800}
+      "learner": {
+        "step_ticks": 40,
+        "scout_tick": 1400,
+        "district_tick": 3100,
+        "attack_tick": 3600,
+        "army_cap": 4,
+        "workers": 3,
+        "counter": false,
+        "memory_ticks": 400
+      },
+      "standard": {
+        "step_ticks": 20,
+        "scout_tick": 900,
+        "district_tick": 2400,
+        "attack_tick": 2600,
+        "army_cap": 6,
+        "workers": 3,
+        "counter": true,
+        "memory_ticks": 600
+      },
+      "challenger": {
+        "step_ticks": 10,
+        "scout_tick": 600,
+        "district_tick": 1800,
+        "attack_tick": 2100,
+        "army_cap": 8,
+        "workers": 3,
+        "counter": true,
+        "memory_ticks": 800
+      }
     }
   },
   "resources": {
@@ -594,6 +639,39 @@
         "kind": "combat_training",
         "amount": 1
       }
+    },
+    "cooperative_build_i": {
+      "age": "universitaria",
+      "costs": {
+        "comida": 4,
+        "materiales": 4,
+        "varos": 3,
+        "terrenos": 1
+      },
+      "duration_ticks": 50,
+      "requires_techs": [],
+      "requires_faction": "oaxaquenos",
+      "effect": {
+        "kind": "construction_rate",
+        "amount": 1
+      }
+    },
+    "street_exchange_i": {
+      "age": "universitaria",
+      "costs": {
+        "comida": 4,
+        "materiales": 3,
+        "varos": 4,
+        "terrenos": 1
+      },
+      "duration_ticks": 50,
+      "requires_techs": [],
+      "requires_faction": "veracruzanos",
+      "effect": {
+        "kind": "trade_bonus",
+        "amount": 1
+      }
     }
-  }
+  },
+  "map_id": "la_roma"
 }

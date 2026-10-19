@@ -19,6 +19,8 @@ const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const BUILD_CHOICES := ["depot", "housing", "registry", "barracks"]
 const RESOURCE_COLORS := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
 const AGE_NAMES := {"foranea": "Foránea", "universitaria": "Universitaria", "godin": "Godín", "gentrificacion": "Gentrificación"}
+const FACTION_NAMES := {"regios": "Regios", "poblanos": "Poblanos", "oaxaquenos": "Oaxaqueños", "veracruzanos": "Veracruzanos"}
+const MAP_NAMES := {"la_roma": "La Roma", "narvarte": "Narvarte", "copilco": "Copilco"}
 
 var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
@@ -29,8 +31,14 @@ var setup_goal: Label
 var setup_difficulty: OptionButton
 var setup_difficulty_details: Label
 var selected_difficulty := "standard"
+var selected_map := "la_roma"
+var selected_opponent := ""
 var setup_regios: Button
 var setup_poblanos: Button
+var setup_oaxaquenos: Button
+var setup_veracruzanos: Button
+var setup_map: OptionButton
+var setup_opponent: OptionButton
 var setup_resume: Button
 var setup_note: Label
 var setup_save_error: Label
@@ -81,6 +89,9 @@ var save_path := MatchSave.SAVE_PATH
 var invite_input: LineEdit
 var prior_unit_positions: Dictionary = {}
 var unit_facing: Dictionary = {}
+var unit_heading: Dictionary = {}
+var order_audio: AudioStreamPlayer
+var audio_settings_path := "user://audio-settings.v1.json"
 
 func _ready() -> void:
 	art.load_manifest()
@@ -100,6 +111,10 @@ func _ready() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	_build_match_hud(layer)
+	order_audio = AudioStreamPlayer.new()
+	order_audio.stream = load("res://assets/audio/order-confirm.wav")
+	add_child(order_audio)
+	_load_audio_settings()
 	instructions = Label.new()
 	instructions.visible = false
 	layer.add_child(instructions)
@@ -137,6 +152,8 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	invite_input = hud_ui.invite_input
 	hud_ui.invite_save.pressed.connect(_save_invite_code)
 	hud_ui.support_copy.pressed.connect(_copy_support_id)
+	hud_ui.sound_mute.toggled.connect(_audio_changed.unbind(1))
+	hud_ui.sound_volume.value_changed.connect(_audio_changed.unbind(1))
 	if AlphaConfig.CHANNEL != "development":
 		var invite_path := "user://alpha-invite-code.txt"
 		if FileAccess.file_exists(invite_path):
@@ -148,6 +165,23 @@ func _toggle_diagnostics() -> void:
 	hud_ui.diagnostics.visible = not hud_ui.diagnostics.visible
 	_update_hud()
 
+func _load_audio_settings() -> void:
+	if FileAccess.file_exists(audio_settings_path):
+		var settings = JSON.parse_string(FileAccess.get_file_as_string(audio_settings_path))
+		if settings is Dictionary and settings.get("muted") is bool and settings.get("volume") is float:
+			hud_ui.sound_mute.button_pressed = settings.muted
+			hud_ui.sound_volume.value = clampf(settings.volume, 0.0, 100.0)
+	_audio_changed(false)
+
+func _audio_changed(persist: bool = true) -> void:
+	order_audio.volume_db = linear_to_db(maxf(0.001, float(hud_ui.sound_volume.value) / 100.0))
+	order_audio.stream_paused = hud_ui.sound_mute.button_pressed or hud_ui.sound_volume.value <= 0
+	if not persist:
+		return
+	var file := FileAccess.open(audio_settings_path, FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify({"muted": hud_ui.sound_mute.button_pressed, "volume": hud_ui.sound_volume.value}))
+
 func _toggle_pause() -> void:
 	paused = not paused
 	hud_ui.pause_button.text = ">" if paused else "II"
@@ -156,6 +190,8 @@ func _toggle_pause() -> void:
 func _restart_match() -> void:
 	if choosing_faction:
 		return
+	selected_map = sim.map_id
+	selected_opponent = sim.factions[Skirmish.COMPUTER]
 	_start_match(sim.factions[Skirmish.HUMAN], sim.ai_difficulty)
 	hud_ui.show_notice("New match started")
 
@@ -179,15 +215,20 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	for side in ["left", "top", "right", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 24)
 	setup_panel.add_child(margin)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	margin.add_child(scroll)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
-	margin.add_child(column)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 10)
+	scroll.add_child(column)
 	var title := Label.new()
 	title.text = "Choose a faction"
 	title.add_theme_font_size_override("font_size", 30)
 	column.add_child(title)
 	setup_goal = Label.new()
-	setup_goal.text = "Win by destroying the opposing command post or holding La Roma for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
+	setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 	setup_goal.add_theme_font_size_override("font_size", 18)
 	column.add_child(setup_goal)
 	setup_difficulty = OptionButton.new()
@@ -201,6 +242,18 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_difficulty_details.text = "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
 	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_difficulty_details)
+	setup_map = OptionButton.new()
+	for entry in ["La Roma — familiar streets", "Narvarte — open street grid", "Copilco — two chokepoints"]:
+		setup_map.add_item(entry)
+	setup_map.item_selected.connect(_choose_map)
+	setup_map.custom_minimum_size.y = 42
+	column.add_child(setup_map)
+	setup_opponent = OptionButton.new()
+	for entry in ["Opponent: Classic rival", "Opponent: Regios", "Opponent: Poblanos", "Opponent: Oaxaqueños", "Opponent: Veracruzanos"]:
+		setup_opponent.add_item(entry)
+	setup_opponent.item_selected.connect(_choose_opponent)
+	setup_opponent.custom_minimum_size.y = 42
+	column.add_child(setup_opponent)
 	var regios := Button.new()
 	regios.text = "Regios — workers carry 5; fighters cost +1 Varos"
 	regios.custom_minimum_size.y = 72
@@ -219,6 +272,22 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	preload("res://ui/hud_skin.gd").apply_button(poblanos)
 	column.add_child(poblanos)
 	setup_poblanos = poblanos
+	var oaxaquenos := Button.new()
+	oaxaquenos.text = "Oaxaqueños — gather faster, support construction; lighter buildings"
+	oaxaquenos.custom_minimum_size.y = 60
+	oaxaquenos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	oaxaquenos.pressed.connect(_choose_faction.bind(Skirmish.OAXAQUENOS))
+	preload("res://ui/hud_skin.gd").apply_button(oaxaquenos)
+	column.add_child(oaxaquenos)
+	setup_oaxaquenos = oaxaquenos
+	var veracruzanos := Button.new()
+	veracruzanos.text = "Veracruzanos — move faster, earn from trade; lighter buildings"
+	veracruzanos.custom_minimum_size.y = 60
+	veracruzanos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	veracruzanos.pressed.connect(_choose_faction.bind(Skirmish.VERACRUZANOS))
+	preload("res://ui/hud_skin.gd").apply_button(veracruzanos)
+	column.add_child(veracruzanos)
+	setup_veracruzanos = veracruzanos
 	setup_resume = Button.new()
 	setup_resume.text = "Resume saved match"
 	setup_resume.custom_minimum_size.y = 50
@@ -229,6 +298,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
 	column.add_child(note)
+	column.move_child(note, 4)
 	setup_note = note
 	setup_save_error = Label.new()
 	setup_save_error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -242,24 +312,29 @@ func _layout_setup() -> void:
 	var mobile := view.x < 950.0 or view.y < 560.0
 	var landscape := view.x > view.y
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
-	setup_goal.text = ("Destroy enemy post or hold La Roma for %ds." % hold_seconds) if mobile and not landscape else (("Destroy the enemy post or hold La Roma for %d seconds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding La Roma for %d seconds." % hold_seconds))
+	setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_regios.text = ("REGIOS  •  carry 5" if not landscape else "REGIOS  •  carry 5; fighters cost +1 Varos") if mobile else "Regios — workers carry 5; fighters cost +1 Varos"
 	setup_poblanos.text = ("POBLANOS  •  tougher buildings" if not landscape else "POBLANOS  •  tougher buildings; carry 4") if mobile else "Poblanos — buildings +20% HP; workers carry 4"
+	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
+	setup_veracruzanos.text = "VERACRUZANOS  •  move faster; lighter buildings" if mobile else "Veracruzanos — faster movement and trade income; lighter buildings"
 	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
-	for b in [setup_regios, setup_poblanos, setup_resume]:
-		b.custom_minimum_size.y = 50 if mobile and landscape else (65 if mobile else 72)
+	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume]:
+		b.custom_minimum_size.y = 48 if mobile else 52
 		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
 	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
 	setup_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var column: VBoxContainer = setup_panel.get_child(0).get_child(0)
-	column.add_theme_constant_override("separation", 8 if mobile else 16)
+	var column: VBoxContainer = setup_panel.get_child(0).get_child(0).get_child(0)
+	column.add_theme_constant_override("separation", 6 if mobile else 7)
 	var title: Label = column.get_child(0)
+	title.text = "Choose a faction · scroll for all 4" if mobile and landscape else "Choose a faction"
 	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
-	setup_difficulty.custom_minimum_size.y = 32 if mobile else 42
+	setup_difficulty.custom_minimum_size.y = 32 if mobile else 38
+	setup_map.custom_minimum_size.y = 32 if mobile else 38
+	setup_opponent.custom_minimum_size.y = 32 if mobile else 38
 	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
-	setup_panel.size = Vector2(minf(810, view.x - 24), minf(view.y - 24, 350.0 if mobile and landscape else (410.0 if mobile else 500.0)))
+	setup_panel.size = Vector2(minf(810, view.x - 24), minf(view.y - 24, 350.0 if mobile and landscape else (700.0 if mobile else 640.0)))
 	setup_panel.position = (view - setup_panel.size) * 0.5
 	_apply_resize_zoom(view)
 	queue_redraw()
@@ -280,6 +355,7 @@ func _show_setup() -> void:
 	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
+	unit_heading.clear()
 	board_pan = Vector2.ZERO
 	_reset_zoom()
 	paused = false
@@ -289,14 +365,21 @@ func _show_setup() -> void:
 	setup_resume.visible = FileAccess.file_exists(save_path)
 	setup_save_error.text = ""
 	hover_hint.text = ""
-	instructions.text = "Choose Regios or Poblanos to begin · Press 1 or 2, or click a choice"
+	instructions.text = "Choose a map, opponent and faction · Press 1–4, or click a choice"
 	_update_hud()
 	queue_redraw()
 
 func _choose_faction(faction: String) -> void:
-	if not choosing_faction or faction not in [Skirmish.REGIOS, Skirmish.POBLANOS]:
+	if not choosing_faction or faction not in Skirmish.FACTION_IDS:
 		return
 	_start_match(faction)
+
+func _choose_map(index: int) -> void:
+	if index >= 0 and index < Skirmish.MAP_IDS.size():
+		selected_map = Skirmish.MAP_IDS[index]
+
+func _choose_opponent(index: int) -> void:
+	selected_opponent = "" if index == 0 else Skirmish.FACTION_IDS[index - 1]
 
 func _choose_difficulty(index: int) -> void:
 	if index < 0 or index >= Skirmish.AI_LEVELS.size():
@@ -336,6 +419,10 @@ func _resume_match() -> void:
 			hud_ui.show_notice(completed_note, true)
 		return
 	sim = restored.game as Skirmish
+	selected_map = sim.map_id
+	selected_opponent = sim.factions[Skirmish.COMPUTER]
+	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
+	setup_opponent.select(Skirmish.FACTION_IDS.find(selected_opponent) + 1)
 	selected_difficulty = sim.ai_difficulty
 	setup_difficulty.select(Skirmish.AI_LEVELS.find(selected_difficulty))
 	_choose_difficulty(Skirmish.AI_LEVELS.find(selected_difficulty))
@@ -359,6 +446,7 @@ func _resume_match() -> void:
 	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
+	unit_heading.clear()
 	last_event_entities.clear()
 	for id in sim.entities:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
@@ -380,7 +468,7 @@ func _outbox_has_terminal(id: String) -> bool:
 
 func _start_match(faction: String, difficulty: String = "") -> void:
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
-	sim = Skirmish.new(faction, {}, 1, level)
+	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent)
 	paused = false
 	hud_ui.pause_button.text = "II"
 	hud_ui.diagnostics.hide()
@@ -400,6 +488,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	target_mode = ""
 	prior_unit_positions.clear()
 	unit_facing.clear()
+	unit_heading.clear()
 	last_event_entities.clear()
 	for id in sim.entities:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
@@ -477,9 +566,9 @@ func _observe_events() -> void:
 			last_attack_notice_tick = sim.tick_number
 	if sim.district_state != last_district_state:
 		if sim.district_state == "human_hold":
-			hud_ui.show_notice("La Roma captured • hold for %d seconds" % int(sim.content.objectives.district_hold_ticks / 10))
+			hud_ui.show_notice("Center captured • hold for %d seconds" % int(sim.content.objectives.district_hold_ticks / 10))
 		elif sim.district_state == "computer_hold":
-			hud_ui.show_notice("Enemy holds La Roma • contest it", true)
+			hud_ui.show_notice("Enemy holds center • contest it", true)
 	last_district_state = sim.district_state
 	last_event_entities.clear()
 	for id in sim.entities:
@@ -502,6 +591,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_choose_faction(Skirmish.REGIOS)
 			elif event.keycode == KEY_2:
 				_choose_faction(Skirmish.POBLANOS)
+			elif event.keycode == KEY_3:
+				_choose_faction(Skirmish.OAXAQUENOS)
+			elif event.keycode == KEY_4:
+				_choose_faction(Skirmish.VERACRUZANOS)
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
@@ -656,6 +749,8 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 		if accepted > 0:
 			result = {"ok": true, "reason": "group_order"}
 	_flash_order(tile, "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result), result.ok)
+	if result.ok and not order_audio.stream_paused:
+		order_audio.play()
 	return result
 
 func _order_message(kind: String, target: Variant, result: Dictionary) -> String:
@@ -757,6 +852,8 @@ func _building_reason(id: String) -> String:
 
 func _research_reason(id: String) -> String:
 	var tech: Dictionary = sim.content.techs[id]
+	if tech.get("requires_faction", "") not in ["", sim.factions[Skirmish.HUMAN]]:
+		return "Available to %s only" % str(tech.requires_faction).capitalize()
 	if id in sim.researched[Skirmish.HUMAN]:
 		return "Already researched"
 	if sim._queued(Skirmish.HUMAN, "tech", id):
@@ -1034,7 +1131,9 @@ func _update_hud() -> void:
 		selected_ids.clear()
 	var seconds := floori(float(sim.tick_number) / 10.0)
 	ui.timer_label.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	ui.faction_label.text = sim.factions[Skirmish.HUMAN].to_upper()
+	ui.faction_label.text = FACTION_NAMES[sim.factions[Skirmish.HUMAN]].to_upper()
+	ui.faction_label.tooltip_text = "%s · %s" % [FACTION_NAMES[sim.factions[Skirmish.HUMAN]], MAP_NAMES[sim.map_id]]
+	ui.minimap.tooltip_text = "%s map • click to center view" % MAP_NAMES[sim.map_id]
 	var stockpiles := {}
 	var source_notes := {}
 	for resource_id in RESOURCE_IDS:
@@ -1069,7 +1168,7 @@ func _update_hud() -> void:
 		else:
 			ui.set_group([])
 	if selected_id == -1:
-		ui.set_selection(art.texture("building_command_post_%s" % _faction_color(Skirmish.HUMAN)), "NO SELECTION", sim.factions[Skirmish.HUMAN].capitalize(), 0, 0, "Select a unit or post", "")
+		ui.set_selection(art.texture("building_command_post_%s" % _faction_color(Skirmish.HUMAN)), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0, "Select a unit or post", "")
 	else:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
@@ -1166,7 +1265,7 @@ func _update_secondary() -> void:
 		cards.append({"label": "HOLD", "enabled": true, "tooltip": "Stay and defend this position", "action": "hold"})
 		cards.append({"label": "STOP", "enabled": true, "tooltip": "Cancel current order", "action": "stop"})
 	else:
-		title = "LA ROMA"
+		title = MAP_NAMES[sim.map_id].to_upper()
 	ui.set_secondary(title, cards)
 	if kind == "worker":
 		ui.secondary_details.text = "EXPAND\nBuild, assist or repair"
@@ -1409,28 +1508,31 @@ func _update_unit_facing() -> void:
 			var delta: Vector2i = e.pos - prior_unit_positions[id]
 			if delta != Vector2i.ZERO:
 				unit_facing[id] = 1 if delta.x - delta.y >= 0 else -1
+				unit_heading[id] = Vector2(delta.x - delta.y, (delta.x + delta.y) * 0.5).normalized()
 			elif e.job == "attack" and sim.entities.has(e.target_id):
 				var target_delta: Vector2i = sim.entities[e.target_id].pos - e.pos
 				if target_delta.x != target_delta.y:
 					unit_facing[id] = 1 if target_delta.x - target_delta.y > 0 else -1
+				unit_heading[id] = Vector2(target_delta.x - target_delta.y, (target_delta.x + target_delta.y) * 0.5).normalized()
 		prior_unit_positions[id] = e.pos
 	for id in prior_unit_positions.keys():
 		if not present.has(id):
 			prior_unit_positions.erase(id)
 			unit_facing.erase(id)
+			unit_heading.erase(id)
 
 func _terrain_id(tile: Vector2i) -> String:
 	var kind := "grass"
 	if sim._in_district(tile):
 		kind = "plaza"
-	elif sim._wall(tile) or tile.y in [4, 15] or tile.x in [5, 14]:
+	elif sim._wall(tile) or sim.map_id == "la_roma" and (tile.y in [4, 15] or tile.x in [5, 14]) or sim.map_id == "narvarte" and (tile.y in [4, 11, 18] or tile.x in [5, 12, 19]) or sim.map_id == "copilco" and (tile.y in [5, 12, 19] or tile.x in [4, 9, 15]):
 		kind = "asphalt"
-	elif tile.x in [4, 6, 13, 15] or tile.y in [3, 5, 14, 16] or (tile.x >= 8 and tile.x <= 12 and tile.y >= 7 and tile.y <= 13):
+	elif sim.map_id == "la_roma" and (tile.x in [4, 6, 13, 15] or tile.y in [3, 5, 14, 16]) or sim.map_id == "narvarte" and (tile.x in [4, 6, 11, 13, 18, 20] or tile.y in [3, 5, 10, 12, 17, 19]) or sim.map_id == "copilco" and (tile.x in [3, 5, 8, 10, 14, 16] or tile.y in [4, 6, 11, 13, 18, 20]):
 		kind = "sidewalk"
 	return "terrain_%s_%d" % [kind, posmod(tile.x * 13 + tile.y * 7, 4)]
 
 func _faction_color(side: int) -> String:
-	return "blue" if sim.factions[side] == Skirmish.POBLANOS else "red"
+	return "blue" if side == Skirmish.HUMAN else "red"
 
 func _district_color() -> Color:
 	match sim.district_state:
@@ -1466,16 +1568,17 @@ func _draw() -> void:
 				draw_texture(art.texture(wall_id), center - art.pivot(wall_id))
 			if not sim.is_visible(Skirmish.HUMAN, tile):
 				draw_colored_polygon(_diamond(center), Color(0.05, 0.07, 0.1, 0.96 if not sim.is_explored(Skirmish.HUMAN, tile) else 0.64))
-	for tile in [Vector2i(2, 13), Vector2i(17, 5)]:
-		var tree_id := "prop_jacaranda"
-		draw_texture(art.texture(tree_id), _tile_to_screen(tile) - art.pivot(tree_id))
-	# Owner-supplied flowers are decorative; the simulation and tile picking ignore them.
-	for tile in [Vector2i(3, 14), Vector2i(17, 6)]:
-		var flowers_id := "prop_owned_flowers"
-		draw_texture(art.texture(flowers_id), _tile_to_screen(tile) - art.pivot(flowers_id))
+	if sim.map_id == "la_roma":
+		for tile in [Vector2i(2, 13), Vector2i(17, 5)]:
+			var tree_id := "prop_jacaranda"
+			draw_texture(art.texture(tree_id), _tile_to_screen(tile) - art.pivot(tree_id))
+		# Owned flowers remain decorative and never alter tile picking.
+		for tile in [Vector2i(3, 14), Vector2i(17, 6)]:
+			var flowers_id := "prop_owned_flowers"
+			draw_texture(art.texture(flowers_id), _tile_to_screen(tile) - art.pivot(flowers_id))
 	var medallion_id := "prop_plaza_medallion"
 	draw_texture(art.texture(medallion_id), _tile_to_screen(Vector2i(10, 10)) - art.pivot(medallion_id))
-	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), "LA ROMA", HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
+	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), MAP_NAMES[sim.map_id].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		for resource_id in RESOURCE_IDS:
 			var source: Dictionary = sim.resource_sources[side].get(resource_id, {})
@@ -1502,12 +1605,17 @@ func _draw() -> void:
 		var ring_center := ground + Vector2(0, -24 if is_building else -5)
 		if id == selected_id:
 			draw_circle(ring_center, 23 if is_building else 16, Color(0.12, 0.78, 0.96, 0.26))
+			if not is_building and unit_heading.has(id):
+				var heading: Vector2 = unit_heading[id]
+				var tip := ring_center + heading * (18.0 if sim.tick_number % 4 < 2 else 16.0)
+				var wing := Vector2(-heading.y, heading.x) * 5.0
+				draw_colored_polygon(PackedVector2Array([tip, ring_center + wing, ring_center - wing]), Color("7eeaff"))
 		elif id == hovered_entity_id:
 			draw_circle(ring_center, 23 if is_building else 15, Color(1.0, 0.83, 0.41, 0.2))
 			draw_arc(ring_center, 23 if is_building else 15, 0, TAU, 24, Color("ffe391"), 2.0)
 		var bob := 0.0
-		if not is_building and e.job in ["move", "attack", "gather", "deliver", "build"]:
-			bob = -2.0 if sim.tick_number % 4 < 2 else 0.0
+		if not is_building:
+			bob = -3.0 if e.job in ["move", "attack", "gather", "deliver", "build"] and sim.tick_number % 4 < 2 else -1.0 if sim.tick_number % 12 < 6 else 0.0
 		var sprite_rect := Rect2(ground - art.pivot(art_id) * art_scale + Vector2(0, bob),
 			art.texture(art_id).get_size() * art_scale)
 		if not is_building and unit_facing.get(id, 1) < 0:

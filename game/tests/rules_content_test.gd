@@ -12,14 +12,20 @@ func _initialize() -> void:
 		return
 	check(loaded.data.schema_version == 3 and loaded.data.resources.size() == 4 and loaded.data.ages.order.size() == 4,
 		"four-resource four-age strategy content loads")
-	check(loaded.data.techs.size() == 3 and loaded.data.buildings.size() == 5,
+	check(loaded.data.techs.size() == 5 and loaded.data.buildings.size() == 5,
 		"mechanics-first techs and building roster load")
+	for map_id in RulesContent.MAP_IDS:
+		var map_content: Dictionary = RulesContent.load_map(map_id)
+		check(map_content.ok and map_content.data.map_id == map_id, "authored map loads: " + map_id)
 	var bad: Dictionary = loaded.data.duplicate(true)
 	bad.units.melee.cost = -1
 	check(RulesContent.validate(bad).reason == "invalid_melee_cost", "invalid cost rejected")
 	bad = loaded.data.duplicate(true)
 	bad.map.resource_positions[0] = [500, 1]
 	check(RulesContent.validate(bad).reason == "map_resource_positions_invalid", "out of bounds source rejected")
+	bad = loaded.data.duplicate(true)
+	bad.resources.varos.source_positions[0] = bad.map.barracks_positions[0]
+	check(RulesContent.validate(bad).reason == "map_building_footprint_invalid", "source cannot occupy a starting build site")
 	bad = loaded.data.duplicate(true)
 	bad.buildings.barracks.trains = ["unknown_unit"]
 	check(RulesContent.validate(bad).reason == "invalid_train_role_unknown_unit", "unknown role ID rejected")

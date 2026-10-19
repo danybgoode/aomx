@@ -323,8 +323,30 @@ func _run() -> void:
 		"reset retains the faction and clears pause state")
 	check(client.outbox.state.events.size() == 6 and client.outbox.state.events[5].event.type == "match_started",
 		"reset saves exactly one new match start")
+	client.hud_ui.sound_mute.button_pressed = true
+	check(client.order_audio.stream_paused, "mute control silences the order cue")
+	client.hud_ui.sound_mute.button_pressed = false
+	client.hud_ui.sound_volume.value = 0
+	check(client.order_audio.stream_paused, "zero volume silences the order cue")
+	client.hud_ui.sound_volume.value = 55
+	check(not client.order_audio.stream_paused, "volume control restores the order cue")
+	client._show_setup()
+	client._choose_map(1)
+	client._choose_opponent(4)
+	client._choose_faction(Skirmish.OAXAQUENOS)
+	check(client.sim.map_id == "narvarte" and client.sim.factions[Skirmish.HUMAN] == Skirmish.OAXAQUENOS and client.sim.factions[Skirmish.COMPUTER] == Skirmish.VERACRUZANOS,
+		"setup choices create the selected authored map and cross-faction opponent")
+	client._restart_match()
+	check(client.sim.map_id == "narvarte" and client.sim.factions[Skirmish.COMPUTER] == Skirmish.VERACRUZANOS,
+		"reset preserves the selected map and opponent")
+	client._show_setup()
+	client._choose_opponent(3)
+	client._choose_faction(Skirmish.OAXAQUENOS)
+	check(client.sim.factions[Skirmish.COMPUTER] == Skirmish.OAXAQUENOS,
+		"explicit same-faction opponent starts a mirror match")
 	root.remove_child(client)
 	client.queue_free()
+	await process_frame
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	if not failed:
 		print("Skirmish client checks passed: saved start/result, one terminal event, restart")
