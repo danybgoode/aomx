@@ -68,7 +68,7 @@ The owner approved the plan on 2026-10-18. The implementation uses 40/20/10-tick
 
 Review the L appetite after each sprint. Do not add new units, maps, campaign behavior or online bot policy to rescue a weak case.
 
-Local headless and rendered evidence is recorded for all three slices. The integration PR and independent review remain the next engineering gate. Downloaded-build owner walkthroughs, Linux hash run, excluded in-app sync and the approved four-player read remain open. These are not inferred from automated victories.
+Local headless and rendered evidence is recorded for all three slices. PR #50 passed its initial Linux/CodeQL checks, including the version-4 hash fixture. Independent review remains the next engineering gate. Downloaded-build owner walkthroughs, excluded in-app sync and the approved four-player read remain open. These are not inferred from automated victories.
 
 ## Build and release
 

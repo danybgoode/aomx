@@ -24,7 +24,7 @@ stories:
 
 # Build a strategic opponent — Sprint 3: Difficulty ladder and human read
 
-**Status:** 🟦 In review — the 12-case local report passes; Linux hash, Restricted download, owner smoke and approved uncoached player read remain open.
+**Status:** 🟦 In review — the 12-case local report and Linux hash fixture pass; Restricted download, owner smoke and approved uncoached player read remain open.
 
 ## Stories
 
