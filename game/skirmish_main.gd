@@ -26,6 +26,9 @@ var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_panel: PanelContainer
 var setup_goal: Label
+var setup_difficulty: OptionButton
+var setup_difficulty_details: Label
+var selected_difficulty := "standard"
 var setup_regios: Button
 var setup_poblanos: Button
 var setup_resume: Button
@@ -110,6 +113,7 @@ func _ready() -> void:
 	_layout_setup()
 	_show_setup()
 	_update_hud()
+	call_deferred("_layout_setup")
 
 func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui = BattleHud.new()
@@ -152,7 +156,7 @@ func _toggle_pause() -> void:
 func _restart_match() -> void:
 	if choosing_faction:
 		return
-	_start_match(sim.factions[Skirmish.HUMAN])
+	_start_match(sim.factions[Skirmish.HUMAN], sim.ai_difficulty)
 	hud_ui.show_notice("New match started")
 
 func _navigate_minimap(tile: Vector2i) -> void:
@@ -183,9 +187,20 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	title.add_theme_font_size_override("font_size", 30)
 	column.add_child(title)
 	setup_goal = Label.new()
-	setup_goal.text = "Win by destroying the opposing command post or holding La Roma for 60 seconds."
+	setup_goal.text = "Win by destroying the opposing command post or holding La Roma for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 	setup_goal.add_theme_font_size_override("font_size", 18)
 	column.add_child(setup_goal)
+	setup_difficulty = OptionButton.new()
+	for level in Skirmish.AI_LEVELS:
+		setup_difficulty.add_item(level.capitalize())
+	setup_difficulty.select(1)
+	setup_difficulty.item_selected.connect(_choose_difficulty)
+	setup_difficulty.custom_minimum_size.y = 42
+	column.add_child(setup_difficulty)
+	setup_difficulty_details = Label.new()
+	setup_difficulty_details.text = "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
+	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(setup_difficulty_details)
 	var regios := Button.new()
 	regios.text = "Regios — workers carry 5; fighters cost +1 Varos"
 	regios.custom_minimum_size.y = 72
@@ -221,12 +236,13 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	column.add_child(setup_save_error)
 
 func _layout_setup() -> void:
-	if setup_panel == null:
+	if setup_panel == null or get_viewport() == null:
 		return
 	var view := get_viewport().get_visible_rect().size
 	var mobile := view.x < 950.0 or view.y < 560.0
 	var landscape := view.x > view.y
-	setup_goal.text = "Destroy enemy post or hold La Roma for 60s." if mobile and not landscape else ("Destroy the enemy post or hold La Roma for 60 seconds." if mobile else "Win by destroying the opposing command post or holding La Roma for 60 seconds.")
+	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
+	setup_goal.text = ("Destroy enemy post or hold La Roma for %ds." % hold_seconds) if mobile and not landscape else (("Destroy the enemy post or hold La Roma for %d seconds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding La Roma for %d seconds." % hold_seconds))
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_regios.text = ("REGIOS  •  carry 5" if not landscape else "REGIOS  •  carry 5; fighters cost +1 Varos") if mobile else "Regios — workers carry 5; fighters cost +1 Varos"
@@ -241,7 +257,9 @@ func _layout_setup() -> void:
 	column.add_theme_constant_override("separation", 8 if mobile else 16)
 	var title: Label = column.get_child(0)
 	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
-	setup_panel.size = Vector2(minf(810, view.x - 24), 280.0 if mobile and landscape else (330.0 if mobile else minf(420, view.y - 24)))
+	setup_difficulty.custom_minimum_size.y = 32 if mobile else 42
+	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
+	setup_panel.size = Vector2(minf(810, view.x - 24), minf(view.y - 24, 350.0 if mobile and landscape else (410.0 if mobile else 500.0)))
 	setup_panel.position = (view - setup_panel.size) * 0.5
 	_apply_resize_zoom(view)
 	queue_redraw()
@@ -280,6 +298,17 @@ func _choose_faction(faction: String) -> void:
 		return
 	_start_match(faction)
 
+func _choose_difficulty(index: int) -> void:
+	if index < 0 or index >= Skirmish.AI_LEVELS.size():
+		return
+	selected_difficulty = Skirmish.AI_LEVELS[index]
+	var descriptions := {
+		"learner": "Learner: Builds at a measured pace so you can practice counters.",
+		"standard": "Standard: Scouts and changes plans when you show a threat.",
+		"challenger": "Challenger: Reacts sooner and presses an advantage."
+	}
+	setup_difficulty_details.text = descriptions[selected_difficulty] + " Same rules and sight."
+
 func _save_match() -> void:
 	if choosing_faction or sim.result != "":
 		hud_ui.show_notice("Start an active match before saving", true)
@@ -307,6 +336,9 @@ func _resume_match() -> void:
 			hud_ui.show_notice(completed_note, true)
 		return
 	sim = restored.game as Skirmish
+	selected_difficulty = sim.ai_difficulty
+	setup_difficulty.select(Skirmish.AI_LEVELS.find(selected_difficulty))
+	_choose_difficulty(Skirmish.AI_LEVELS.find(selected_difficulty))
 	match_id = restored.match_id
 	completion_queued = restored.completion_queued or sim.result != ""
 	outbox.faction = sim.factions[Skirmish.HUMAN]
@@ -346,8 +378,9 @@ func _outbox_has_terminal(id: String) -> bool:
 			return true
 	return false
 
-func _start_match(faction: String) -> void:
-	sim = Skirmish.new(faction)
+func _start_match(faction: String, difficulty: String = "") -> void:
+	var level := selected_difficulty if difficulty.is_empty() else difficulty
+	sim = Skirmish.new(faction, {}, 1, level)
 	paused = false
 	hud_ui.pause_button.text = "II"
 	hud_ui.diagnostics.hide()

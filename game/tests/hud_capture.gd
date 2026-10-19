@@ -16,9 +16,10 @@ func _capture() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new("user://hud-capture-%d.json" % Time.get_ticks_usec())
 	root.add_child(client)
-	client._choose_faction(Skirmish.REGIOS)
-	client.sim.ai_enabled = false
 	var mode := OS.get_environment("HUD_CAPTURE_MODE")
+	if mode != "setup":
+		client._choose_faction(Skirmish.REGIOS)
+		client.sim.ai_enabled = false
 	if mode == "worker":
 		client.selected_id = client.sim._find(Skirmish.HUMAN, "worker")
 	elif mode == "building":

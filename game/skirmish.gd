@@ -27,10 +27,11 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-3"
-const CONTENT_VERSION := "la-roma-warfare-3"
+const GAME_VERSION := "godot-4.7.2-skirmish-4"
+const CONTENT_VERSION := "la-roma-opponent-4"
 const COMMAND_SCHEMA_VERSION := 3
-const STATE_SCHEMA_VERSION := 3
+const STATE_SCHEMA_VERSION := 4
+const AI_LEVELS := ["learner", "standard", "challenger"]
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
@@ -70,10 +71,17 @@ var command_log: Array[Dictionary] = []
 var next_command := 1
 var ai_next_role := "melee"
 var ai_enabled := true
+var ai_difficulty := "standard"
+var ai_opening := 0
+var ai_plan := "opening"
+var ai_stall_reason := ""
+var ai_rejections := 0
+var ai_last_rejection := ""
 var pending_footprint := Vector2i(-1, -1)
 
-func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1) -> void:
+func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard") -> void:
 	assert(human_faction in [REGIOS, POBLANOS], "Choose a supported faction.")
+	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
 	if custom_content.is_empty():
 		var loaded := RulesContent.load_default()
 		assert(loaded.ok, "Could not load validated skirmish content: " + str(loaded.get("reason", "unknown")))
@@ -94,6 +102,8 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 		elevated_tiles[Vector2i(int(point[0]), int(point[1]))] = true
 	rng_state = seed if seed != 0 else 1
 	initial_seed = rng_state
+	ai_difficulty = difficulty
+	ai_opening = posmod(initial_seed, 2)
 	factions = {HUMAN: human_faction, COMPUTER: POBLANOS if human_faction == REGIOS else REGIOS}
 	for side in [HUMAN, COMPUTER]:
 		resource_sources[side] = {}
@@ -367,6 +377,9 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			"actor_id": actor_id, "target": _log_target(target), "game_version": GAME_VERSION,
 			"content_version": CONTENT_VERSION, "test_account": true})
 		next_command += 1
+	elif side == COMPUTER:
+		ai_rejections += 1
+		ai_last_rejection = rejected.reason
 	if side == HUMAN:
 		feedback = rejected.reason.replace("_", " ")
 	return rejected
@@ -376,7 +389,7 @@ func tick() -> void:
 		return
 	tick_number += 1
 	_tick_sources()
-	if ai_enabled and tick_number % int(content.ai.step_ticks) == 0:
+	if ai_enabled and tick_number % int(_ai_profile().step_ticks) == 0:
 		_refresh_visibility()
 		_ai_step()
 	var damages: Dictionary = {}
@@ -571,7 +584,9 @@ func snapshot() -> Dictionary:
 		"explored": [_sorted_points(explored_tiles[HUMAN]), _sorted_points(explored_tiles[COMPUTER])],
 		"last_seen": [_sorted_sight_memory(HUMAN), _sorted_sight_memory(COMPUTER)],
 		"next_id": next_id, "next_command": next_command, "ai_next_role": ai_next_role,
-		"ai_enabled": ai_enabled}
+		"ai_enabled": ai_enabled, "ai_difficulty": ai_difficulty, "ai_opening": ai_opening,
+		"ai_plan": ai_plan, "ai_stall_reason": ai_stall_reason,
+		"ai_rejections": ai_rejections, "ai_last_rejection": ai_last_rejection}
 
 func state_hash() -> String:
 	var hash := HashingContext.new()
@@ -821,15 +836,40 @@ func _attack_damage(attacker: Dictionary, target: Dictionary) -> int:
 	var bonus_key := "structure" if target.kind in content.buildings else str(target.kind)
 	return maxi(1, _unit_damage(attacker.side, attacker.kind) + int(rule.bonuses.get(bonus_key, 0)) - armor)
 
-func _ai_goal() -> Dictionary:
+func _ai_profile() -> Dictionary:
+	return content.ai.levels[ai_difficulty]
+
+func _ai_observed_enemies() -> Array[Dictionary]:
+	var observed: Array[Dictionary] = []
+	for id in _visible_enemy_ids(COMPUTER):
+		var e: Dictionary = entities[id]
+		observed.append({"id": id, "kind": e.kind, "pos": e.pos, "hp": e.hp})
+	return observed
+
+func _ai_counter_role(observed: Array[Dictionary]) -> String:
+	if not _ai_profile().counter:
+		return ""
+	for enemy in observed:
+		match enemy.kind:
+			"siege": return "melee"
+			"armored": return "ranged"
+			"ranged":
+				if age_index[COMPUTER] >= 1:
+					return "armored"
+			"melee": return "ranged"
+	return ""
+
+func _ai_goal(observed: Array[Dictionary] = []) -> Dictionary:
 	var side := COMPUTER
+	var profile := _ai_profile()
 	var workers := 0
 	for entity in entities.values():
 		if entity.side == side and entity.hp > 0 and entity.kind == "worker":
 			workers += 1
-	if workers + _count_queued_role(side, "worker") < 3:
+	if workers + _count_queued_role(side, "worker") < int(profile.workers):
 		return {"kind": "train", "id": "worker", "costs": _costs(side, "worker")}
-	for building_kind in ["housing", "depot", "barracks"]:
+	var opening_buildings := ["housing", "depot", "barracks"] if ai_opening == 1 else ["depot", "housing", "barracks"]
+	for building_kind in opening_buildings:
 		var building_id := _find(side, building_kind)
 		if building_id == -1:
 			return {"kind": "build", "id": building_kind, "costs": _costs(side, building_kind)}
@@ -837,7 +877,11 @@ func _ai_goal() -> Dictionary:
 			return {"kind": "wait", "id": building_id, "costs": {}}
 	var barracks_id := _find(side, "barracks")
 	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _queued_fighters(side) < 2:
-		var role := ai_next_role
+		if _population_used(side) >= _population_cap(side) and _population_cap(side) < int(content.population.max_cap):
+			return {"kind": "build", "id": "housing", "costs": _costs(side, "housing")}
+		var role := _ai_counter_role(observed)
+		if role.is_empty():
+			role = ai_next_role
 		return {"kind": "train", "id": role, "costs": _costs(side, role)}
 	if age_index[side] == 0 and not _queued(side, "age", "universitaria"):
 		return {"kind": "advance", "id": "universitaria", "costs": content.ages.transitions.universitaria.costs}
@@ -849,16 +893,24 @@ func _ai_goal() -> Dictionary:
 			return {"kind": "wait", "id": registry_id, "costs": {}}
 	if age_index[side] >= 1 and "carry_capacity_i" not in researched[side] and not _queued(side, "tech", "carry_capacity_i"):
 		return {"kind": "research", "id": "carry_capacity_i", "costs": content.techs.carry_capacity_i.costs}
+	if age_index[side] == 1 and "carry_capacity_i" not in researched[side]:
+		return {"kind": "hold", "id": "carry_capacity_i", "costs": {}}
 	if age_index[side] == 1 and not _queued(side, "age", "godin"):
 		return {"kind": "advance", "id": "godin", "costs": content.ages.transitions.godin.costs}
 	if age_index[side] >= 2 and "construction_rate_i" not in researched[side] and not _queued(side, "tech", "construction_rate_i"):
 		return {"kind": "research", "id": "construction_rate_i", "costs": content.techs.construction_rate_i.costs}
+	if age_index[side] == 2 and "construction_rate_i" not in researched[side]:
+		return {"kind": "hold", "id": "construction_rate_i", "costs": {}}
 	if age_index[side] == 2 and not _queued(side, "age", "gentrificacion"):
 		return {"kind": "advance", "id": "gentrificacion", "costs": content.ages.transitions.gentrificacion.costs}
 	if age_index[side] >= 3 and "combat_training_i" not in researched[side] and not _queued(side, "tech", "combat_training_i"):
 		return {"kind": "research", "id": "combat_training_i", "costs": content.techs.combat_training_i.costs}
-	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _queued_fighters(side) < int(content.ai.army_cap):
-		var role := "siege" if age_index[side] >= 2 and _find(side, "siege") == -1 and _count_queued_role(side, "siege") == 0 else "armored" if age_index[side] >= 1 and _find(side, "armored") == -1 and _count_queued_role(side, "armored") == 0 else ai_next_role
+	if barracks_id != -1 and entities[barracks_id].complete and _count_fighters(side) + _queued_fighters(side) < int(profile.army_cap):
+		if _population_used(side) >= _population_cap(side) and _population_cap(side) < int(content.population.max_cap):
+			return {"kind": "build", "id": "housing", "costs": _costs(side, "housing")}
+		var role := _ai_counter_role(observed)
+		if role.is_empty():
+			role = "siege" if age_index[side] >= 2 and _find(side, "siege") == -1 and _count_queued_role(side, "siege") == 0 else "armored" if age_index[side] >= 1 and _find(side, "armored") == -1 and _count_queued_role(side, "armored") == 0 else ai_next_role
 		return {"kind": "train", "id": role, "costs": _costs(side, role)}
 	return {}
 
@@ -918,14 +970,27 @@ func _ai_build(kind: String) -> bool:
 						return true
 	return false
 
+func _ai_issue_waypoint(actor_id: int, preferred: Vector2i) -> bool:
+	for offset in [Vector2i.ZERO, Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN,
+		Vector2i(-2, 0), Vector2i(0, -2), Vector2i(2, 0), Vector2i(0, 2)]:
+		var at: Vector2i = preferred + offset
+		if _walkable(at) and issue(COMPUTER, "attack_move", actor_id, at).ok:
+			return true
+	return false
+
 func _ai_step() -> void:
 	var side := COMPUTER
-	var goal := _ai_goal()
+	var profile := _ai_profile()
+	var observed := _ai_observed_enemies()
+	var goal := _ai_goal(observed)
+	ai_stall_reason = ""
+	ai_plan = str(goal.get("kind", "hold"))
 	if not goal.is_empty() and _can_pay(side, goal.costs):
 		var actor_id := -1
 		match goal.kind:
 			"build":
-				_ai_build(goal.id)
+				if not _ai_build(goal.id):
+					ai_stall_reason = "building_site_unreachable"
 			"wait":
 				for id in entities:
 					var worker: Dictionary = entities[id]
@@ -943,10 +1008,27 @@ func _ai_step() -> void:
 				actor_id = _find(side, "command_post")
 				if actor_id != -1:
 					issue(side, "advance", actor_id, goal.id)
-	goal = _ai_goal()
-	var resource_id: String = _ai_shortage(goal.costs) if not goal.is_empty() else str(RESOURCE_IDS[int(tick_number / int(content.ai.step_ticks)) % RESOURCE_IDS.size()])
+	goal = _ai_goal(observed)
+	var resource_id: String = _ai_shortage(goal.costs) if not goal.is_empty() else str(RESOURCE_IDS[int(tick_number / int(profile.step_ticks)) % RESOURCE_IDS.size()])
+	if resource_sources[side][resource_id].amount <= 0:
+		for alternate in RESOURCE_IDS:
+			if resource_sources[side][alternate].amount > 0:
+				resource_id = alternate
+				break
+		if resource_sources[side][resource_id].amount <= 0:
+			var can_refresh := false
+			for candidate in RESOURCE_IDS:
+				if resource_sources[side][candidate].refreshes_left > 0:
+					can_refresh = true
+			ai_stall_reason = "waiting_for_resource_refresh" if can_refresh else "all_sources_exhausted"
 	var ids: Array = entities.keys()
 	ids.sort()
+	var assigned_to_needed := false
+	for id in ids:
+		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"]:
+			assigned_to_needed = true
+			break
+	var reassigned := false
 	for id in ids:
 		if not entities.has(id):
 			continue
@@ -955,36 +1037,67 @@ func _ai_step() -> void:
 			continue
 		if worker.carry > 0:
 			continue
-		if worker.job == "idle" or (worker.job == "gather" and worker.source_resource != resource_id):
+		var may_reassign: bool = worker.job == "gather" and worker.source_resource != resource_id and not assigned_to_needed and not reassigned and tick_number % 80 == 0
+		if worker.job == "idle" or may_reassign:
 			var source: Dictionary = resource_sources[side][resource_id]
 			if source.amount > 0:
-				issue(side, "gather", id, source.pos)
-	if tick_number < int(content.ai.district_tick) or age_index[side] < 3:
-		return
-	var human_post := _find(HUMAN, "command_post")
+				if issue(side, "gather", id, source.pos).ok:
+					assigned_to_needed = true
+					reassigned = true
+	var fighters := _count_fighters(side)
+	if fighters > 0 and age_index[side] >= 1 and tick_number >= int(profile.scout_tick) and tick_number < int(profile.district_tick):
+		for id in ids:
+			if entities.has(id) and entities[id].side == side and entities[id].kind in COMBAT_KINDS and entities[id].job == "idle":
+				if _ai_issue_waypoint(id, Vector2i(12, 12)):
+					ai_plan = "scout"
+				break
+	var human_post := -1
 	var human_district := -1
-	var visible_enemies := _visible_enemy_ids(side)
-	for id in visible_enemies:
-		if entities[id].kind in COMBAT_KINDS and _in_district(entities[id].pos):
-			human_district = id
-			break
+	for enemy in observed:
+		if enemy.kind == "command_post":
+			human_post = enemy.id
+		if enemy.kind in COMBAT_KINDS and _in_district(enemy.pos):
+			human_district = enemy.id
+	var own_post := _find(side, "command_post")
+	var nearby_threat := -1
+	if own_post != -1:
+		for enemy in observed:
+			if enemy.kind in COMBAT_KINDS and _distance(enemy.pos, entities[own_post].pos) <= 6:
+				nearby_threat = enemy.id
+				break
+	if tick_number < int(profile.district_tick) or age_index[side] < 3:
+		var early_target := human_district if human_district != -1 else nearby_threat
+		if early_target != -1:
+			for id in ids:
+				if entities.has(id) and entities[id].side == side and entities[id].kind in COMBAT_KINDS and (entities[id].job != "attack" or entities[id].target_id != early_target):
+					if issue(side, "attack", id, early_target).ok:
+						ai_plan = "defend"
+		return
 	for id in ids:
 		if not entities.has(id) or entities[id].side != side or entities[id].kind not in COMBAT_KINDS:
 			continue
 		var unit: Dictionary = entities[id]
-		if human_district != -1:
-			if unit.job != "attack" or unit.target_id != human_district:
-				issue(side, "attack", id, human_district)
-		elif tick_number >= int(content.ai.attack_tick) and human_post != -1 and (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
-			if human_post in visible_enemies:
+		var defense_target := human_district if human_district != -1 else nearby_threat
+		if defense_target != -1:
+			if unit.job != "attack" or unit.target_id != defense_target:
+				if issue(side, "attack", id, defense_target).ok:
+					ai_plan = "defend"
+		elif tick_number >= int(profile.attack_tick) and (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
+			if human_post != -1:
 				if unit.job != "attack" or unit.target_id != human_post:
-					issue(side, "attack", id, human_post)
+					if issue(side, "attack", id, human_post).ok:
+						ai_plan = "conquest"
 			elif unit.job in ["idle", "move"]:
-				var remembered: Vector2i = last_seen[side].get(human_post, _point(content.map.command_posts[HUMAN]))
-				var approach := remembered + Vector2i(2, 2)
-				issue(side, "attack_move", id, approach)
+				var search_pos := _point(content.map.command_posts[HUMAN])
+				for memory in last_seen[side].values():
+					if memory.kind == "command_post" and tick_number - int(memory.tick) <= int(profile.memory_ticks):
+						search_pos = memory.pos
+				var approach := search_pos + Vector2i(2, 2)
+				if _ai_issue_waypoint(id, approach):
+					ai_plan = "search"
 		elif unit.job == "idle" and not _in_district(unit.pos):
-			issue(side, "move", id, _point(content.map.ai_district_target))
+			if issue(side, "move", id, _point(content.map.ai_district_target)).ok:
+				ai_plan = "district"
 
 func _other_computer_fighter_in_district(except_id: int) -> bool:
 	for id in entities:
@@ -1173,7 +1286,7 @@ func _refresh_visibility() -> void:
 		for id in ids:
 			var e: Dictionary = entities[id]
 			if e.side != side and e.hp > 0 and is_entity_visible(side, e):
-				last_seen[side][id] = e.pos
+				last_seen[side][id] = {"pos": e.pos, "kind": e.kind, "tick": tick_number}
 
 func _visible_enemy_ids(side: int) -> Array:
 	var observed: Array = []
@@ -1217,7 +1330,9 @@ func _sorted_points(points: Dictionary) -> Array:
 func _sorted_sight_memory(side: int) -> Array:
 	var ids: Array = last_seen[side].keys()
 	ids.sort()
-	return ids.map(func(id: int) -> Dictionary: return {"id": id, "pos": [last_seen[side][id].x, last_seen[side][id].y]})
+	return ids.map(func(id: int) -> Dictionary:
+		var memory: Dictionary = last_seen[side][id]
+		return {"id": id, "pos": [memory.pos.x, memory.pos.y], "kind": memory.kind, "tick": memory.tick})
 
 func _in_district(tile: Vector2i) -> bool:
 	var low := _point(content.map.district_min)

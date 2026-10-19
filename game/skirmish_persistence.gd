@@ -2,7 +2,7 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
-const SAVE_SCHEMA_VERSION := 3
+const SAVE_SCHEMA_VERSION := 4
 const MAX_SAVE_BYTES := 16777216
 const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
@@ -78,7 +78,7 @@ static func restore(payload: Dictionary) -> Dictionary:
 		return _bad("save_history_invalid")
 	if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
 		return _bad("save_history_invalid")
-	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed))
+	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty)
 	game.tick_number = int(state.tick)
 	game.result = state.result
 	game.terminal_tick = int(state.terminal_tick)
@@ -104,6 +104,11 @@ static func restore(payload: Dictionary) -> Dictionary:
 	game.next_command = int(state.next_command)
 	game.ai_next_role = state.ai_next_role
 	game.ai_enabled = state.ai_enabled
+	game.ai_opening = int(state.ai_opening)
+	game.ai_plan = state.ai_plan
+	game.ai_stall_reason = state.ai_stall_reason
+	game.ai_rejections = int(state.ai_rejections)
+	game.ai_last_rejection = state.ai_last_rejection
 	game.rng_state = int(state.rng_state)
 	game.entities.clear()
 	for raw_entity in state.entities:
@@ -130,7 +135,8 @@ static func restore(payload: Dictionary) -> Dictionary:
 			game.explored_tiles[side][Vector2i(int(p[0]), int(p[1]))] = true
 		game.last_seen[side].clear()
 		for memory in state.last_seen[side]:
-			game.last_seen[side][int(memory.id)] = Vector2i(int(memory.pos[0]), int(memory.pos[1]))
+			game.last_seen[side][int(memory.id)] = {"pos": Vector2i(int(memory.pos[0]), int(memory.pos[1])),
+				"kind": memory.kind, "tick": int(memory.tick)}
 	game._refresh_visibility()
 	game.rebuild_navigation()
 	game.command_log.clear()
@@ -196,7 +202,9 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 			if not tech_id is String or tech_id not in content.techs or seen_techs.has(tech_id):
 				return _bad("state_researched_invalid")
 			seen_techs[tech_id] = true
-	if s.get("ai_next_role") not in ["melee", "ranged"] or not s.get("ai_enabled") is bool:
+	if s.get("ai_next_role") not in ["melee", "ranged"] or not s.get("ai_enabled") is bool or s.get("ai_difficulty") not in Skirmish.AI_LEVELS:
+		return _bad("state_ai_invalid")
+	if not _integer(s.get("ai_opening"), 0) or int(s.ai_opening) > 1 or not s.get("ai_plan") is String or not s.get("ai_stall_reason") is String or not _integer(s.get("ai_rejections"), 0) or not s.get("ai_last_rejection") is String:
 		return _bad("state_ai_invalid")
 	if not s.get("projectiles") is Array or s.projectiles.size() > 10000 or not s.get("explored") is Array or s.explored.size() != 2 or not s.get("last_seen") is Array or s.last_seen.size() != 2:
 		return _bad("state_visibility_invalid")
@@ -205,7 +213,7 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 			if not _point(p, int(content.map.width), int(content.map.height)):
 				return _bad("state_visibility_invalid")
 		for memory in s.last_seen[side]:
-			if not memory is Dictionary or not _integer(memory.get("id"), 1) or not _point(memory.get("pos"), int(content.map.width), int(content.map.height)):
+			if not memory is Dictionary or not _integer(memory.get("id"), 1) or not _point(memory.get("pos"), int(content.map.width), int(content.map.height)) or memory.get("kind") not in content.units and memory.get("kind") not in content.buildings or not _integer(memory.get("tick"), 0) or int(memory.tick) > int(s.tick):
 				return _bad("state_visibility_invalid")
 	for p in s.projectiles:
 		if not p is Dictionary or not _integer(p.get("target_id"), 1) or not _point(p.get("tile"), int(content.map.width), int(content.map.height)) or not _point(p.get("origin"), int(content.map.width), int(content.map.height)) or not _integer(p.get("damage"), 1) or not _integer(p.get("launch"), 0) or not _integer(p.get("arrival"), 1) or int(p.arrival) <= int(p.launch):

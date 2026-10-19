@@ -8,6 +8,7 @@ const FACTION_IDS := ["regios", "poblanos"]
 const AGE_IDS := ["foranea", "universitaria", "godin", "gentrificacion"]
 const TECH_IDS := ["carry_capacity_i", "construction_rate_i", "combat_training_i"]
 const EFFECT_IDS := ["carry_capacity", "construction_rate", "combat_training"]
+const AI_LEVELS := ["learner", "standard", "challenger"]
 
 static func load_default() -> Dictionary:
 	var file := FileAccess.open(DEFAULT_PATH, FileAccess.READ)
@@ -102,6 +103,15 @@ static func validate(value: Variant) -> Dictionary:
 	for key in ["step_ticks", "district_tick", "attack_tick", "army_cap"]:
 		if not _whole(d.ai.get(key), 1):
 			return _bad("invalid_ai_" + key)
+	if not _known_keys(d.ai.get("levels"), AI_LEVELS):
+		return _bad("invalid_ai_levels")
+	for level in AI_LEVELS:
+		var profile: Dictionary = d.ai.levels[level]
+		for key in ["step_ticks", "scout_tick", "district_tick", "attack_tick", "army_cap", "workers", "memory_ticks"]:
+			if not _whole(profile.get(key), 1):
+				return _bad("invalid_ai_%s_%s" % [level, key])
+		if not profile.get("counter") is bool or int(profile.scout_tick) > int(profile.district_tick) or int(profile.district_tick) > int(profile.attack_tick):
+			return _bad("invalid_ai_" + level)
 	if not d.ages.get("order") is Array or d.ages.order != AGE_IDS or not d.ages.get("transitions") is Dictionary:
 		return _bad("age_order_invalid")
 	if not _known_keys(d.ages.transitions, AGE_IDS.slice(1)):

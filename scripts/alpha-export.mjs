@@ -28,7 +28,8 @@ try {
   for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd',
     'rules_content_test.gd', 'strategic_economy_test.gd', 'strategic_progression_test.gd', 'strategic_ai_test.gd',
     'skirmish_persistence_test.gd', 'skirmish_replay_test.gd', 'cross_platform_hash_test.gd', 'skirmish_save_client_test.gd',
-    'skirmish_scale_benchmark.gd', 'art_pipeline_test.gd', 'warfare_test.gd']) {
+    'skirmish_scale_benchmark.gd', 'art_pipeline_test.gd', 'warfare_test.gd',
+    'strategic_opponent_test.gd', 'opponent_scenario_report.gd']) {
     run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', `res://tests/${test}`]);
   }
   run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', 'res://warfare_performance_probe.gd']);

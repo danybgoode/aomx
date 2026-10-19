@@ -3,7 +3,7 @@ extends RefCounted
 const Skirmish = preload("res://skirmish.gd")
 const RulesContent = preload("res://rules_content.gd")
 const Save = preload("res://skirmish_persistence.gd")
-const REPLAY_SCHEMA_VERSION := 3
+const REPLAY_SCHEMA_VERSION := 4
 
 static func record(game: RefCounted) -> Dictionary:
 	var human: Array[Dictionary] = []
@@ -13,6 +13,7 @@ static func record(game: RefCounted) -> Dictionary:
 	return {"format": "battle-for-la-roma-replay", "replay_schema_version": REPLAY_SCHEMA_VERSION,
 		"game_version": Skirmish.GAME_VERSION, "content_version": game.content.content_id,
 		"content_hash": game.content_hash, "human_faction": game.factions[Skirmish.HUMAN],
+		"ai_difficulty": game.ai_difficulty,
 		"initial_seed": game.initial_seed, "end_tick": game.tick_number,
 		"human_commands": human, "checkpoints": game.hash_checkpoints.duplicate(true),
 		"expected_hash": game.state_hash(),
@@ -26,7 +27,7 @@ static func verify(recording: Dictionary) -> Dictionary:
 	var loaded: Dictionary = RulesContent.load_default()
 	if not loaded.ok or recording.get("content_version") != loaded.data.content_id or recording.get("content_hash") != loaded.hash:
 		return _bad("content_version_mismatch", 0)
-	if recording.get("human_faction") not in [Skirmish.REGIOS, Skirmish.POBLANOS] or not _integer(recording.get("initial_seed"), 1) or not _integer(recording.get("end_tick"), 0):
+	if recording.get("human_faction") not in [Skirmish.REGIOS, Skirmish.POBLANOS] or recording.get("ai_difficulty") not in Skirmish.AI_LEVELS or not _integer(recording.get("initial_seed"), 1) or not _integer(recording.get("end_tick"), 0):
 		return _bad("replay_metadata_invalid", 0)
 	if not recording.get("human_commands") is Array or not recording.get("checkpoints") is Array:
 		return _bad("replay_history_invalid", 0)
@@ -49,7 +50,7 @@ static func verify(recording: Dictionary) -> Dictionary:
 		if not entry is Dictionary or not _integer(entry.get("tick"), 1) or int(entry.tick) <= last_checkpoint_tick or int(entry.tick) > end_tick or not entry.get("hash") is String or entry.hash.length() != 64:
 			return _bad("replay_history_invalid", 0)
 		last_checkpoint_tick = int(entry.tick)
-	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed))
+	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed), recording.ai_difficulty)
 	var command_index := 0
 	var checkpoint_index := 0
 	for logical_tick in range(end_tick + 1):
