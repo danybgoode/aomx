@@ -91,12 +91,14 @@ func _initialize() -> void:
 	check(replay_a.state_hash() == replay_b.state_hash(), "replay final state hash equal")
 	check(replay_a.command_log == replay_b.command_log, "replay command log equal")
 	var opponent = Skirmish.new()
-	for i in range(Skirmish.AI_ATTACK_TICK + 50):
+	for i in range(2800):
 		opponent.tick()
+		if opponent.result != "":
+			break
 	var ai_melee: bool = opponent.command_log.any(func(order: Dictionary) -> bool: return order.side == Skirmish.COMPUTER and order.kind == "train" and order.target == "melee")
 	var ai_ranged: bool = opponent.command_log.any(func(order: Dictionary) -> bool: return order.side == Skirmish.COMPUTER and order.kind == "train" and order.target == "ranged")
-	var ai_attack: bool = opponent.command_log.any(func(order: Dictionary) -> bool: return order.side == Skirmish.COMPUTER and order.kind in ["attack", "attack_move"] and order.issued_tick >= Skirmish.AI_ATTACK_TICK)
-	check(ai_melee and ai_ranged and ai_attack, "authored opponent gathers, recruits mixed roles, then scouts or attacks through orders")
+	var ai_objective: bool = opponent.command_log.any(func(order: Dictionary) -> bool: return order.side == Skirmish.COMPUTER and order.kind in ["move", "attack", "attack_move"])
+	check(ai_melee and ai_ranged and ai_objective and opponent.result == "loss", "opponent trains mixed roles, issues objective orders and finishes an idle match")
 	var win = Skirmish.new()
 	var enemy_post := win._find(Skirmish.COMPUTER, "command_post")
 	win.entities[enemy_post].hp = 0

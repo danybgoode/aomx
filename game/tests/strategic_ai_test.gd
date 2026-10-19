@@ -7,8 +7,10 @@ func _initialize() -> void:
 	var passed := true
 	for faction in [Skirmish.REGIOS, Skirmish.POBLANOS]:
 		var rules: Dictionary = RulesContent.load_default().data.duplicate(true)
-		rules.ai.district_tick = 8000
-		rules.ai.attack_tick = 8000
+		for level in Skirmish.AI_LEVELS:
+			rules.ai.levels[level].scout_tick = 8000
+			rules.ai.levels[level].district_tick = 8000
+			rules.ai.levels[level].attack_tick = 8000
 		var game = Skirmish.new(faction, rules)
 		for n in range(5000):
 			game.tick()

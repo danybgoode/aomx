@@ -2,6 +2,8 @@
 
 The default scene is an original 28×28 isometric solo RTS match on **Godot 4.7.2.stable.official.ed1daf0bf**. Choose Regios or Poblanos before each match; the computer plays the other faction. Regios workers deliver five gold per trip but combat units cost one more gold. Poblanos have stronger command and recruitment posts with standard economy and unit costs. Scout the fog, use the elevated sight lane and recruit melee, ranged, armored and siege units. Destroy the final opposing command post, even if other enemies survive, or hold the marked central 4×4 La Roma district uncontested for 75 seconds. Any living fighter can hold or contest; an enemy fighter or empty district resets the timer. Command-post loss takes priority over a simultaneous district hold. An unresolved match draws at 15 minutes. The earlier worker prototype remains in `main.tscn`.
 
+Choose **Learner**, **Standard**, or **Challenger** before choosing a faction. Learner reacts every 40 ticks, scouts later, and caps its army at four. Standard reacts every 20 ticks, scouts earlier, counters visible roles, and caps at six. Challenger reacts every 10 ticks, presses objectives earlier, remembers sightings longer, and caps at eight. All three use the same costs, damage, sight, population, resources and win rules. The choice stays fixed in a save and replay; older version-3 saves are rejected with an explanation and remain on disk. The [opponent scenario record](../docs/opponent-qa-2026-10-18.md) gives exact seeded outcomes and the remaining human-read gate.
+
 Set `GODOT_BIN` to a Godot 4.7.2 executable. On the development Mac it is `/Users/cosmo/Downloads/Godot.app/Contents/MacOS/Godot`. From the repository root:
 
 ```sh
@@ -20,6 +22,8 @@ Set `GODOT_BIN` to a Godot 4.7.2 executable. On the development Mac it is `/User
 "$GODOT_BIN" --headless --path game --script res://tests/skirmish_scale_benchmark.gd
 "$GODOT_BIN" --headless --path game --script res://tests/skirmish_benchmark.gd
 "$GODOT_BIN" --headless --path game --script res://tests/warfare_test.gd
+"$GODOT_BIN" --headless --path game --script res://tests/strategic_opponent_test.gd
+OPPONENT_REPORT_PATH=/absolute/path/opponent-report.json "$GODOT_BIN" --headless --path game --script res://tests/opponent_scenario_report.gd
 "$GODOT_BIN" --headless --path game --script res://warfare_performance_probe.gd
 GODOT_BIN="$GODOT_BIN" npm run skirmish:contract
 "$GODOT_BIN" --path game
@@ -35,7 +39,7 @@ For the owned-art pipeline and actual-scale comparison, see [the production note
 
 For controlled local smoke, set `SKIRMISH_SMOKE_SCENARIO=win`, `loss`, `draw`, `district_hold`, or `district_contest` before launching a debug Godot build. The first three set a terminal state immediately or at the 15-minute boundary. `district_hold` places a friendly fighter at center; `district_contest` places both sides at center with a low-health defender so you can attack it and watch the timer restart. The AI is disabled only in these two debug fixtures. The environment hook does not run in release exports.
 
-The client writes test-tagged first-open, later-day open, match-start and match-completed events to `user://funnel-outbox.json` before reporting them saved. Match events include the selected faction and `la-roma-warfare-3` content version; an open before choice uses neutral. It retries pending events in order every five seconds against local loopback ingest at `127.0.0.1:8787`. To exercise sync, run `npm ci && npm run funnel:serve` separately. Start the game with ingest offline, complete a controlled result, reopen the client, then start ingest and press **F**. The HUD distinguishes saved pending, synced test events and events needing attention. An unresolved earlier event holds later uploads. The local audit excludes every game event from public cohorts because `test_account` is true; no Golden Frijoles key is bundled.
+The client writes test-tagged first-open, later-day open, match-start and match-completed events to `user://funnel-outbox.json` before reporting them saved. Match events include the selected faction and `la-roma-opponent-4` content version; an open before choice uses neutral. It retries pending events in order every five seconds against local loopback ingest at `127.0.0.1:8787`. To exercise sync, run `npm ci && npm run funnel:serve` separately. Start the game with ingest offline, complete a controlled result, reopen the client, then start ingest and press **F**. The HUD distinguishes saved pending, synced test events and events needing attention. An unresolved earlier event holds later uploads. The local audit excludes every game event from public cohorts because `test_account` is true; no Golden Frijoles key is bundled.
 
 Godot flushes a temporary JSON file and renames it into place. Its API does not expose directory fsync, so sudden power loss at that boundary remains unproven. The local ingest has no hosted authentication or release rail. This debug match is a complete local play loop and a contract exercise, not an eligible launch cohort.
 

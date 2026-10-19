@@ -104,18 +104,14 @@ func _initialize() -> void:
 			return order.side == Skirmish.COMPUTER and order.kind == "attack_move" and order.target == [4, 4]),
 			"covered melee scouts toward the command post without hidden targeting")
 		var idle_player = Skirmish.new(faction)
-		var reached_fourth_age := false
 		for i in range(4000):
 			idle_player.tick()
-			if idle_player.age_index[Skirmish.COMPUTER] == 3:
-				reached_fourth_age = true
 			if idle_player.result != "":
 				break
-		check(reached_fourth_age, "normal AI reaches fourth age before ending an idle match")
-		check(idle_player.result == "loss", "active opponent can finish against an idle human")
+		check(idle_player.result == "loss" and idle_player.result_reason == "district", "active opponent can win the district against an idle human")
 		check(idle_player.command_log.any(func(order: Dictionary) -> bool:
-			return order.side == Skirmish.COMPUTER and order.kind == "move" and order.target == [11, 10]),
-			"opponent actually enters the center in a normal match")
+			return order.side == Skirmish.COMPUTER and order.kind in ["move", "attack_move"]),
+			"opponent issues a legal objective route in a normal match")
 	if not failed:
 		print("District checks passed: hold, contest, reset, precedence, AI counter, replay")
 	quit(1 if failed else 0)

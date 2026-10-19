@@ -1,0 +1,9 @@
+{
+  "schema_version": 4,
+  "godot": "4.7.2",
+  "content_version": "la-roma-opponent-4",
+  "cases": {
+    "regios_700": "cc3bc8e6e7e979eee82871236b372c2329d71b23e727b17aa29a6f824f1c836c",
+    "poblanos_700": "98beaebd873e2f9d07d798d18637901f2c4bcd7e90b40168f31a4041103ad66c"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "content_id": "la-roma-warfare-3",
+  "content_id": "la-roma-opponent-4",
   "tick_ms": 100,
   "map": {
     "width": 28,
@@ -413,7 +413,12 @@
     "step_ticks": 20,
     "district_tick": 2400,
     "attack_tick": 2600,
-    "army_cap": 6
+    "army_cap": 6,
+    "levels": {
+      "learner": {"step_ticks": 40, "scout_tick": 1400, "district_tick": 3100, "attack_tick": 3600, "army_cap": 4, "workers": 3, "counter": false, "memory_ticks": 400},
+      "standard": {"step_ticks": 20, "scout_tick": 900, "district_tick": 2400, "attack_tick": 2600, "army_cap": 6, "workers": 3, "counter": true, "memory_ticks": 600},
+      "challenger": {"step_ticks": 10, "scout_tick": 600, "district_tick": 1800, "attack_tick": 2100, "army_cap": 8, "workers": 3, "counter": true, "memory_ticks": 800}
+    }
   },
   "resources": {
     "comida": {

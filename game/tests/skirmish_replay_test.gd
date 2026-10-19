@@ -24,7 +24,7 @@ func _initialize() -> void:
 	for i in 100:
 		game.tick()
 	var recording: Dictionary = Replay.record(game)
-	check(recording.replay_schema_version == 3, "warfare replay schema recorded")
+	check(recording.replay_schema_version == 4, "opponent replay schema recorded")
 	var checked: Dictionary = Replay.verify(recording)
 	check(checked.ok and checked.hash == game.state_hash(), "human commands and deterministic AI replay to same state")
 	var parsed: Dictionary = JSON.parse_string(JSON.stringify(recording))

@@ -16,7 +16,12 @@ func _run() -> void:
 	client.save_path = save_path
 	client.outbox = Outbox.new(outbox_path)
 	root.add_child(client)
+	client.setup_difficulty.select(2)
+	client._choose_difficulty(2)
+	check(client.selected_difficulty == "challenger" and client.setup_difficulty_details.text.contains("Reacts sooner"),
+		"setup explains selected Challenger level")
 	client._choose_faction(Skirmish.REGIOS)
+	check(client.sim.ai_difficulty == "challenger", "selected level starts with the match")
 	client.sim.ai_enabled = false
 	var original_id: String = client.match_id
 	var worker: int = client.sim._find(Skirmish.HUMAN, "worker")
@@ -62,6 +67,8 @@ func _run() -> void:
 	client._resume_match()
 	check(not client.choosing_faction and client.match_id == original_id and client.sim.state_hash() == original_hash,
 		"Resume restores match identity and canonical state")
+	check(client.sim.ai_difficulty == "challenger" and client.setup_difficulty.selected == 2,
+		"Resume restores opponent level and setup choice")
 	check(client.sim.balance(Skirmish.HUMAN, "comida") == original_comida and client.sim.resource_sources[Skirmish.HUMAN].comida.amount == original_source,
 		"Resume restores stockpile and finite source state")
 	check(client.sim.entities[client.sim._find(Skirmish.HUMAN, "command_post")].queue[0].kind == "age",
