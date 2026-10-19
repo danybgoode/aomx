@@ -68,7 +68,7 @@ The owner approved the plan on 2026-10-18. The implementation uses 40/20/10-tick
 
 Review the L appetite after each sprint. Do not add new units, maps, campaign behavior or online bot policy to rescue a weak case.
 
-Local headless and rendered evidence is recorded for all three slices. PR #50 passed Linux/CodeQL checks, including the version-4 hash fixture, and independent general and scoped security reviews. It merged as `c40b0f5adc5c`; the compatible ingest and signed Restricted `preview-c40b0f5adc5c` are live. The authenticated fetched build matches the source ZIP, has a valid strict signature and starts headlessly. The [QA record](../../../docs/opponent-qa-2026-10-18.md) holds checksums and release evidence. Downloaded-build owner walkthroughs, excluded in-app sync and the approved four-player read remain open. These are not inferred from automated victories.
+Local headless and rendered evidence is recorded for all three slices. PR #50 passed Linux/CodeQL checks, including the version-4 hash fixture, and independent general and scoped security reviews. It merged as `c40b0f5adc5c`; the compatible ingest and signed Restricted `preview-c40b0f5adc5c` are live. The authenticated fetched build matches the source ZIP, has a valid strict signature and starts headlessly. The [QA record](../../../docs/opponent-qa-2026-10-18.md) holds checksums and release evidence. Downloaded-build owner walkthroughs, excluded in-app sync and the approved [four-player read](../../../docs/opponent-human-read-protocol.md) remain open. These are not inferred from automated victories.
 
 ## Build and release
 

@@ -24,7 +24,7 @@ stories:
 
 # Build a strategic opponent — Sprint 3: Difficulty ladder and human read
 
-**Status:** 🟦 In review — the 12-case local report and Linux hash fixture pass; Restricted download, owner smoke and approved uncoached player read remain open.
+**Status:** 🟦 In review — the 12-case local report, Linux hash fixture and signed Restricted download pass; owner full-match/save/sync smoke and the approved uncoached player read remain open.
 
 ## Stories
 
@@ -51,4 +51,4 @@ Run on the actual Restricted build ID after export; record the ID and result bes
 1. Download the signed Restricted build using the approved owner channel and start each level. → The descriptions match the distinct reaction and composition seen in its scenario report.
 2. Finish a full match as Regios and Poblanos across Conquest and La Roma routes. → Each terminal result appears once and save/resume keeps the chosen level.
 3. Sync one preview completion through Menu after ingest compatibility is deployed. → One stable test receipt appears and public cohort count remains unchanged.
-4. With approved notice and invitations, run the four-player uncoached protocol. → The recorded rankings, counter explanations and fairness objections are available for review.
+4. With approved notice and invitations, run the [four-player uncoached protocol](../../../docs/opponent-human-read-protocol.md). → The recorded rankings, counter explanations and fairness objections are available for review.
