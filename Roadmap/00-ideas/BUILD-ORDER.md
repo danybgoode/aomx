@@ -41,7 +41,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Integrate the owned art library](../02-civilizations-and-world/integrate-owned-art-library/README.md) — #10 · 02 Civilizations And World · 2/3 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Expand warfare and world](../01-core-play/expand-warfare-and-world/README.md) — #11 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
 - [Build a strategic opponent](../01-core-play/build-strategic-opponent/README.md) — #12 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
-- [Expand civilizations and world](../02-civilizations-and-world/expand-civilizations-and-world/README.md) — #13 · 02 Civilizations And World · 0/8 stories · risk: High · appetite L · _docs: status scaffolded_
+- [Expand civilizations and world](../02-civilizations-and-world/expand-civilizations-and-world/README.md) — #13 · 02 Civilizations And World · 0/8 stories · risk: High · appetite L · _docs: status in-progress_
 
 ## Building — live only
 
