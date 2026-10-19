@@ -3,7 +3,7 @@ epic: expand-civilizations-and-world
 sprint: 4
 title: "Media and human read"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S4.1
@@ -12,24 +12,24 @@ stories:
     i_want: "legible animation and controllable sound"
     so_that: "I understand identity and state without decoding references"
     risk: low
-    status: planned
+    status: in-progress
   - id: S4.2
     title: "Verify a downloaded build and uncoached clarity"
     as_a: "product owner"
     i_want: "full-match and human evidence"
     so_that: "I know whether the expansion is ready for further production"
     risk: low
-    status: planned
+    status: in-progress
 ---
 # Expand civilizations and world — Sprint 4: Media and human read
 
-**Status:** ⬜ not started
+**Status:** 🏗 Original cue and view-only directional motion pass builder checks; signed download and eight-person human read remain open. See the [world QA record](../../../docs/world-expansion-qa-2026-10-19.md).
 
 ## Stories
 
 ### Story 4.1 — Read new factions and maps through original media
 **As a** player at gameplay zoom, **I want** legible animation and controllable sound, **so that** I understand identity and state without decoding references.
-**Acceptance:** A small directional animation set and original audio cues for faction/map or battle feedback have source rights, hashes, export dimensions and runtime IDs. Gameplay zoom, contrast and non-color ownership cues pass owner inspection. Mute/volume works and no media change alters simulation hashes, picking or collision.
+**Acceptance:** A four-direction heading cue and stride/idle motion reuse the project-original unit art without a new raster source. An original order-confirmation WAV has a reproducible generator, recorded hash and runtime path. Gameplay zoom, contrast and non-color ownership cues pass owner inspection. Mute/volume works and no media change alters simulation hashes, picking or collision.
 **Risk:** low — presentation.
 
 ### Story 4.2 — Verify a downloaded build and uncoached clarity

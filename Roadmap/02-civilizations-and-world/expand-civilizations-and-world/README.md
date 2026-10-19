@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Locking architecture       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: expand-civilizations-and-world
 title: "Expand civilizations and world"
@@ -60,7 +60,7 @@ Classic RTS players have only two factions and one map in the current match. Thi
 
 - **One simulation.** Extend the existing validated, fixed-tick rules and versioned content. A match pins faction IDs, a map ID and a content ID at start. Save/replay preserves or explicitly rejects incompatible content without deleting a save. Views and audio do not own collision or outcomes.
 - **Four candidate factions.** Regios and Poblanos retain their approved prototype rules. The owner approved Oaxaqueños as fictional resource efficiency/support and Veracruzanos as fictional mobility/trade. Sprint 1 records exact strengths, weaknesses, tech choices and counterplay before gameplay implementation. They are play doctrines, not claims about regional people. No GDD number is automatically approved.
-- **Three authored maps.** La Roma remains the current map. Narvarte uses a balanced street grid and Copilco uses readable chokepoints with alternative routes. All keep Conquest and the La Roma hold route. Starting resource access, center access, AI navigation and sight must be checked before decor.
+- **Three authored maps.** La Roma remains the current map. Narvarte uses a balanced street grid and Copilco uses readable chokepoints with alternative routes. All keep Conquest and a marked central hold route. Starting resource access, center access, AI navigation and sight must be checked before decor.
 - **Version and event integrity.** Match-start and completion remain test-tagged in Restricted previews. The ingest's content allowlist must be updated and smoke-tested before a new preview attempts sync. Real eligible cohort rules and the agreed North Star remain unchanged.
 - **Production media.** Reuse the traced owned-art export and manifest; add only assets with per-source rights and scale checks. Audio is original and controllable. Media never defines faction stats or pathing. No unlicensed music or flattened concept board becomes a playable map.
 - **Review boundaries.** L appetite is revisited after each sprint. High-risk changes to rules, persistence or ingest get independent review. The owner checks portrayal, a downloaded build and cultural clarity. External invitations still use the private-alpha gates.
@@ -68,11 +68,11 @@ Classic RTS players have only two factions and one map in the current match. Thi
 ### Decision record · 2026-10-19
 
 - **D1 · Content model:** Keep one canonical rules engine. Add four stable faction IDs and three stable map IDs to validated content. Each match pins the selected content and map ID at creation; the game creates no partly switched match.
-- **D2 · Save and replay:** A new content version identifies this wave. Save and replay record map choice and verify its hash before reconstructing state. Older saves either load against retained compatible content or return `content_version_mismatch` without changing the file; no silent substitution.
+- **D2 · Save and replay:** Version 5 records map and opponent choices and verifies the content hash before reconstructing state. Version-4 saves return `unsupported_save_version` and remain on disk; incompatible version-5 content returns `content_version_mismatch`. No silent substitution.
 - **D3 · Faction doctrine:** Keep Regios and Poblanos intact. Oaxaqueños get a fictional efficiency/support tradeoff; Veracruzanos get a fictional mobility/trade tradeoff. Exact integer parameters and tech effects are declared in content and reviewed with scenario evidence, not inferred from regional identity. Each weakness has a usable opposing response.
 - **D4 · Map contract:** La Roma, Narvarte and Copilco are authored, not random. Map definitions include dimensions, blocked/elevated/cliff tiles, two starts, four resource locations per side, center footprint and AI targets. Validation and route tests reject inaccessible starts/resources/center before a map is selectable.
-- **D5 · AI and terminals:** All factions/maps use the same command validation, sight, costs, combat and two terminal rules. AI may choose an opponent from the remaining roster but gains no hidden faction or map privilege. Same match ID yields one terminal event.
-- **D6 · Presentation:** The setup and HUD state strengths, costs, objectives and counters in plain words; silhouette, shape and labels supplement color. Owned source exports and new original media use the existing manifest and rights register. Audio has a user mute/volume control and no simulation effect.
+- **D5 · AI and terminals:** All factions/maps use the same command validation, sight, costs, combat and two terminal rules. Classic rival defaults to a different faction; an explicit opponent selection can make a mirror match. AI gains no hidden faction or map privilege. Same match ID yields one terminal event.
+- **D6 · Presentation:** The setup and HUD state strengths, costs, objectives and counters in plain words; shape, heading, outlines and labels supplement color. Existing project-original unit sprites animate through view-only stride/idle and a four-direction heading marker. An original generated WAV cue has reproducible source, hash and mute/volume controls. None affects simulation.
 - **D7 · Measurement and rollout:** Match events retain the existing schema and test exclusion. Bump the content version consistently in Godot, Node contract, preview ingest allowlist and export manifest. Server support precedes preview sync. No runtime flag changes a match; versioned Restricted builds are the rollback unit.
 - **D8 · Verification:** Each sprint has headless contracts, a rendered local smoke and a numbered owner walkthrough. The release gate is a signed Restricted macOS download with full-match, save/resume and excluded sync evidence. The eight-person cultural read requires the existing owner invitation gate and records failures verbatim.
 
@@ -106,6 +106,8 @@ Classic RTS players have only two factions and one map in the current match. Thi
 Build on `feat/expand-civilizations-and-world` after this planning commit. At each sprint boundary, run the relevant Godot headless suite, Node event contract and a numbered rendered owner smoke. Merge reviewed code to `master` only after the full diff and checks pass. A merge does not deploy a game build. Separately export and verify a signed macOS Restricted owner preview under `deploy/alpha/README.md`; keep preview traffic excluded. Any invite codes or wider access wait for the separate alpha gates.
 
 ## Definition of Done
+
+Builder implementation and exact technical evidence are in the [world expansion QA record](../../../docs/world-expansion-qa-2026-10-19.md). Owner full-match, downloaded-build and eight-person comprehension evidence remain open until actually performed.
 
 - [ ] Eight story outcomes pass their acceptance checks, with a numbered smoke and actual result in each sprint file.
 - [ ] Four factions and three authored maps are selectable in a downloaded Restricted build; each new faction has a viable opening, weakness and visible counter. All maps retain fair resources, routes, legal AI and both victories.

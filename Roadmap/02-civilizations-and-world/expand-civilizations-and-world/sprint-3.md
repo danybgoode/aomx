@@ -3,7 +3,7 @@ epic: expand-civilizations-and-world
 sprint: 3
 title: "Two new authored maps"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,18 +12,18 @@ stories:
     i_want: "a balanced street-grid map"
     so_that: "expansion routes change without an unfair start"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Fight on Copilco"
     as_a: "solo RTS player"
     i_want: "readable chokepoints and alternate routes"
     so_that: "positioning changes while counterplay remains possible"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Expand civilizations and world — Sprint 3: Two new authored maps
 
-**Status:** ⬜ not started
+**Status:** 🏗 Both authored maps render and pass route parity, save/replay and forced terminal checks; full-match and owner fairness reads remain open. See the [world QA record](../../../docs/world-expansion-qa-2026-10-19.md).
 
 ## Stories
 

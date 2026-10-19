@@ -1,0 +1,19 @@
+{
+  "schema_version": 5,
+  "godot": "4.7.2",
+  "content_version": "la-roma-world-5",
+  "cases": {
+    "la_roma_regios_700": "908ccdd3dd84ba1980d51cce68671d9e1bcec44e434eed4b63941fb50e59d717",
+    "la_roma_poblanos_700": "f87872af04b95c2fe7c6e925530a116fe5809b1d8620073e1371b1c361a998dd",
+    "la_roma_oaxaquenos_700": "2d6828d17d5452a27fb8eb24c32d0a46e811df995ac4675126afbb9340d0a4c1",
+    "la_roma_veracruzanos_700": "75e98c47c675a9bafdf7ccc3b8e6994b91d0e5d8a2dfb5893a051915e09dc299",
+    "narvarte_regios_700": "7af1f92a6b5ab2dc37ee93181677db49701fc122795db36635ca6900c3a6eae2",
+    "narvarte_poblanos_700": "a7fe1264d418e33661b11a4eda40e66dfc025ed4f8d697b86111065714723eb9",
+    "narvarte_oaxaquenos_700": "b4859b89f849af5813595cfaad78046e64df42c84d053c41153021dcc915e636",
+    "narvarte_veracruzanos_700": "707f0f4e21d4e445753631b3e399320132cb84b6570161eb3b9a5391990f8c6f",
+    "copilco_regios_700": "7cb9156da8c7c30d59c3cff818735272c2949ba643c43f349dc3c588690ae3bd",
+    "copilco_poblanos_700": "ae91f29a75c160b78dc9e3f3e1ed136c885067c17c62e7dc9ac9e6ef5b2b65c2",
+    "copilco_oaxaquenos_700": "9bee11a92ed1871ebf8572e2ff5b56062f38f700b2ca07b6fb06cac307a52d7f",
+    "copilco_veracruzanos_700": "7825073fa588f3e4c79d45594f9ba4d87038b0ce7f9c0b0d2c9a01a79d51733f"
+  }
+}

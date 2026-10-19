@@ -3,7 +3,7 @@ epic: expand-civilizations-and-world
 sprint: 2
 title: "Two new playable factions"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,18 +12,18 @@ stories:
     i_want: "a resource-efficiency strategy with a visible cost"
     so_that: "I can choose and counter a different opening"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Play Veracruzanos with mobility and trade"
     as_a: "solo RTS player"
     i_want: "a mobile trade strategy with a visible counter"
     so_that: "a second faction changes map-control decisions"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Expand civilizations and world — Sprint 2: Two new playable factions
 
-**Status:** ⬜ not started
+**Status:** 🏗 Faction effects, legal research, AI, save and replay pass builder checks; natural full-match and owner counterplay reads remain open. See the [world QA record](../../../docs/world-expansion-qa-2026-10-19.md).
 
 ## Stories
 

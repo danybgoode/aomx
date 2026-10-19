@@ -3,7 +3,7 @@ epic: expand-civilizations-and-world
 sprint: 1
 title: "Content contract and roster"
 risk: high
-phase: Locking architecture
+phase: Building
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,18 +12,18 @@ stories:
     i_want: "clear strengths, weaknesses and map identities"
     so_that: "the next match offers a fair new plan"
     risk: high
-    status: planned
+    status: in-progress
   - id: S1.2
     title: "Version faction, map and technology choices"
     as_a: "player saving a match"
     i_want: "my chosen rules and map preserved"
     so_that: "resume and replay cannot silently change my result"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Expand civilizations and world — Sprint 1: Content contract and roster
 
-**Status:** ⬜ not started
+**Status:** 🏗 Builder implementation verified locally; owner numeric/portrayal read and full release QA remain open. See the [world QA record](../../../docs/world-expansion-qa-2026-10-19.md).
 
 ## Stories
 

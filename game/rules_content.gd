@@ -4,10 +4,11 @@ const DEFAULT_PATH := "res://content/skirmish.v1.json"
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const UNIT_IDS := ["worker", "melee", "ranged", "armored", "siege"]
 const BUILDING_IDS := ["command_post", "barracks", "depot", "housing", "registry"]
-const FACTION_IDS := ["regios", "poblanos"]
+const FACTION_IDS := ["regios", "poblanos", "oaxaquenos", "veracruzanos"]
+const MAP_IDS := ["la_roma", "narvarte", "copilco"]
 const AGE_IDS := ["foranea", "universitaria", "godin", "gentrificacion"]
-const TECH_IDS := ["carry_capacity_i", "construction_rate_i", "combat_training_i"]
-const EFFECT_IDS := ["carry_capacity", "construction_rate", "combat_training"]
+const TECH_IDS := ["carry_capacity_i", "construction_rate_i", "combat_training_i", "cooperative_build_i", "street_exchange_i"]
+const EFFECT_IDS := ["carry_capacity", "construction_rate", "combat_training", "trade_bonus"]
 const AI_LEVELS := ["learner", "standard", "challenger"]
 
 static func load_default() -> Dictionary:
@@ -21,6 +22,31 @@ static func load_default() -> Dictionary:
 		return check
 	return {"ok": true, "data": parsed, "hash": raw.sha256_text()}
 
+static func load_map(map_id: String) -> Dictionary:
+	if map_id not in MAP_IDS:
+		return _bad("unknown_map_id")
+	var base := load_default()
+	if not base.ok or map_id == "la_roma":
+		return base
+	var path := "res://content/maps/%s.json" % map_id
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return _bad("map_content_missing")
+	var overlay = JSON.parse_string(file.get_as_text())
+	if not overlay is Dictionary or overlay.get("id") != map_id or not overlay.get("sources") is Dictionary:
+		return _bad("map_content_invalid")
+	var data: Dictionary = base.data.duplicate(true)
+	data.map_id = map_id
+	data.map = overlay.get("map")
+	for resource_id in RESOURCE_IDS:
+		if not overlay.sources.get(resource_id) is Array:
+			return _bad("map_sources_invalid")
+		data.resources[resource_id].source_positions = overlay.sources[resource_id]
+	var check := validate(data)
+	if not check.ok:
+		return check
+	return {"ok": true, "data": data, "hash": JSON.stringify(data).sha256_text()}
+
 static func validate(value: Variant) -> Dictionary:
 	if not value is Dictionary:
 		return _bad("content_not_object")
@@ -29,6 +55,8 @@ static func validate(value: Variant) -> Dictionary:
 		return _bad("unsupported_content_schema")
 	if not d.get("content_id") is String or d.content_id.is_empty():
 		return _bad("content_id_missing")
+	if d.get("map_id") not in MAP_IDS:
+		return _bad("map_id_invalid")
 	if not _whole(d.get("tick_ms"), 1) or int(d.tick_ms) != 100:
 		return _bad("unsupported_tick_duration")
 	var map_check := _map(d.get("map"))
@@ -46,9 +74,24 @@ static func validate(value: Variant) -> Dictionary:
 		for point in source.source_positions:
 			if not _point(point, int(d.map.width), int(d.map.height)):
 				return _bad("invalid_%s_positions" % id)
+			if not map_check.reachable.has(Vector2i(int(point[0]), int(point[1]))):
+				return _bad("inaccessible_%s_source" % id)
 		for key in ["amount", "refresh_amount", "refresh_ticks", "refresh_count"]:
 			if not _whole(source.get(key), 1):
 				return _bad("invalid_%s_%s" % [id, key])
+	var source_tiles := {}
+	for resource_id in RESOURCE_IDS:
+		for point in d.resources[resource_id].source_positions:
+			source_tiles[Vector2i(int(point[0]), int(point[1]))] = true
+	var occupied_anchors := {}
+	for point in d.map.command_posts + d.map.barracks_positions:
+		var at := Vector2i(int(point[0]), int(point[1]))
+		for dx in 2:
+			for dy in 2:
+				var tile := at + Vector2i(dx, dy)
+				if tile.x >= int(d.map.width) or tile.y >= int(d.map.height) or not map_check.reachable.has(tile) or source_tiles.has(tile) or occupied_anchors.has(tile):
+					return _bad("map_building_footprint_invalid")
+				occupied_anchors[tile] = true
 	if not _known_keys(d.units, UNIT_IDS):
 		return _bad("unit_ids_invalid")
 	for id in UNIT_IDS:
@@ -89,9 +132,11 @@ static func validate(value: Variant) -> Dictionary:
 	if not _known_keys(d.factions, FACTION_IDS):
 		return _bad("faction_ids_invalid")
 	for id in FACTION_IDS:
-		for key in ["carry_limit", "combat_cost_extra", "building_health_percent"]:
+		for key in ["carry_limit", "combat_cost_extra", "building_health_percent", "gather_ticks", "move_ticks"]:
 			if not _whole(d.factions[id].get(key), 0):
 				return _bad("invalid_%s_%s" % [id, key])
+		if int(d.factions[id].gather_ticks) < 1 or int(d.factions[id].move_ticks) < 1:
+			return _bad("invalid_%s_interval" % id)
 	for key in ["base_cap", "max_cap", "housing_bonus"]:
 		if not _whole(d.population.get(key), 1):
 			return _bad("invalid_population_%s" % key)
@@ -122,6 +167,8 @@ static func validate(value: Variant) -> Dictionary:
 		var tech: Dictionary = d.techs[id]
 		if tech.get("age") not in AGE_IDS or not _costs(tech.get("costs")) or not _whole(tech.get("duration_ticks"), 1):
 			return _bad("invalid_%s_rules" % id)
+		if tech.get("requires_faction", "") != "" and tech.get("requires_faction") not in FACTION_IDS:
+			return _bad("invalid_%s_faction" % id)
 		if not _references(tech.get("requires_techs"), TECH_IDS):
 			return _bad("invalid_%s_prerequisites" % id)
 		for prerequisite in tech.requires_techs:
@@ -196,6 +243,13 @@ static func _map(value: Variant) -> Dictionary:
 	var impassable := {}
 	for p in m.blocked_tiles + m.cliff_tiles:
 		impassable[Vector2i(int(p[0]), int(p[1]))] = true
+	var open_district_tiles := 0
+	for x in range(int(m.district_min[0]), int(m.district_max[0]) + 1):
+		for y in range(int(m.district_min[1]), int(m.district_max[1]) + 1):
+			if not impassable.has(Vector2i(x, y)):
+				open_district_tiles += 1
+	if open_district_tiles < 2:
+		return _bad("district_blocked")
 	var start := Vector2i(int(m.workers[0][0]), int(m.workers[0][1]))
 	var finish := Vector2i(int(m.workers[1][0]), int(m.workers[1][1]))
 	var frontier: Array[Vector2i] = [start]
@@ -211,7 +265,11 @@ static func _map(value: Variant) -> Dictionary:
 				frontier.append(next)
 	if not reached.has(finish) or not reached.has(Vector2i(int(m.ai_district_target[0]), int(m.ai_district_target[1]))):
 		return _bad("critical_route_disconnected")
-	return {"ok": true}
+	for key in ["workers", "command_posts", "barracks_positions", "resource_positions"]:
+		for p in m[key]:
+			if not reached.has(Vector2i(int(p[0]), int(p[1]))):
+				return _bad("critical_route_disconnected")
+	return {"ok": true, "reachable": reached}
 
 static func _known_keys(value: Variant, ids: Array) -> bool:
 	if not value is Dictionary or value.size() != ids.size():

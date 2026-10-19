@@ -18,7 +18,11 @@ func _capture() -> void:
 	root.add_child(client)
 	var mode := OS.get_environment("HUD_CAPTURE_MODE")
 	if mode != "setup":
-		client._choose_faction(Skirmish.REGIOS)
+		var map_id := OS.get_environment("HUD_CAPTURE_MAP")
+		if map_id in Skirmish.MAP_IDS:
+			client.selected_map = map_id
+		var faction := OS.get_environment("HUD_CAPTURE_FACTION")
+		client._choose_faction(faction if faction in Skirmish.FACTION_IDS else Skirmish.REGIOS)
 		client.sim.ai_enabled = false
 	if mode == "worker":
 		client.selected_id = client.sim._find(Skirmish.HUMAN, "worker")
@@ -30,6 +34,8 @@ func _capture() -> void:
 	client._update_hud()
 	if mode == "reset":
 		client.hud_ui.restart_button.pressed.emit()
+	if mode == "settings":
+		client._toggle_diagnostics()
 	client.queue_redraw()
 	for i in 8:
 		await process_frame

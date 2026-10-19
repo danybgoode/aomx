@@ -2,7 +2,7 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
-const SAVE_SCHEMA_VERSION := 4
+const SAVE_SCHEMA_VERSION := 5
 const MAX_SAVE_BYTES := 16777216
 const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
@@ -12,7 +12,7 @@ const RESULTS := ["", "win", "loss", "draw"]
 static func capture(game: RefCounted, match_id: String, completion_queued: bool = false) -> Dictionary:
 	return {"format": "battle-for-la-roma-save", "save_schema_version": SAVE_SCHEMA_VERSION,
 		"game_version": Skirmish.GAME_VERSION, "content_version": game.content.content_id,
-		"content_hash": game.content_hash, "match_id": match_id,
+		"content_hash": game.content_hash, "map_id": game.map_id, "match_id": match_id,
 		"completion_queued": completion_queued, "state": game.snapshot(),
 		"state_hash": game.state_hash(), "command_log": game.command_log.duplicate(true),
 		"hash_checkpoints": game.hash_checkpoints.duplicate(true)}
@@ -63,7 +63,10 @@ static func restore(payload: Dictionary) -> Dictionary:
 		return _bad("unsupported_save_version")
 	if payload.get("game_version") != Skirmish.GAME_VERSION:
 		return _bad("unsupported_game_version")
-	var loaded: Dictionary = preload("res://rules_content.gd").load_default()
+	var map_id: Variant = payload.get("map_id")
+	if not map_id is String or map_id not in preload("res://rules_content.gd").MAP_IDS:
+		return _bad("save_map_invalid")
+	var loaded: Dictionary = preload("res://rules_content.gd").load_map(map_id)
 	if not loaded.ok or payload.get("content_version") != loaded.data.content_id or payload.get("content_hash") != loaded.hash:
 		return _bad("content_version_mismatch")
 	if not _match_id(payload.get("match_id")) or not payload.get("completion_queued") is bool:
@@ -78,7 +81,7 @@ static func restore(payload: Dictionary) -> Dictionary:
 		return _bad("save_history_invalid")
 	if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
 		return _bad("save_history_invalid")
-	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty)
+	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1])
 	game.tick_number = int(state.tick)
 	game.result = state.result
 	game.terminal_tick = int(state.terminal_tick)
@@ -151,7 +154,7 @@ static func restore(payload: Dictionary) -> Dictionary:
 		"completion_queued": payload.completion_queued, "state_hash": payload.state_hash}
 
 static func _validate_state(s: Dictionary, content: Dictionary, hash: String) -> Dictionary:
-	if s.get("state_schema_version") != Skirmish.STATE_SCHEMA_VERSION or s.get("content_version") != content.content_id or s.get("content_hash") != hash:
+	if s.get("state_schema_version") != Skirmish.STATE_SCHEMA_VERSION or s.get("content_version") != content.content_id or s.get("content_hash") != hash or s.get("map_id") != content.map_id:
 		return _bad("state_version_mismatch")
 	for key in ["tick", "district_progress", "next_id", "next_command", "rng_state", "initial_seed"]:
 		if not _integer(s.get(key), 1 if key in ["next_id", "next_command", "rng_state", "initial_seed"] else 0):
@@ -164,7 +167,7 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_terminal_invalid")
 	if s.result != "" and int(s.terminal_tick) > int(s.tick):
 		return _bad("state_terminal_invalid")
-	if not s.get("factions") is Array or s.factions.size() != 2 or s.factions[0] not in [Skirmish.REGIOS, Skirmish.POBLANOS] or s.factions[1] not in [Skirmish.REGIOS, Skirmish.POBLANOS] or s.factions[1] == s.factions[0]:
+	if not s.get("factions") is Array or s.factions.size() != 2 or s.factions[0] not in Skirmish.FACTION_IDS or s.factions[1] not in Skirmish.FACTION_IDS:
 		return _bad("state_factions_invalid")
 	if not s.get("balances") is Array or s.balances.size() != 2:
 		return _bad("state_balances_invalid")
@@ -200,6 +203,8 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		var seen_techs: Dictionary = {}
 		for tech_id in s.researched[side]:
 			if not tech_id is String or tech_id not in content.techs or seen_techs.has(tech_id):
+				return _bad("state_researched_invalid")
+			if content.techs[tech_id].get("requires_faction", "") not in ["", s.factions[side]]:
 				return _bad("state_researched_invalid")
 			seen_techs[tech_id] = true
 	if s.get("ai_next_role") not in ["melee", "ranged"] or not s.get("ai_enabled") is bool or s.get("ai_difficulty") not in Skirmish.AI_LEVELS:
@@ -257,6 +262,8 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 						return _bad("state_entity_queue_invalid")
 				"tech":
 					if order.role not in content.techs:
+						return _bad("state_entity_queue_invalid")
+					if content.techs[order.role].get("requires_faction", "") not in ["", s.factions[int(e.side)]]:
 						return _bad("state_entity_queue_invalid")
 				"age":
 					if order.role not in content.ages.transitions:

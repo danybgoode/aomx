@@ -8,6 +8,10 @@ const HUMAN := 0
 const COMPUTER := 1
 const REGIOS := "regios"
 const POBLANOS := "poblanos"
+const OAXAQUENOS := "oaxaquenos"
+const VERACRUZANOS := "veracruzanos"
+const FACTION_IDS := [REGIOS, POBLANOS, OAXAQUENOS, VERACRUZANOS]
+const MAP_IDS := RulesContent.MAP_IDS
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const BUILDING_KINDS := ["command_post", "barracks", "depot", "housing", "registry"]
 const COMBAT_KINDS := ["melee", "ranged", "armored", "siege"]
@@ -27,15 +31,16 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-4"
-const CONTENT_VERSION := "la-roma-opponent-4"
+const GAME_VERSION := "godot-4.7.2-skirmish-5"
+const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
-const STATE_SCHEMA_VERSION := 4
+const STATE_SCHEMA_VERSION := 5
 const AI_LEVELS := ["learner", "standard", "challenger"]
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
 var content_hash := ""
+var map_id := "la_roma"
 var map_width := WIDTH
 var map_height := HEIGHT
 var blocked_tiles: Dictionary = {}
@@ -79,11 +84,14 @@ var ai_rejections := 0
 var ai_last_rejection := ""
 var pending_footprint := Vector2i(-1, -1)
 
-func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard") -> void:
-	assert(human_faction in [REGIOS, POBLANOS], "Choose a supported faction.")
+func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "") -> void:
+	assert(human_faction in FACTION_IDS, "Choose a supported faction.")
 	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
+	if opponent_faction.is_empty():
+		opponent_faction = POBLANOS if human_faction == REGIOS else REGIOS
+	assert(opponent_faction in FACTION_IDS, "Choose a supported opponent.")
 	if custom_content.is_empty():
-		var loaded := RulesContent.load_default()
+		var loaded := RulesContent.load_map(selected_map)
 		assert(loaded.ok, "Could not load validated skirmish content: " + str(loaded.get("reason", "unknown")))
 		content = loaded.data
 		content_hash = loaded.hash
@@ -92,6 +100,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 		assert(checked.ok, "Invalid skirmish content: " + str(checked.get("reason", "unknown")))
 		content = custom_content.duplicate(true)
 		content_hash = JSON.stringify(content).sha256_text()
+	map_id = str(content.map_id)
 	map_width = int(content.map.width)
 	map_height = int(content.map.height)
 	for point in content.map.blocked_tiles:
@@ -104,7 +113,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	initial_seed = rng_state
 	ai_difficulty = difficulty
 	ai_opening = posmod(initial_seed, 2)
-	factions = {HUMAN: human_faction, COMPUTER: POBLANOS if human_faction == REGIOS else REGIOS}
+	factions = {HUMAN: human_faction, COMPUTER: opponent_faction}
 	for side in [HUMAN, COMPUTER]:
 		resource_sources[side] = {}
 		other_stockpiles[side] = {"comida": 0, "materiales": 0, "terrenos": 0}
@@ -302,6 +311,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				rejected.reason = "registry_and_tech_required"
 			elif target in researched[side] or _queued(side, "tech", target):
 				rejected.reason = "already_researched_or_queued"
+			elif content.techs[target].get("requires_faction", "") not in ["", factions[side]]:
+				rejected.reason = "faction_tech_unavailable"
 			elif not _age_allows(side, content.techs[target].age):
 				rejected.reason = "age_required"
 			elif not _has_techs(side, content.techs[target].requires_techs):
@@ -420,7 +431,7 @@ func tick() -> void:
 		if entity.job in ["attack_move", "hold"] and _tick_auto_attack(entity, damages):
 			continue
 		if not entity.path.is_empty():
-			if tick_number % 3 == 0:
+			if tick_number % int(content.factions[factions[entity.side]].move_ticks) == 0:
 				if moved_ids.has(id):
 					continue
 				var occupied_by := _unit_at(entity.path[0])
@@ -574,7 +585,7 @@ func snapshot() -> Dictionary:
 	return {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
 		"result_reason": result_reason, "district_side": district_side,
 		"district_progress": district_progress, "district_state": district_state,
-		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id,
+		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id, "map_id": map_id,
 		"content_hash": content_hash, "rng_state": rng_state, "initial_seed": initial_seed,
 		"factions": [factions[HUMAN], factions[COMPUTER]],
 		"balances": balances, "resource_sources": source_states,
@@ -693,7 +704,7 @@ func _tick_gather(e: Dictionary) -> void:
 	if _distance(e.pos, source.pos) != 1:
 		e.job = "idle"
 	elif source.amount > 0 and e.carry < _carry_limit(e.side):
-		if tick_number % 3 == 0:
+		if tick_number % int(content.factions[factions[e.side]].gather_ticks) == 0:
 			source.amount -= 1
 			e.carry += 1
 			e.carry_resource = resource_id
@@ -713,6 +724,8 @@ func _tick_deliver(e: Dictionary) -> void:
 		e.target_id = int(destination.id)
 		return
 	_add_balance(e.side, e.carry_resource, e.carry)
+	if e.carry_resource != "varos" and "street_exchange_i" in researched[e.side]:
+		_add_balance(e.side, "varos", int(content.techs.street_exchange_i.effect.amount))
 	e.carry = 0
 	e.carry_resource = ""
 	e.target_id = -1
@@ -893,6 +906,9 @@ func _ai_goal(observed: Array[Dictionary] = []) -> Dictionary:
 			return {"kind": "wait", "id": registry_id, "costs": {}}
 	if age_index[side] >= 1 and "carry_capacity_i" not in researched[side] and not _queued(side, "tech", "carry_capacity_i"):
 		return {"kind": "research", "id": "carry_capacity_i", "costs": content.techs.carry_capacity_i.costs}
+	for faction_tech in ["cooperative_build_i", "street_exchange_i"]:
+		if content.techs[faction_tech].requires_faction == factions[side] and faction_tech not in researched[side] and not _queued(side, "tech", faction_tech):
+			return {"kind": "research", "id": faction_tech, "costs": content.techs[faction_tech].costs}
 	if age_index[side] == 1 and "carry_capacity_i" not in researched[side]:
 		return {"kind": "hold", "id": "carry_capacity_i", "costs": {}}
 	if age_index[side] == 1 and not _queued(side, "age", "godin"):
@@ -1210,7 +1226,7 @@ func _population_cap(side: int) -> int:
 	return mini(cap, int(content.population.max_cap))
 
 func _construction_rate(side: int) -> int:
-	return 1 + (int(content.techs.construction_rate_i.effect.amount) if "construction_rate_i" in researched[side] else 0)
+	return 1 + (int(content.techs.construction_rate_i.effect.amount) if "construction_rate_i" in researched[side] else 0) + (int(content.techs.cooperative_build_i.effect.amount) if "cooperative_build_i" in researched[side] else 0)
 
 func _unit_damage(side: int, kind: String) -> int:
 	return int(content.units[kind].damage) + (int(content.techs.combat_training_i.effect.amount) if "combat_training_i" in researched[side] else 0)
@@ -1233,7 +1249,7 @@ func _finish(outcome: String, reason: String) -> void:
 	result_reason = reason
 	terminal_tick = tick_number
 	district_state = "terminal"
-	feedback = ("La Roma held. Victory!" if outcome == "win" else "La Roma lost. Defeat.") if reason == "district" else "Victory!" if outcome == "win" else "Defeat." if outcome == "loss" else "Draw."
+	feedback = ("Center held. Victory!" if outcome == "win" else "Center lost. Defeat.") if reason == "district" else "Victory!" if outcome == "win" else "Defeat." if outcome == "loss" else "Draw."
 
 func _log_target(target: Variant) -> Variant:
 	if target is Vector2i:
