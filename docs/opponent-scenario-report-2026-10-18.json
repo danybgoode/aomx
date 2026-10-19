@@ -34,8 +34,8 @@
         "waiting_for_resource_refresh": 40
       },
       "state_hash": "c61f5ead83237bfa3a0a623e90723b6ee2124f9befd1a174c2b8e5b7818eb29c",
-      "tick_max_us": 2430,
-      "tick_p95_us": 373,
+      "tick_max_us": 2160,
+      "tick_p95_us": 385,
       "ticks": 2192,
       "trajectory": [
         {
@@ -110,8 +110,8 @@
         "waiting_for_resource_refresh": 40
       },
       "state_hash": "0c9c1b3c2bb86d7cbc68c85b21e6bbaeab073d350f7065a72f26c6d05352ded8",
-      "tick_max_us": 2207,
-      "tick_p95_us": 562,
+      "tick_max_us": 2209,
+      "tick_p95_us": 545,
       "ticks": 2192,
       "trajectory": [
         {
@@ -182,11 +182,11 @@
       "result": "loss",
       "scenario_seed": 1,
       "stall_ticks": {
-        "waiting_for_resource_refresh": 80
+        "waiting_for_resource_refresh": 240
       },
       "state_hash": "30558c3942b93582e7d18acdaf5a2d159a8f0bca0a0df96cfeabc19792e1c998",
-      "tick_max_us": 2890,
-      "tick_p95_us": 658,
+      "tick_max_us": 2756,
+      "tick_p95_us": 657,
       "ticks": 1673,
       "trajectory": [
         {
@@ -244,10 +244,12 @@
       "replay_ok": true,
       "result": "loss",
       "scenario_seed": 2,
-      "stall_ticks": {},
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 180
+      },
       "state_hash": "ffcf22ecb704f70a3dacf8a58ba16f21cb737a5f99f821979a2da352b8d907bf",
-      "tick_max_us": 3671,
-      "tick_p95_us": 508,
+      "tick_max_us": 3799,
+      "tick_p95_us": 543,
       "ticks": 1754,
       "trajectory": [
         {
@@ -305,11 +307,12 @@
       "result": "loss",
       "scenario_seed": 1,
       "stall_ticks": {
-        "building_site_unreachable": 20
+        "building_site_unreachable": 20,
+        "waiting_for_resource_refresh": 34
       },
-      "state_hash": "00713fcad1196e456ab704774cba69db5b9c4a65d47be1c61892ec38dff80fec",
-      "tick_max_us": 11512,
-      "tick_p95_us": 667,
+      "state_hash": "45ffea28355d512c27eff8555c4521002fc65e3d9e91612074472e8a1ed7ea00",
+      "tick_max_us": 12111,
+      "tick_p95_us": 666,
       "ticks": 1643,
       "trajectory": [
         {
@@ -367,11 +370,11 @@
       "result": "loss",
       "scenario_seed": 2,
       "stall_ticks": {
-        "waiting_for_resource_refresh": 53
+        "waiting_for_resource_refresh": 143
       },
       "state_hash": "b1269e19289b5e232479d754d25150e2271abc77145810f40853d90673423774",
-      "tick_max_us": 2904,
-      "tick_p95_us": 668,
+      "tick_max_us": 2982,
+      "tick_p95_us": 666,
       "ticks": 1652,
       "trajectory": [
         {
@@ -434,8 +437,8 @@
         "waiting_for_resource_refresh": 160
       },
       "state_hash": "b4b0aa60c099387d5bb8030a1a47b4dcca3cac493b65843e922790ce6968eea9",
-      "tick_max_us": 1902,
-      "tick_p95_us": 362,
+      "tick_max_us": 1873,
+      "tick_p95_us": 353,
       "ticks": 2192,
       "trajectory": [
         {
@@ -510,8 +513,8 @@
         "waiting_for_resource_refresh": 160
       },
       "state_hash": "55b180afbe56e035872c1efa9a866a4dd02be8f2850d32d73dc3f178e894e4f5",
-      "tick_max_us": 1762,
-      "tick_p95_us": 511,
+      "tick_max_us": 1602,
+      "tick_p95_us": 503,
       "ticks": 2192,
       "trajectory": [
         {
@@ -580,10 +583,12 @@
       "replay_ok": true,
       "result": "loss",
       "scenario_seed": 1,
-      "stall_ticks": {},
+      "stall_ticks": {
+        "waiting_for_resource_refresh": 320
+      },
       "state_hash": "538f8a7efc5c343ee7c96c690d565de8128a57f325b400c6066524b295f9d9fd",
-      "tick_max_us": 3043,
-      "tick_p95_us": 655,
+      "tick_max_us": 2962,
+      "tick_p95_us": 621,
       "ticks": 1772,
       "trajectory": [
         {
@@ -641,11 +646,11 @@
       "result": "loss",
       "scenario_seed": 2,
       "stall_ticks": {
-        "waiting_for_resource_refresh": 95
+        "waiting_for_resource_refresh": 275
       },
       "state_hash": "b363c15a48780f195b9bce1c8f35ca5b93c58c749e0804402e3a117e4af99b34",
-      "tick_max_us": 2731,
-      "tick_p95_us": 603,
+      "tick_max_us": 2733,
+      "tick_p95_us": 613,
       "ticks": 1814,
       "trajectory": [
         {
@@ -717,11 +722,12 @@
       "result": "loss",
       "scenario_seed": 1,
       "stall_ticks": {
-        "building_site_unreachable": 20
+        "building_site_unreachable": 20,
+        "waiting_for_resource_refresh": 200
       },
       "state_hash": "ca985ddd8a33daf8e5eb915ca116743f16a95cf54bfff528b4ca1457066a4c06",
-      "tick_max_us": 5462,
-      "tick_p95_us": 973,
+      "tick_max_us": 5471,
+      "tick_p95_us": 995,
       "ticks": 1613,
       "trajectory": [
         {
@@ -781,11 +787,11 @@
       "result": "loss",
       "scenario_seed": 2,
       "stall_ticks": {
-        "waiting_for_resource_refresh": 25
+        "waiting_for_resource_refresh": 275
       },
       "state_hash": "2d395e54e7c7d740d1bd7384fee33450ef7331224dc88578609582745b0cc352",
-      "tick_max_us": 2282,
-      "tick_p95_us": 609,
+      "tick_max_us": 1965,
+      "tick_p95_us": 634,
       "ticks": 1634,
       "trajectory": [
         {

@@ -54,6 +54,13 @@ func _initialize() -> void:
 	var worker := depleted._find(Skirmish.COMPUTER, "worker")
 	check(depleted.entities[worker].job == "gather" and depleted.entities[worker].source_resource != "varos",
 		"worker redirects to available resource when needed source is depleted")
+	var dead_end = Skirmish.new()
+	dead_end.resource_sources[Skirmish.COMPUTER].varos.amount = 0
+	dead_end.resource_sources[Skirmish.COMPUTER].varos.refreshes_left = 0
+	dead_end.tick_number = 19
+	dead_end.tick()
+	check(dead_end.ai_stall_reason == "needed_resource_exhausted" and dead_end.entities[dead_end._find(Skirmish.COMPUTER, "worker")].job == "gather",
+		"permanently exhausted needed source is classified while workers use another source")
 	var seed_two = Skirmish.new(Skirmish.REGIOS, {}, 2)
 	for game in [standard, seed_two]:
 		game._add_entity(Skirmish.COMPUTER, "worker", Vector2i(17, 17))

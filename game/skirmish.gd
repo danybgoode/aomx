@@ -1010,7 +1010,11 @@ func _ai_step() -> void:
 					issue(side, "advance", actor_id, goal.id)
 	goal = _ai_goal(observed)
 	var resource_id: String = _ai_shortage(goal.costs) if not goal.is_empty() else str(RESOURCE_IDS[int(tick_number / int(profile.step_ticks)) % RESOURCE_IDS.size()])
+	var needed_resource := resource_id
+	var needed_missing := maxi(0, int(goal.costs.get(needed_resource, 0)) - balance(side, needed_resource)) if not goal.is_empty() else 0
 	if resource_sources[side][resource_id].amount <= 0:
+		if needed_missing > 0:
+			ai_stall_reason = "waiting_for_resource_refresh" if resource_sources[side][resource_id].refreshes_left > 0 else "needed_resource_exhausted"
 		for alternate in RESOURCE_IDS:
 			if resource_sources[side][alternate].amount > 0:
 				resource_id = alternate
@@ -1020,7 +1024,8 @@ func _ai_step() -> void:
 			for candidate in RESOURCE_IDS:
 				if resource_sources[side][candidate].refreshes_left > 0:
 					can_refresh = true
-			ai_stall_reason = "waiting_for_resource_refresh" if can_refresh else "all_sources_exhausted"
+			if ai_stall_reason.is_empty():
+				ai_stall_reason = "waiting_for_resource_refresh" if can_refresh else "all_sources_exhausted"
 	var ids: Array = entities.keys()
 	ids.sort()
 	var assigned_to_needed := false
