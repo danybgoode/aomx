@@ -1,6 +1,6 @@
 ---
 status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+phase: Verifying      # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: expand-civilizations-and-world
 title: "Expand civilizations and world"
@@ -108,6 +108,8 @@ Build on `feat/expand-civilizations-and-world` after this planning commit. At ea
 ## Definition of Done
 
 Builder implementation and exact technical evidence are in the [world expansion QA record](../../../docs/world-expansion-qa-2026-10-19.md). Owner full-match, downloaded-build and eight-person comprehension evidence remain open until actually performed.
+
+**2026-10-19 integration checkpoint:** Gameplay [PR #53](https://github.com/danybgoode/aomx/pull/53) and generated-board [PR #54](https://github.com/danybgoode/aomx/pull/54) passed required checks and merged. The signed version-5 archive was exported from final `master` `d6982a32f217`. Compatible staging ingest `aomx-ingest:d6982a3` passed the excluded live API smoke with a revoked disposable invite. The Restricted preview upload and downloaded-build verification are tracked in the QA record. Keep this epic in progress until the owner walkthrough and authorized human read actually pass.
 
 - [ ] Eight story outcomes pass their acceptance checks, with a numbered smoke and actual result in each sprint file.
 - [ ] Four factions and three authored maps are selectable in a downloaded Restricted build; each new faction has a viable opening, weakness and visible counter. All maps retain fair resources, routes, legal AI and both victories.

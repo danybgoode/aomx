@@ -1,5 +1,22 @@
 # Private alpha: local macOS download QA
 
+## World expansion owner preview · 2026-10-19
+
+The new Restricted `mac-private-alpha` upload is `preview-d6982a32f217` (Butler build `#2163477`, `godot-4.7.2-skirmish-5` / `la-roma-world-5`). Its signed source ZIP SHA-256 is `4d3112f58a2766019d2e1af2658a0867f6e5a65e9b92ed90138456871b5a1c53`. [Gameplay PR #53](https://github.com/danybgoode/aomx/pull/53) and [board PR #54](https://github.com/danybgoode/aomx/pull/54) merged; the archive was exported from final `master` `d6982a32f217`. Butler is still processing this build; fetch only when the channel reports it ready. The page returned 404 anonymously before upload.
+
+The compatible Restricted ingest image `aomx-ingest:d6982a3` is healthy. A version-5 live API smoke passed stable retry, test-account exclusion, forged preview exclusion and unsupported-version rejection, recording four excluded and one rejected audit rows with zero accepted public events. Its disposable invite was revoked, verified as HTTP 401, and removed. An in-app outbox receipt still needs a new scoped internal invite and the downloaded build.
+
+Owner walkthrough on **this exact build**:
+
+1. Download and open it from the Restricted owner page. Open **...** and confirm `preview-d6982a32f217`; check all four faction descriptions, three map choices, AI level and opponent selector, and both victory routes.
+2. Start and record each faction × map choice, including one mirror opponent. Check resource labels and access, readable side/objective cues, usable counters and technologies, and AI commands. For each of the twelve faction × map choices, finish a full match by each victory route; record the exact faction, map, opponent, result and route.
+3. Save an unfinished match, quit and reopen this build, then resume it. Confirm map, factions, four balances, age, researched technology, objective state and match ID before and after. Rejecting an incompatible old content save must leave that save intact.
+4. Set order audio to zero, restore it, and move a unit in each direction at normal and enlarged gameplay zoom. Confirm mute, volume, heading and stride remain readable and selection stays on the visible actor.
+5. With a **new scoped internal QA invite**, sync one pending start/completion pair, retry and verify stable excluded receipts. The operator checks no eligible public event or numeric reading was created. The revoked build-smoke invite cannot be reused.
+6. After the separate participant notice and invitation gate, run the predeclared four familiar/four unfamiliar comprehension read. Record each answer, failures and voluntary second-match choice; do not infer this from builder tests.
+
+Until these checks pass, epic #13 remains in progress. The [world expansion QA record](world-expansion-qa-2026-10-19.md) holds builder, release and server evidence.
+
 ## Strategic opponent owner preview · 2026-10-19
 
 The Restricted `mac-private-alpha` channel now serves `preview-c40b0f5adc5c` (Butler build `#2161678`, `godot-4.7.2-skirmish-4` / `la-roma-opponent-4`). Its signed source ZIP SHA-256 is `ac7e7067b8a82dc2677a0d669cc153a90a4e171095d5d4205d33bbf2ccbb4da8`. Reviewed [PR #50](https://github.com/danybgoode/aomx/pull/50) merged as `c40b0f5adc5c`. The authenticated Butler fetch matched the source archive byte for byte, strict code-signature verification passed, and the fetched app started headlessly. Its rendered setup showed all three levels and their descriptions; a Challenger/Regios match started and the menu displayed the exact build ID. The page returned 404 anonymously before upload.
