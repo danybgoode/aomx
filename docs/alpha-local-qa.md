@@ -1,5 +1,13 @@
 # Private alpha: local macOS download QA
 
+## Strategic opponent owner preview · 2026-10-19
+
+The Restricted `mac-private-alpha` channel now serves `preview-c40b0f5adc5c` (Butler build `#2161678`, `godot-4.7.2-skirmish-4` / `la-roma-opponent-4`). Its signed source ZIP SHA-256 is `ac7e7067b8a82dc2677a0d669cc153a90a4e171095d5d4205d33bbf2ccbb4da8`. Reviewed [PR #50](https://github.com/danybgoode/aomx/pull/50) merged as `c40b0f5adc5c`. The authenticated Butler fetch matched the source archive byte for byte, strict code-signature verification passed, and the fetched app started headlessly. Its rendered setup showed all three levels and their descriptions; a Challenger/Regios match started and the menu displayed the exact build ID. The page returned 404 anonymously before upload.
+
+The compatible Restricted ingest image `aomx-ingest:c40b0f5` is healthy. A live API smoke passed stable retry, test-account exclusion, forged preview exclusion and unsupported-version rejection with zero accepted public events. Its temporary invite was revoked and verified to return 401; plaintext invite files were removed. This API smoke does not prove in-app outbox sync.
+
+Use this exact downloaded build for the [three strategic-opponent sprint walkthroughs](../Roadmap/01-core-play/build-strategic-opponent/README.md). Record level choice and Standard save/resume, full matches as both factions across Conquest and La Roma, and one excluded in-app sync receipt. A new scoped internal invite is needed for that sync. The four-player uncoached clarity read requires approved notice and invitations. Until those checks pass, epic #12 remains in progress.
+
 ## Expanded warfare owner preview · 2026-10-18
 
 The new Restricted `mac-private-alpha` upload is `preview-c5e705309257` (Butler build `#2157380`, `godot-4.7.2-skirmish-3` / `la-roma-warfare-3`). Its signed source ZIP SHA-256 is `a68d0b732fe94ffdadd9c817921d5aeebfb4da395af743fd31bd485aab91b4ce`. Reviewed PR [#48](https://github.com/danybgoode/aomx/pull/48) merged as `c5e705309257`. The upload is still processing; wait for Butler to show `✓ #2157380` before downloading. The Restricted ingest image `aomx-ingest:c5e7053` is healthy and supports this client pair. An owner-Mac API smoke passed stable retry, test-account exclusion, forged preview exclusion and unsupported-version rejection with zero accepted public events. Its one-use event-write invite was revoked, verified to return HTTP 401, and deleted from both operator files. This API smoke does not prove in-app outbox sync.
