@@ -10,13 +10,12 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (5)
+## Backlog (4)
 
 _seeds with no pitch yet._
 
-- [Prove multiplayer and replays](seeds/prove-multiplayer.md) — #14 · 03 · seed · Feature · risk: High · _docs: status raw_
-- [Add more ways to play](seeds/add-more-ways-to-play.md) — #15 · 03 · seed · Feature · risk: Low · _docs: status raw_
-- [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #16 · 03 · seed · Feature · risk: Low · _docs: status raw_
+- [Add more ways to play](seeds/add-more-ways-to-play.md) — #15 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
+- [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #16 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
 - [Prove cross-platform play](seeds/prove-cross-platform-play.md) — #17 · 09 Platform And Measurement · seed · Feature · risk: High · _docs: status raw_
 - [Prepare a release candidate](seeds/prepare-release-candidate.md) — #18 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
 
@@ -26,7 +25,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (12)
+## Ready (13)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -42,6 +41,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Expand warfare and world](../01-core-play/expand-warfare-and-world/README.md) — #11 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
 - [Build a strategic opponent](../01-core-play/build-strategic-opponent/README.md) — #12 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
 - [Expand civilizations and world](../02-civilizations-and-world/expand-civilizations-and-world/README.md) — #13 · 02 Civilizations And World · 0/8 stories · risk: High · appetite L · _docs: status in-progress_
+- [Prove multiplayer and replays](../03-multiplayer-and-retention/prove-multiplayer/README.md) — #14 · 03 Multiplayer And Retention · 0/7 stories · risk: High · appetite L · _docs: status scaffolded_
 
 ## Building — live only
 
