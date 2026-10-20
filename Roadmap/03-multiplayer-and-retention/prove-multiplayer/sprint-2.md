@@ -3,7 +3,7 @@ epic: prove-multiplayer
 sprint: 2
 title: "Restricted shared match and recovery"
 risk: high
-phase: Shaping
+phase: Restricted host QA
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,18 +12,18 @@ stories:
     i_want: "one playable shared battle"
     so_that: "we can finish a fair result together"
     risk: high
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Recover the same slot after disconnect"
     as_a: "disconnected player"
     i_want: "to return to the server's current battle"
     so_that: "a brief outage does not discard our match"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** ⬜ Planned; local recovery code exists, remote full-match gate awaits Sprint 1 measurements.
+**Status:** 🔧 In progress; a capped ARM64 host and durable TLS route are deployed. A baseline scripted match and a separate Linux netem scripted match reached authoritative terminal records; a native macOS/Linux pair exercised reconnect and 60-second no-result expiry. The separate-device native GUI full-match and declared symmetric network profile remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 

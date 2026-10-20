@@ -3,7 +3,7 @@ epic: prove-multiplayer
 sprint: 1
 title: "Model and session contract"
 risk: high
-phase: Local prototype QA
+phase: Restricted host QA
 stories_total: 2
 stories:
   - id: S1.1
@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 1: Model and session contract
 
-**Status:** 🔧 In progress; local session contract passes, representative cross-device/network matrix remains open.
+**Status:** 🔧 In progress; the versioned, invite-bound contract passed local and Restricted-host tests. Native macOS/Linux join and recovery and an impaired scripted terminal passed. Representative large-army, Web and 100 ms/symmetric 150 ms matrix measurements remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 

@@ -1,6 +1,6 @@
 # Private-match prototype evidence — 2026-10-20
 
-The merged prototype uses Godot 4.7.2 with a Node HTTP host and one Godot authority worker. This record is local engineering evidence; the Restricted host and downloadable build have not been accepted.
+The merged prototype uses Godot 4.7.2 with a Node HTTP host and one Godot authority worker. This is the local pre-deployment snapshot. The later [Restricted-host QA record](multiplayer-remote-qa-2026-10-20.md) supersedes its host and remote-smoke gaps; the downloadable build and owner walkthrough still need separate acceptance.
 
 | Check | Observed result | Limit |
 | --- | --- | --- |
@@ -16,6 +16,6 @@ The merged prototype uses Godot 4.7.2 with a Node HTTP host and one Godot author
 
 Reproduce the local checks with `npm test`, `GODOT_BIN=/path/to/Godot npm run multiplayer:integration`, `GODOT_BIN=/path/to/Godot npm run multiplayer:replay-integration`, and `GODOT_BIN=/path/to/Godot npm run multiplayer:benchmark`. The Docker read-only worker gate is in `.github/workflows/alpha-ci.yml`.
 
-## Acceptance still owed
+## Acceptance owed at the local prototype boundary
 
 The representative large-army, cross-device baseline/100 ms/150 ms RTT and 1% loss matrix has no measurements. Native Linux and Web clients have not joined. The Oracle VM, TLS route, distinct live codes, signed Restricted download, full match, reconnect/expiry and replay have not been exercised together. A disposable VM backup restore passed on 2026-10-20; the owner supplied the support contact and 30-day live retention policy, now covered by PR #57. No observed retention cohort or later-day completion baseline exists.

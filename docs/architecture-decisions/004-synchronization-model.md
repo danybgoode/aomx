@@ -15,6 +15,12 @@ The local macOS arm64 Godot 4.7.2 worker completed 1,000 ticks on La Roma, seed 
 
 These runs support the authority design and local feasibility. They do not measure native Linux versus macOS devices, a large army over the network, Web joining, 100/150 ms RTT, 1% loss, or a remote TLS match. The existing [163-entity solo matrix](../simulation-benchmark-2026-10-16.md) covers local rule performance only.
 
+## Restricted host evidence added 2026-10-20
+
+The same worker image ran natively on the Oracle ARM64 VM and matched the 1,000-tick macOS hash above. Two separately invited remote scripted sessions reached authoritative district results over TLS. The baseline session ended at tick 1,940; a Linux network-namespace run with 150 ms egress delay and 1% loss ended at tick 1,502. Each yielded one server terminal record and participant-specific replays that verified every frame with fog redacted. A native macOS/Linux ARM64 pair also joined remotely, rotated a reconnect token, acknowledged a duplicate order once, and observed the same no-result on 60-second expiry. The [remote QA record](../multiplayer-remote-qa-2026-10-20.md) has exact hashes, packet counts and limitations.
+
+These observations strengthen the choice of one server authority for this bounded Restricted preview. They do not establish large-army performance, a Web client, a 100 ms profile, symmetric 150 ms RTT, or a full two-device native GUI battle. The impaired session placed two logical clients in one Linux container; it was not a separate-device test. The model stays provisional for broader invitation.
+
 ## Next decision gate
 
-Before enabling a remote invitation or declaring Sprint 1 complete, benchmark a representative four-resource, fogged, large-army match on native macOS and Linux and check Web joining. Include reconnect, command bursts, baseline, 100 ms RTT and 150 ms RTT/1% loss. Record tick CPU, worker memory, network volume, command acknowledgement delay, divergence count and first divergent tick. Revisit this ADR with those measurements and a real player/device target. Keep the server admission flag off until the gate passes.
+Before an external invitation or declaring Sprint 1 complete, benchmark a representative four-resource, fogged, large-army match on native macOS and Linux and check Web joining. Include reconnect, command bursts, baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss. Record tick CPU, worker memory, network volume, command acknowledgement delay, divergence count and first divergent tick. Revisit this ADR with those measurements and a real player/device target. Keep the server admission flag off outside bounded internal tests until the gate passes.
