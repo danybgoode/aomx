@@ -70,6 +70,9 @@ The private-match service runs the pinned Godot 4.7.2 rules in a separate
 container. It accepts **one two-player match per process**; restart the match
 service between completed or expired walkthroughs. It does not make a public
 game release or create an eligible cohort. Its enablement flag defaults off.
+The image selects the official checksum-verified Godot binary for the host's
+`amd64` or `arm64` architecture; the Oracle VM uses `arm64`. Verify the native
+authority hash against the macOS and amd64 reference before opening admission.
 Each player needs a different existing alpha invite code, bound to their
 installation ID. Do not put match database credentials or flag read keys in a
 client build.
@@ -93,7 +96,7 @@ docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/004_private_matches.sql
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/005_retention.sql
-docker build --platform linux/amd64 -f deploy/alpha/match.Dockerfile -t "aomx-match:$AOMX_IMAGE_TAG" .
+docker build --platform linux/arm64 -f deploy/alpha/match.Dockerfile -t "aomx-match:$AOMX_IMAGE_TAG" .
 docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build match
 docker compose -p aomx -f deploy/alpha/compose.yml ps match
 ```
