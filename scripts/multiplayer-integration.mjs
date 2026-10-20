@@ -57,7 +57,7 @@ try {
   assert(rejoin.ok && rejoin.side === 0 && rejoin.token !== joins[0].token);
   assert.equal((await state(joins[0].token)).ok, false);
   assert((await state(rejoin.token)).ok);
-  for (const side of [0, 1]) {
+  await Promise.all([0, 1].map(async side => {
     const native = spawn(godotBin, ['--headless', '--path', resolve('game'),
       '--script', 'res://tests/multiplayer_client_online_test.gd'], { env: { ...process.env,
       AOMX_TEST_MATCH_ENDPOINT: origin, AOMX_TEST_MATCH_CODE: codes[side],
@@ -69,7 +69,7 @@ try {
     const [nativeCode] = await once(native, 'exit');
     assert.equal(nativeCode, 0, nativeOutput);
     assert.match(nativeOutput, /AOMX_CLIENT_PASS/);
-  }
+  }));
   process.stdout.write(JSON.stringify({ ok: true, match_id: joins[0].match_id,
     tick: left.tick, accepted_sequence: accepted.sequence, fog_redacted: true,
     native_client: true }) + '\n');

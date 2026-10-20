@@ -164,7 +164,6 @@ export class MatchSession {
   async #complete(state) {
     if (this.status !== 'playing') return;
     clearInterval(this.interval);
-    this.status = 'complete';
     const result0 = state.state.result;
     const result1 = result0 === 'win' ? 'loss' : result0 === 'loss' ? 'win' : 'draw';
     this.terminal = { tick: state.tick, reason: state.state.result_reason,
@@ -179,6 +178,7 @@ export class MatchSession {
       await this.store.saveRecord({ match_id: this.matchId,
         players: this.slots.map((slot, side) => ({ player_id: slot.playerId,
           code_hash: slot.codeHash, side })), terminal: this.terminal, replay });
+      this.status = 'complete';
     } catch {
       this.status = 'no_result';
       this.terminal = { reason: 'record_unavailable', tick: state.tick, results: [null, null] };
