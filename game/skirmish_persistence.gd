@@ -56,7 +56,7 @@ static func read(path: String = SAVE_PATH) -> Dictionary:
 		return _bad("save_corrupt")
 	return restore(parsed)
 
-static func restore(payload: Dictionary) -> Dictionary:
+static func restore(payload: Dictionary, validate_history: bool = true, validate_hash: bool = true) -> Dictionary:
 	if payload.get("format") != "battle-for-la-roma-save":
 		return _bad("save_format_unknown")
 	if not _integer(payload.get("save_schema_version"), 0) or int(payload.save_schema_version) != SAVE_SCHEMA_VERSION:
@@ -77,10 +77,11 @@ static func restore(payload: Dictionary) -> Dictionary:
 	var checked := _validate_state(state, loaded.data, loaded.hash)
 	if not checked.ok:
 		return checked
-	if not payload.get("command_log") is Array or not payload.get("hash_checkpoints") is Array:
-		return _bad("save_history_invalid")
-	if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
-		return _bad("save_history_invalid")
+	if validate_history:
+		if not payload.get("command_log") is Array or not payload.get("hash_checkpoints") is Array:
+			return _bad("save_history_invalid")
+		if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
+			return _bad("save_history_invalid")
 	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1])
 	game.tick_number = int(state.tick)
 	game.result = state.result
@@ -143,15 +144,27 @@ static func restore(payload: Dictionary) -> Dictionary:
 	game._refresh_visibility()
 	game.rebuild_navigation()
 	game.command_log.clear()
-	for command in payload.command_log:
-		game.command_log.append(command.duplicate(true))
+	if validate_history:
+		for command in payload.command_log:
+			game.command_log.append(command.duplicate(true))
 	game.hash_checkpoints.clear()
-	for checkpoint in payload.hash_checkpoints:
-		game.hash_checkpoints.append({"tick": int(checkpoint.tick), "hash": checkpoint.hash})
-	if game.state_hash() != payload.state_hash:
+	if validate_history:
+		for checkpoint in payload.hash_checkpoints:
+			game.hash_checkpoints.append({"tick": int(checkpoint.tick), "hash": checkpoint.hash})
+	if validate_hash and game.state_hash() != payload.state_hash:
 		return _bad("save_hash_mismatch")
 	return {"ok": true, "game": game, "match_id": payload.match_id,
 		"completion_queued": payload.completion_queued, "state_hash": payload.state_hash}
+
+static func restore_network(state: Dictionary, match_id: String) -> Dictionary:
+	if not _match_id(match_id) or not state.get("content_hash") is String:
+		return _bad("network_state_invalid")
+	var payload := {"format": "battle-for-la-roma-save", "save_schema_version": SAVE_SCHEMA_VERSION,
+		"game_version": Skirmish.GAME_VERSION, "content_version": state.get("content_version"),
+		"content_hash": state.content_hash, "map_id": state.get("map_id"),
+		"match_id": match_id, "completion_queued": false, "state": state,
+		"state_hash": JSON.stringify(state).sha256_text()}
+	return restore(payload, false, false)
 
 static func _validate_state(s: Dictionary, content: Dictionary, hash: String) -> Dictionary:
 	if s.get("state_schema_version") != Skirmish.STATE_SCHEMA_VERSION or s.get("content_version") != content.content_id or s.get("content_hash") != hash or s.get("map_id") != content.map_id:
@@ -337,9 +350,9 @@ static func _point(p: Variant, w: int, h: int) -> bool:
 	return p is Array and p.size() == 2 and _integer(p[0], 0) and _integer(p[1], 0) and int(p[0]) < w and int(p[1]) < h
 
 static func _match_id(value: Variant) -> bool:
-	if not value is String or value.length() != 37 or not value.begins_with("solo_"):
+	if not value is String or not ((value.length() == 37 and value.begins_with("solo_")) or (value.length() == 39 and value.begins_with("online_"))):
 		return false
-	for c in value.substr(5):
+	for c in value.substr(5 if value.begins_with("solo_") else 7):
 		if c not in "0123456789abcdef":
 			return false
 	return true

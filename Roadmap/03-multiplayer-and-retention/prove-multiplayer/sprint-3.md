@@ -30,7 +30,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** ⬜ Planned; depends on a verified shared match.
+**Status:** ⬜ Planned; local replay and result exclusion checks exist, remote acceptance awaits a verified shared match.
 
 ## Stories
 

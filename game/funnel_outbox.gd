@@ -39,9 +39,11 @@ func queue_open_for_launch() -> Dictionary:
 		return {"ok": true, "event": last_open, "existing": true}
 	return queue("game_opened", "", "", not last_open.is_empty())
 
-func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false) -> Dictionary:
+func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo") -> Dictionary:
 	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed"]:
 		return {"ok": false, "reason": "outbox_unavailable"}
+	if mode not in ["solo", "multiplayer"]:
+		return {"ok": false, "reason": "invalid_mode"}
 	for item in state.events:
 		if item.event.type == type and (type == "game_opened" and not new_session or type != "game_opened" and item.event.get("match_id", "") == match_id):
 			return {"ok": true, "event": item.event, "existing": true}
@@ -58,7 +60,7 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
 		"player_id": state.player_id, "claimed_at": utc, "local_sequence": state.next_sequence,
 		"game_version": game_version, "content_version": content_version,
-		"mode": "solo", "faction": faction, "test_account": test_account, "bot": false}
+		"mode": mode, "faction": faction, "test_account": test_account, "bot": false}
 	if type != "game_opened":
 		event.match_id = match_id
 	if type == "match_completed":

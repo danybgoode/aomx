@@ -107,6 +107,8 @@ export class Ingest {
         status = 'quarantined'; reason = 'clock_reversal';
       } else if (exclusion(event)) {
         status = 'excluded'; reason = exclusion(event);
+      } else if (event.mode === 'multiplayer') {
+        status = 'excluded'; reason = 'multiplayer_unverified';
       } else if (this.forceExcludeReason) {
         status = 'excluded'; reason = this.forceExcludeReason;
       } else {

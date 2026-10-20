@@ -49,6 +49,34 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  match:
+    image: aomx-match:${AOMX_IMAGE_TAG:?pin an image built from a reviewed commit}
+    restart: unless-stopped
+    env_file:
+      - /opt/aomx/match.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 768m
+    cpus: 0.75
+    networks:
+      aomx_proxy:
+        aliases:
+          - aomx-match
+      aomx_db:
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8790/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 networks:
   aomx_proxy:
     external: true

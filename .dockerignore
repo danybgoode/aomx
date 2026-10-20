@@ -1,0 +1,15 @@
+.git
+.github
+.golden-frijoles
+.env
+.env.*
+**/.env
+**/.env.*
+**/.godot
+node_modules
+dist
+Roadmap
+docs
+tests
+*.zip
+*.pck

@@ -3,7 +3,7 @@ epic: prove-multiplayer
 sprint: 1
 title: "Model and session contract"
 risk: high
-phase: Locking architecture
+phase: Local prototype QA
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,18 +12,18 @@ stories:
     i_want: "a representative cross-environment model comparison"
     so_that: "the shared match has a defensible authority design"
     risk: high
-    status: planned
+    status: in-progress
   - id: S1.2
     title: "Join a versioned, invited session"
     as_a: "invited player"
     i_want: "my own authorized slot and validated commands"
     so_that: "a stranger or incompatible client cannot control my match"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Prove multiplayer and replays — Sprint 1: Model and session contract
 
-**Status:** ⬜ Planned; architecture and session contract are unbuilt.
+**Status:** 🔧 In progress; local session contract passes, representative cross-device/network matrix remains open.
 
 ## Stories
 

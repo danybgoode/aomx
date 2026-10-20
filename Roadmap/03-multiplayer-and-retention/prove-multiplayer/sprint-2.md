@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** ⬜ Planned; starts only after Sprint 1's model decision.
+**Status:** ⬜ Planned; local recovery code exists, remote full-match gate awaits Sprint 1 measurements.
 
 ## Stories
 

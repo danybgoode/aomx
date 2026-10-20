@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Locking architecture
+status: in-progress
+phase: Local prototype QA
 slug: prove-multiplayer
 title: "Prove multiplayer and replays"
 area: 03-multiplayer-and-retention
@@ -35,6 +35,8 @@ build_order: 14
 ---
 
 # Epic: Prove multiplayer and replays
+
+**Current state (2026-10-20):** The local invite-only authority and participant replay prototype is implemented and independently reviewed. [Measured local evidence](../../../docs/multiplayer-prototype-evidence-2026-10-20.md) and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record its limits. The remote network matrix, host, signed download and two-device acceptance remain open. The admission flag is off in every environment.
 
 > **Area:** 03 Multiplayer and retention · **Risk:** high · **Class:** Feature · **Scope:** [approved pitch](../../00-ideas/seeds/prove-multiplayer.md) · **Destination:** shared-and-authored-play
 
