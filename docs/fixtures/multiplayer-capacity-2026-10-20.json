@@ -1,5 +1,8 @@
 {
-  "source_commit": "834295f3e0f9ac22070b9e855ef2ae3c5c77d1a9",
+  "game_source_commit": "834295f3e0f9ac22070b9e855ef2ae3c5c77d1a9",
+  "fixture_commit": "c7c7cfc",
+  "fixture_sha256": "f500f7279d1cd218005a2ea65763e00df1a250df56837ceb714d1b47478058f4",
+  "fixture_delivery_to_vm": "The newer fixture was copied to /tmp/aomx-capacity-benchmark-20261020.gd and bind-mounted read-only over /app/game/tests/skirmish_scale_benchmark.gd in the older image. Game code and Godot binary stayed at 834295f.",
   "image": "aomx-match:834295f",
   "godot": "4.7.2.stable.official.ed1daf0bf",
   "fixture": "game/tests/skirmish_scale_benchmark.gd",

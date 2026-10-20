@@ -37,13 +37,28 @@ At the live 0.75 CPU cap, the 82-entity crowded case also failed its 6/4 ms rout
 
 The current La Roma content has a 28×28 map and a 24-population cap per side. A second profile used 46 fighters plus the two starting workers and two command posts (50 entities), 500 accepted orders and 300 ticks. macOS and native ARM64 matched hash `ab970c0fcdcd8f5b5f735ba3ca04d01c7d52300118d22c08e7613068f8ac6578`. With tick starts paced at the actual 100 ms interval, the **live 0.75 CPU cap passed** the same 12/8 ms route/tick p95 budgets (3.738/4.800 ms). A back-to-back 300-tick burst exceeded the tick budget in all three capped VM repeats (p95 23.779–27.664 ms), consistent with CPU-quota throttling; a disposable 1.5 CPU run passed (4.353 ms). See [machine-readable runs](fixtures/multiplayer-capacity-2026-10-20.json). This profile measures the unit population cap, not an upper bound on buildings, network bandwidth or two-device latency.
 
+Reproduction uses game/image source `834295f` and the newer opt-in benchmark fixture from `c7c7cfc` (SHA-256 in the JSON). The fixture was copied from this checkout to the VM at `/tmp/aomx-capacity-benchmark-20261020.gd` and **bind-mounted read-only** over the older image's fixture; the game and Godot binary in the image were not replaced. On macOS, run `AOMX_BENCH_PROFILE=live_capacity_paced "$GODOT_BIN" --headless --path game --script res://tests/skirmish_scale_benchmark.gd`. On the VM, run:
+
+```sh
+docker run --rm --network none --read-only --tmpfs /tmp:size=64m \
+  --memory 768m --cpus 0.75 --pids-limit 64 --cap-drop ALL \
+  --mount type=bind,src=/tmp/aomx-capacity-benchmark-20261020.gd,dst=/app/game/tests/skirmish_scale_benchmark.gd,readonly \
+  --entrypoint /usr/local/bin/godot -e AOMX_BENCH_PROFILE=live_capacity_paced \
+  aomx-match:834295f --headless --path /app/game \
+  --script res://tests/skirmish_scale_benchmark.gd
+```
+
 ## Restricted client artifact
 
 The signed macOS export from `834295f3e0f9` is `preview-834295f3e0f9`, archive `dist/alpha/battle-for-la-roma-preview-834295f3e0f9-macos.zip`, SHA-256 `d95ba318d60d90ef256149ebd37448b735f8e98ba0f6edc2e1fc961895fb034a`. Full export QA and strict local code-signature verification passed. It was uploaded to the owner-only itch channel `danybgoode/battle-for-la-roma:mac-private-alpha` as Butler build `#2171274`. The anonymous page returned 404 before upload. At this record's initial writing, Butler was still processing the build; a ready channel, independent fetch, downloaded signature/startup check and owner walkthrough must be recorded separately before accepting it.
 
+## Web feasibility finding
+
+A browser preflight from `http://localhost:8000` to the match join route returned HTTP 404 without `Access-Control-Allow-Origin` on the current Caddy/host deployment. A locally served Web export therefore cannot join the Restricted host from that origin. Web export creation alone is not browser-play evidence. A deliberate hosted origin and reviewed CORS policy are needed if Web play is included in this Restricted slice.
+
 ## Open acceptance checks
 
-- Complete the representative population-cap network matrix across macOS, native Linux and Web, including baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss, with pinned command bursts, first divergence, CPU, memory and bandwidth. Account for the synthetic back-to-back stress failure and additional buildings.
+- Complete the representative population-cap network matrix across macOS and native Linux, including baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss, with pinned command bursts, first divergence, CPU, memory and bandwidth. Resolve the Web-origin/CORS feasibility finding if Web play is included. Account for the synthetic back-to-back stress failure and additional buildings.
 - Full native macOS/Linux two-player terminal match, both baseline and impaired, from separate client processes/devices. Repeat an in-window reconnect and a post-terminal retry.
 - Download the processed owner build, verify signature and startup independently, then run the numbered visual walkthrough for playback/pause, bad replay handling, no-result wording, excluded in-app outbox receipt and revocation.
 - Product owner repeats the walkthrough blind before any second-person invitation. No later-day completion baseline exists.
