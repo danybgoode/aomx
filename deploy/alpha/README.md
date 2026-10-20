@@ -127,6 +127,12 @@ database invite bindings after 30 days. Do not send an external
 invitation until the daily retention timer and request deletion path below are
 installed, observed and checked against the participant notice.
 
+For a disposable Linux client that bind-mounts a mode-600 operator code file,
+run the client under that file owner's unprivileged UID/GID. A different
+container UID cannot read the code and will fail before joining; keep the file
+private instead of making it world-readable. Restart the match process after
+an intentional no-result session before starting a new single-room smoke.
+
 ## Operator schedule
 
 Run `npm run alpha:backup` daily on the VM using the loopback administrator
