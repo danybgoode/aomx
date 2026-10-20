@@ -12,13 +12,23 @@ const CASES := [
 		"route_p95_budget_ms": 12.0, "tick_p95_budget_ms": 8.0}
 ]
 
+# Current La Roma rules allow 24 population per side. Each side starts with one worker,
+# so 46 fighters plus the four starting entities exercise that playable ceiling.
+const LIVE_CAPACITY_CASES := [
+	{"name": "la_roma_population_cap", "edge": 28, "fighters": 46, "orders": 500, "ticks": 300,
+		"route_p95_budget_ms": 12.0, "tick_p95_budget_ms": 8.0}
+]
+
 func _initialize() -> void:
 	var loaded: Dictionary = RulesContent.load_default()
 	if not loaded.ok:
 		printerr("Benchmark content unavailable: ", loaded.reason)
 		quit(1)
 		return
-	for settings in CASES:
+	var profile := OS.get_environment("AOMX_BENCH_PROFILE")
+	var cases: Array = LIVE_CAPACITY_CASES if profile.begins_with("live_capacity") else CASES
+	var pace_ms := 100 if profile == "live_capacity_paced" else 0
+	for settings in cases:
 		var definitions: Dictionary = loaded.data.duplicate(true)
 		definitions.map.width = settings.edge
 		definitions.map.height = settings.edge
@@ -57,11 +67,14 @@ func _initialize() -> void:
 			var began: int = Time.get_ticks_usec()
 			game.tick()
 			tick_us.append(Time.get_ticks_usec() - began)
+			if pace_ms > 0:
+				OS.delay_msec(maxi(0, pace_ms - int((Time.get_ticks_usec() - began) / 1000)))
 		var route_p95 := _percentile(route_us, 0.95)
 		var tick_p95 := _percentile(tick_us, 0.95)
 		var report := {"scenario": settings.name, "map": "%dx%d" % [settings.edge, settings.edge],
 			"units": game.entities.size(), "orders": settings.orders, "accepted_orders": accepted,
-			"ticks": settings.ticks, "route_mean_ms": _mean(route_us), "route_p95_ms": route_p95,
+			"ticks": settings.ticks, "pace_ms": pace_ms,
+			"route_mean_ms": _mean(route_us), "route_p95_ms": route_p95,
 			"tick_mean_ms": _mean(tick_us), "tick_p95_ms": tick_p95,
 			"route_p95_budget_ms": settings.route_p95_budget_ms,
 			"tick_p95_budget_ms": settings.tick_p95_budget_ms,

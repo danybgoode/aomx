@@ -33,7 +33,9 @@ The existing `game/tests/skirmish_scale_benchmark.gd` fixture was rerun on the c
 | Oracle ARM64 VM, same image, 768 MiB / **0.75 CPU** live service cap in a disposable container | 37.036 ms | 30.656 ms | Both fail |
 | Same VM/image, 768 MiB / **1.5 CPU** diagnostic cap in a disposable container | 12.275 ms | 17.332 ms | Both fail |
 
-At the live 0.75 CPU cap, the 82-entity crowded case also failed its 6/4 ms route/tick budgets (13.656/10.118 ms); the nine-entity baseline passed. The diagnostic 1.5 CPU run did not change the live service. This fixture uses a synthetic map larger than the shipped La Roma map and measures local rules, not network command or render latency. It reveals a **failed declared scale gate**, so no claim of representative large-army reliability or external invitation follows from the successful small-match smokes. A measured optimization or explicitly narrowed Restricted army limit needs a product decision and repeatable evidence.
+At the live 0.75 CPU cap, the 82-entity crowded case also failed its 6/4 ms route/tick budgets (13.656/10.118 ms); the nine-entity baseline passed. The diagnostic 1.5 CPU run did not change the live service. The 48×48 fixture is larger than playable La Roma and runs all ticks back to back, so this is a **synthetic stress failure**. It does not by itself describe the playable population ceiling or a real 10 Hz match.
+
+The current La Roma content has a 28×28 map and a 24-population cap per side. A second profile used 46 fighters plus the two starting workers and two command posts (50 entities), 500 accepted orders and 300 ticks. macOS and native ARM64 matched hash `ab970c0fcdcd8f5b5f735ba3ca04d01c7d52300118d22c08e7613068f8ac6578`. With tick starts paced at the actual 100 ms interval, the **live 0.75 CPU cap passed** the same 12/8 ms route/tick p95 budgets (3.738/4.800 ms). A back-to-back 300-tick burst exceeded the tick budget in all three capped VM repeats (p95 23.779–27.664 ms), consistent with CPU-quota throttling; a disposable 1.5 CPU run passed (4.353 ms). See [machine-readable runs](fixtures/multiplayer-capacity-2026-10-20.json). This profile measures the unit population cap, not an upper bound on buildings, network bandwidth or two-device latency.
 
 ## Restricted client artifact
 
@@ -41,7 +43,7 @@ The signed macOS export from `834295f3e0f9` is `preview-834295f3e0f9`, archive `
 
 ## Open acceptance checks
 
-- Resolve the failed native ARM64 large-army p95 gate, then complete the network matrix across macOS, native Linux and Web, including baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss, with pinned command bursts, first divergence, CPU, memory and bandwidth.
+- Complete the representative population-cap network matrix across macOS, native Linux and Web, including baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss, with pinned command bursts, first divergence, CPU, memory and bandwidth. Account for the synthetic back-to-back stress failure and additional buildings.
 - Full native macOS/Linux two-player terminal match, both baseline and impaired, from separate client processes/devices. Repeat an in-window reconnect and a post-terminal retry.
 - Download the processed owner build, verify signature and startup independently, then run the numbered visual walkthrough for playback/pause, bad replay handling, no-result wording, excluded in-app outbox receipt and revocation.
 - Product owner repeats the walkthrough blind before any second-person invitation. No later-day completion baseline exists.
