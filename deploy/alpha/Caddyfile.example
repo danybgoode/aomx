@@ -1,8 +1,14 @@
 # Add this site to panfleto's Caddyfile only after its Caddy service is also
 # attached to the separate aomx_proxy network. Replace the hostname and
-# operator CIDR first. Broader access requires a separate release review.
+# operator CIDR first. The invite-gated match route is accessible from other
+# addresses; all other routes keep the operator allowlist.
 alpha-api.example.com {
   encode zstd gzip
+  handle /v1/match/* {
+    reverse_proxy aomx-match:8790 {
+      header_up X-Aomx-Client-IP {remote_host}
+    }
+  }
   @operator remote_ip REPLACE_WITH_OPERATOR_CIDR
   handle @operator {
     reverse_proxy aomx-ingest:8787

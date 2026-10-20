@@ -108,6 +108,28 @@ test('preview ingest excludes client claims even when its flag is on', () => {
   assert.equal(makeReport(ingest.store.rows, at(20)).accepted_events, 0);
 });
 
+test('unverified multiplayer claims cannot enter production readings', () => {
+  const ingest = new Ingest(new AuditStore(path.join(temp(), 'audit.jsonl')), {
+    now: () => new Date(at(20)), resolveFlag: () => ({ value: true, environment: 'production' }),
+    supportedVersions: [{ game: 'test-1', content: 'test-1' }] });
+  const rows = [
+    { ...event('game_opened', 'event_online_open_01', 1, 1), mode: 'multiplayer' },
+    { ...event('match_started', 'event_online_start_01', 2, 1, 'online_match_01'), mode: 'multiplayer' },
+    { ...event('match_completed', 'event_online_finish_01', 3, 1, 'online_match_01', 'win'), mode: 'multiplayer' }
+  ];
+  for (const row of rows) {
+    const receipt = ingest.accept(row);
+    assert.equal(receipt.status, 'excluded');
+    assert.equal(receipt.reason, 'multiplayer_unverified');
+    assert.equal(receipt.trust, 'client_reported');
+  }
+  assert.equal(ingest.accept({ ...rows[2], event_id: 'event_online_forged_01',
+    local_sequence: 4, result: 'loss' }).reason, 'duplicate_match_event');
+  assert.equal(ingest.accept({ ...rows[2], event_id: 'event_online_old_01',
+    game_version: 'wrong' }).reason, 'unsupported_game_version');
+  assert.equal(makeReport(ingest.store.rows, at(20)).accepted_events, 0);
+});
+
 test('clock reversal is quarantined even when sequence increases', () => {
   const ingest = new Ingest(new AuditStore(path.join(temp(), 'audit.jsonl')), { now: () => new Date(at(20)), resolveFlag: () => ({ value: true }) });
   assert.equal(ingest.accept(event('game_opened', 'event_open_01', 1, 3)).status, 'accepted');

@@ -48,15 +48,25 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
     if not exists (select 1 from pg_roles where rolname='anon') then create role anon; end if;
     if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if;
     if not exists (select 1 from pg_roles where rolname='aomx_ingest') then create role aomx_ingest; end if;
+    if not exists (select 1 from pg_roles where rolname='aomx_match') then create role aomx_match; end if;
   end $$`);
   await admin.query(fs.readFileSync(new URL('../db/001_alpha_audit.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/002_ingest_grants.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/003_publication_reading_hash.sql', import.meta.url), 'utf8'));
+  await admin.query(fs.readFileSync(new URL('../db/004_private_matches.sql', import.meta.url), 'utf8'));
   const grants = await admin.query(`select
     has_table_privilege('aomx_ingest','alpha_private.audit_events','INSERT') as audit_insert,
     has_table_privilege('aomx_ingest','alpha_private.report_history','SELECT') as report_select,
     has_table_privilege('aomx_ingest','alpha_private.publication_days','INSERT') as publish_insert`);
   assert.deepEqual(grants.rows[0], { audit_insert: true, report_select: false, publish_insert: false });
+  const matchGrants = await admin.query(`select
+    has_table_privilege('aomx_match','alpha_private.invite_tokens','SELECT') as invite_select,
+    has_column_privilege('aomx_match','alpha_private.invite_tokens','player_id','UPDATE') as invite_bind,
+    has_table_privilege('aomx_match','alpha_private.match_records','INSERT') as record_insert,
+    has_table_privilege('aomx_match','alpha_private.audit_events','SELECT') as audit_select,
+    has_table_privilege('aomx_match','alpha_private.audit_events','INSERT') as audit_insert`);
+  assert.deepEqual(matchGrants.rows[0], { invite_select: true, invite_bind: true,
+    record_insert: true, audit_select: false, audit_insert: false });
   await admin.end();
   const options = { resolveFlag: () => ({ value: true, environment: 'preview' }),
     now: () => new Date('2026-10-20T12:00:00.000Z'),

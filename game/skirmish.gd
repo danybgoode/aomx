@@ -388,7 +388,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			"actor_id": actor_id, "target": _log_target(target), "game_version": GAME_VERSION,
 			"content_version": CONTENT_VERSION, "test_account": true})
 		next_command += 1
-	elif side == COMPUTER:
+	elif side == COMPUTER and ai_enabled:
 		ai_rejections += 1
 		ai_last_rejection = rejected.reason
 	if side == HUMAN:

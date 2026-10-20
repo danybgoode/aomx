@@ -6,6 +6,8 @@ const AlphaConfig = preload("res://alpha_config.gd")
 const ArtCatalog = preload("res://art_catalog.gd")
 const BattleHud = preload("res://ui/battle_hud.gd")
 const MatchSave = preload("res://skirmish_persistence.gd")
+const MultiplayerClient = preload("res://multiplayer_client.gd")
+const MultiplayerState = preload("res://multiplayer_state.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -42,6 +44,15 @@ var setup_opponent: OptionButton
 var setup_resume: Button
 var setup_note: Label
 var setup_save_error: Label
+var setup_online_code: LineEdit
+var setup_online_button: Button
+var online_client: Node
+var online := false
+var online_side := -1
+var replay_active := false
+var replay_frame_index := -1
+var replay_frame_count := 0
+var replay_button: Button
 var match_id := ""
 var completion_queued := false
 var selected_id := -1
@@ -103,6 +114,14 @@ func _ready() -> void:
 	request.timeout = 3.0
 	add_child(request)
 	request.request_completed.connect(_on_request_completed)
+	online_client = MultiplayerClient.new()
+	add_child(online_client)
+	online_client.joined.connect(_on_online_joined)
+	online_client.state_received.connect(_on_online_state)
+	online_client.order_ack.connect(_on_online_order_ack)
+	online_client.replay_received.connect(_on_online_replay)
+	online_client.replay_frame_received.connect(_on_online_replay_frame)
+	online_client.problem.connect(_on_online_problem)
 	var retry_timer := Timer.new()
 	retry_timer.wait_time = 5.0
 	retry_timer.autostart = true
@@ -124,6 +143,13 @@ func _ready() -> void:
 	hover_hint.add_theme_color_override("font_color", Color("ffe391"))
 	layer.add_child(hover_hint)
 	_build_faction_setup(layer)
+	replay_button = Button.new()
+	replay_button.text = "Watch replay"
+	replay_button.visible = false
+	replay_button.position = Vector2(12, 54)
+	replay_button.pressed.connect(_replay_action)
+	preload("res://ui/hud_skin.gd").apply_button(replay_button)
+	layer.add_child(replay_button)
 	get_viewport().size_changed.connect(_layout_setup)
 	_layout_setup()
 	_show_setup()
@@ -183,12 +209,22 @@ func _audio_changed(persist: bool = true) -> void:
 		file.store_string(JSON.stringify({"muted": hud_ui.sound_mute.button_pressed, "volume": hud_ui.sound_volume.value}))
 
 func _toggle_pause() -> void:
+	if online:
+		if replay_active:
+			paused = not paused
+			replay_button.text = "Play replay" if paused else "Pause replay"
+		else:
+			hud_ui.show_notice("A shared match keeps running for both players.")
+		return
 	paused = not paused
 	hud_ui.pause_button.text = ">" if paused else "II"
 	hud_ui.show_notice("Paused" if paused else "Resumed")
 
 func _restart_match() -> void:
 	if choosing_faction:
+		return
+	if online:
+		_show_setup()
 		return
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
@@ -294,6 +330,18 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_resume.pressed.connect(_resume_match)
 	preload("res://ui/hud_skin.gd").apply_button(setup_resume)
 	column.add_child(setup_resume)
+	setup_online_code = LineEdit.new()
+	setup_online_code.placeholder_text = "Private match invite code"
+	setup_online_code.secret = true
+	setup_online_code.text = invite_code
+	setup_online_code.custom_minimum_size.y = 42
+	column.add_child(setup_online_code)
+	setup_online_button = Button.new()
+	setup_online_button.text = "Join private match"
+	setup_online_button.custom_minimum_size.y = 50
+	setup_online_button.pressed.connect(_join_online_match)
+	preload("res://ui/hud_skin.gd").apply_button(setup_online_button)
+	column.add_child(setup_online_button)
 	var note := Label.new()
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
@@ -320,7 +368,7 @@ func _layout_setup() -> void:
 	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
 	setup_veracruzanos.text = "VERACRUZANOS  •  move faster; lighter buildings" if mobile else "Veracruzanos — faster movement and trade income; lighter buildings"
 	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
-	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume]:
+	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_online_button]:
 		b.custom_minimum_size.y = 48 if mobile else 52
 		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
 	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
@@ -362,6 +410,15 @@ func _show_setup() -> void:
 	last_event_entities.clear()
 	last_district_state = "neutral"
 	setup_panel.show()
+	if online_client != null:
+		online_client.leave()
+	online = false
+	online_side = -1
+	replay_active = false
+	replay_frame_index = -1
+	replay_frame_count = 0
+	if replay_button != null:
+		replay_button.hide()
 	setup_resume.visible = FileAccess.file_exists(save_path)
 	setup_save_error.text = ""
 	hover_hint.text = ""
@@ -393,6 +450,9 @@ func _choose_difficulty(index: int) -> void:
 	setup_difficulty_details.text = descriptions[selected_difficulty] + " Same rules and sight."
 
 func _save_match() -> void:
+	if online:
+		hud_ui.show_notice("Private matches save on the host. Open the replay after the result.")
+		return
 	if choosing_faction or sim.result != "":
 		hud_ui.show_notice("Start an active match before saving", true)
 		return
@@ -466,7 +526,150 @@ func _outbox_has_terminal(id: String) -> bool:
 			return true
 	return false
 
+func _join_online_match() -> void:
+	if not choosing_faction or outbox.state.is_empty():
+		setup_save_error.text = "Local player ID is unavailable. Check device storage."
+		return
+	var code := setup_online_code.text.strip_edges()
+	if code.is_empty():
+		setup_save_error.text = "Enter your private invite code. Each player needs their own code."
+		return
+	setup_save_error.text = "Connecting to the private host…"
+	invite_code = code
+	invite_input.text = code
+	if AlphaConfig.CHANNEL != "development":
+		var invite_file := FileAccess.open("user://alpha-invite-code.txt", FileAccess.WRITE)
+		if invite_file != null:
+			invite_file.store_string(code)
+			invite_file.close()
+	setup_online_button.disabled = true
+	online_client.connect_match(code, str(outbox.state.player_id))
+
+func _on_online_joined(info: Dictionary) -> void:
+	setup_online_button.disabled = false
+	online = true
+	online_side = int(info.side)
+	match_id = str(info.match_id)
+	if info.status == "waiting":
+		setup_save_error.text = "Waiting for the second invited player. Both players need separate codes."
+	elif info.status == "playing":
+		setup_save_error.text = "Both players joined. Loading match…"
+	if online_side == 0:
+		outbox.faction = Skirmish.REGIOS
+	else:
+		outbox.faction = Skirmish.POBLANOS
+
+func _on_online_state(response: Dictionary) -> void:
+	if not online or response.get("match_id") != match_id:
+		return
+	if response.status == "no_result":
+		var terminal: Dictionary = response.get("terminal", {})
+		var reason := str(terminal.get("reason", "host_unavailable"))
+		var message := "The 60-second reconnect window expired. No result was recorded." if reason == "reconnect_expired" else "The private host ended this match (%s). No result was recorded." % reason.replace("_", " ")
+		setup_save_error.text = message
+		hud_ui.show_notice(message, true)
+		return
+	if response.get("state") is Dictionary:
+		var loaded: Dictionary = MultiplayerState.restore_for_side(response.state, match_id, online_side)
+		if not loaded.ok:
+			_on_online_problem("Private match state failed validation: " + str(loaded.reason))
+			return
+		sim = loaded.game as Skirmish
+		if choosing_faction:
+			choosing_faction = false
+			setup_panel.hide()
+			instructions.text = "Private match · host runs the game · right-click to order · R returns to setup"
+			completion_queued = false
+			selected_id = -1
+			selected_ids.clear()
+			_reset_zoom()
+			_navigate_minimap(Vector2i(7, 7))
+			var started: Dictionary = outbox.queue("match_started", match_id, "", false, "multiplayer")
+			if not started.ok:
+				sync_note = "Match start could not be saved locally."
+		for id in selected_ids.duplicate():
+			if not sim.entities.has(id):
+				selected_ids.erase(id)
+		if selected_id != -1 and not sim.entities.has(selected_id):
+			selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
+		_observe_events()
+		_update_unit_facing()
+		_update_hud()
+		queue_redraw()
+	if response.status == "complete" and not completion_queued:
+		var terminal: Dictionary = response.get("terminal", {})
+		var results: Array = terminal.get("results", [])
+		if results.size() == 2 and results[online_side] in ["win", "loss", "draw"]:
+			var saved: Dictionary = outbox.queue("match_completed", match_id, str(results[online_side]), false, "multiplayer")
+			completion_queued = saved.ok
+			if not saved.ok:
+				sync_note = "Result could not be saved locally."
+		replay_button.show()
+		replay_button.text = "Watch replay"
+
+func _on_online_order_ack(response: Dictionary) -> void:
+	if not response.get("ok", false):
+		hud_ui.show_notice("Order rejected: " + str(response.get("reason", "unknown")).replace("_", " "), true)
+
+func _on_online_problem(message: String) -> void:
+	if choosing_faction:
+		setup_online_button.disabled = false
+		setup_save_error.text = message
+	else:
+		hud_ui.show_notice(message, true)
+
+func _on_online_replay(response: Dictionary) -> void:
+	replay_active = true
+	replay_frame_index = -1
+	replay_frame_count = int(response.frame_count)
+	paused = false
+	accumulator = 0.0
+	replay_button.text = "Pause replay"
+	online_client.request_replay_frame(0)
+
+func _replay_action() -> void:
+	if replay_active:
+		paused = not paused
+		replay_button.text = "Play replay" if paused else "Pause replay"
+	else:
+		online_client.request_replay()
+
+func _on_online_replay_frame(response: Dictionary) -> void:
+	if not replay_active or response.get("match_id") != match_id or int(response.get("side", -1)) != online_side:
+		return
+	var loaded: Dictionary = MultiplayerState.restore_for_side(response.state, match_id, online_side)
+	if not loaded.ok:
+		paused = true
+		_on_online_problem("Replay state failed validation: " + str(loaded.reason))
+		return
+	replay_frame_index = int(response.frame_index)
+	sim = loaded.game as Skirmish
+	_update_hud()
+	queue_redraw()
+	if replay_frame_index + 1 >= replay_frame_count:
+		paused = true
+		replay_button.text = "Replay finished"
+
+func _send_game_order(kind: String, actor_id: int, target: Variant) -> Dictionary:
+	if not online:
+		return sim.issue(Skirmish.HUMAN, kind, actor_id, target)
+	if replay_active:
+		return {"ok": false, "reason": "replay_read_only"}
+	var wire_target: Variant = target
+	if target is Vector2i:
+		wire_target = [target.x, target.y]
+	elif target is Dictionary and target.get("pos") is Vector2i:
+		wire_target = {"kind": target.kind, "pos": [target.pos.x, target.pos.y]}
+	return online_client.queue_order(kind, actor_id, wire_target)
+
 func _start_match(faction: String, difficulty: String = "") -> void:
+	if online_client != null:
+		online_client.leave()
+	online = false
+	replay_active = false
+	replay_frame_index = -1
+	replay_frame_count = 0
+	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
 	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent)
 	paused = false
@@ -525,6 +728,13 @@ func _process(delta: float) -> void:
 	if order_flash_seconds > 0.0:
 		order_flash_seconds = maxf(0.0, order_flash_seconds - delta)
 		queue_redraw()
+	if online:
+		if replay_active:
+			accumulator += delta
+			if accumulator >= 1.0 and replay_frame_index + 1 < replay_frame_count and not online_client.replay_frame_loading:
+				accumulator = 0.0
+				online_client.request_replay_frame(replay_frame_index + 1)
+		return
 	accumulator += delta
 	var advanced := false
 	while accumulator >= TICK_SECONDS:
@@ -737,13 +947,13 @@ func _train(role: String) -> void:
 	_issue_order("train", role, sim.entities[selected_id].pos)
 
 func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
-	var result: Dictionary = sim.issue(Skirmish.HUMAN, kind, selected_id, target)
+	var result: Dictionary = _send_game_order(kind, selected_id, target)
 	var accepted := 1 if result.ok else 0
 	if kind in ["move", "gather", "attack", "attack_move", "stop", "hold"] and selected_ids.size() > 1:
 		for id in selected_ids:
 			if id == selected_id or not sim.entities.has(id):
 				continue
-			var next: Dictionary = sim.issue(Skirmish.HUMAN, kind, id, target)
+			var next: Dictionary = _send_game_order(kind, id, target)
 			if next.ok:
 				accepted += 1
 		if accepted > 0:
@@ -987,7 +1197,7 @@ func _activate_command(action: String) -> void:
 		var worker_id := _cancel_worker_id()
 		if worker_id != -1 and sim.entities.has(building_id):
 			var at: Vector2i = sim.entities[building_id].pos
-			var response: Dictionary = sim.issue(Skirmish.HUMAN, "cancel", worker_id, building_id)
+			var response: Dictionary = _send_game_order("cancel", worker_id, building_id)
 			_flash_order(at, _order_message("cancel", building_id, response), response.ok)
 		_update_hud()
 		return

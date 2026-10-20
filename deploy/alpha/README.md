@@ -64,6 +64,58 @@ The running image tag is the reviewed commit. To roll back, set
 `AOMX_IMAGE_TAG` to a previously built tag and run the same `compose up` command.
 The database migration is additive, so older images remain compatible with it.
 
+## Restricted private-match host
+
+The private-match service runs the pinned Godot 4.7.2 rules in a separate
+container. It accepts **one two-player match per process**; restart the match
+service between completed or expired walkthroughs. It does not make a public
+game release or create an eligible cohort. Its enablement flag defaults off.
+Each player needs a different existing alpha invite code, bound to their
+installation ID. Do not put match database credentials or flag read keys in a
+client build.
+
+Before starting the match service, inspect VM headroom and restore a backup to
+a disposable database. On the existing Postgres volume, create its role once
+with `docker compose -p aomx -f deploy/alpha/compose.yml exec postgres psql -U
+aomx_admin -d aomx`; inside psql run `CREATE ROLE aomx_match LOGIN;` followed
+by `\password aomx_match` and enter a new distinct password. Match that value
+in `/opt/aomx/match.env` (mode 600), using `match.env.example` as the shape.
+Fresh volumes instead create the role from `AOMX_MATCH_PASSWORD` in `db.env`
+through `init-role.sh`. Never pass a password on a command line. Apply the
+additive migration before starting the container:
+
+```sh
+docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/004_private_matches.sql
+docker build --platform linux/amd64 -f deploy/alpha/match.Dockerfile -t "aomx-match:$AOMX_IMAGE_TAG" .
+docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build match
+docker compose -p aomx -f deploy/alpha/compose.yml ps match
+```
+
+Copy the `/v1/match/*` route from `Caddyfile.example` into panfleto's alpha
+site, keeping the existing operator allowlist for every other path. Reload
+Caddy, verify HTTPS and confirm anonymous access to `/v1/events` is still
+forbidden. The match route is address-reachable, but disabled admissions,
+individual codes, slot binding and server-side validation gate play. Rotate
+or revoke codes with the existing `alpha:invite` operator tool. A code
+revocation blocks future joins; it does not interrupt an already connected
+player. Toggle `multiplayer.private_match_enabled` in Golden Frijoles preview
+only for the bounded smoke, verify the served flag version, and turn it off
+before leaving the host unattended. Switching it off prevents new admissions
+while a connected match continues.
+
+Build the signed Restricted preview with `AOMX_MATCH_URL` set to the HTTPS
+origin and `AOMX_INGEST_URL` set to its `/v1/events` endpoint. Verify the
+manifest commit, checksum, signature, fresh download and both clients'
+version labels. The client reports private results as test-tagged events; the
+ingest still treats all client results as `client_reported`. Only the match
+database has the authoritative terminal record. Restart `match` between the
+baseline and impaired-profile runs, and record image tag, VM load, connection
+profile, terminal outcomes and participant replay verification in the epic QA
+record. Keep invite values in operator-only files. Do not send an external
+invitation until the participant notice has a real support address and live
+audit/replay retention and deletion policy.
+
 ## Operator schedule
 
 Run `npm run alpha:backup` daily on the VM using the loopback administrator
