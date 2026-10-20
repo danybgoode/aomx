@@ -92,6 +92,10 @@ export class MatchSession {
   async state(token) {
     const access = this.#slot(token);
     if (!access) return { ok: false, reason: 'unauthorized', statusCode: 401 };
+    if (await this.store.isDeleted(access.slot.playerId)) {
+      await this.#expire('participant_withdrew');
+      return { ok: false, reason: 'unauthorized', statusCode: 401 };
+    }
     if (this.status === 'playing') {
       if (this.now() - access.slot.lastSeen > this.reconnectMs) {
         await this.#expire();
@@ -111,6 +115,10 @@ export class MatchSession {
   async #order(token, order) {
     const access = this.#slot(token);
     if (!access) return { ok: false, reason: 'unauthorized', statusCode: 401 };
+    if (await this.store.isDeleted(access.slot.playerId)) {
+      await this.#expire('participant_withdrew');
+      return { ok: false, reason: 'unauthorized', statusCode: 401 };
+    }
     if (this.status !== 'playing') return { ok: false, reason: 'match_not_playing', statusCode: 409 };
     if (this.now() - access.slot.lastSeen > this.reconnectMs) {
       await this.#expire();
@@ -149,6 +157,9 @@ export class MatchSession {
 
   async tick() {
     if (this.status !== 'playing' || this.busyTick) return;
+    for (const slot of this.slots) {
+      if (await this.store.isDeleted(slot.playerId)) return this.#expire('participant_withdrew');
+    }
     if (this.slots.some(slot => this.now() - slot.lastSeen > this.reconnectMs)) return this.#expire();
     if (this.lastState?.tick >= this.maxTicks) return this.#expire('match_time_limit');
     this.busyTick = true;
@@ -233,6 +244,7 @@ export class MatchSession {
   }
 
   async #replayFrame(stream, frameIndex) {
+    if (!await this.#replayAvailable(stream)) return this.#closeReplay(stream);
     if (this.now() - stream.lastAccess > 15 * 60_000) {
       stream.worker?.close();
       for (const [key, value] of this.replayStreams) if (value === stream) this.replayStreams.delete(key);
@@ -269,6 +281,7 @@ export class MatchSession {
         terminal: frameIndex === maxIndex ? stream.record.terminal : null };
       stream.lastIndex = frameIndex;
       stream.lastFrame = frame;
+      if (!await this.#replayAvailable(stream)) return this.#closeReplay(stream);
       if (frameIndex === maxIndex) { stream.worker.close(); stream.worker = null; }
       return frame;
     } catch {
@@ -276,6 +289,20 @@ export class MatchSession {
       stream.worker = null;
       return { ok: false, reason: 'replay_unavailable', statusCode: 503 };
     }
+  }
+
+  async #replayAvailable(stream) {
+    if (!await this.store.getRecord(stream.matchId)) return false;
+    for (const player of stream.record.players) {
+      if (await this.store.isDeleted(player.player_id)) return false;
+    }
+    return true;
+  }
+
+  #closeReplay(stream) {
+    stream.worker?.close();
+    for (const [key, value] of this.replayStreams) if (value === stream) this.replayStreams.delete(key);
+    return { ok: false, reason: 'replay_unavailable', statusCode: 404 };
   }
 
   close() {

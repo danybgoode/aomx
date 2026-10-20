@@ -24,6 +24,11 @@ export class PostgresFunnel {
     try {
       await client.query('begin');
       await client.query('select pg_advisory_xact_lock(601103, 1)');
+      if (typeof event?.player_id === 'string') {
+        const playerHash = createHash('sha256').update(event.player_id).digest('hex');
+        const deleted = await client.query('select 1 from alpha_private.player_deletions where player_hash=$1', [playerHash]);
+        if (deleted.rows.length) throw Object.assign(new Error('player_deleted'), { statusCode: 403 });
+      }
       let claimInvite = false;
       if (this.requireInvite) {
         if (typeof inviteToken !== 'string' || !/^[A-Za-z0-9_-]{24,80}$/.test(inviteToken)) {

@@ -29,15 +29,20 @@ public play readings. The host may be unavailable or restarted between matches.
 We use accepted events to see whether invited players install, finish a first
 match, and return on a later day. Test and rejected traffic is left out of
 those readings. The game keeps unsent events on your Mac and retries when
-online. The operator can inspect the pseudonymous audit. Database backups
-are private in Oracle Object Storage and scheduled to expire after 30 days;
-the live audit retention and deletion request process still need an owner
-decision before invitations. Do not send sensitive information through any
-free-text support report.
+online. The operator can inspect the pseudonymous audit. Live audit events
+and completed private-match records are deleted after 30 days by a daily
+operator job. Invite codes and their server-side bindings expire after 30 days;
+the operator deletes plaintext code files after delivery. A short-lived hash
+of a withdrawn support ID is kept for up to 30 days to prevent an active
+session from restoring deleted data. Aggregate daily counts may be kept longer
+without your installation ID. Database backups are private in Oracle Object Storage and
+expire after 30 days, so deleted data may remain in a backup until that copy
+expires. Do not send sensitive information through any free-text support report.
 
-To withdraw or request deletion, contact **[owner to supply a support address]**
+To withdraw or request deletion, contact **miyagi@despachobonsai.com**
 and include the support ID copied from the game's private alpha button.
 Deleting the app alone stops new events but does not remove those
-already uploaded. The owner must approve this notice, contact path, retention
-policy and first invitation before the restricted page is shared with people
-outside the owner account.
+already uploaded. The operator verifies deletion requests, removes the live
+audit and match records associated with that support ID, and removes its invite
+binding. An active session or replay stops after withdrawal. The owner approves the first invitation before the restricted page is
+shared with people outside the owner account.

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily private alpha live-record retention
+
+[Timer]
+OnCalendar=*-*-* 02:15:00 UTC
+Persistent=true
+Unit=aomx-retention.service
+
+[Install]
+WantedBy=timers.target

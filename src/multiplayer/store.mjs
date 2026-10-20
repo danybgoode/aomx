@@ -18,6 +18,11 @@ export class PostgresMatchStore {
     const client = await this.pool.connect();
     try {
       await client.query('begin');
+      await client.query('select pg_advisory_xact_lock(601103, 1)');
+      if (await this.#isDeleted(client, playerId)) {
+        await client.query('rollback');
+        return { ok: false, reason: 'invite_invalid' };
+      }
       const result = await client.query(`select player_id, revoked from alpha_private.invite_tokens
         where token_hash=$1 for update`, [tokenHash(token)]);
       const row = result.rows[0];
@@ -38,6 +43,7 @@ export class PostgresMatchStore {
 
   async verifyInvite(token, playerId) {
     if (!validToken(token) || !validPlayer(playerId)) return { ok: false, reason: 'invite_invalid' };
+    if (await this.isDeleted(playerId)) return { ok: false, reason: 'invite_invalid' };
     const { rows } = await this.pool.query(`select player_id, revoked from alpha_private.invite_tokens
       where token_hash=$1`, [tokenHash(token)]);
     const row = rows[0];
@@ -48,16 +54,37 @@ export class PostgresMatchStore {
 
   async saveRecord(record) {
     const hash = createHash('sha256').update(JSON.stringify(record)).digest('hex');
-    await this.pool.query(`insert into alpha_private.match_records
-      (match_id, players, terminal, replay, record_hash) values ($1,$2,$3,$4,$5)
-      on conflict (match_id) do nothing`, [record.match_id, JSON.stringify(record.players),
-      JSON.stringify(record.terminal), JSON.stringify(record.replay), hash]);
+    const client = await this.pool.connect();
+    try {
+      await client.query('begin');
+      await client.query('select pg_advisory_xact_lock(601103, 1)');
+      for (const player of record.players) {
+        if (await this.#isDeleted(client, player.player_id)) throw new Error('participant_withdrew');
+        const { rows } = await client.query(`select player_id from alpha_private.invite_tokens
+          where token_hash=$1`, [player.code_hash]);
+        if (rows[0]?.player_id !== player.player_id) throw new Error('invite_expired');
+      }
+      await client.query(`insert into alpha_private.match_records
+        (match_id, players, terminal, replay, record_hash) values ($1,$2,$3,$4,$5)
+        on conflict (match_id) do nothing`, [record.match_id, JSON.stringify(record.players),
+        JSON.stringify(record.terminal), JSON.stringify(record.replay), hash]);
+      await client.query('commit');
+    } catch (error) { await client.query('rollback'); throw error; }
+    finally { client.release(); }
     return hash;
   }
 
+  async #isDeleted(client, playerId) {
+    const hash = createHash('sha256').update(playerId).digest('hex');
+    const { rows } = await client.query('select 1 from alpha_private.player_deletions where player_hash=$1', [hash]);
+    return rows.length > 0;
+  }
+
+  async isDeleted(playerId) { return this.#isDeleted(this.pool, playerId); }
+
   async getRecord(matchId) {
     const { rows } = await this.pool.query(`select match_id, players, terminal, replay, record_hash
-      from alpha_private.match_records where match_id=$1`, [matchId]);
+      from alpha_private.match_records where match_id=$1 and created_at >= now() - interval '30 days'`, [matchId]);
     return rows[0] ?? null;
   }
 
@@ -66,11 +93,12 @@ export class PostgresMatchStore {
 }
 
 export class MemoryMatchStore {
-  constructor() { this.invites = new Map(); this.records = new Map(); }
+  constructor() { this.invites = new Map(); this.records = new Map(); this.deletedPlayers = new Set(); }
   addInvite(token) { if (!validToken(token)) throw new Error('invalid_test_invite'); this.invites.set(tokenHash(token), { playerId: null, revoked: false }); }
   revoke(token) { const row = this.invites.get(tokenHash(token)); if (row) row.revoked = true; }
   async claimInvite(token, playerId) {
     if (!validToken(token) || !validPlayer(playerId)) return { ok: false, reason: 'invite_invalid' };
+    if (this.deletedPlayers.has(playerId)) return { ok: false, reason: 'invite_invalid' };
     const hash = tokenHash(token);
     const row = this.invites.get(hash);
     if (!row || row.revoked || row.playerId && row.playerId !== playerId) return { ok: false, reason: 'invite_invalid' };
@@ -80,13 +108,25 @@ export class MemoryMatchStore {
   }
   async verifyInvite(token, playerId) {
     if (!validToken(token) || !validPlayer(playerId)) return { ok: false, reason: 'invite_invalid' };
+    if (this.deletedPlayers.has(playerId)) return { ok: false, reason: 'invite_invalid' };
     const row = this.invites.get(tokenHash(token));
     return row && !row.revoked && row.playerId === playerId
       ? { ok: true, codeHash: tokenHash(token), playerId }
       : { ok: false, reason: 'invite_invalid' };
   }
-  async saveRecord(record) { if (!this.records.has(record.match_id)) this.records.set(record.match_id, record); }
+  async saveRecord(record) {
+    if (record.players.some(player => this.deletedPlayers.has(player.player_id))) throw new Error('participant_withdrew');
+    if (!this.records.has(record.match_id)) this.records.set(record.match_id, record);
+  }
   async getRecord(matchId) { return this.records.get(matchId) ?? null; }
+  async isDeleted(playerId) { return this.deletedPlayers.has(playerId); }
+  deletePlayer(playerId) {
+    this.deletedPlayers.add(playerId);
+    for (const [key, record] of this.records) {
+      if (record.players.some(player => player.player_id === playerId)) this.records.delete(key);
+    }
+    for (const [key, invite] of this.invites) if (invite.playerId === playerId) this.invites.delete(key);
+  }
   async health() { return { ok: true }; }
   async close() {}
 }

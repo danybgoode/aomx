@@ -5,6 +5,8 @@ import pg from 'pg';
 import { createHash } from 'node:crypto';
 import { PostgresFunnel } from '../src/funnel/postgres.mjs';
 import { serve } from '../src/funnel/http.mjs';
+import { retention } from '../src/alpha/retention.mjs';
+import { PostgresMatchStore } from '../src/multiplayer/store.mjs';
 
 const url = process.env.AOMX_TEST_DATABASE_URL;
 test('Postgres preview policy excludes a client that claims public eligibility', async () => {
@@ -49,11 +51,13 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
     if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated; end if;
     if not exists (select 1 from pg_roles where rolname='aomx_ingest') then create role aomx_ingest; end if;
     if not exists (select 1 from pg_roles where rolname='aomx_match') then create role aomx_match; end if;
+    if not exists (select 1 from pg_roles where rolname='aomx_retention') then create role aomx_retention; end if;
   end $$`);
   await admin.query(fs.readFileSync(new URL('../db/001_alpha_audit.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/002_ingest_grants.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/003_publication_reading_hash.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/004_private_matches.sql', import.meta.url), 'utf8'));
+  await admin.query(fs.readFileSync(new URL('../db/005_retention.sql', import.meta.url), 'utf8'));
   const grants = await admin.query(`select
     has_table_privilege('aomx_ingest','alpha_private.audit_events','INSERT') as audit_insert,
     has_table_privilege('aomx_ingest','alpha_private.report_history','SELECT') as report_select,
@@ -67,6 +71,14 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
     has_table_privilege('aomx_match','alpha_private.audit_events','INSERT') as audit_insert`);
   assert.deepEqual(matchGrants.rows[0], { invite_select: true, invite_bind: true,
     record_insert: true, audit_select: false, audit_insert: false });
+  const retentionGrants = await admin.query(`select
+    has_table_privilege('aomx_retention','alpha_private.audit_events','DELETE') as audit_delete,
+    has_table_privilege('aomx_retention','alpha_private.match_records','DELETE') as match_delete,
+    has_table_privilege('aomx_retention','alpha_private.invite_tokens','DELETE') as invite_delete,
+    has_table_privilege('aomx_retention','alpha_private.report_history','DELETE') as report_delete,
+    has_table_privilege('aomx_retention','alpha_private.publication_days','INSERT') as publication_insert`);
+  assert.deepEqual(retentionGrants.rows[0], { audit_delete: true, match_delete: true,
+    invite_delete: true, report_delete: false, publication_insert: false });
   await admin.end();
   const options = { resolveFlag: () => ({ value: true, environment: 'preview' }),
     now: () => new Date('2026-10-20T12:00:00.000Z'),
@@ -119,4 +131,45 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
   } finally {
     if (!funnel.pool.ending) await funnel.close();
   }
+});
+
+test('30-day retention and verified player deletion remove only matching live records', { skip: !url }, async () => {
+  const client = new pg.Client({ connectionString: url, ssl: false });
+  await client.connect();
+  try {
+    const players = id => JSON.stringify([{ side: 0, player_id: id },
+      { side: 1, player_id: 'other_player_001' }]);
+    await client.query(`insert into alpha_private.match_records
+      (match_id, created_at, players, terminal, replay, record_hash)
+      values ($1,$2,$3,'{}','{}','test'),($4,$5,$6,'{}','{}','test'),($7,$5,$8,'{}','{}','test')`,
+    ['old_match', '2026-09-01T00:00:00Z', players('old_player_001'),
+      'recent_match', '2026-10-19T00:00:00Z', players('recent_player_001'),
+      'deletion_match', players('player_beta_0001')]);
+    await client.query(`update alpha_private.audit_events set received_at=$1 where event_id=$2`,
+      ['2026-09-01T00:00:00Z', 'event_open_01']);
+    await client.query(`insert into alpha_private.invite_tokens(token_hash,label,created_at)
+      values ('old_invite_hash','old invitation','2026-09-01T00:00:00Z')`);
+    const now = new Date('2026-10-20T12:00:00Z');
+    const preview = await retention(client, { now });
+    assert.deepEqual(preview.planned, { match_records: 1, audit_events: 1,
+      invite_tokens: 1, player_deletions: 0 });
+    assert.equal((await client.query(`select count(*)::int as n from alpha_private.match_records`)).rows[0].n, 3);
+    assert.deepEqual((await retention(client, { now, apply: true })).deleted,
+      { match_records: 1, audit_events: 1, invite_tokens: 1, player_deletions: 0 });
+    const removal = await retention(client, { now, playerId: 'player_beta_0001', apply: true });
+    assert.deepEqual(removal.deleted, { match_records: 1, audit_events: 4,
+      invite_tokens: 1, player_deletions: 0 });
+    assert.deepEqual((await client.query(`select match_id from alpha_private.match_records`)).rows,
+      [{ match_id: 'recent_match' }]);
+    const store = new PostgresMatchStore(url);
+    const deletedCode = 'alpha_private_test_code_123456';
+    assert.equal((await store.claimInvite(deletedCode, 'player_beta_0001')).reason, 'invite_invalid');
+    assert.equal(await store.isDeleted('player_beta_0001'), true);
+    await assert.rejects(store.saveRecord({ match_id: 'late_match',
+      players: [{ player_id: 'player_beta_0001', code_hash: createHash('sha256').update(deletedCode).digest('hex') },
+        { player_id: 'other_player_001', code_hash: 'none' }], terminal: {}, replay: {} }),
+    { message: 'participant_withdrew' });
+    assert.equal((await store.getRecord('late_match')), null);
+    await store.close();
+  } finally { await client.end(); }
 });

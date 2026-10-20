@@ -20,6 +20,7 @@
     "alpha:report": "node scripts/alpha-report.mjs",
     "alpha:smoke": "node scripts/alpha-smoke.mjs",
     "alpha:backup": "node scripts/alpha-backup.mjs",
+    "alpha:retention": "node scripts/alpha-retention.mjs",
     "alpha:health": "node scripts/alpha-health.mjs",
     "alpha:invite": "node scripts/alpha-invite.mjs",
     "alpha:publish": "node scripts/alpha-publish.mjs"
