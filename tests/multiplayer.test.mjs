@@ -104,6 +104,28 @@ test('one terminal record per slot is retained for participants only', async () 
   session.close();
 });
 
+test('withdrawal ends an active match and invalidates an already issued replay token', async () => {
+  const { session, join, store } = setup();
+  const a = await join(CODE_A, PLAYER_A);
+  await join(CODE_B, PLAYER_B);
+  store.deletePlayer(PLAYER_A);
+  await session.tick();
+  assert.equal(session.status, 'no_result');
+  assert.equal((await session.state(a.token)).reason, 'unauthorized');
+  session.close();
+
+  const completed = setup();
+  const participant = await completed.join(CODE_A, PLAYER_A);
+  await completed.join(CODE_B, PLAYER_B);
+  await completed.session.tick();
+  await completed.session.tick();
+  const replay = await completed.session.replay(CODE_B, PLAYER_B, participant.match_id);
+  assert.equal(replay.ok, true);
+  completed.store.deletePlayer(PLAYER_A);
+  assert.equal((await completed.session.replayFrame(replay.replay_token, 0)).reason, 'replay_unavailable');
+  completed.session.close();
+});
+
 test('60-second expiry gives no result to a returning participant', async () => {
   const { session, join, setTime, store } = setup();
   const a = await join(CODE_A, PLAYER_A);

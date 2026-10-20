@@ -1,0 +1,13 @@
+[Unit]
+Description=Expire private alpha live records after 30 days
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/aomx/repo
+Environment=PATH=/opt/aomx/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/opt/aomx/retention.env
+ExecStart=/opt/aomx/node/bin/node scripts/alpha-retention.mjs --apply
+TimeoutStartSec=120

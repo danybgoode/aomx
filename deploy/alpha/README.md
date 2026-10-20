@@ -80,13 +80,19 @@ with `docker compose -p aomx -f deploy/alpha/compose.yml exec postgres psql -U
 aomx_admin -d aomx`; inside psql run `CREATE ROLE aomx_match LOGIN;` followed
 by `\password aomx_match` and enter a new distinct password. Match that value
 in `/opt/aomx/match.env` (mode 600), using `match.env.example` as the shape.
-Fresh volumes instead create the role from `AOMX_MATCH_PASSWORD` in `db.env`
+Create a separate `aomx_retention` login with `CREATE ROLE aomx_retention LOGIN;`
+and `\password aomx_retention`, using a different
+password in `/opt/aomx/retention.env` (mode 600, shape in
+`retention.env.example`). Fresh volumes instead create both roles from
+`AOMX_MATCH_PASSWORD` and `AOMX_RETENTION_PASSWORD` in `db.env`
 through `init-role.sh`. Never pass a password on a command line. Apply the
 additive migration before starting the container:
 
 ```sh
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/004_private_matches.sql
+docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/005_retention.sql
 docker build --platform linux/amd64 -f deploy/alpha/match.Dockerfile -t "aomx-match:$AOMX_IMAGE_TAG" .
 docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build match
 docker compose -p aomx -f deploy/alpha/compose.yml ps match
@@ -112,9 +118,11 @@ ingest still treats all client results as `client_reported`. Only the match
 database has the authoritative terminal record. Restart `match` between the
 baseline and impaired-profile runs, and record image tag, VM load, connection
 profile, terminal outcomes and participant replay verification in the epic QA
-record. Keep invite values in operator-only files. Do not send an external
-invitation until the participant notice has a real support address and live
-audit/replay retention and deletion policy.
+record. Keep invite values in operator-only files, delete plaintext files after
+delivery, and never keep them longer than 30 days. The daily job expires
+database invite bindings after 30 days. Do not send an external
+invitation until the daily retention timer and request deletion path below are
+installed, observed and checked against the participant notice.
 
 ## Operator schedule
 
@@ -149,12 +157,22 @@ older than the database.
 Set `AOMX_INGEST_DOCKER_CONTAINER=aomx-ingest-1` for the VM's internal health
 timer; test HTTPS externally during release smoke because the staging site
 allowlist intentionally excludes the VM's outbound address.
-Install `aomx-{backup,health,report}.{service,timer}` into
+Install `aomx-{backup,health,report,retention}.{service,timer}` into
 `/etc/systemd/system/`, then `sudo systemctl daemon-reload` and enable the
-three timers. Run each service manually once and inspect the journal before
+four timers. Run each service manually once and inspect the journal before
 relying on the schedule. The backup timer is daily, the health timer every 15
-minutes, and the report timer daily. The optional alert webhook must be an
+minutes, and the report and retention timers are daily. The optional alert webhook must be an
 owner-controlled destination.
+
+With `AOMX_DATABASE_URL` from `retention.env`, `npm run alpha:retention`
+previews the 30-day live audit, private-match, invite-binding, and withdrawal
+marker deletion counts; `npm run alpha:retention -- --apply` performs it. For a
+verified deletion request, use `npm run alpha:retention -- --delete-player
+SUPPORT_ID` to preview and add `--apply` to remove matching live audit and match
+records plus the bound invite row, and adds a temporary withdrawal marker to
+block late writes. Confirm that an active match and replay stop. Never paste support IDs or codes in a public
+issue. Backups expire under the existing 30-day OCI lifecycle, so a deletion
+request may remain in a backup until that copy expires.
 
 Use `npm run alpha:observe-day -- --complete YYYY-MM-DD` only after reviewing
 full ingest coverage and set `AOMX_COVERAGE_NOTE` to the evidence. Run
