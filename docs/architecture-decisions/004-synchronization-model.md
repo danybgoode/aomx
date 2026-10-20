@@ -21,6 +21,8 @@ The same worker image ran natively on the Oracle ARM64 VM and matched the 1,000-
 
 These observations strengthen the choice of one server authority for this bounded Restricted preview. They do not establish large-army performance, a Web client, a 100 ms profile, symmetric 150 ms RTT, or a full two-device native GUI battle. The impaired session placed two logical clients in one Linux container; it was not a separate-device test. The model stays provisional for broader invitation.
 
+The current 162-entity scale fixture matched a macOS/native-ARM64 state hash, but the native VM under the live 0.75 CPU cap missed the declared 12/8 ms route/tick p95 budgets at 37.036/30.656 ms. A disposable 1.5 CPU diagnostic still missed at 12.275/17.332 ms. The 82-entity case also missed under the live cap; the nine-entity case passed. This is a concrete scale gate failure, not a divergence. See the [remote QA measurements](../multiplayer-remote-qa-2026-10-20.md#native-large-army-performance-gate). Keep the one-authority model for current small-match internal QA, and resolve performance or explicitly narrow the Restricted army scope before a second-person invitation.
+
 ## Next decision gate
 
 Before an external invitation or declaring Sprint 1 complete, benchmark a representative four-resource, fogged, large-army match on native macOS and Linux and check Web joining. Include reconnect, command bursts, baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss. Record tick CPU, worker memory, network volume, command acknowledgement delay, divergence count and first divergent tick. Revisit this ADR with those measurements and a real player/device target. Keep the server admission flag off outside bounded internal tests until the gate passes.

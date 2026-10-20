@@ -23,13 +23,25 @@ This is builder evidence for the owner-only Restricted preview. It does not clos
 
 The server created one terminal record for each completed session, with two participant results and a 64-character record hash. No completion record was created for the expired recovery session. These are server records; the existing ingest still treats client reports as `client_reported` and none of this traffic establishes public retention or an eligible cohort.
 
+## Native large-army performance gate
+
+The existing `game/tests/skirmish_scale_benchmark.gd` fixture was rerun on the current reviewed image, with its synthetic 48×48 map, 162 entities, 800 ordered moves and 300 ticks. Godot 4.7.2 produced the **same** final hash on macOS and native VM Linux ARM64: `d908d43b4e32fb873bdb3041e0f4d4c8796fc41a46853e57d6601a5524457ffa`. The declared p95 route/tick budgets are 12/8 ms.
+
+| Environment | Route p95 | Tick p95 | Budget result |
+| --- | ---: | ---: | --- |
+| Apple M2 Max, macOS, headless debug | 6.424 ms | 7.427 ms | Both pass |
+| Oracle ARM64 VM, same image, 768 MiB / **0.75 CPU** live service cap in a disposable container | 37.036 ms | 30.656 ms | Both fail |
+| Same VM/image, 768 MiB / **1.5 CPU** diagnostic cap in a disposable container | 12.275 ms | 17.332 ms | Both fail |
+
+At the live 0.75 CPU cap, the 82-entity crowded case also failed its 6/4 ms route/tick budgets (13.656/10.118 ms); the nine-entity baseline passed. The diagnostic 1.5 CPU run did not change the live service. This fixture uses a synthetic map larger than the shipped La Roma map and measures local rules, not network command or render latency. It reveals a **failed declared scale gate**, so no claim of representative large-army reliability or external invitation follows from the successful small-match smokes. A measured optimization or explicitly narrowed Restricted army limit needs a product decision and repeatable evidence.
+
 ## Restricted client artifact
 
 The signed macOS export from `834295f3e0f9` is `preview-834295f3e0f9`, archive `dist/alpha/battle-for-la-roma-preview-834295f3e0f9-macos.zip`, SHA-256 `d95ba318d60d90ef256149ebd37448b735f8e98ba0f6edc2e1fc961895fb034a`. Full export QA and strict local code-signature verification passed. It was uploaded to the owner-only itch channel `danybgoode/battle-for-la-roma:mac-private-alpha` as Butler build `#2171274`. The anonymous page returned 404 before upload. At this record's initial writing, Butler was still processing the build; a ready channel, independent fetch, downloaded signature/startup check and owner walkthrough must be recorded separately before accepting it.
 
 ## Open acceptance checks
 
-- Representative large-army matrix across macOS, native Linux and Web, including baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss, with pinned command bursts, first divergence, CPU, memory and bandwidth.
+- Resolve the failed native ARM64 large-army p95 gate, then complete the network matrix across macOS, native Linux and Web, including baseline, 100 ms RTT and symmetric 150 ms RTT/1% loss, with pinned command bursts, first divergence, CPU, memory and bandwidth.
 - Full native macOS/Linux two-player terminal match, both baseline and impaired, from separate client processes/devices. Repeat an in-window reconnect and a post-terminal retry.
 - Download the processed owner build, verify signature and startup independently, then run the numbered visual walkthrough for playback/pause, bad replay handling, no-result wording, excluded in-app outbox receipt and revocation.
 - Product owner repeats the walkthrough blind before any second-person invitation. No later-day completion baseline exists.
