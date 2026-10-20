@@ -1,0 +1,23 @@
+{
+  "fixture": "game/tests/skirmish_scale_benchmark.gd",
+  "fixture_sha256": "fd7df2c78dd18bcfc4c9cd889370c7c82e6230908c7176a60993efff2d8b3970",
+  "optimized_game_sha256": "86963c52266708041306bad41470e9cb9b0523b6f3b1c5021a0678c5caaf6809",
+  "measurement_method": "Optimized game source and fixture copied to Oracle ARM64 VM and bind-mounted read-only over aomx-match:834295f in disposable Godot 4.7.2 containers. Network disabled, root filesystem read-only, 768 MiB, 64 PIDs, no capabilities. Live service was unchanged during measurement.",
+  "scenario": "large_army",
+  "map": "48x48",
+  "entities": 162,
+  "accepted_orders": 800,
+  "ticks": 300,
+  "route_p95_budget_ms": 12,
+  "tick_p95_budget_ms": 8,
+  "state_hash": "d908d43b4e32fb873bdb3041e0f4d4c8796fc41a46853e57d6601a5524457ffa",
+  "runs": [
+    {"source":"master 834295f","os":"Linux ARM64","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":37.036,"tick_p95_ms":30.656},
+    {"source":"optimized source","os":"Linux ARM64","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":5.237,"tick_p95_ms":14.017,"static_memory_bytes":29099184},
+    {"source":"optimized source","os":"Linux ARM64","cpu_cap":1.0,"pace_ms":0,"route_p95_ms":5.229,"tick_p95_ms":4.17,"static_memory_bytes":29099184},
+    {"source":"optimized source","os":"Linux ARM64","cpu_cap":1.5,"pace_ms":0,"route_p95_ms":5.235,"tick_p95_ms":4.195,"static_memory_bytes":29099184},
+    {"source":"optimized source before visibility-signature change","os":"Linux ARM64","cpu_cap":0.75,"pace_ms":100,"route_p95_ms":5.3,"tick_p95_ms":6.53,"static_memory_bytes":29084156},
+    {"source":"optimized source","os":"macOS","cpu_cap":null,"pace_ms":0,"route_p95_ms":2.7,"tick_p95_ms":1.849,"static_memory_bytes":28231449}
+  ],
+  "interpretation": "The unchanged back-to-back 162-entity 12/8 ms gate passes at the proposed 1.0 CPU service cap. It still fails at the old 0.75 CPU cap. The final optimized source has not yet been deployed at the time of this record. The fixture is synthetic: it has no network, rendering, additional buildings or two-player latency."
+}

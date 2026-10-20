@@ -26,8 +26,12 @@ func _initialize() -> void:
 		quit(1)
 		return
 	var profile := OS.get_environment("AOMX_BENCH_PROFILE")
-	var cases: Array = LIVE_CAPACITY_CASES if profile.begins_with("live_capacity") else CASES
-	var pace_ms := 100 if profile == "live_capacity_paced" else 0
+	var cases: Array = CASES
+	if profile.begins_with("live_capacity"):
+		cases = LIVE_CAPACITY_CASES
+	elif profile == "large_army_paced":
+		cases = [CASES[2]]
+	var pace_ms := 100 if profile.ends_with("_paced") else 0
 	for settings in cases:
 		var definitions: Dictionary = loaded.data.duplicate(true)
 		definitions.map.width = settings.edge

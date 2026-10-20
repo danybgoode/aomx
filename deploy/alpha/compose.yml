@@ -66,7 +66,7 @@ services:
       - no-new-privileges:true
     pids_limit: 64
     mem_limit: 768m
-    cpus: 0.75
+    cpus: 1.0
     networks:
       aomx_proxy:
         aliases:

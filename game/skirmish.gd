@@ -15,6 +15,7 @@ const MAP_IDS := RulesContent.MAP_IDS
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const BUILDING_KINDS := ["command_post", "barracks", "depot", "housing", "registry"]
 const COMBAT_KINDS := ["melee", "ranged", "armored", "siege"]
+const ROUTE_STEPS := [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]
 const DRAW_TICK := 9000
 const RESOURCE_POS := {HUMAN: Vector2i(6, 4), COMPUTER: Vector2i(13, 15)}
 const BARRACKS_POS := {HUMAN: Vector2i(5, 6), COMPUTER: Vector2i(13, 11)}
@@ -50,6 +51,8 @@ var visible_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var explored_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var last_seen: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var sight_cache: Dictionary = {}
+var visibility_signature: PackedInt32Array = PackedInt32Array()
+var move_route_cache: Dictionary = {}
 var building_tiles: Dictionary = {}
 var projectiles: Array[Dictionary] = []
 var rng_state := 1
@@ -184,7 +187,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			if actor.kind not in COMBAT_KINDS or not target is Vector2i or not _walkable(target):
 				rejected.reason = "combat_unit_and_tile_required"
 			else:
-				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return tile == target)
+				var route := _route_to(actor.pos, target)
 				if route.is_empty() and actor.pos != target:
 					rejected.reason = "unreachable_tile"
 				else:
@@ -196,7 +199,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			if actor.kind in content.buildings or not target is Vector2i or not _walkable(target):
 				rejected.reason = "blocked_or_invalid_tile"
 			else:
-				var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return tile == target)
+				var route := _route_to(actor.pos, target)
 				if route.is_empty() and actor.pos != target:
 					rejected.reason = "unreachable_tile"
 				else:
@@ -398,6 +401,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 func tick() -> void:
 	if result != "":
 		return
+	move_route_cache.clear()
 	tick_number += 1
 	_tick_sources()
 	if ai_enabled and tick_number % int(_ai_profile().step_ticks) == 0:
@@ -411,6 +415,17 @@ func tick() -> void:
 	projectiles = projectiles.filter(func(p: Dictionary) -> bool: return int(p.arrival) > tick_number)
 	var ids: Array = entities.keys()
 	ids.sort()
+	# Movement checks many adjacent tiles in a crowded tick. Preserve the first
+	# live unit at each tile, as _unit_at does, and update this index on moves.
+	var occupied: Dictionary = {}
+	var stacked_tiles: Dictionary = {}
+	for unit_id in entities:
+		var unit: Dictionary = entities[unit_id]
+		if unit.hp > 0 and unit.kind in content.units:
+			if occupied.has(unit.pos):
+				stacked_tiles[unit.pos] = true
+			else:
+				occupied[unit.pos] = unit_id
 	for id in ids:
 		if not entities.has(id):
 			continue
@@ -418,7 +433,15 @@ func tick() -> void:
 		if entity.hp <= 0:
 			continue
 		if entity.kind in content.buildings:
+			var next_spawn_id := next_id
 			_tick_production(entity)
+			for spawned_id in range(next_spawn_id, next_id):
+				var spawned: Dictionary = entities[spawned_id]
+				if spawned.hp > 0 and spawned.kind in content.units:
+					if occupied.has(spawned.pos):
+						stacked_tiles[spawned.pos] = true
+					else:
+						occupied[spawned.pos] = spawned_id
 			continue
 		if entity.cooldown > 0:
 			entity.cooldown -= 1
@@ -434,18 +457,30 @@ func tick() -> void:
 			if tick_number % int(content.factions[factions[entity.side]].move_ticks) == 0:
 				if moved_ids.has(id):
 					continue
-				var occupied_by := _unit_at(entity.path[0])
+				var occupied_by := int(occupied.get(entity.path[0], -1))
 				if occupied_by != -1 and occupied_by != id and entities[occupied_by].side == entity.side and not moved_ids.has(occupied_by) and not entities[occupied_by].path.is_empty() and entities[occupied_by].path[0] == entity.pos:
 					var old_pos: Vector2i = entity.pos
 					entity.pos = entity.path.pop_front()
 					entities[occupied_by].pos = old_pos
 					entities[occupied_by].path.pop_front()
+					occupied[entity.pos] = _unit_at(entity.pos) if stacked_tiles.has(entity.pos) else id
+					occupied[old_pos] = _unit_at(old_pos) if stacked_tiles.has(old_pos) else occupied_by
 					entity.blocked_ticks = 0
 					entities[occupied_by].blocked_ticks = 0
 					moved_ids[id] = true
 					moved_ids[occupied_by] = true
 				elif _walkable(entity.path[0]) and occupied_by == -1:
+					var old_pos: Vector2i = entity.pos
 					entity.pos = entity.path.pop_front()
+					if stacked_tiles.has(old_pos):
+						var remaining := _unit_at(old_pos)
+						if remaining == -1:
+							occupied.erase(old_pos)
+						else:
+							occupied[old_pos] = remaining
+					else:
+						occupied.erase(old_pos)
+					occupied[entity.pos] = id
 					entity.blocked_ticks = 0
 				elif _walkable(entity.path[0]):
 					entity.blocked_ticks += 3
@@ -618,11 +653,13 @@ func _add_entity(side: int, kind: String, pos: Vector2i) -> int:
 	return id
 
 func _occupy_building(at: Vector2i) -> void:
+	move_route_cache.clear()
 	for offset in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i(1, 1)]:
 		var tile: Vector2i = at + offset
 		building_tiles[tile] = int(building_tiles.get(tile, 0)) + 1
 
 func _release_building(at: Vector2i) -> void:
+	move_route_cache.clear()
 	for offset in [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.DOWN, Vector2i(1, 1)]:
 		var tile: Vector2i = at + offset
 		var remaining := int(building_tiles.get(tile, 0)) - 1
@@ -632,6 +669,8 @@ func _release_building(at: Vector2i) -> void:
 			building_tiles.erase(tile)
 
 func rebuild_navigation() -> void:
+	move_route_cache.clear()
+	visibility_signature.clear()
 	building_tiles.clear()
 	for e in entities.values():
 		if e.kind in content.buildings and e.hp > 0:
@@ -1289,20 +1328,31 @@ func is_explored(side: int, tile: Vector2i) -> bool:
 	return explored_tiles[side].has(tile)
 
 func _refresh_visibility() -> void:
-	visible_tiles = {HUMAN: {}, COMPUTER: {}}
 	var ids: Array = entities.keys()
 	ids.sort()
+	var signature := PackedInt32Array()
 	for id in ids:
 		var observer: Dictionary = entities[id]
 		if observer.hp <= 0:
 			continue
-		var side: int = observer.side
 		var radius := 7 if elevated_tiles.has(observer.pos) else 5
 		if observer.kind in content.buildings:
 			radius = 6
-		for tile in _sight_for(observer.pos, radius):
-			visible_tiles[side][tile] = true
-			explored_tiles[side][tile] = true
+		signature.append_array(PackedInt32Array([id, observer.side, observer.pos.x, observer.pos.y, radius]))
+	if signature != visibility_signature:
+		visibility_signature = signature
+		visible_tiles = {HUMAN: {}, COMPUTER: {}}
+		for id in ids:
+			var observer: Dictionary = entities[id]
+			if observer.hp <= 0:
+				continue
+			var side: int = observer.side
+			var radius := 7 if elevated_tiles.has(observer.pos) else 5
+			if observer.kind in content.buildings:
+				radius = 6
+			var sight: Dictionary = _sight_for(observer.pos, radius)
+			visible_tiles[side].merge(sight, true)
+			explored_tiles[side].merge(sight, true)
 	for side in [HUMAN, COMPUTER]:
 		for id in ids:
 			var e: Dictionary = entities[id]
@@ -1319,16 +1369,16 @@ func _visible_enemy_ids(side: int) -> Array:
 			observed.append(id)
 	return observed
 
-func _sight_for(origin: Vector2i, radius: int) -> Array[Vector2i]:
+func _sight_for(origin: Vector2i, radius: int) -> Dictionary:
 	var key := Vector3i(origin.x, origin.y, radius)
 	if sight_cache.has(key):
 		return sight_cache[key]
-	var points: Array[Vector2i] = []
+	var points: Dictionary = {}
 	for y in range(maxi(0, origin.y - radius), mini(map_height, origin.y + radius + 1)):
 		for x in range(maxi(0, origin.x - radius), mini(map_width, origin.x + radius + 1)):
 			var tile := Vector2i(x, y)
 			if _distance(origin, tile) <= radius and _line_visible(origin, tile):
-				points.append(tile)
+				points[tile] = true
 	sight_cache[key] = points
 	return points
 
@@ -1430,6 +1480,14 @@ func _perimeter(at: Vector2i) -> Array[Vector2i]:
 		at + Vector2i(1, -1), at + Vector2i(2, 0), at + Vector2i(2, 1),
 		at + Vector2i(0, 2), at + Vector2i(1, 2)]
 
+func _route_to(from: Vector2i, target: Vector2i) -> Array[Vector2i]:
+	var key := Vector4i(from.x, from.y, target.x, target.y)
+	if move_route_cache.has(key):
+		return move_route_cache[key].duplicate()
+	var route := _route_until(from, func(tile: Vector2i) -> bool: return tile == target)
+	move_route_cache[key] = route
+	return route.duplicate()
+
 func _route_until(from: Vector2i, condition: Callable, avoid_occupied: bool = false) -> Array[Vector2i]:
 	var empty: Array[Vector2i] = []
 	if condition.call(from):
@@ -1440,9 +1498,9 @@ func _route_until(from: Vector2i, condition: Callable, avoid_occupied: bool = fa
 	while index < queue.size():
 		var tile: Vector2i = queue[index]
 		index += 1
-		for step in [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]:
+		for step in ROUTE_STEPS:
 			var next: Vector2i = tile + step
-			if _walkable(next) and (not avoid_occupied or _unit_at(next) == -1) and not parent.has(next):
+			if not parent.has(next) and _walkable(next) and (not avoid_occupied or _unit_at(next) == -1):
 				parent[next] = tile
 				if condition.call(next):
 					var route: Array[Vector2i] = []

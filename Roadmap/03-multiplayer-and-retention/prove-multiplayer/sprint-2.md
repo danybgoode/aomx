@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** 🔧 In progress; a capped ARM64 host and durable TLS route are deployed. A baseline scripted match and a separate Linux netem scripted match reached authoritative terminal records; a native macOS/Linux pair exercised reconnect and 60-second no-result expiry. The separate-device native GUI full-match and declared symmetric network profile remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🔧 In progress; a capped ARM64 host and durable TLS route are deployed. Baseline scripted, Linux netem scripted and cross-OS Godot scripted matches reached authoritative terminal records; the native macOS/Linux pair also exercised reconnect and 60-second no-result expiry. The separate-device native GUI walkthrough and declared symmetric network profile remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 

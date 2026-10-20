@@ -30,7 +30,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** 🔧 In progress; both participant replay streams verified every frame of two completed remote matches with fog redacted. The server stored one terminal record per match, retention and withdrawal controls passed review, and an owner-only signed build was uploaded. Independent download, in-app excluded receipt and the blind owner walkthrough remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🔧 In progress; both participant replay streams verified every frame of three completed remote matches with fog redacted, including a terminal macOS/Linux Godot pair. The server stored one terminal record per match, retention and withdrawal controls passed review, and an owner-only signed build was uploaded. The optimized 162-entity gate passed in a disposable ARM64 container at a proposed 1.0 CPU cap; deployment, independent download, in-app excluded receipt and the blind owner walkthrough remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 
