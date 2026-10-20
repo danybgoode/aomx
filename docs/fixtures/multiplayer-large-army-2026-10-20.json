@@ -15,9 +15,10 @@
     {"source":"master 834295f","os":"Linux ARM64","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":37.036,"tick_p95_ms":30.656},
     {"source":"optimized source","os":"Linux ARM64","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":5.237,"tick_p95_ms":14.017,"static_memory_bytes":29099184},
     {"source":"optimized source","os":"Linux ARM64","cpu_cap":1.0,"pace_ms":0,"route_p95_ms":5.229,"tick_p95_ms":4.17,"static_memory_bytes":29099184},
+    {"source":"merged image aomx-match:2ad3d65","os":"Linux ARM64","cpu_cap":1.0,"pace_ms":0,"route_p95_ms":5.2,"tick_p95_ms":4.124,"static_memory_bytes":29098200},
     {"source":"optimized source","os":"Linux ARM64","cpu_cap":1.5,"pace_ms":0,"route_p95_ms":5.235,"tick_p95_ms":4.195,"static_memory_bytes":29099184},
     {"source":"optimized source before visibility-signature change","os":"Linux ARM64","cpu_cap":0.75,"pace_ms":100,"route_p95_ms":5.3,"tick_p95_ms":6.53,"static_memory_bytes":29084156},
     {"source":"optimized source","os":"macOS","cpu_cap":null,"pace_ms":0,"route_p95_ms":2.7,"tick_p95_ms":1.849,"static_memory_bytes":28231449}
   ],
-  "interpretation": "The unchanged back-to-back 162-entity 12/8 ms gate passes at the proposed 1.0 CPU service cap. It still fails at the old 0.75 CPU cap. The final optimized source has not yet been deployed at the time of this record. The fixture is synthetic: it has no network, rendering, additional buildings or two-player latency."
+  "interpretation": "The unchanged back-to-back 162-entity 12/8 ms gate passes directly in the merged image at the deployed 1.0 CPU service cap. It still fails at the old 0.75 CPU cap. The fixture is synthetic: it has no network, rendering, additional buildings or two-player latency."
 }
