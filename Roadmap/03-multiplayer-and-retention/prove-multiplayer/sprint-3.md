@@ -3,7 +3,7 @@ epic: prove-multiplayer
 sprint: 3
 title: "Replay result integrity and acceptance"
 risk: high
-phase: Shaping
+phase: Restricted host QA
 stories_total: 3
 stories:
   - id: S3.1
@@ -12,25 +12,25 @@ stories:
     i_want: "a compatible post-match playback"
     so_that: "I can review the same battle and result"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Keep online results auditable"
     as_a: "operator"
     i_want: "server and client outcomes reconciled"
     so_that: "forged or duplicate results never inflate measurement"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.3
     title: "Accept the Restricted build and host"
     as_a: "product owner"
     i_want: "a downloaded two-client walkthrough"
     so_that: "I know what actually works before any wider invitation"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** ⬜ Planned; local replay and result exclusion checks exist, remote acceptance awaits a verified shared match.
+**Status:** 🔧 In progress; both participant replay streams verified every frame of three completed remote matches with fog redacted, including a terminal macOS/Linux Godot pair. The server stored one terminal record per match, retention and withdrawal controls passed review, and an owner-only signed build was uploaded. The optimized 162-entity gate passed in a disposable ARM64 container at a proposed 1.0 CPU cap; deployment, independent download, in-app excluded receipt and the blind owner walkthrough remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 

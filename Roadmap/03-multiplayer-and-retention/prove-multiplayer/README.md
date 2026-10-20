@@ -1,6 +1,6 @@
 ---
 status: in-progress
-phase: Local prototype QA
+phase: Restricted host QA
 slug: prove-multiplayer
 title: "Prove multiplayer and replays"
 area: 03-multiplayer-and-retention
@@ -36,7 +36,7 @@ build_order: 14
 
 # Epic: Prove multiplayer and replays
 
-**Current state (2026-10-20):** The local invite-only authority and participant replay prototype is implemented and independently reviewed. [Measured local evidence](../../../docs/multiplayer-prototype-evidence-2026-10-20.md) and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record its limits. The remote network matrix, host, signed download and two-device acceptance remain open. The admission flag is off in every environment.
+**Current state (2026-10-20):** The invite-only authority and participant replay prototype is deployed on the Restricted ARM64 host after independent review. [Local evidence](../../../docs/multiplayer-prototype-evidence-2026-10-20.md), [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md), and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the measured results and limits. Three remote scripted matches ended with one server record and verified participant replays; a macOS/Linux Godot pair completed one of those matches and separately tested recovery and expiry. A 50-entity profile at the current La Roma population cap passed native ARM64 p95 budgets at the live 100 ms pace. The unchanged synthetic 162-entity back-to-back gate now passes in a disposable ARM64 container with optimized game code and a proposed 1.0 CPU cap; review and deployment remain open. The earlier owner-only signed build was independently fetched, matched and started, but predates the optimization. The representative network matrix, impaired cross-OS match, updated downloaded build and owner acceptance remain open. Admission is off in every environment.
 
 > **Area:** 03 Multiplayer and retention · **Risk:** high · **Class:** Feature · **Scope:** [approved pitch](../../00-ideas/seeds/prove-multiplayer.md) · **Destination:** shared-and-authored-play
 

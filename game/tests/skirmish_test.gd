@@ -81,6 +81,18 @@ func _initialize() -> void:
 	cleared.tick()
 	check(not cleared.entities.has(blocker), "destroyed building removed")
 	check(cleared.issue(Skirmish.HUMAN, "move", attacker, Vector2i(13, 11)).ok, "destroyed footprint opens path")
+	var rerouted = Skirmish.new()
+	var reroute_worker := rerouted._find(Skirmish.HUMAN, "worker")
+	var origin: Vector2i = rerouted.entities[reroute_worker].pos
+	var destination := Vector2i(15, 8)
+	var first_route: Array[Vector2i] = rerouted._route_to(origin, destination)
+	check(first_route.size() > 2, "route fixture reaches distant tile")
+	if first_route.size() > 2:
+		var blocked_tile: Vector2i = first_route[1]
+		rerouted._add_entity(Skirmish.HUMAN, "barracks", blocked_tile)
+		var alternate: Array[Vector2i] = rerouted._route_to(origin, destination)
+		check(not alternate.is_empty() and blocked_tile not in alternate,
+			"new building invalidates a same-tick move route")
 	var replay_a = Skirmish.new()
 	var replay_b = Skirmish.new()
 	for copy in [replay_a, replay_b]:

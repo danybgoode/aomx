@@ -1,0 +1,28 @@
+{
+  "game_source_commit": "834295f3e0f9ac22070b9e855ef2ae3c5c77d1a9",
+  "fixture_commit": "c7c7cfc",
+  "fixture_sha256": "f500f7279d1cd218005a2ea65763e00df1a250df56837ceb714d1b47478058f4",
+  "fixture_delivery_to_vm": "The newer fixture was copied to /tmp/aomx-capacity-benchmark-20261020.gd and bind-mounted read-only over /app/game/tests/skirmish_scale_benchmark.gd in the older image. Game code and Godot binary stayed at 834295f.",
+  "image": "aomx-match:834295f",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "fixture": "game/tests/skirmish_scale_benchmark.gd",
+  "profile": "live_capacity",
+  "map": "28x28",
+  "population_max_per_side": 24,
+  "entities": 50,
+  "accepted_orders": 500,
+  "ticks": 300,
+  "route_p95_budget_ms": 12,
+  "tick_p95_budget_ms": 8,
+  "state_hash": "ab970c0fcdcd8f5b5f735ba3ca04d01c7d52300118d22c08e7613068f8ac6578",
+  "runs": [
+    {"os":"macOS","device":"Apple M2 Max","cpu_cap":null,"pace_ms":0,"route_p95_ms":1.926,"tick_p95_ms":1.987,"static_memory_bytes":26676758},
+    {"os":"Linux ARM64","device":"Oracle VM","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":4.009,"tick_p95_ms":27.664,"static_memory_bytes":27540625},
+    {"os":"Linux ARM64","device":"Oracle VM","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":3.724,"tick_p95_ms":26.656,"static_memory_bytes":27540625},
+    {"os":"Linux ARM64","device":"Oracle VM","cpu_cap":0.75,"pace_ms":0,"route_p95_ms":4.155,"tick_p95_ms":23.779,"static_memory_bytes":27540625},
+    {"os":"Linux ARM64","device":"Oracle VM","cpu_cap":1.5,"pace_ms":0,"route_p95_ms":3.697,"tick_p95_ms":4.353,"static_memory_bytes":27540625},
+    {"os":"macOS","device":"Apple M2 Max","cpu_cap":null,"pace_ms":100,"route_p95_ms":1.935,"tick_p95_ms":3.741,"static_memory_bytes":26678254},
+    {"os":"Linux ARM64","device":"Oracle VM","cpu_cap":0.75,"pace_ms":100,"route_p95_ms":3.738,"tick_p95_ms":4.8,"static_memory_bytes":27542177}
+  ],
+  "limitations": "One process with deterministic scripted orders, no network or rendering. The population cap counts units; additional buildings can raise total entities. Pacing targets 100 ms between tick starts."
+}

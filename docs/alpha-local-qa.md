@@ -1,5 +1,11 @@
 # Private alpha: local macOS download QA
 
+## Restricted multiplayer owner preview · 2026-10-20
+
+The signed owner-only `mac-private-alpha` upload is `preview-834295f3e0f9` from reviewed `master` `834295f3e0f9` (Butler build `#2171274`). The source archive SHA-256 is `d95ba318d60d90ef256149ebd37448b735f8e98ba0f6edc2e1fc961895fb034a`. Full export QA and strict local code-signature verification passed. Butler was still processing the new build at this record's initial writing. The anonymous itch page returned 404 before upload. Wait for build `#2171274` to report ready, then fetch and verify the extracted app independently before counting it as a download.
+
+The ARM64 Restricted match service is healthy behind TLS and its admission flag is off again in all environments. Two remote scripted matches and native cross-OS reconnect/expiry evidence are recorded in [multiplayer remote QA](multiplayer-remote-qa-2026-10-20.md). All internal codes used for those runs were revoked. For a fresh owner run, issue **two new, separate scoped codes**, follow the [six-step Sprint 3 walkthrough](../Roadmap/03-multiplayer-and-retention/prove-multiplayer/sprint-3.md#sprint-3--smoke-walkthrough), and record the actual build, OS, match IDs, outcomes, replay behavior and excluded in-app receipt. The operator may turn the preview admission flag on only for that bounded run and must turn it off and revoke both codes afterward. No external invitation or public cohort is authorized by this record.
+
 ## World expansion owner preview · 2026-10-19
 
 The new Restricted `mac-private-alpha` upload is `preview-d6982a32f217` (Butler build `#2163477`, `godot-4.7.2-skirmish-5` / `la-roma-world-5`). Its signed source ZIP SHA-256 is `4d3112f58a2766019d2e1af2658a0867f6e5a65e9b92ed90138456871b5a1c53`. [Gameplay PR #53](https://github.com/danybgoode/aomx/pull/53) and [board PR #54](https://github.com/danybgoode/aomx/pull/54) merged; the archive was exported from final `master` `d6982a32f217`. Butler is still processing this build; fetch only when the channel reports it ready. The page returned 404 anonymously before upload.
