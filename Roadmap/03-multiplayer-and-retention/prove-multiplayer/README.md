@@ -24,7 +24,7 @@ verdict_evidence: null
 verdict_at: null
 persona: "Classic RTS players who want to finish a shared match with a friend and review what happened."
 grounded: false
-grounded_reason: "No eligible player cohort, repeat-play baseline, multiplayer demand or live network match exists yet; this is a feasibility bet before a retention target."
+grounded_reason: "Internal scripted remote matches now exist, but no eligible player cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
 flag_key: multiplayer.private_match_enabled
 target_segment: null
 adopted_event: null
@@ -36,7 +36,7 @@ build_order: 14
 
 # Epic: Prove multiplayer and replays
 
-**Current state (2026-10-20):** The invite-only authority and participant replay prototype is deployed on the Restricted ARM64 host as merged `master` `2ad3d65`, after prior independent authority/data review and green CI for [PR #59](https://github.com/danybgoode/aomx/pull/59). [Local evidence](../../../docs/multiplayer-prototype-evidence-2026-10-20.md), [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md), and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the measurements and limits. Four remote scripted matches ended with one server record and verified participant replays; a macOS/Linux Godot pair completed two of them and separately tested recovery and expiry. The unchanged synthetic 162-entity back-to-back gate passed directly in the deployed ARM64 image at its 1.0 CPU cap with the original state hash. The signed `preview-2ad3d65a3d80` owner build was uploaded and is processing; the prior build was independently fetched, matched and started. The representative impaired network matrix, new downloaded-build check and owner acceptance remain open. Admission is off in every environment.
+**Current state (2026-10-20):** The invite-only authority and participant replay prototype is deployed on the Restricted ARM64 host as merged `master` `2ad3d65`, after prior independent authority/data review and green CI for [PR #59](https://github.com/danybgoode/aomx/pull/59). [Local evidence](../../../docs/multiplayer-prototype-evidence-2026-10-20.md), [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md), and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the measurements and limits. Five remote scripted matches ended with one server record and verified participant replays; a macOS/Linux Godot pair completed three, including one with 150 ms egress delay and 1% loss on Linux, and separately tested recovery and expiry. The unchanged synthetic 162-entity back-to-back gate passed directly in the deployed ARM64 image at its 1.0 CPU cap with the original state hash. The signed `preview-2ad3d65a3d80` owner build was independently fetched, matched byte for byte, signature-checked, started and rendered. The representative symmetric network matrix, full downloaded-build walkthrough and owner acceptance remain open. Admission is off in every environment.
 
 > **Area:** 03 Multiplayer and retention · **Risk:** high · **Class:** Feature · **Scope:** [approved pitch](../../00-ideas/seeds/prove-multiplayer.md) · **Destination:** shared-and-authored-play
 
