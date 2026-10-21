@@ -157,7 +157,7 @@ func _ready() -> void:
 	replay_button = Button.new()
 	replay_button.text = "Watch replay"
 	replay_button.visible = false
-	replay_button.position = Vector2(12, 54)
+	replay_button.position = Vector2(254, 72)
 	replay_button.pressed.connect(_replay_action)
 	preload("res://ui/hud_skin.gd").apply_button(replay_button)
 	layer.add_child(replay_button)
@@ -401,6 +401,14 @@ func _layout_setup() -> void:
 	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	setup_panel.size = Vector2(minf(810, view.x - 24), minf(view.y - 24, 350.0 if mobile and landscape else (700.0 if mobile else 640.0)))
 	setup_panel.position = (view - setup_panel.size) * 0.5
+	if replay_button != null:
+		var objectives: Panel = hud_ui.objective_panel
+		var replay_x := objectives.position.x + objectives.size.x + 10.0
+		var replay_y := objectives.position.y
+		if replay_x + replay_button.get_combined_minimum_size().x > hud_ui.minimap.position.x - 8.0:
+			replay_x = objectives.position.x
+			replay_y = objectives.position.y + 112.0
+		replay_button.position = Vector2(replay_x, replay_y)
 	_apply_resize_zoom(view)
 	queue_redraw()
 
