@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** 🔧 In progress; the optimized `aomx-match:2ad3d65` ARM64 host at 1.0 CPU and durable TLS route are deployed. Baseline scripted, Linux netem scripted and two cross-OS Godot scripted matches reached authoritative terminal records; the native macOS/Linux pair also exercised reconnect and 60-second no-result expiry. The new cross-OS match verified both participant replays and an expired attempt left no terminal record. The downloaded native GUI walkthrough and declared symmetric network profile remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🔧 In progress; the optimized `aomx-match:e778c3f` ARM64 host at 1.0 CPU and durable TLS route are deployed with admission off. Baseline scripted, Linux netem scripted and four cross-OS Godot scripted matches reached authoritative terminal records on the matching game source; the native macOS/Linux pair also exercised reconnect and 60-second no-result expiry. The impaired cross-OS match applied 150 ms egress delay and 1% loss to the isolated Linux client; a later run imposed a two-way 100 ms path without loss. Both clients matched terminal hashes and verified every participant replay frame. An expired attempt left no terminal record. The fetched native app rendered and passed signature/startup checks; the full GUI owner walkthrough and declared symmetric network profile remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 

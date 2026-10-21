@@ -117,9 +117,12 @@ individual codes, slot binding and server-side validation gate play. Rotate
 or revoke codes with the existing `alpha:invite` operator tool. A code
 revocation blocks future joins; it does not interrupt an already connected
 player. Toggle `multiplayer.private_match_enabled` in Golden Frijoles preview
-only for the bounded smoke, verify the served flag version, and turn it off
-before leaving the host unattended. Switching it off prevents new admissions
-while a connected match continues.
+only for the bounded smoke, verify the served flag version, then refresh the
+match process before testing a new admission: its flag provider can
+hold the previous snapshot. After the match finishes or expires, turn the flag
+off, restart the one-room process, and verify a current-version join returns
+`403 match_disabled` before leaving the host unattended. A flag switch itself
+does not interrupt an already connected match.
 
 Build the signed Restricted preview with `AOMX_MATCH_URL` set to the HTTPS
 origin and `AOMX_INGEST_URL` set to its `/v1/events` endpoint. Verify the

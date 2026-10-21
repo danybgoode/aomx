@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 1: Model and session contract
 
-**Status:** 🔧 In progress; the versioned, invite-bound contract passed local and Restricted-host tests. Native macOS/Linux join and recovery and an impaired scripted terminal passed. A 50-entity population-cap profile matched hashes and passed the native ARM64 route/tick budgets at 100 ms pacing; synthetic 162-entity back-to-back stress failed. Web and the 100 ms/symmetric 150 ms network matrix remain open. See [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🔧 In progress; the versioned, invite-bound contract passed local and Restricted-host tests. Native macOS/Linux join, recovery and terminal matches and an impaired Linux scripted terminal passed. The 50-entity population-cap profile matched hashes at 100 ms pacing, and the unchanged synthetic 162-entity back-to-back gate passed directly in the deployed ARM64 image at its 1.0 CPU cap. A scripted native cross-OS terminal also passed an imposed two-way 100 ms Linux path without loss. Web feasibility and the representative symmetric 150 ms/1% loss network matrix remain open. See [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 
