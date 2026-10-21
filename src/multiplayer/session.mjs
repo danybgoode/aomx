@@ -71,6 +71,9 @@ export class MatchSession {
         init.game_version !== SkirmishVersions.game) throw new Error('match_init_version_mismatch');
       this.lastState = init;
       this.checkpoints.push({ tick: 0, hash: init.hash });
+      // Time spent waiting for an opponent is not part of the reconnect window.
+      const startedAt = this.now();
+      for (const slot of this.slots) slot.lastSeen = startedAt;
       this.status = 'playing';
       this.interval = setInterval(() => this.tick().catch(() => this.#expire('worker_unavailable')), this.tickMs);
       this.interval.unref?.();

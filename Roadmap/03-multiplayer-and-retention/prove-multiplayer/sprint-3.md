@@ -30,7 +30,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** 🔧 In progress; both participant replay streams verified every frame of six completed remote matches with fog redacted, including four terminal macOS/Linux Godot pairs. The server stored one terminal record per match, retention and withdrawal controls passed review, and the signed owner build was independently downloaded, matched, signature-checked, started and rendered. The unchanged 162-entity gate passed directly in the final ARM64 image at its 1.0 CPU cap. The owner's first join exposed a revoked-code rotation bug; PRs #62–#63 and migration 006 are deployed, but the owner has not retried the GUI path. Full downloaded-build replay and no-result walkthroughs, an in-app excluded receipt and the blind owner walkthrough remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🔧 In progress; the owner completed a downloaded macOS GUI match against a separate Linux Godot client, observed movement, gathering, building, training, victory, full replay, pause/resume and synced audit events. The server saved one two-participant terminal record and excluded both owner match events from public metrics. The first attempt exposed a waiting-room timer bug: after more than 60 seconds waiting, the match expired at tick 0 as soon as player two joined. The app also folds excluded receipts into a generic synced count. Fix those two paths and repeat their focused smoke; owner-visible reconnect/expiry and revocation checks, bad replay handling and the representative network matrix remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 
@@ -59,6 +59,8 @@ stories:
 **Risk:** high — Restricted release and external access; owner acceptance and second review.
 
 ## Sprint QA
+
+**QA repair scope (2026-10-21):** Start the 60-second reconnect clock when the second participant actually starts the match; a long waiting-room stay must not consume it. Keep the existing 60-second no-result expiry after play begins. Show excluded receipts separately from accepted syncs in the app's diagnostics using the persisted receipt status. Verify a delayed second join and in-play expiry in the session specs, then check a new signed downloaded build and live preview host before closing the owner walkthrough. Neither repair changes game rules or public eligibility.
 
 - **Specs:** multiplayer replay version/limits/hash, participant fog, both-side outcome, ingest duplicate/forged/test exclusion and client/server contract checks.
 - **Rendered smoke owed:** signed download from the Restricted owner channel, separate macOS/Linux clients and remote host. Owner repeats join, match, reconnect and playback blind from the steps below.

@@ -193,6 +193,24 @@ test('60-second expiry gives no result to a returning participant', async () => 
   session.close();
 });
 
+test('a long wait for the second invite does not consume the in-play reconnect window', async () => {
+  const { session, join, setTime, store } = setup();
+  const first = await join(CODE_A, PLAYER_A);
+  setTime(121001);
+  const second = await join(CODE_B, PLAYER_B);
+  assert.equal(first.status, 'waiting');
+  assert.equal(second.status, 'playing');
+  await session.tick();
+  assert.equal(session.status, 'playing');
+  assert.equal((await session.state(first.token)).status, 'playing');
+  setTime(181002);
+  await session.tick();
+  assert.equal(session.status, 'no_result');
+  assert.equal(session.terminal.reason, 'reconnect_expired');
+  assert.equal(store.records.size, 0);
+  session.close();
+});
+
 test('admission flag closes new sessions without claiming codes', async () => {
   const { join, store, session } = setup({ enabled: false });
   assert.equal((await join(CODE_A, PLAYER_A)).reason, 'match_disabled');
