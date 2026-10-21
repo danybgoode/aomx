@@ -30,7 +30,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** 🔧 In progress; both participant replay streams verified every frame of five completed remote matches with fog redacted, including three terminal macOS/Linux Godot pairs. The server stored one terminal record per match, retention and withdrawal controls passed review, and the signed owner build was independently downloaded, matched, signature-checked, started and rendered. The unchanged 162-entity gate passed directly in the deployed ARM64 image at its 1.0 CPU cap. Full downloaded-build replay and no-result walkthroughs, an in-app excluded receipt and the blind owner walkthrough remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🔧 In progress; both participant replay streams verified every frame of six completed remote matches with fog redacted, including four terminal macOS/Linux Godot pairs. The server stored one terminal record per match, retention and withdrawal controls passed review, and the signed owner build was independently downloaded, matched, signature-checked, started and rendered. The unchanged 162-entity gate passed directly in the final ARM64 image at its 1.0 CPU cap. The owner's first join exposed a revoked-code rotation bug; PRs #62–#63 and migration 006 are deployed, but the owner has not retried the GUI path. Full downloaded-build replay and no-result walkthroughs, an in-app excluded receipt and the blind owner walkthrough remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
 
 ## Stories
 
