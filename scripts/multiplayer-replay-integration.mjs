@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { MemoryMatchStore } from '../src/multiplayer/store.mjs';
@@ -58,6 +58,7 @@ try {
   assert.equal(denied.ok, false);
   for (const stream of streams) {
     let last;
+    const frames = [];
     for (let frame_index = 0; frame_index < stream.frame_count; frame_index++) {
       const frame = await post('/v1/match/replay/frame', { frame_index }, stream.replay_token);
       assert(frame.ok, JSON.stringify(frame));
@@ -68,10 +69,24 @@ try {
       assert.deepEqual(frame.state.last_seen[1 - stream.side], []);
       assert.deepEqual(frame.state.researched[1 - stream.side], []);
       assert(Object.values(frame.state.balances[1 - stream.side]).every(value => value === 0));
+      frames.push(frame);
       last = frame;
     }
     assert.equal(last.tick, replay.end_tick);
     assert.deepEqual(last.terminal.results, replay.terminal.results);
+    const participantFixture = join(dir, `participant-${stream.side}.json`);
+    writeFileSync(participantFixture, JSON.stringify({
+      format: 'battle-for-la-roma-participant-replay', replay_schema_version: 1,
+      match_id: replay.match_id, side: stream.side, game_version: replay.game_version,
+      content_version: replay.content_version, content_hash: replay.content_hash,
+      map_id: replay.map_id, end_tick: replay.end_tick, terminal: replay.terminal, frames
+    }));
+    const fileCheck = spawnSync(godotBin, ['--headless', '--path', resolve('game'),
+      '--script', 'res://tests/participant_replay_file_test.gd'], {
+      env: { ...process.env, AOMX_TEST_PARTICIPANT_SOURCE: participantFixture,
+        AOMX_TEST_PARTICIPANT_OUTPUT: join(dir, `saved-${stream.side}.json`) },
+      encoding: 'utf8' });
+    assert.equal(fileCheck.status, 0, fileCheck.stdout + fileCheck.stderr);
   }
   for (let side = 0; side < 2; side++) {
     const native = spawn(godotBin, ['--headless', '--path', resolve('game'),

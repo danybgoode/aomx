@@ -8,6 +8,7 @@ const BattleHud = preload("res://ui/battle_hud.gd")
 const MatchSave = preload("res://skirmish_persistence.gd")
 const MultiplayerClient = preload("res://multiplayer_client.gd")
 const MultiplayerState = preload("res://multiplayer_state.gd")
+const ParticipantReplay = preload("res://participant_replay.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -46,9 +47,13 @@ var setup_note: Label
 var setup_save_error: Label
 var setup_online_code: LineEdit
 var setup_online_button: Button
+var setup_replay_button: Button
+var replay_file_dialog: FileDialog
 var online_client: Node
 var online := false
 var online_side := -1
+var offline_replay := false
+var replay_recording: Dictionary = {}
 var replay_active := false
 var replay_frame_index := -1
 var replay_frame_count := 0
@@ -143,6 +148,12 @@ func _ready() -> void:
 	hover_hint.add_theme_color_override("font_color", Color("ffe391"))
 	layer.add_child(hover_hint)
 	_build_faction_setup(layer)
+	replay_file_dialog = FileDialog.new()
+	replay_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	replay_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	replay_file_dialog.add_filter("*.json", "Battle for La Roma replay")
+	replay_file_dialog.file_selected.connect(_open_replay_file)
+	add_child(replay_file_dialog)
 	replay_button = Button.new()
 	replay_button.text = "Watch replay"
 	replay_button.visible = false
@@ -209,7 +220,7 @@ func _audio_changed(persist: bool = true) -> void:
 		file.store_string(JSON.stringify({"muted": hud_ui.sound_mute.button_pressed, "volume": hud_ui.sound_volume.value}))
 
 func _toggle_pause() -> void:
-	if online:
+	if online or offline_replay:
 		if replay_active:
 			paused = not paused
 			replay_button.text = "Play replay" if paused else "Pause replay"
@@ -223,7 +234,7 @@ func _toggle_pause() -> void:
 func _restart_match() -> void:
 	if choosing_faction:
 		return
-	if online:
+	if online or offline_replay:
 		_show_setup()
 		return
 	selected_map = sim.map_id
@@ -342,6 +353,12 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_online_button.pressed.connect(_join_online_match)
 	preload("res://ui/hud_skin.gd").apply_button(setup_online_button)
 	column.add_child(setup_online_button)
+	setup_replay_button = Button.new()
+	setup_replay_button.text = "Open saved private replay"
+	setup_replay_button.custom_minimum_size.y = 50
+	setup_replay_button.pressed.connect(_choose_replay_file)
+	preload("res://ui/hud_skin.gd").apply_button(setup_replay_button)
+	column.add_child(setup_replay_button)
 	var note := Label.new()
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
@@ -368,7 +385,7 @@ func _layout_setup() -> void:
 	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
 	setup_veracruzanos.text = "VERACRUZANOS  •  move faster; lighter buildings" if mobile else "Veracruzanos — faster movement and trade income; lighter buildings"
 	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
-	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_online_button]:
+	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_online_button, setup_replay_button]:
 		b.custom_minimum_size.y = 48 if mobile else 52
 		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
 	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
@@ -414,6 +431,8 @@ func _show_setup() -> void:
 		online_client.leave()
 	online = false
 	online_side = -1
+	offline_replay = false
+	replay_recording = {}
 	replay_active = false
 	replay_frame_index = -1
 	replay_frame_count = 0
@@ -450,6 +469,9 @@ func _choose_difficulty(index: int) -> void:
 	setup_difficulty_details.text = descriptions[selected_difficulty] + " Same rules and sight."
 
 func _save_match() -> void:
+	if offline_replay:
+		hud_ui.show_notice("A replay is read-only.")
+		return
 	if online:
 		hud_ui.show_notice("Private matches save on the host. Open the replay after the result.")
 		return
@@ -622,6 +644,12 @@ func _on_online_replay(response: Dictionary) -> void:
 	replay_active = true
 	replay_frame_index = -1
 	replay_frame_count = int(response.frame_count)
+	replay_recording = {"format": ParticipantReplay.FORMAT,
+		"replay_schema_version": ParticipantReplay.VERSION, "match_id": match_id,
+		"side": online_side, "game_version": Skirmish.GAME_VERSION,
+		"content_version": Skirmish.CONTENT_VERSION, "content_hash": sim.content_hash,
+		"map_id": sim.map_id, "end_tick": int(response.end_tick),
+		"terminal": response.terminal, "frames": []}
 	paused = false
 	accumulator = 0.0
 	replay_button.text = "Pause replay"
@@ -631,7 +659,7 @@ func _replay_action() -> void:
 	if replay_active:
 		paused = not paused
 		replay_button.text = "Play replay" if paused else "Pause replay"
-	else:
+	elif online:
 		online_client.request_replay()
 
 func _on_online_replay_frame(response: Dictionary) -> void:
@@ -643,18 +671,73 @@ func _on_online_replay_frame(response: Dictionary) -> void:
 		_on_online_problem("Replay state failed validation: " + str(loaded.reason))
 		return
 	replay_frame_index = int(response.frame_index)
+	if replay_recording.has("frames"):
+		replay_recording.frames.append(response.duplicate(true))
 	sim = loaded.game as Skirmish
 	_update_hud()
 	queue_redraw()
 	if replay_frame_index + 1 >= replay_frame_count:
 		paused = true
 		replay_button.text = "Replay finished"
+		var path := "user://replays/%s-side%d.json" % [match_id, online_side]
+		var saved := ParticipantReplay.write(replay_recording, path)
+		if saved.ok:
+			hud_ui.show_notice("Private replay saved. Open it from the faction screen.")
+		else:
+			hud_ui.show_notice("Replay could not be saved: %s." % str(saved.reason).replace("_", " "), true)
+
+func _choose_replay_file() -> void:
+	var directory := ProjectSettings.globalize_path("user://replays")
+	if DirAccess.dir_exists_absolute(directory):
+		replay_file_dialog.current_dir = directory
+	replay_file_dialog.popup_centered_ratio(0.8)
+
+func _open_replay_file(path: String) -> void:
+	var opened := ParticipantReplay.read(path)
+	if not opened.ok:
+		setup_save_error.text = "Replay could not load: %s. File kept." % str(opened.reason).replace("_", " ")
+		return
+	if online_client != null:
+		online_client.leave()
+	replay_recording = opened.recording
+	match_id = str(replay_recording.match_id)
+	online_side = int(replay_recording.side)
+	online = false
+	offline_replay = true
+	replay_active = true
+	replay_frame_index = -1
+	replay_frame_count = replay_recording.frames.size()
+	choosing_faction = false
+	setup_panel.hide()
+	paused = false
+	accumulator = 0.0
+	selected_id = -1
+	selected_ids.clear()
+	hud_ui.diagnostics.hide()
+	replay_button.show()
+	replay_button.text = "Pause replay"
+	_show_replay_file_frame(0)
+
+func _show_replay_file_frame(index: int) -> void:
+	var frame: Dictionary = replay_recording.frames[index]
+	var restored := MultiplayerState.restore_for_side(frame.state, match_id, online_side)
+	if not restored.ok:
+		paused = true
+		hud_ui.show_notice("Replay frame failed validation. File kept.", true)
+		return
+	replay_frame_index = index
+	sim = restored.game as Skirmish
+	_update_hud()
+	queue_redraw()
+	if index + 1 >= replay_frame_count:
+		paused = true
+		replay_button.text = "Replay finished"
 
 func _send_game_order(kind: String, actor_id: int, target: Variant) -> Dictionary:
+	if replay_active or offline_replay:
+		return {"ok": false, "reason": "replay_read_only"}
 	if not online:
 		return sim.issue(Skirmish.HUMAN, kind, actor_id, target)
-	if replay_active:
-		return {"ok": false, "reason": "replay_read_only"}
 	var wire_target: Variant = target
 	if target is Vector2i:
 		wire_target = [target.x, target.y]
@@ -666,6 +749,8 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	if online_client != null:
 		online_client.leave()
 	online = false
+	offline_replay = false
+	replay_recording = {}
 	replay_active = false
 	replay_frame_index = -1
 	replay_frame_count = 0
@@ -728,6 +813,12 @@ func _process(delta: float) -> void:
 	if order_flash_seconds > 0.0:
 		order_flash_seconds = maxf(0.0, order_flash_seconds - delta)
 		queue_redraw()
+	if offline_replay:
+		accumulator += delta
+		if accumulator >= 1.0 and replay_frame_index + 1 < replay_frame_count:
+			accumulator = 0.0
+			_show_replay_file_frame(replay_frame_index + 1)
+		return
 	if online:
 		if replay_active:
 			accumulator += delta
