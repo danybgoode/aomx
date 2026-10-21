@@ -5,19 +5,24 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-20 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-10-21 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (4)
+## Backlog (9)
 
 _seeds with no pitch yet._
 
-- [Add more ways to play](seeds/add-more-ways-to-play.md) — #15 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
-- [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #16 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
-- [Prove cross-platform play](seeds/prove-cross-platform-play.md) — #17 · 09 Platform And Measurement · seed · Feature · risk: High · _docs: status raw_
-- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #18 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
+- [Produce cohesive CDMX game art](seeds/produce-cohesive-cdmx-art.md) — #15 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
+- [Establish CDMX geography and map data](seeds/establish-cdmx-geography-and-maps.md) — #16 · 02 Civilizations And World · seed · Feature · risk: High · _docs: status raw_
+- [Audit gameplay fidelity against a pinned RTS reference](seeds/audit-gameplay-fidelity.md) — #17 · 01 Core Play · seed · Spike · risk: Low · _docs: status raw_
+- [Complete the game interfaces](seeds/complete-game-interfaces.md) — #18 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
+- [Build the audio and effects identity](seeds/build-audio-and-effects-identity.md) — #19 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
+- [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #20 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
+- [Add more ways to play](seeds/add-more-ways-to-play.md) — #21 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
+- [Prove cross-platform play](seeds/prove-cross-platform-play.md) — #22 · 09 Platform And Measurement · seed · Feature · risk: High · _docs: status raw_
+- [Prepare a release candidate](seeds/prepare-release-candidate.md) — #23 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
 
 ## Refining (0)
 
@@ -58,4 +63,4 @@ _merged, deployed and closed._
 - [Harden the RTS simulation](../01-core-play/harden-rts-simulation/README.md) — #8 · 01 Core Play · 3/3 stories · risk: High · appetite L · _docs: status shipped_
 
 ---
-_18 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_23 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._

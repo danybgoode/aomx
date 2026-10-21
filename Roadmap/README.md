@@ -37,7 +37,15 @@ The areas below are provisional until the first epics are shaped.
 
 No game feature has been publicly released. The funnel has 2/7 locally verified stories; RTS core and solo skirmish each have 4/4. La Roma has 3/4 builder-verified stories, a Restricted owner preview and staging receipt/exclusion evidence; its eight-player test is unrun. The HUD has 6/6 builder-verified stories across native and Web checks, with human and downloaded-build QA still open. The measured private alpha is funded at #4, with its owner QA and invitation gates still open. The live board may show merged PRs as complete even when a game build has not been released. The simulation foundation at #8 has 3/3 stories complete and a Restricted owner preview. Strategic play at #10 has three implemented stories and a Restricted preview, with downloaded gameplay and ingest QA still open. Later ideas remain raw until `refine` shapes and funds them. The generated board shows their proposed order.
 
-## Suggested next work · 2026-10-16
+## Suggested next work · 2026-10-21
+
+The [CDMX world and art coverage review](00-ideas/art-world-coverage-2026-10-21.md) maps all twelve new concept boards, the owned isometric tiles and critters, current epics, and the new raw seeds. **Close the funded #14 multiplayer/replay QA first**: repeat invite rotation on the final image, finish the representative symmetric network matrix, and run the owner's blind downloaded-build match/reconnect/replay/receipt walkthrough. The signed Restricted build and scripted remote matches are meaningful builder evidence; the epic is still in QA and no public cohort exists.
+
+For the **next new bet**, refine [#15 cohesive CDMX art](00-ideas/seeds/produce-cohesive-cdmx-art.md) into a polished playable Roma Norte/Cibeles slice. Its production pilot should reuse or modify the owned tile/critter sources only where scale, seams, readability and role work in Godot. Shape [#16 CDMX geography and maps](00-ideas/seeds/establish-cdmx-geography-and-maps.md) and [#17 gameplay fidelity audit](00-ideas/seeds/audit-gameplay-fidelity.md) alongside it as foundations; then [#18 full interfaces](00-ideas/seeds/complete-game-interfaces.md) and [#19 audio/effects](00-ideas/seeds/build-audio-and-effects-identity.md). Existing raw ideas follow as #20 campaigns/scenarios, #21 alternate modes, #22 cross-platform production proof and #23 release candidate. The generated board records this **planning** priority; these raw seeds are not funded or approved epics.
+
+Continue the existing alpha, art/HUD and strategic-play owner QA in parallel. Close each epic only against its own real-build checks, and keep the 15% later-day completion goal provisional until an eligible cohort matures.
+
+## Earlier suggested work · 2026-10-16
 
 This is the practical sequence across the existing epics and raw seeds. The [generated build order](00-ideas/BUILD-ORDER.md) keeps initiative priority, while the live board also reflects GitHub PR state; neither automatically orders the unfinished steps inside an epic.
 
