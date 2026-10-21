@@ -96,10 +96,18 @@ docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/004_private_matches.sql
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/005_retention.sql
+docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
+  psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/006_invite_rotation.sql
 docker build --platform linux/arm64 -f deploy/alpha/match.Dockerfile -t "aomx-match:$AOMX_IMAGE_TAG" .
 docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build match
 docker compose -p aomx -f deploy/alpha/compose.yml ps match
 ```
+
+Migration 006 replaces the original one-code-ever player constraint with a
+unique index on **active** bindings. A revoked code keeps its historical
+player binding for audit, while that same installation can claim one fresh
+active code. Apply it before inviting a returning owner or tester; an active
+code still blocks a second code for the same installation.
 
 Copy the `/v1/match/*` route from `Caddyfile.example` into panfleto's alpha
 site, keeping the existing operator allowlist for every other path. Reload

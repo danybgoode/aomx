@@ -102,7 +102,7 @@ export class MemoryMatchStore {
     const hash = tokenHash(token);
     const row = this.invites.get(hash);
     if (!row || row.revoked || row.playerId && row.playerId !== playerId) return { ok: false, reason: 'invite_invalid' };
-    if ([...this.invites.values()].some(other => other !== row && other.playerId === playerId)) return { ok: false, reason: 'player_already_bound' };
+    if ([...this.invites.values()].some(other => other !== row && !other.revoked && other.playerId === playerId)) return { ok: false, reason: 'player_already_bound' };
     row.playerId = playerId;
     return { ok: true, codeHash: hash, playerId };
   }

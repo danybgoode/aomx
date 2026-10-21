@@ -58,6 +58,7 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
   await admin.query(fs.readFileSync(new URL('../db/003_publication_reading_hash.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/004_private_matches.sql', import.meta.url), 'utf8'));
   await admin.query(fs.readFileSync(new URL('../db/005_retention.sql', import.meta.url), 'utf8'));
+  await admin.query(fs.readFileSync(new URL('../db/006_invite_rotation.sql', import.meta.url), 'utf8'));
   const grants = await admin.query(`select
     has_table_privilege('aomx_ingest','alpha_private.audit_events','INSERT') as audit_insert,
     has_table_privilege('aomx_ingest','alpha_private.report_history','SELECT') as report_select,
@@ -130,6 +131,32 @@ test('Postgres keeps a stable receipt across service restart and hides operator 
   await restarted.close();
   } finally {
     if (!funnel.pool.ending) await funnel.close();
+  }
+});
+
+test('Postgres rotates only a revoked invite for the same player', { skip: !url }, async () => {
+  const store = new PostgresMatchStore(url);
+  const first = 'rotation_code_A_abcdefghijklmnopqrstuvwxyz';
+  const second = 'rotation_code_B_abcdefghijklmnopqrstuvwxyz';
+  const third = 'rotation_code_C_abcdefghijklmnopqrstuvwxyz';
+  const hashes = [first, second, third].map(code => createHash('sha256').update(code).digest('hex'));
+  const player = 'rotation_player_20261021';
+  try {
+    for (let i = 0; i < hashes.length; i++) await store.pool.query(
+      'insert into alpha_private.invite_tokens(token_hash,label) values ($1,$2)',
+      [hashes[i], `rotation_test_${i}`]);
+    assert.equal((await store.claimInvite(first, player)).ok, true);
+    assert.equal((await store.claimInvite(second, player)).reason, 'player_already_bound');
+    await store.pool.query('update alpha_private.invite_tokens set revoked=true where token_hash=$1', [hashes[0]]);
+    assert.equal((await store.verifyInvite(first, player)).reason, 'invite_invalid');
+    assert.equal((await store.claimInvite(second, player)).ok, true);
+    assert.equal((await store.claimInvite(third, player)).reason, 'player_already_bound');
+    assert.equal((await store.claimInvite(second, 'rotation_other_20261021')).reason, 'invite_invalid');
+    const { rows } = await store.pool.query('select token_hash, player_id from alpha_private.invite_tokens where token_hash=any($1)', [hashes]);
+    assert.deepEqual(rows.filter(row => row.player_id === player).map(row => row.token_hash).sort(), hashes.slice(0, 2).sort());
+  } finally {
+    await store.pool.query('delete from alpha_private.invite_tokens where token_hash=any($1)', [hashes]);
+    await store.close();
   }
 });
 
