@@ -69,6 +69,22 @@ test('checkout client and server advertise the same simulation hash', () => {
     .includes(`const SIMULATION_HASH := "${SkirmishVersions.simulationHash}"`));
 });
 
+test('a revoked code preserves its binding while the player claims a replacement', async () => {
+  const store = new MemoryMatchStore();
+  const replacement = 'invite_C_abcdefghijklmnopqrstuvwxyz';
+  store.addInvite(CODE_A);
+  store.addInvite(CODE_B);
+  store.addInvite(replacement);
+  assert.equal((await store.claimInvite(CODE_A, PLAYER_A)).ok, true);
+  assert.equal((await store.claimInvite(CODE_B, PLAYER_A)).reason, 'player_already_bound');
+  store.revoke(CODE_A);
+  assert.equal((await store.verifyInvite(CODE_A, PLAYER_A)).reason, 'invite_invalid');
+  assert.equal((await store.claimInvite(CODE_B, PLAYER_A)).ok, true);
+  assert.equal((await store.claimInvite(replacement, PLAYER_A)).reason, 'player_already_bound');
+  assert.equal((await store.claimInvite(CODE_A, PLAYER_A)).reason, 'invite_invalid');
+  assert.equal((await store.claimInvite(CODE_B, PLAYER_B)).reason, 'invite_invalid');
+});
+
 test('commands are serialized, idempotent and bound to the slot', async () => {
   const { session, join, worker } = setup();
   const a = await join(CODE_A, PLAYER_A);
