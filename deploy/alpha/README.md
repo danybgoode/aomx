@@ -26,6 +26,12 @@ a published host port when the container has only an `internal: true` network.
 On the VM, after copying the reviewed aomx commit (checkout or archive) to
 `/opt/aomx/repo`, set its short commit ID explicitly. An archive has no `.git`
 directory, and Compose needs the image tag even when starting only Postgres.
+Install the locked production Node dependencies in **each new release directory**
+before moving the `/opt/aomx/repo` symlink. The backup, health, report and
+retention timers resolve their scripts through that symlink; copying source alone
+leaves them unable to import `pg`. After switching the symlink, run a backup with
+`--restore-test` against a cleared, dedicated disposable restore database and
+check the health timer. Never clear the live database for this test.
 
 ```sh
 sudo install -d -m 700 -o ubuntu -g ubuntu /opt/aomx

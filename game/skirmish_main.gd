@@ -1493,13 +1493,18 @@ func _sync_brief() -> String:
 		return "Local storage unavailable."
 	var pending := 0
 	var synced := 0
+	var excluded := 0
 	var attention := 0
 	for item in outbox.state.events:
 		match item.status:
 			"pending": pending += 1
-			"accepted": synced += 1
+			"accepted":
+				if item.get("receipt") is Dictionary and item.receipt.get("status") == "excluded":
+					excluded += 1
+				else:
+					synced += 1
 			"needs_attention": attention += 1
-	return "%d pending · %d synced · %d need attention." % [pending, synced, attention]
+	return "%d pending · %d synced · %d excluded · %d need attention." % [pending, synced, excluded, attention]
 
 func _district_note() -> String:
 	match sim.district_state:
