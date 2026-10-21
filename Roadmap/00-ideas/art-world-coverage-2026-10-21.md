@@ -1,0 +1,49 @@
+# CDMX world and art coverage review — 2026-10-21
+
+## Recommendation
+
+Finish the already funded [#14 multiplayer/replay QA](seeds/prove-multiplayer.md) as the next **closure** task. For the next new bet, refine [#15 cohesive CDMX art](seeds/produce-cohesive-cdmx-art.md) around a polished, playable Roma Norte/Cibeles battlefield. Start [#16 geography/map data](seeds/establish-cdmx-geography-and-maps.md) and [#17 gameplay fidelity audit](seeds/audit-gameplay-fidelity.md) as prerequisites to broader campaigns and rules. The remaining new seeds are raw coverage, not funded work. This preserves the approved #14 scope and keeps the current solo and Restricted multiplayer builds playable.
+
+The visual target is the handoff's warm, richly textured, legible isometric RTS look. All twelve `references/newArtWork/` boards are **1536×1024 RGB JPEG composites**. Their polished panels demonstrate color, atmosphere and motifs; they are not transparent sprites, tileable atlases, working UI or evidence that illustrated abilities exist. The owned `references/isometric tileset/` includes a 352×352 RGBA sheet and 115 separate 32×32 tiles; `references/critters/` supplies badger, boar, stag and wolf sprite sources. All may be recolored, redrawn, re-anchored or rejected to suit the measured 48×24 battlefield projection. The existing owned-art pilot found raised-tile seam risk and weak boar contrast; its flower prop is the selected in-match asset. The board files remain ignored local references and never become build dependencies.
+
+## Concept board and production crosswalk
+
+| Actual board | Visual intent | Existing coverage and next owned deliverable |
+| --- | --- | --- |
+| `full-map.jpg` | Illustrated CDMX campaign atlas and territory cards | [Campaign seed](seeds/create-campaigns-and-scenarios.md) and **new #16 geography seed**: verified 16-alcaldía/place data, stable territory IDs, illustrated overlay and independent skirmish access. The image is not GIS. |
+| `roma-norte.jpg` | Flagship Cibeles battlefield, streets, rooftops and commerce | [La Roma promise](../02-civilizations-and-world/prove-la-roma-promise/README.md) and [art pack](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) cover the current playable slice; **new #15** owns the coherent production-quality pass. Rooftop routes are a candidate mechanic. |
+| `TERRAIN TILES.jpg` | Roads, sidewalks, grass, plazas, water and transitions | [Art pack](../02-civilizations-and-world/la-roma-battlefield-art-pack/README.md) and [owned-art pilot](../02-civilizations-and-world/integrate-owned-art-library/README.md) established geometry/export rules; **#15** must author seam-safe selected terrain and measured depth/selection checks. Canals await map/rules approval. |
+| `BUILDINGS.jpg` | Roma architecture, neutral sites and four-age structure variants | Existing pack covers a limited match set; **#15** owns transparent building sources, construction/damage states and consistent age/faction styling. The depicted production chains are art concepts, not approved balance. |
+| `landmarks.jpg` | Distinctive city landmarks and control states | Cibeles objective exists in prototype form; **#15/#16** own identifiable Cibeles art and validated location/footprint data. Other landmarks join later map/scenario waves. El Ángel is a separate Reforma concept. |
+| `civilians.jpg` | Readable worker, economic, support and ambient roles | Current match has limited unit art; **#15** establishes a role/silhouette/animation grammar, while [warfare](../01-core-play/expand-warfare-and-world/README.md) and later design decide any new recruitable role. Ambient figures cannot silently block or select. |
+| `regional-factions.jpg` | Four palettes, portraits, banners and unit families | [World expansion](../02-civilizations-and-world/expand-civilizations-and-world/README.md) provides four selectable factions; **#15** supplies art consistency and non-color-only identification. Board rosters, vehicles and powers remain candidates. |
+| `economy.jpg` | Four resources and their world/UI feedback | [Strategic play](../01-core-play/deepen-strategic-play/README.md) established Comida, Materiales, Varos and Terrenos; **#15**, [#18 UI](seeds/complete-game-interfaces.md) and [#19 feedback](seeds/build-audio-and-effects-identity.md) own visuals. Board values or extra counters do not redefine resources. |
+| `props.jpg` | Street furniture, jacarandas, markets, transit and ambience | Owned-art pilot and **#15** cover modular, view-only props with provenance and depth rules. Critters need a visual/gameplay-role decision. Vehicles and waterways require separate simulation scope. |
+| `full-hud.jpg` | Ornamental resource, command, unit and objective controls | [HUD epic](../02-civilizations-and-world/readable-battlefield-hud/README.md) gives a working responsive base; **new #18** owns the full interactive UI system, desktop tasks, accessible states and touch design. Illustrated culture/diplomacy controls remain unapproved. |
+| `effects.jpg` | Orders, combat, construction, resource, objective and ambient feedback | **New #19** owns event-driven animation/VFX and sound cues, performance and reduced-effects options. Day/night and weather are proposals. |
+| `menus.jpg` | Frontend, faction/skirmish/multiplayer setup, campaign, settings and result screens | **#18** owns functional frontend states; [campaign seed](seeds/create-campaigns-and-scenarios.md) owns chapter/mission surfaces; [#14](seeds/prove-multiplayer.md) retains only its Restricted join/replay scope. Illustrated achievements are a proposal. |
+| No audio board | Original Mexican Spanish voice, music, city ambience and action feedback | Existing order sound and faction audio are a small start; **new #19** owns an original, licensed audio event system and accessible mix. |
+
+The first row uses the **twelve illustration-board taxonomy**; audio is a thirteenth workstream in this crosswalk and one of the handoff's twelve **asset categories**. The earlier [local inventory](../../docs/art/reference-inventory.md) describes only five new-art boards and should be reconciled during #15's source audit. The [GDD](../../docs/design/GDD.md) and [full-game build path](../full-game-build-path.md) remain the design and dependency references.
+
+## Present-day reconciliation
+
+| Authority or evidence | Decision for the seeds |
+| --- | --- |
+| GDD and funded content | Keep four factions (Regios, Poblanos, Oaxaqueños, Veracruzanos), four ages (Foránea, Universitaria, Godín, Gentrificación) and four resources (Comida, Materiales, Varos, Terrenos). Their display strings can be polished without silently changing rules. |
+| Actual code, epic and remote QA | A finishable four-resource/four-age solo game, four selectable factions, three authored maps, Restricted 1v1 and participant replay exist at different QA stages. Existing playable and remote evidence is narrower than the handoff's complete-game vision. |
+| Geography and illustrated labels | Cibeles is Roma Norte's flagship. Verify administrative placement, local names and source license before importing any place data or drawing official-looking borders; the full-map board is fictionalized visualization. |
+| GDD fidelity target | AoE2: Definitive Edition is chosen as reference, but no build/patch and exception policy is pinned. #17 records a behavioral matrix; no numerical parity claim is supported yet. |
+| Optional board mechanics | Morale/culture, diplomacy, tourism, rooftop movement, neighborhood bonuses, vehicles, water/naval units, day/night and weather are candidates. [Modes](seeds/add-more-ways-to-play.md), [campaign](seeds/create-campaigns-and-scenarios.md) or a future specific bet must name rules, counters, AI, replay and platform costs before any becomes canon. |
+| Platform and measurement | Keep one authoritative simulation and independent views. [#22 cross-platform](seeds/prove-cross-platform-play.md) tests desktop/Web/mobile on actual devices; the North Star's 15% return target is provisional with no eligible baseline. |
+
+## Suggested build order and gates
+
+1. **Close open QA before calling work shipped.** Finish the #14 final-image network matrix and blind downloaded-build walkthrough. In parallel, finish existing funded owner checks for art/HUD, strategic systems and alpha access. Keep public invitations closed until their separate gates pass.
+2. **#15 — visual quality wave:** pilot one tile, building, unit and Cibeles at game zoom; approve a single projection, scale, palette, light direction and sprite/animation contract. Then build a coherent Roma match pack, check clutter and non-color cues, and compare rendered gameplay to the boards. Do not flatten the illustrations into the map.
+3. **#16 and #17 — world and rules foundations:** verify place data/licenses and map contract; pin the AoE2 DE build and write a reproducible gap matrix. These can be planned alongside art; their conclusions gate broad campaign/mechanics investment.
+4. **#18 and #19 — complete player-facing presentation:** finish interactive HUD/frontends and event-driven audio/VFX from the shared commands and state. Run uncoached desktop tasks, then carry touch and browser device gates to #22.
+5. **#20 campaign/scenarios, #21 alternate modes:** author after map/objective/state contracts are stable and owner decisions on progression and local modifiers are recorded. Keep skirmish independent.
+6. **#22 platform proof, #23 release candidate:** platform feasibility probes begin early, but production support and launch claims follow target-device, privacy/license, performance and measured cohort evidence.
+
+Raw seeds #15–#23 show **recommended planning order** on the generated board. Only a later Plan-gate decision funds them. The board's Ready/QA columns are workflow facts, not evidence of game release; the epic READMEs and tested builds govern closeout.

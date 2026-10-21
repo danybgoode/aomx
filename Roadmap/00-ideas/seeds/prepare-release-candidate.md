@@ -8,8 +8,8 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 18
-updated: 2026-10-13
+build_order: 23
+updated: 2026-10-21
 intent_ask: proxy
 hypothesis: "Players will need a reliable way to install, learn, play, return and report problems before a wider release."
 persona: "A new player installing and learning Battle for La Roma."

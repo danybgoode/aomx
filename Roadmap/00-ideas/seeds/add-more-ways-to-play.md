@@ -8,8 +8,8 @@ appetite: null
 underwritten_by: null
 risk: low
 epic: null
-build_order: 15
-updated: 2026-10-13
+build_order: 21
+updated: 2026-10-21
 intent_ask: proxy
 hypothesis: "Once the core solo match earns repeat play, additional modes and shared play may give players more reasons to return."
 persona: "An RTS player looking for a new match objective or a match with other people."
@@ -30,4 +30,4 @@ intent_match: null
 
 # Idea — Add more ways to play
 
-The [v0.3 GDD](../../../docs/design/GDD.md) proposes conquest, wonder and a signature La Roma territorial mode. Refine alternate victory rules on the shared objective/state framework only after the core economy, warfare and AI have meaningful counterplay. Keep the current 3×3 hold as a prototype, not final mode rules. Team and online play depend on the separate [multiplayer idea](prove-multiplayer.md); campaigns/editor depend on [scenario work](create-campaigns-and-scenarios.md). Each mode must state terminal conditions, readable progress, AI behavior and replay/save evidence. See the [full-game build path](../../full-game-build-path.md).
+The [v0.3 GDD](../../../docs/design/GDD.md) proposes conquest, wonder and a signature La Roma territorial mode. Refine alternate victory rules on the shared objective/state framework only after the core economy, warfare and AI have meaningful counterplay. Keep the current 3×3 hold as a prototype, not final mode rules. The new concept boards also suggest neighborhood bonuses, vehicles, water routes and civic systems; each is a **candidate**, not a rule. For any local modifier, specify cost, trigger, duration, counterplay, AI, deterministic save/replay and whether it belongs in campaign only or competitive skirmish. Team and online play depend on the separate [multiplayer epic](prove-multiplayer.md); campaigns/editor depend on [scenario work](create-campaigns-and-scenarios.md). Each mode must state terminal conditions, readable progress, AI behavior and replay/save evidence. See the [full-game build path](../../full-game-build-path.md) and [coverage review](../art-world-coverage-2026-10-21.md).

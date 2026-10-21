@@ -9,7 +9,7 @@ underwritten_by: wave-2026-10
 risk: high
 epic: "03-multiplayer-and-retention/prove-multiplayer"
 build_order: 14
-updated: 2026-10-19
+updated: 2026-10-21
 intent_ask: proxy
 hypothesis: "Today classic RTS players can finish only a solo match. A reliable private match and replay could give friends a reason to play and return together. We'll know first when two people finish a real network match and can watch the same outcome; later-day completion needs an eligible cohort."
 persona: "Classic RTS players who want to finish a shared match with a friend and review what happened."
@@ -31,6 +31,21 @@ intent_match: null
 # Pitch — Prove multiplayer and replays
 
 Moves: `return_to_match` · Tests: value proposition, still an assumption.
+
+## 2026-10-21 refinement — finish the approved QA bet
+
+This is already an owner-approved, funded L bet with a scaffolded [epic](../../03-multiplayer-and-retention/prove-multiplayer/README.md) in Restricted-host QA. The ask today is to refine #14 using current evidence, not to create a duplicate multiplayer bet or reopen its approved 1v1 boundary. The owner also requested a review of the new CDMX art handoff and seed coverage; that portfolio review is [separate](../art-world-coverage-2026-10-21.md). Visual polish, campaign geography, full UI and cross-platform production support do not enter #14's remaining QA.
+
+**Already possible today:** the Restricted server can host an invite-bound authoritative 1v1; six scripted remote matches produced one server result each, four with native macOS/Linux Godot clients. Participant fogged replays verified, the deployed ARM64 image passed the unchanged 162-entity benchmark at its 1.0 CPU cap, and the matching signed macOS owner build was independently fetched, checked and rendered. This is implementation and builder evidence, **not** owner acceptance, a public release, an eligible cohort or a broad reliability claim. See the [remote QA record](../../../docs/multiplayer-remote-qa-2026-10-20.md) and [Learnings](../../LEARNINGS.md).
+
+**Remaining outcome, in order:**
+
+1. Repeat invite rotation, same-slot rejoin and retained replay checks on the final deployed image after migrations 005/006 and PRs #62/#63. The first owner GUI join failed before those fixes; a server 403 with admission off proves closure, not a successful owner match. Keep admission off between bounded tests.
+2. Complete the representative population-cap macOS/Linux network matrix with measured end-to-end RTT, symmetric 150 ms RTT/1% loss, command bursts, first-divergence report and server CPU/memory/bandwidth. The earlier Linux-egress-only and 100 ms two-way runs are partial evidence. A failing profile triggers a recorded scope/reliability decision; do not relabel it a pass.
+3. Run the numbered **downloaded** Restricted-build owner walkthrough: two codes, full match, 60-second reconnect and expiry/no-result wording, pause/play fogged participant replay, corrupt/old replay handling, revoked-code denial, exactly one server terminal record and excluded in-app test receipt. Capture build and host IDs, actual results and independent high-risk review. No second-person invitation or public retention claim follows automatically.
+4. Close only the epic's checked Definition of Done, then update its retrospective/poster and regenerate and sync the board. Keep the epic `status: in-progress` until those checks pass; a merged PR and signed upload alone do not close it.
+
+**Decision boundary:** The approved private 1v1, 60-second no-result policy and participant-only fog replay stand. Any public invitation, ranked/matchmaking scope, eligibility/trust change, extra game rules, or change to the agreed North Star is a new owner decision under [Ways of Working](../../WAYS-OF-WORKING.md#escalate-dont-guess). Web multiplayer remains a feasibility finding because the current local Web origin is rejected by the Restricted route; production Web/mobile support is [a later seed](prove-cross-platform-play.md).
 
 ## The ask, as given
 
