@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import { SkirmishVersions } from './versions.mjs';
 
 const accessToken = () => randomBytes(32).toString('base64url');
@@ -38,14 +38,14 @@ export class MatchSession {
 
   async #join({ invite_code: code, player_id: playerId, ...versions } = {}) {
     if (!SkirmishVersions.matches(versions)) return { ok: false, reason: 'version_mismatch', statusCode: 409 };
-    const sameSlot = typeof code === 'string' && this.slots.some(slot => slot?.playerId === playerId &&
-      slot.codeHash === createHash('sha256').update(code).digest('hex'));
+    // A verified replacement code for this installation must reclaim its slot.
+    const sameSlot = this.slots.some(slot => slot?.playerId === playerId);
     if ((this.status === 'complete' || this.status === 'no_result') && !sameSlot) return { ok: false, reason: 'match_closed', statusCode: 409 };
     if (!sameSlot && this.slots.every(Boolean)) return { ok: false, reason: 'match_full', statusCode: 409 };
     if (!sameSlot && !this.evaluateAdmission(playerId)) return { ok: false, reason: 'match_disabled', statusCode: 403 };
     const claimed = await this.store.claimInvite(code, playerId);
     if (!claimed.ok) return { ...claimed, statusCode: 401 };
-    let side = this.slots.findIndex(slot => slot?.codeHash === claimed.codeHash && slot.playerId === playerId);
+    let side = this.slots.findIndex(slot => slot?.playerId === playerId);
     if (side < 0) side = this.slots.findIndex(slot => slot === null);
     if (side < 0) return { ok: false, reason: 'match_full', statusCode: 409 };
     const current = this.slots[side];
