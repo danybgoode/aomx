@@ -211,7 +211,9 @@ export class MatchSession {
     const claim = await this.store.verifyInvite(code, playerId);
     if (!claim.ok) return { ...claim, statusCode: 401 };
     const record = await this.store.getRecord(matchId);
-    if (!record || !record.players.some(player => player.player_id === playerId && player.code_hash === claim.codeHash)) {
+    // A newly issued active code can read this installation's retained matches;
+    // verifyInvite above requires that code to be bound to this same player.
+    if (!record || !record.players.some(player => player.player_id === playerId)) {
       return { ok: false, reason: 'replay_unavailable', statusCode: 404 };
     }
     const side = record.players.find(player => player.player_id === playerId).side;

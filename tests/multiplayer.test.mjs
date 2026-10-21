@@ -120,6 +120,25 @@ test('one terminal record per slot is retained for participants only', async () 
   session.close();
 });
 
+test('a replacement code opens only its bound installation’s retained replay', async () => {
+  const { session, join, store } = setup();
+  const a = await join(CODE_A, PLAYER_A);
+  await join(CODE_B, PLAYER_B);
+  await session.tick();
+  await session.tick();
+  const replacement = 'invite_C_abcdefghijklmnopqrstuvwxyz';
+  store.addInvite(replacement);
+  assert.equal((await session.replay(replacement, PLAYER_A, a.match_id)).reason, 'invite_invalid');
+  store.revoke(CODE_A);
+  assert.equal((await store.claimInvite(replacement, PLAYER_A)).ok, true);
+  assert.equal((await session.replay(CODE_A, PLAYER_A, a.match_id)).reason, 'invite_invalid');
+  assert.equal((await session.replay(replacement, PLAYER_B, a.match_id)).reason, 'invite_invalid');
+  const replay = await session.replay(replacement, PLAYER_A, a.match_id);
+  assert.equal(replay.ok, true);
+  assert.equal(replay.side, 0);
+  session.close();
+});
+
 test('withdrawal ends an active match and invalidates an already issued replay token', async () => {
   const { session, join, store } = setup();
   const a = await join(CODE_A, PLAYER_A);
