@@ -69,6 +69,22 @@ test('checkout client and server advertise the same simulation hash', () => {
     .includes(`const SIMULATION_HASH := "${SkirmishVersions.simulationHash}"`));
 });
 
+test('a revoked code preserves its binding while the player claims a replacement', async () => {
+  const store = new MemoryMatchStore();
+  const replacement = 'invite_C_abcdefghijklmnopqrstuvwxyz';
+  store.addInvite(CODE_A);
+  store.addInvite(CODE_B);
+  store.addInvite(replacement);
+  assert.equal((await store.claimInvite(CODE_A, PLAYER_A)).ok, true);
+  assert.equal((await store.claimInvite(CODE_B, PLAYER_A)).reason, 'player_already_bound');
+  store.revoke(CODE_A);
+  assert.equal((await store.verifyInvite(CODE_A, PLAYER_A)).reason, 'invite_invalid');
+  assert.equal((await store.claimInvite(CODE_B, PLAYER_A)).ok, true);
+  assert.equal((await store.claimInvite(replacement, PLAYER_A)).reason, 'player_already_bound');
+  assert.equal((await store.claimInvite(CODE_A, PLAYER_A)).reason, 'invite_invalid');
+  assert.equal((await store.claimInvite(CODE_B, PLAYER_B)).reason, 'invite_invalid');
+});
+
 test('commands are serialized, idempotent and bound to the slot', async () => {
   const { session, join, worker } = setup();
   const a = await join(CODE_A, PLAYER_A);
@@ -101,6 +117,25 @@ test('one terminal record per slot is retained for participants only', async () 
   assert.equal(typeof replay.replay_token, 'string');
   assert.equal('replay' in replay, false);
   assert.equal((await session.replay(CODE_A, PLAYER_B, a.match_id)).reason, 'invite_invalid');
+  session.close();
+});
+
+test('a replacement code opens only its bound installation’s retained replay', async () => {
+  const { session, join, store } = setup();
+  const a = await join(CODE_A, PLAYER_A);
+  await join(CODE_B, PLAYER_B);
+  await session.tick();
+  await session.tick();
+  const replacement = 'invite_C_abcdefghijklmnopqrstuvwxyz';
+  store.addInvite(replacement);
+  assert.equal((await session.replay(replacement, PLAYER_A, a.match_id)).reason, 'invite_invalid');
+  store.revoke(CODE_A);
+  assert.equal((await store.claimInvite(replacement, PLAYER_A)).ok, true);
+  assert.equal((await session.replay(CODE_A, PLAYER_A, a.match_id)).reason, 'invite_invalid');
+  assert.equal((await session.replay(replacement, PLAYER_B, a.match_id)).reason, 'invite_invalid');
+  const replay = await session.replay(replacement, PLAYER_A, a.match_id);
+  assert.equal(replay.ok, true);
+  assert.equal(replay.side, 0);
   session.close();
 });
 
