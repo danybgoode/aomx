@@ -58,7 +58,7 @@ test('two individual codes bind opposing slots and versions before match start',
   store.addInvite(extra);
   assert.equal((await join(extra, 'player_charlie_003')).reason, 'match_full');
   assert.equal([...store.invites.values()].filter(row => row.playerId === null).length, 1);
-  assert.equal((await join(CODE_B, PLAYER_A)).reason, 'match_full');
+  assert.equal((await join(CODE_B, PLAYER_A)).reason, 'invite_invalid');
   store.revoke(CODE_B);
   assert.equal((await join(CODE_B, PLAYER_B)).reason, 'invite_invalid');
   session.close();
@@ -83,6 +83,22 @@ test('a revoked code preserves its binding while the player claims a replacement
   assert.equal((await store.claimInvite(replacement, PLAYER_A)).reason, 'player_already_bound');
   assert.equal((await store.claimInvite(CODE_A, PLAYER_A)).reason, 'invite_invalid');
   assert.equal((await store.claimInvite(CODE_B, PLAYER_B)).reason, 'invite_invalid');
+});
+
+test('rotating a code reclaims the same slot and invalidates its old access token', async () => {
+  const { session, join, store } = setup();
+  const a = await join(CODE_A, PLAYER_A);
+  const replacement = 'invite_C_abcdefghijklmnopqrstuvwxyz';
+  store.addInvite(replacement);
+  store.revoke(CODE_A);
+  const rotated = await join(replacement, PLAYER_A);
+  assert.equal(rotated.ok, true);
+  assert.equal(rotated.side, 0);
+  assert.equal(session.slots[1], null);
+  assert.equal((await session.state(a.token)).reason, 'unauthorized');
+  assert.equal((await join(CODE_B, PLAYER_B)).side, 1);
+  assert.deepEqual(session.slots.map(slot => slot.playerId), [PLAYER_A, PLAYER_B]);
+  session.close();
 });
 
 test('commands are serialized, idempotent and bound to the slot', async () => {
