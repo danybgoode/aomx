@@ -9,6 +9,7 @@ const MatchSave = preload("res://skirmish_persistence.gd")
 const MultiplayerClient = preload("res://multiplayer_client.gd")
 const MultiplayerState = preload("res://multiplayer_state.gd")
 const ParticipantReplay = preload("res://participant_replay.gd")
+const MapGeography = preload("res://map_geography.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -41,6 +42,7 @@ var setup_poblanos: Button
 var setup_oaxaquenos: Button
 var setup_veracruzanos: Button
 var setup_map: OptionButton
+var setup_map_details: Label
 var setup_opponent: OptionButton
 var setup_resume: Button
 var setup_note: Label
@@ -290,11 +292,17 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_difficulty_details)
 	setup_map = OptionButton.new()
-	for entry in ["La Roma — familiar streets", "Narvarte — open street grid", "Copilco — two chokepoints"]:
+	var roma_copy: Dictionary = MapGeography.map_copy("la_roma")
+	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
+	for entry in [roma_label, "Narvarte — open street grid", "Copilco — two chokepoints"]:
 		setup_map.add_item(entry)
 	setup_map.item_selected.connect(_choose_map)
 	setup_map.custom_minimum_size.y = 42
 	column.add_child(setup_map)
+	setup_map_details = Label.new()
+	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(setup_map_details)
+	_choose_map(0)
 	setup_opponent = OptionButton.new()
 	for entry in ["Opponent: Classic rival", "Opponent: Regios", "Opponent: Poblanos", "Opponent: Oaxaqueños", "Opponent: Veracruzanos"]:
 		setup_opponent.add_item(entry)
@@ -377,9 +385,13 @@ func _layout_setup() -> void:
 	var mobile := view.x < 950.0 or view.y < 560.0
 	var landscape := view.x > view.y
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
-	setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
+	if selected_map == "la_roma":
+		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+	else:
+		setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	setup_regios.text = ("REGIOS  •  carry 5" if not landscape else "REGIOS  •  carry 5; fighters cost +1 Varos") if mobile else "Regios — workers carry 5; fighters cost +1 Varos"
 	setup_poblanos.text = ("POBLANOS  •  tougher buildings" if not landscape else "POBLANOS  •  tougher buildings; carry 4") if mobile else "Poblanos — buildings +20% HP; workers carry 4"
 	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
@@ -461,6 +473,13 @@ func _choose_faction(faction: String) -> void:
 func _choose_map(index: int) -> void:
 	if index >= 0 and index < Skirmish.MAP_IDS.size():
 		selected_map = Skirmish.MAP_IDS[index]
+		if selected_map == "la_roma":
+			var roma_copy: Dictionary = MapGeography.map_copy(selected_map)
+			setup_map_details.text = str(roma_copy.get("description", "A stylized Roma Norte battlefield. Any faction can play here."))
+			setup_goal.text = str(roma_copy.get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+		else:
+			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
+			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 
 func _choose_opponent(index: int) -> void:
 	selected_opponent = "" if index == 0 else Skirmish.FACTION_IDS[index - 1]
@@ -512,6 +531,7 @@ func _resume_match() -> void:
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
+	_choose_map(Skirmish.MAP_IDS.find(selected_map))
 	setup_opponent.select(Skirmish.FACTION_IDS.find(selected_opponent) + 1)
 	selected_difficulty = sim.ai_difficulty
 	setup_difficulty.select(Skirmish.AI_LEVELS.find(selected_difficulty))
