@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "scope": "factual names and authored-map references; no source geometry imported",
+  "sources": {
+    "inegi_agem_2026_10_22": {
+      "publisher": "INEGI",
+      "url": "https://gaia.inegi.org.mx/wscatgeo/v2/mgem/09",
+      "retrieved_utc": "2026-10-22",
+      "dataset": "Catálogo Único de Claves Geoestadísticas, AGEM for CDMX (09)",
+      "use": "factual AGEM names and codes only",
+      "geometry_import": false,
+      "license_review": "No geometry or API response redistributed; review INEGI terms before any future data import."
+    },
+    "cdmx_cibeles_2026_10_22": {
+      "publisher": "Mexico City government tourism portal",
+      "url": "https://mexicocity.cdmx.gob.mx/venues/cibeles/",
+      "retrieved_utc": "2026-10-22",
+      "dataset": "Fuente de Cibeles venue listing",
+      "use": "factual name and Roma Norte/Cuauhtémoc placement only",
+      "geometry_import": false,
+      "license_review": "No page text, coordinates, photos or geometry copied into game content."
+    },
+    "cdmx_alcaldias_candidate_2026_10_22": {
+      "publisher": "CDMX open data portal / INEGI",
+      "url": "https://www.datos.cdmx.gob.mx/es/dataset/alcaldias",
+      "retrieved_utc": "2026-10-22",
+      "dataset": "Límite de Alcaldías, Marco Geoestadístico 2020",
+      "use": "future source candidate only",
+      "geometry_import": false,
+      "license_review": "Portal displays CC-BY-4.0-ESP; exact resource and upstream terms require review before redistribution."
+    },
+    "cdmx_colonias_candidate_2026_10_22": {
+      "publisher": "CDMX open data portal / ADIP",
+      "url": "https://www.datos.cdmx.gob.mx/es/dataset/catalogo-de-colonias-datos-abiertos",
+      "retrieved_utc": "2026-10-22",
+      "dataset": "Catálogo de colonias (Datos abiertos)",
+      "use": "future source candidate only",
+      "geometry_import": false,
+      "license_review": "Portal displays CC-BY-4.0-ESP; exact resource terms require review before redistribution."
+    }
+  },
+  "alcaldias": [
+    {"id": "alc_09002", "code": "09002", "name_es": "Azcapotzalco", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09003", "code": "09003", "name_es": "Coyoacán", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09004", "code": "09004", "name_es": "Cuajimalpa de Morelos", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09005", "code": "09005", "name_es": "Gustavo A. Madero", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09006", "code": "09006", "name_es": "Iztacalco", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09007", "code": "09007", "name_es": "Iztapalapa", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09008", "code": "09008", "name_es": "La Magdalena Contreras", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09009", "code": "09009", "name_es": "Milpa Alta", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09010", "code": "09010", "name_es": "Álvaro Obregón", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09011", "code": "09011", "name_es": "Tláhuac", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09012", "code": "09012", "name_es": "Tlalpan", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09013", "code": "09013", "name_es": "Xochimilco", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09014", "code": "09014", "name_es": "Benito Juárez", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09015", "code": "09015", "name_es": "Cuauhtémoc", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09016", "code": "09016", "name_es": "Miguel Hidalgo", "source_id": "inegi_agem_2026_10_22"},
+    {"id": "alc_09017", "code": "09017", "name_es": "Venustiano Carranza", "source_id": "inegi_agem_2026_10_22"}
+  ],
+  "places": [
+    {
+      "id": "col_roma_norte",
+      "kind": "colonia",
+      "name_es": "Roma Norte",
+      "alcaldia_id": "alc_09015",
+      "source_id": "cdmx_cibeles_2026_10_22",
+      "placement_status": "named placement verified; polygon not imported"
+    },
+    {
+      "id": "place_fuente_cibeles",
+      "kind": "landmark",
+      "name_es": "Fuente de Cibeles",
+      "parent_id": "col_roma_norte",
+      "source_id": "cdmx_cibeles_2026_10_22",
+      "placement_status": "Plaza Villa de Madrid, Roma Norte; no coordinates imported"
+    }
+  ],
+  "territories": [
+    {
+      "id": "territory_roma_norte_cibeles",
+      "kind": "fictional_playable",
+      "inspired_by": "col_roma_norte",
+      "status": "authored arena, not an administrative boundary"
+    }
+  ],
+  "maps": [
+    {
+      "map_id": "la_roma",
+      "territory_id": "territory_roma_norte_cibeles",
+      "place_ids": ["col_roma_norte", "place_fuente_cibeles"],
+      "objective_place_id": "place_fuente_cibeles",
+      "objective_anchor": [9, 9],
+      "decorative_tiles": [[9, 9]],
+      "tile_roles": {
+        "blocked": "simulation blocked_tiles and cliff_tiles",
+        "decorative": "listed view-only anchors, still traversable",
+        "traversable": "all other non-blocked tiles"
+      },
+      "coordinate_transform": "none; the 28x28 board is independently authored, not projected from source geometry",
+      "label_key": "map.la_roma.label",
+      "description_key": "map.la_roma.description",
+      "wins_key": "map.la_roma.wins"
+    }
+  ],
+  "strings": {
+    "en": {
+      "map.la_roma.label": "La Roma — Roma Norte / Cibeles",
+      "map.la_roma.description": "A stylized Roma Norte battlefield, not a street-accurate map. Any faction can fight here.",
+      "map.la_roma.wins": "Destroy the opposing command post or hold Cibeles for 75 seconds."
+    },
+    "es": {
+      "map.la_roma.label": "La Roma — Roma Norte / Cibeles",
+      "map.la_roma.description": "Un campo de batalla inspirado en Roma Norte; no es un plano exacto. Cualquier facción puede jugar aquí.",
+      "map.la_roma.wins": "Destruye el puesto de mando rival o controla Cibeles durante 75 segundos."
+    }
+  }
+}
