@@ -3,7 +3,7 @@ epic: establish-cdmx-geography-and-maps
 sprint: 1
 title: "Source and map contract"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,32 +12,33 @@ stories:
     i_want: "stable reviewed place references"
     so_that: "visible geography has a traceable source"
     risk: high
-    status: planned
+    status: done
   - id: S1.2
     title: "Validate authored map metadata"
     as_a: "map author"
     i_want: "a checked map contract"
     so_that: "decorative and playable geometry cannot be confused"
     risk: high
-    status: planned
+    status: done
 ---
 # Establish CDMX geography and map data — Sprint 1: Source and map contract
 
-**Status:** ⬜ not started
+**Status:** 🟡 builder verified; owner source and portrayal read owed
 
 ## Stories
 
-### Story 1.1 — Verify CDMX sources and place registry
+### ✅ Story 1.1 — Verify CDMX sources and place registry
 **As a** map author, **I want** stable reviewed place references, **so that** visible geography has a traceable source.
 **Acceptance:** Record all 16 alcaldías with stable IDs/names, plus focused Roma Norte and Fuente de Cibeles records. For every candidate source record publisher, resource URL, version/date, license, attribution, coordinate reference and import decision. Uncertain placements remain unresolved. No unreviewed geometry enters runtime content.
 **Risk:** high · geographic assertion and commercial redistribution.
 
-### Story 1.2 — Validate authored map metadata
+### ✅ Story 1.2 — Validate authored map metadata
 **As a** map author, **I want** a checked map contract, **so that** decorative and playable geometry cannot be confused.
 **Acceptance:** Keep the existing `la_roma` map functional while adding stable place/territory references, tile semantics, objective/spawn metadata and localization keys. Deterministically reject unknown IDs, contradictory tile roles and inaccessible starts/objectives. Preserve Narvarte/Copilco loading.
 **Risk:** high · shared map and content contract.
 
 ## Sprint QA
+- **Evidence:** [source and rights record](../../../docs/world/cdmx-geography-source-review.md) and [builder QA record](../../../docs/world/cdmx-geography-qa-2026-10-22.md). No source geometry was imported; owner portrayal review remains open.
 - **Headless:** source/ID validation and malformed metadata fixtures, existing world-expansion and contract checks.
 - **Review:** independent source/license/portrayal read before geography import; inspect a clean content diff.
 - **Rendered:** current La Roma, Narvarte and Copilco still start.

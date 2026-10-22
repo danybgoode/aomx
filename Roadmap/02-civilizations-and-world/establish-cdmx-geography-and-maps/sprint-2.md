@@ -3,7 +3,7 @@ epic: establish-cdmx-geography-and-maps
 sprint: 2
 title: "Playable Roma Norte/Cibeles map"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,22 +12,22 @@ stories:
     i_want: "clear map choice"
     so_that: "I can choose the battlefield with any faction"
     risk: low
-    status: planned
+    status: done
   - id: S2.2
     title: "Play the revised fair map"
     as_a: "skirmish player"
     i_want: "a recognizable and fair Cibeles arena"
     so_that: "I can win by either stated route"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Establish CDMX geography and map data — Sprint 2: Playable Roma Norte/Cibeles map
 
-**Status:** ⬜ not started
+**Status:** 🟡 builder verified; owner full-match QA owed
 
 ## Stories
 
-### Story 2.1 — Explain and select La Roma
+### ✅ Story 2.1 — Explain and select La Roma
 **As a** skirmish player, **I want** a clear map choice, **so that** I can choose the battlefield with any faction.
 **Acceptance:** The existing setup identifies Roma Norte/Cibeles as a stylized arena and states both win routes. Every current faction can start the map; no campaign progress gates it. Existing map choices remain.
 **Risk:** low · non-commerce UI.
@@ -38,6 +38,7 @@ stories:
 **Risk:** high · shared simulation/map behavior.
 
 ## Sprint QA
+- **Evidence:** [builder QA record](../../../docs/world/cdmx-geography-qa-2026-10-22.md) and [rendered setup captures](../../../docs/screenshots/cdmx-geography/README.md). Automated fairness and terminal checks passed; owner full-match and portrayal checks remain open.
 - **Headless:** path/access, resource distance, AI command, fog, selection and both terminal routes under matched seeds; current world-expansion and replay checks.
 - **Rendered:** setup at supported sizes and full La Roma play under both victory routes.
 - **Owner:** compare visible names and portrayal with the verified record; record any rule or cultural decision.
