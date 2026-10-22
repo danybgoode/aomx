@@ -24,7 +24,7 @@ stories:
 
 # Produce cohesive CDMX game art — Sprint 4: Playable art acceptance
 
-**Status:** 🔎 Local verification passed; Restricted build and owner QA pending.
+**Status:** 🏗 In progress — local verification passed; Restricted fetch and owner QA pending.
 
 ## Stories
 
