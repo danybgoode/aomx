@@ -1,5 +1,13 @@
 # Private alpha: local macOS download QA
 
+## CDMX art owner preview · 2026-10-22
+
+The approved [#15 art PR](https://github.com/danybgoode/aomx/pull/70) merged as `d93cfc7025f3`. Its signed Restricted `mac-private-alpha` candidate is `preview-d93cfc7025f3`, Butler build `#2187202`; the local source ZIP SHA-256 is `74d73515f4da1d6aa73068f8c47ba835edba0434a5fadc8d5be53419226b67b9`. The full export gate and strict signature passed. Confirm Butler says **ready** and independently fetch it before judging the package. The anonymous itch page returned 404 before and after upload. [Builder captures](screenshots/cdmx-art/README.md) show the 100%, 125%, fit, dense, role and building fixtures; they do not replace the owner walkthrough.
+
+On this exact downloaded build, start La Roma as each faction and name the Cibeles control point, the five unit roles, five building roles and four resource sites without relying only on color. Move and select a fighter partly covered by another actor or prop at fit, 100% and 125% zoom; check hover, health and order feedback. Build a structure, damage one, contest and hold Cibeles, and finish one match by each victory route. Save/quit/resume and open a replay. Record the exact build ID, ambiguous clicks, unreadable roles and any cultural reference that requires explanation. The familiar/unfamiliar eight-person read remains a separate owner task after its invitation gates.
+
+This machine's request to the private alpha origin returned HTTP 403 on 2026-10-22; the operator `/32` must be current before the in-app test-event sync step. Do not treat that as a successful receipt. Preview events remain excluded, and this art release does not authorize public invitations.
+
 ## Restricted multiplayer owner preview · 2026-10-20
 
 The matching signed owner-only `mac-private-alpha` upload is `preview-2ad3d65a3d80` from merged `master` `2ad3d65a3d80` (ready Butler build `#2173082`). The source archive SHA-256 is `a2c183dc8cc97e208dbb98feaed0f7d81cefc1c3f8605a49e58c6e7f23de8b60`. Full export QA passed. An authenticated independent Butler fetch matched the source ZIP extraction byte for byte; strict code-signature verification, bounded headless startup and a rendered faction/HUD/build-ID smoke passed on the fetched app. The anonymous itch page returned 404 after upload. The earlier `preview-834295f3e0f9` build `#2171274` predates the optimized host image.

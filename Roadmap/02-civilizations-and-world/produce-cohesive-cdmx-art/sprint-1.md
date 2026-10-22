@@ -24,7 +24,7 @@ stories:
 
 # Produce cohesive CDMX game art — Sprint 1: Contract and pilot
 
-**Status:** 🔎 Builder pilot captured; owner visual decision owed.
+**Status:** 🟦 In review — builder pilot captured; owner visual decision owed.
 
 ## Stories
 

@@ -17,7 +17,7 @@ stories:
 
 # Produce cohesive CDMX game art — Sprint 2: Place and economy
 
-**Status:** 🔎 Builder place pass captured; owner place QA owed.
+**Status:** 🟦 In review — builder place pass captured; owner place QA owed.
 
 ## Stories
 

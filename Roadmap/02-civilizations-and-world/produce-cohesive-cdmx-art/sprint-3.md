@@ -17,7 +17,7 @@ stories:
 
 # Produce cohesive CDMX game art — Sprint 3: Units and state
 
-**Status:** 🔎 Builder role/faction matrix captured; owner clarity QA owed.
+**Status:** 🟦 In review — builder role/faction matrix captured; owner clarity QA owed.
 
 ## Stories
 
