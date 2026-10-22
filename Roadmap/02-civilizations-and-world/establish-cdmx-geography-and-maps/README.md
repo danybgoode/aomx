@@ -1,6 +1,6 @@
 ---
 status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+phase: Verifying      # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: establish-cdmx-geography-and-maps
 title: "Establish CDMX geography and map data"
@@ -89,5 +89,5 @@ Source/rights review precedes any geographic import. Introduce the registry and 
 - [ ] Six stories satisfy the [pitch's acceptance criteria](../../00-ideas/seeds/establish-cdmx-geography-and-maps.md#acceptance-criteria), with high-risk rights and compatibility decisions reviewed.
 - [ ] All three sprint walkthroughs are recorded against a real build; headless contracts, rendered selection, full matches and versioned replay/save behavior pass.
 - [ ] The owner completes the downloaded Restricted build playthrough and approves visible place portrayal; invited familiar/unfamiliar readers complete the uncoached task read after separate invitation approval.
-- [ ] Changes are reviewed and merged to `master`; a merge alone is not a released game build. A Restricted release is identified by build ID and checked separately.
+- [x] Changes are reviewed and merged to `master`; Restricted build `preview-53fcf2def066` is ready as Butler `#2187758` and its independent fetch passed signature and startup checks.
 - [ ] The retrospective, product poster and any durable project learning reflect verified outcomes. Mark `status: shipped` only after owner QA and close-out are complete; regenerate and sync the roadmap then.

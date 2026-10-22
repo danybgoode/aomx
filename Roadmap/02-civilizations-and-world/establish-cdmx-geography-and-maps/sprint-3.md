@@ -23,7 +23,7 @@ stories:
 ---
 # Establish CDMX geography and map data — Sprint 3: Compatibility and owner acceptance
 
-**Status:** 🟡 compatibility verified; Restricted build and owner QA owed
+**Status:** 🟡 compatibility and Restricted build verified; owner QA owed
 
 ## Stories
 
@@ -38,7 +38,7 @@ stories:
 **Risk:** low · observational research; invitations remain a separate approval.
 
 ## Sprint QA
-- **Evidence:** [builder QA record](../../../docs/world/cdmx-geography-qa-2026-10-22.md). The existing v5 content ID and deterministic hashes are unchanged; the new Restricted build and downloaded owner walkthrough remain open.
+- **Evidence:** [builder QA and release record](../../../docs/world/cdmx-geography-qa-2026-10-22.md). The existing v5 content ID and deterministic hashes are unchanged. The signed Restricted build is ready and independently fetched; the downloaded owner walkthrough remains open.
 - **Headless:** save, load, replay and content-hash fixtures; invalid old-content preservation; multiplayer replay if applicable.
 - **Real build:** signed Restricted download, offline owner play, both wins and event exclusion/ingest check.
 - **Human:** owner portrayal and full-match decision; uncoached familiar/unfamiliar task read after invitation approval.
