@@ -4,7 +4,7 @@ The default scene is an original 28×28 isometric solo RTS match on **Godot 4.7.
 
 Choose **Learner**, **Standard**, or **Challenger** before choosing a faction. Learner reacts every 40 ticks, scouts later, and caps its army at four. Standard reacts every 20 ticks, scouts earlier, counters visible roles, and caps at six. Challenger reacts every 10 ticks, presses objectives earlier, remembers sightings longer, and caps at eight. All three use the same costs, damage, sight, population, resources and win rules. Faction, opponent, map and difficulty stay fixed in schema-5 saves and replays; older saves return an explicit version error and remain on disk. The [world QA record](../docs/world-expansion-qa-2026-10-19.md) covers this wave.
 
-Set `GODOT_BIN` to a Godot 4.7.2 executable. On the development Mac it is `/Users/cosmo/Downloads/Godot.app/Contents/MacOS/Godot`. From the repository root:
+Set `GODOT_BIN` to a Godot 4.7.2 executable. On the development Mac it is `/Applications/Godot.app/Contents/MacOS/Godot`. From the repository root:
 
 ```sh
 "$GODOT_BIN" --headless --path game --import
@@ -39,6 +39,8 @@ Open **Menu → Save current match** during play. On the faction screen or in Me
 The [HUD implementation notes](../docs/art/ui-component-spec.md) and [four screenshots](../docs/screenshots/readable-hud/README.md) compare the playable interface with the approved concept. To build a local Web export, install the Godot 4.7.2 Web template and run `"$GODOT_BIN" --headless --path game --export-release Web /absolute/path/game.html`; serve the generated HTML, JavaScript, WASM and PCK from one directory. The Web export is a compatibility check, separate from the signed macOS Restricted preview.
 
 For the owned-art pipeline and actual-scale comparison, see [the production notes](../docs/art/owned-art-pipeline.md). Run `scripts/export-owned-art.sh`, `node scripts/validate-art-manifest.mjs`, then `"$GODOT_BIN" --path game res://art_pilot.tscn`. The boar and raised tiles are pilot candidates; the selected flower tile is decorative in the match.
+
+La Roma's [CDMX art pack](../docs/art/cdmx-art-source.md) loads separately from the older v0.1 manifest. Regenerate its 27 traced RGBA exports with `node scripts/export-cdmx-art.mjs`, validate both manifests with `node scripts/validate-art-manifest.mjs`, and run `"$GODOT_BIN" --headless --path game --script res://tests/art_pipeline_test.gd`. The [rendered QA set](../docs/screenshots/cdmx-art/README.md) records 100%, 125%, fit, dense-center, place and faction-role fixtures. The other two maps still use their existing sprites. Owner visual and downloaded-match QA for this pack are open.
 
 For controlled local smoke, set `SKIRMISH_SMOKE_SCENARIO=win`, `loss`, `draw`, `district_hold`, or `district_contest` before launching a debug Godot build. The first three set a terminal state immediately or at the 15-minute boundary. `district_hold` places a friendly fighter at center; `district_contest` places both sides at center with a low-health defender so you can attack it and watch the timer restart. The AI is disabled only in these two debug fixtures. The environment hook does not run in release exports.
 

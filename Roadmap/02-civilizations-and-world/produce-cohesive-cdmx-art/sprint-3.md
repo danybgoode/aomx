@@ -3,7 +3,7 @@ epic: produce-cohesive-cdmx-art
 sprint: 3
 title: "Units and state"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,12 +12,12 @@ stories:
     i_want: "distinct unit roles and faction cues during movement and combat"
     so_that: "I can command the right unit without relying on color or local jokes"
     risk: low
-    status: planned
+    status: in-progress
 ---
 
 # Produce cohesive CDMX game art — Sprint 3: Units and state
 
-**Status:** ⬜ not started
+**Status:** 🔎 Builder role/faction matrix captured; owner clarity QA owed.
 
 ## Stories
 
@@ -26,6 +26,8 @@ stories:
 **As an** RTS player, **I want** distinct unit roles and faction cues during movement and combat, **so that** I can command the right unit without relying on color or local jokes.
 **Acceptance:** The existing worker, melee, ranged, armored and siege roles have readable silhouettes and an internally consistent current-action treatment. All four selectable factions have recognizable marks beyond team color while friendly/enemy ownership stays unmistakable. Selection, hover, health, order, fog and damage cues remain legible in crowded fights at 100%, 125% and fit zoom. The unit assets add no collision, rule or ability.
 **Risk:** low. **QA:** inspect current-role/faction matrix in Godot, check selection of partly obscured bodies, manifest/animation validation, simulation/save/replay hashes and client checks.
+
+**Builder evidence:** [Four actual-scene faction captures](../../../docs/screenshots/cdmx-art/README.md) include both teams and all five current roles. Neutral source sprites gain a small faction letter/shape plus blue/red ownership border; armored and siege retain role marks. Facing, movement bob, HP, selected/hovered, combat, construction and damage overlays follow current state. The existing client test confirms alpha worker selection; a partly obscured-unit manual check and uncoached readability remain open.
 
 ## Sprint QA
 

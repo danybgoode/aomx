@@ -3,7 +3,7 @@ epic: produce-cohesive-cdmx-art
 sprint: 4
 title: "Playable art acceptance"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S4.1
@@ -12,7 +12,7 @@ stories:
     i_want: "a downloadable art-complete match with unchanged rules"
     so_that: "I can judge the work in the real client"
     risk: low
-    status: planned
+    status: in-progress
   - id: S4.2
     title: "Record uncoached visual comprehension"
     as_a: "product owner"
@@ -24,7 +24,7 @@ stories:
 
 # Produce cohesive CDMX game art — Sprint 4: Playable art acceptance
 
-**Status:** ⬜ not started
+**Status:** 🔎 Local verification passed; Restricted build and owner QA pending.
 
 ## Stories
 
@@ -33,6 +33,8 @@ stories:
 **As the** owner, **I want** a downloadable art-complete match with unchanged rules, **so that** I can judge the work in the real client.
 **Acceptance:** Review and merge all art/source/manifest changes, export a signed Restricted macOS build from the landed commit, independently fetch it and check archive identity and signature. Record frame/memory comparison under identical match/zoom conditions. In the downloaded build, verify four factions, both victory routes, save/resume, replay, center selection and test-event exclusion. The owner personally completes the visual and full-match walkthrough; keep that checkbox open until observed.
 **Risk:** low. **QA:** Godot/Node contract suite, manifest, source ZIP hash, strict signature, independent fetch and real downloaded-build smoke. No public invitation.
+
+**Evidence:** See [QA record](QA-2026-10-22.md) for the complete local check list and, after landing, the Restricted build ID, checksum and independent download. Owner full-match verification remains open.
 
 ### Story 4.2 — Record uncoached visual comprehension
 

@@ -3,7 +3,7 @@ epic: produce-cohesive-cdmx-art
 sprint: 2
 title: "Place and economy"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 1
 stories:
   - id: S2.1
@@ -12,12 +12,12 @@ stories:
     i_want: "recognizable ground, Cibeles, structures and resource sites"
     so_that: "I can read the place and economy while playing"
     risk: low
-    status: planned
+    status: in-progress
 ---
 
 # Produce cohesive CDMX game art — Sprint 2: Place and economy
 
-**Status:** ⬜ not started
+**Status:** 🔎 Builder place pass captured; owner place QA owed.
 
 ## Stories
 
@@ -26,6 +26,8 @@ stories:
 **As an** RTS player, **I want** recognizable ground, Cibeles, structures and resource sites, **so that** I can read the place and economy while playing.
 **Acceptance:** All current La Roma terrain classes and joins have seam-safe 48×24 top geometry. The center reads as Cibeles and its existing neutral/contested/held states remain obvious. Current building kinds, construction/damage feedback, four resource sites and a restrained set of view-only street props use consistent palette, light and depth. Existing fog, pathing, alpha picking and HUD readability hold. No new role, amount, objective or map location comes from concept art.
 **Risk:** low. **QA:** deterministic export and manifest checks; Godot rendered fog, dense-center, construction, resource selection and both objective-state cases; no rule/save/replay hash change.
+
+**Builder evidence:** The separate CDMX pack supplies seam-preserving variants for all four terrain classes, Cibeles and five distinct building silhouettes. The [place capture](../../../docs/screenshots/cdmx-art/place-and-buildings.png) shows construction and damage; resource sites have four shape cues and retain letter/amount labels. Cibeles follows current exploration and district state. Existing jacaranda and flower props remain decorative. Machine contracts pass; owner in-game acceptance is pending.
 
 ## Sprint QA
 

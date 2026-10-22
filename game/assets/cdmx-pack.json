@@ -1,0 +1,820 @@
+{
+  "schema_version": 1,
+  "pack": "la-roma-cdmx-art-v1",
+  "tile_ground_size": [
+    48,
+    24
+  ],
+  "simulation_grid": [
+    28,
+    28
+  ],
+  "source_policy": "Project original AI-assisted transparent sources; prompts and reference mapping in docs/art/cdmx-art-source.md.",
+  "assets": [
+    {
+      "id": "terrain_cdmx_grass_0",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_grass_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "fe696a7a0312d8ac7a12338d17c0416023651169770f10535b275281428be272",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_grass_0"
+    },
+    {
+      "id": "terrain_cdmx_grass_1",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_grass_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "8c28280aa27718cdd12f6a24114985bb453532ced37024f2e705dbc5c0da93f5",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_grass_1"
+    },
+    {
+      "id": "terrain_cdmx_grass_2",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_grass_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "862d6e783d6df0ab8ca6b0c0afa3ee333d7cd776e6d937b8c3337b8637d40642",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_grass_2"
+    },
+    {
+      "id": "terrain_cdmx_grass_3",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_grass_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "cd7361c5d59d4559403ed6438716c307b7fc70a63b11c29c0f32a843d6d41afb",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_grass_3"
+    },
+    {
+      "id": "terrain_cdmx_sidewalk_0",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_sidewalk_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "1e25f6233370f5b9e90569d375fb9d10412280669397ec7c50591686efc13cca",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_sidewalk_0"
+    },
+    {
+      "id": "terrain_cdmx_sidewalk_1",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_sidewalk_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "52722fd58fa0293f3adb38dfecef9db5e70876c7cb0b7c3c5ac087a12ed86286",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_sidewalk_1"
+    },
+    {
+      "id": "terrain_cdmx_sidewalk_2",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_sidewalk_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "9ceab9a4a809cb59832276693ecd877e7c84c3e81ef7e4ad74f6d6a88aec8241",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_sidewalk_2"
+    },
+    {
+      "id": "terrain_cdmx_sidewalk_3",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_sidewalk_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "256cecb4d915d7b5127dfc49e06c6a3015271582a0130e27cf3dac6cb715984c",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_sidewalk_3"
+    },
+    {
+      "id": "terrain_cdmx_asphalt_0",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_asphalt_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "5f6597d51bb04a70679c023eb987aa91e28c93a78e4224b77cdc52eac0a448b6",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_asphalt_0"
+    },
+    {
+      "id": "terrain_cdmx_asphalt_1",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_asphalt_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "140c8ea982c815277b935becd28fbcd59ea76516d6e2e43bdc59e0437e9214e5",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_asphalt_1"
+    },
+    {
+      "id": "terrain_cdmx_asphalt_2",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_asphalt_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "63a36fa6b55987a0605c09804ee997c6b6f39693782151a605cadbc7a66ed134",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_asphalt_2"
+    },
+    {
+      "id": "terrain_cdmx_asphalt_3",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_asphalt_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "8b7f29a4ccc10411774f7d178be210cda6ea47e4382519e8475dbf58ed62589f",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_asphalt_3"
+    },
+    {
+      "id": "terrain_cdmx_plaza_0",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_plaza_0.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "d64f3cb5690a3cdb6f7d08b901146adf366ba6e60890d4e8b662cebb2c76e191",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_plaza_0"
+    },
+    {
+      "id": "terrain_cdmx_plaza_1",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_plaza_1.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "c96d34a455ad276b6a2996e9d24cf3b79178505964686918e97fc9a89c3faece",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_plaza_1"
+    },
+    {
+      "id": "terrain_cdmx_plaza_2",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_plaza_2.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "3f74a83eb777caa25026b1ec7b53e23406be821e26824d45520b2a1ef5867839",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_plaza_2"
+    },
+    {
+      "id": "terrain_cdmx_plaza_3",
+      "category": "terrain",
+      "path": "res://assets/render/cdmx/terrain_cdmx_plaza_3.png",
+      "source": "res://assets/source/terrain_atlas.png",
+      "canvas": [
+        48,
+        27
+      ],
+      "pivot": [
+        24,
+        12
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "states": [
+        "static"
+      ],
+      "directions": [],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1d41ed72dcf9381763a50aaaba542b20b27ace88c3565cf48f151ed9131c0c26",
+      "export_sha256": "ae9c9ff9adacc367f4bbba168b81e54884815d3ca2526a59c1ec48cc5347e7c4",
+      "export_recipe": "scripts/export-cdmx-art.mjs:terrain_cdmx_plaza_3"
+    },
+    {
+      "id": "building_cdmx_roma_command_post",
+      "category": "building",
+      "path": "res://assets/render/cdmx/building_cdmx_roma_command_post.png",
+      "source": "res://assets/source/cdmx/roma_command_post.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "84a186f75dfef15ced27151bf6a9e6099e807804e93fe3a842c3bf7217183cba",
+      "export_sha256": "790adab1f241d522f579a8c446e22b1f899e8e7cc7ff82199540c4d3aebbcc3d",
+      "export_recipe": "scripts/export-cdmx-art.mjs:building_cdmx_roma_command_post"
+    },
+    {
+      "id": "building_cdmx_barracks",
+      "category": "building",
+      "path": "res://assets/render/cdmx/building_cdmx_barracks.png",
+      "source": "res://assets/source/cdmx/barracks.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "a95603fd34b42482b66096308c8b7d29aa7e44fb9e2e705f0e8aed7c9cc24b50",
+      "export_sha256": "5fd694b8805775b421742c4bb51093c2f5932daf823ea81f2a86fae41de58540",
+      "export_recipe": "scripts/export-cdmx-art.mjs:building_cdmx_barracks"
+    },
+    {
+      "id": "building_cdmx_depot",
+      "category": "building",
+      "path": "res://assets/render/cdmx/building_cdmx_depot.png",
+      "source": "res://assets/source/cdmx/depot.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "9d1299e9555319c3bbe1638b77cfe941d9840ff35aecb52eaa3a98140d4a43c9",
+      "export_sha256": "e59a4730a9bdf0e3cf077164842c6b8af12b9f0e5670f09ddcecbc71a204c3d2",
+      "export_recipe": "scripts/export-cdmx-art.mjs:building_cdmx_depot"
+    },
+    {
+      "id": "building_cdmx_housing",
+      "category": "building",
+      "path": "res://assets/render/cdmx/building_cdmx_housing.png",
+      "source": "res://assets/source/cdmx/housing.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "82498902e14ec684d37ec25bfeaf06e8fbeadb30d3861dd75849256aa35e09fc",
+      "export_sha256": "caf2393c3690166d5624e471d72f9ba3572eef9f2829bd1e6a5d4962aac0f642",
+      "export_recipe": "scripts/export-cdmx-art.mjs:building_cdmx_housing"
+    },
+    {
+      "id": "building_cdmx_registry",
+      "category": "building",
+      "path": "res://assets/render/cdmx/building_cdmx_registry.png",
+      "source": "res://assets/source/cdmx/registry.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "91c9e04cf261f8212e503ffd561bd8aa6a5d2a996afac8db21f7b871f7363b2c",
+      "export_sha256": "33a20d4d8e10f11c167040f22d16fcfdd7d6519d1c6d92802e603c5a31cd468c",
+      "export_recipe": "scripts/export-cdmx-art.mjs:building_cdmx_registry"
+    },
+    {
+      "id": "unit_cdmx_worker",
+      "category": "unit",
+      "path": "res://assets/render/cdmx/unit_cdmx_worker.png",
+      "source": "res://assets/source/cdmx/worker.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "cfef24c88db8b08b0223fbd1c4e88ef2b0ecad86c8e1fb03494ef807fc198d85",
+      "export_sha256": "f4b3b5b3ebd07373676937d7423a3597a1bdda8004ed0f9f9a67f2b673801eca",
+      "export_recipe": "scripts/export-cdmx-art.mjs:unit_cdmx_worker"
+    },
+    {
+      "id": "unit_cdmx_melee",
+      "category": "unit",
+      "path": "res://assets/render/cdmx/unit_cdmx_melee.png",
+      "source": "res://assets/source/cdmx/melee.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1acdd0f5ce89f48372eca2695e1f759c5587170c7dea3e754a6c8cbf8ff3dfec",
+      "export_sha256": "5f30ade7aa0e1a4c5f19825182bd97d853f440a9c955e511a226e45ab5dc6a20",
+      "export_recipe": "scripts/export-cdmx-art.mjs:unit_cdmx_melee"
+    },
+    {
+      "id": "unit_cdmx_ranged",
+      "category": "unit",
+      "path": "res://assets/render/cdmx/unit_cdmx_ranged.png",
+      "source": "res://assets/source/cdmx/ranged.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "8226dc83045a920d7498b51e95af2ac55a2de623e21a7a3f38b7a31360867968",
+      "export_sha256": "07e0c92b48b444d55585a8bacdd9b02f77c3936234862320daf3d086393282a0",
+      "export_recipe": "scripts/export-cdmx-art.mjs:unit_cdmx_ranged"
+    },
+    {
+      "id": "unit_cdmx_armored",
+      "category": "unit",
+      "path": "res://assets/render/cdmx/unit_cdmx_armored.png",
+      "source": "res://assets/source/cdmx/armored.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "517290396fcf0871a4af148eb6133ba976b0c63e1c0e914b8b5e43198d966909",
+      "export_sha256": "903e9d658ad4dc5aa36cbe998e08ac327911cddc419ab0c7b6a3891009b4f555",
+      "export_recipe": "scripts/export-cdmx-art.mjs:unit_cdmx_armored"
+    },
+    {
+      "id": "unit_cdmx_siege",
+      "category": "unit",
+      "path": "res://assets/render/cdmx/unit_cdmx_siege.png",
+      "source": "res://assets/source/cdmx/siege.png",
+      "canvas": [
+        40,
+        56
+      ],
+      "pivot": [
+        20,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "1fd67f499309b472f0a6c5092be936cd507ff2c861ca4805e3641f088738157f",
+      "export_sha256": "56393b8fed9a7f9cdce6e76ae6033839e2d6070c75908d91ac2233a9e9bc5bcd",
+      "export_recipe": "scripts/export-cdmx-art.mjs:unit_cdmx_siege"
+    },
+    {
+      "id": "prop_cdmx_cibeles",
+      "category": "prop",
+      "path": "res://assets/render/cdmx/prop_cdmx_cibeles.png",
+      "source": "res://assets/source/cdmx/cibeles.png",
+      "canvas": [
+        96,
+        80
+      ],
+      "pivot": [
+        48,
+        79
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "2e9a8061b6bfc1737b095c14868b074e6698f83cf0463143a24adb6ba03e9cb3",
+      "export_sha256": "eff82e78f26054928eb7062df5d18129df08d6a818dc17eef3f843fad42cf1dc",
+      "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_cibeles"
+    }
+  ]
+}

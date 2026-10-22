@@ -1463,7 +1463,7 @@ func _update_hud() -> void:
 	var own_hp: int = maxi(0, sim.entities[own_post].hp) if own_post != -1 else 0
 	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_post]) else -1
 	var hold_seconds: int = int(sim.content.objectives.district_hold_ticks) / 10
-	ui.secondary_status.text = "CENTER  %s\nHOLD  %02d:%02d / %02d:%02d\n\nCommand posts\nOurs %d HP  •  Enemy %s" % [sim.district_state.replace("_", " ").capitalize(),
+	ui.secondary_status.text = "%s  %s\nHOLD  %02d:%02d / %02d:%02d\n\nCommand posts\nOurs %d HP  •  Enemy %s" % ["CIBELES" if sim.map_id == "la_roma" else "CENTER", sim.district_state.replace("_", " ").capitalize(),
 		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	var group_signature := str(selected_ids)
 	if group_signature != last_group_signature:
@@ -1477,7 +1477,8 @@ func _update_hud() -> void:
 		else:
 			ui.set_group([])
 	if selected_id == -1:
-		ui.set_selection(art.texture("building_command_post_%s" % _faction_color(Skirmish.HUMAN)), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0, "Select a unit or post", "")
+		var setup_post_id := "building_cdmx_roma_command_post" if sim.map_id == "la_roma" else "building_command_post_%s" % _faction_color(Skirmish.HUMAN)
+		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0, "Select a unit or post", "")
 	else:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
@@ -1719,6 +1720,11 @@ func _actor_ground(entity: Dictionary) -> Vector2:
 
 func _actor_art_id(entity: Dictionary) -> String:
 	var is_building: bool = entity.kind in sim.content.buildings
+	if sim.map_id == "la_roma":
+		var cdmx_kind: String = "roma_command_post" if entity.kind == "command_post" else str(entity.kind)
+		var cdmx_id: String = ("building_cdmx_" if is_building else "unit_cdmx_") + cdmx_kind
+		if art.records.has(cdmx_id):
+			return cdmx_id
 	var id: String = ("building_" if is_building else "unit_") + str(entity.kind) + "_" + _faction_color(entity.side)
 	if art.records.has(id):
 		return id
@@ -1843,7 +1849,8 @@ func _terrain_id(tile: Vector2i) -> String:
 		kind = "asphalt"
 	elif sim.map_id == "la_roma" and (tile.x in [4, 6, 13, 15] or tile.y in [3, 5, 14, 16]) or sim.map_id == "narvarte" and (tile.x in [4, 6, 11, 13, 18, 20] or tile.y in [3, 5, 10, 12, 17, 19]) or sim.map_id == "copilco" and (tile.x in [3, 5, 8, 10, 14, 16] or tile.y in [4, 6, 11, 13, 18, 20]):
 		kind = "sidewalk"
-	return "terrain_%s_%d" % [kind, posmod(tile.x * 13 + tile.y * 7, 4)]
+	var prefix := "terrain_cdmx_" if sim.map_id == "la_roma" else "terrain_"
+	return "%s%s_%d" % [prefix, kind, posmod(tile.x * 13 + tile.y * 7, 4)]
 
 func _faction_color(side: int) -> String:
 	return "blue" if side == Skirmish.HUMAN else "red"
@@ -1890,9 +1897,13 @@ func _draw() -> void:
 		for tile in [Vector2i(3, 14), Vector2i(17, 6)]:
 			var flowers_id := "prop_owned_flowers"
 			draw_texture(art.texture(flowers_id), _tile_to_screen(tile) - art.pivot(flowers_id))
-	var medallion_id := "prop_plaza_medallion"
-	draw_texture(art.texture(medallion_id), _tile_to_screen(Vector2i(10, 10)) - art.pivot(medallion_id))
-	draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), MAP_NAMES[sim.map_id].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
+	var medallion_id := "prop_cdmx_cibeles" if sim.map_id == "la_roma" else "prop_plaza_medallion"
+	var center_tile := Vector2i(10, 10)
+	if sim.is_explored(Skirmish.HUMAN, center_tile):
+		var landmark_tint := Color.WHITE if sim.is_visible(Skirmish.HUMAN, center_tile) else Color(0.45, 0.5, 0.55, 0.75)
+		draw_texture(art.texture(medallion_id), _tile_to_screen(center_tile) - art.pivot(medallion_id), landmark_tint)
+	if sim.map_id != "la_roma":
+		draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), MAP_NAMES[sim.map_id].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		for resource_id in RESOURCE_IDS:
 			var source: Dictionary = sim.resource_sources[side].get(resource_id, {})
@@ -1904,6 +1915,18 @@ func _draw() -> void:
 			draw_circle(center, 13, color.darkened(0.45) if active else Color("60646a"))
 			draw_arc(center, 13, 0, TAU, 24, Color.WHITE if resource_id == hovered_source_id and side == Skirmish.HUMAN else color, 2.0)
 			draw_arc(center, 16, 0, TAU, 24, Color("70d5e7") if side == Skirmish.HUMAN else Color("ed796a"), 1.5)
+			if sim.map_id == "la_roma":
+				match resource_id:
+					"comida":
+						draw_circle(center + Vector2(-2, 0), 5, Color("b9e295"))
+						draw_line(center + Vector2(0, -3), center + Vector2(4, -8), Color("f3f0c6"), 2.0)
+					"materiales":
+						draw_rect(Rect2(center + Vector2(-7, -4), Vector2(7, 7)), Color("d6d5c6"))
+						draw_rect(Rect2(center + Vector2(1, -2), Vector2(7, 7)), Color("9cabb2"))
+					"varos":
+						draw_arc(center, 7, 0, TAU, 24, Color("ffe59a"), 3.0)
+					"terrenos":
+						draw_colored_polygon(PackedVector2Array([center + Vector2(0, -8), center + Vector2(8, 0), center + Vector2(0, 8), center + Vector2(-8, 0)]), Color("dcc9f4"))
 			draw_string(ThemeDB.fallback_font, center + Vector2(-9, 5), resource_id.substr(0, 1).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 18, 15, Color.WHITE)
 			draw_string(ThemeDB.fallback_font, center + Vector2(-35, -22), "%s %d" % [resource_id.substr(0, 1).to_upper(), int(source.get("amount", 0))],
 				HORIZONTAL_ALIGNMENT_CENTER, 70, 12, Color.WHITE)
@@ -1939,10 +1962,25 @@ func _draw() -> void:
 			_draw_sprite_outline(art_id, sprite_rect, Color("7eeaff") if id == selected_id else Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)
 		if is_building and e.kind not in ["command_post", "barracks"]:
-			draw_rect(Rect2(ground + Vector2(-35, -54), Vector2(70, 18)), Color("1b2430"))
-			draw_string(ThemeDB.fallback_font, ground + Vector2(-33, -40), e.kind.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 12, Color.WHITE)
+			var label_origin := ground + (Vector2(-35, 3) if sim.map_id == "la_roma" else Vector2(-35, -54))
+			draw_rect(Rect2(label_origin, Vector2(70, 16)), Color("1b2430"))
+			draw_string(ThemeDB.fallback_font, label_origin + Vector2(2, 12), e.kind.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 11, Color.WHITE)
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
+		if sim.map_id == "la_roma":
+			var faction_id: String = str(sim.factions[e.side])
+			var symbol: String = {"regios": "R", "poblanos": "P", "oaxaquenos": "O", "veracruzanos": "V"}.get(faction_id, "?")
+			var mark_center := ground + Vector2(-28, -77) if is_building else ground + Vector2(-12, -29)
+			var mark_radius := 7.0 if is_building else 5.5
+			var side_color := Color("70d5e7") if e.side == Skirmish.HUMAN else Color("ed796a")
+			if faction_id in ["poblanos", "veracruzanos"]:
+				draw_circle(mark_center, mark_radius, Color("19232c"))
+				draw_arc(mark_center, mark_radius, 0, TAU, 20, side_color, 1.5)
+			else:
+				draw_rect(Rect2(mark_center - Vector2.ONE * mark_radius, Vector2.ONE * mark_radius * 2.0), Color("19232c"))
+				draw_rect(Rect2(mark_center - Vector2.ONE * mark_radius, Vector2.ONE * mark_radius * 2.0), side_color, false, 1.5)
+			if is_building or board_zoom >= 1.0:
+				draw_string(ThemeDB.fallback_font, mark_center + Vector2(-mark_radius + 1.0, 3.5), symbol, HORIZONTAL_ALIGNMENT_CENTER, (mark_radius - 1.0) * 2.0, 10, Color.WHITE)
 		if e.kind in ["armored", "siege"]:
 			var badge_color := Color("79a9df") if e.kind == "armored" else Color("e9bc66")
 			var badge := Rect2(ground + Vector2(-10, -46), Vector2(20, 16))
@@ -1954,9 +1992,11 @@ func _draw() -> void:
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44, 4)), Color("3b3029"))
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44.0 * e.progress / maxi(1, int(sim.content.buildings[e.kind].build_ticks)), 4)), Color("e5c36f"))
 		if is_building and e.hp <= 0:
-			draw_rect(Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size()),
-				Color(0.15, 0.1, 0.1, 0.6))
+			draw_rect(Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size()), Color(0.15, 0.1, 0.1, 0.6))
 		var max_hp: int = sim._starting_health(e.side, e.kind)
+		if sim.map_id == "la_roma" and is_building and e.hp > 0 and e.hp < max_hp / 2:
+			draw_line(ground + Vector2(-30, -54), ground + Vector2(24, -18), Color("f0a275"), 2.0)
+			draw_line(ground + Vector2(24, -53), ground + Vector2(-14, -16), Color("f0a275"), 2.0)
 		var bar_width := 42.0 if is_building else 24.0
 		var bar_y := -art.pivot(art_id).y * art_scale - 4.0
 		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))

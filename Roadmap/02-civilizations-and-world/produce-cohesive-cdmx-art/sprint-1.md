@@ -3,7 +3,7 @@ epic: produce-cohesive-cdmx-art
 sprint: 1
 title: "Contract and pilot"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,33 +12,37 @@ stories:
     i_want: "one current art contract and source inventory"
     so_that: "new images fit the live match"
     risk: low
-    status: planned
+    status: done
   - id: S1.2
     title: "Play a four-asset style pilot"
     as_a: "RTS player"
     i_want: "a readable tile, building, unit and Cibeles in the match"
     so_that: "the art direction can be judged at game scale"
     risk: low
-    status: planned
+    status: in-progress
 ---
 
 # Produce cohesive CDMX game art — Sprint 1: Contract and pilot
 
-**Status:** ⬜ not started
+**Status:** 🔎 Builder pilot captured; owner visual decision owed.
 
 ## Stories
 
-### Story 1.1 — Audit current scale and source coverage
+### Story 1.1 — Audit current scale and source coverage ✅
 
 **As a** game artist, **I want** one current art contract and source inventory, **so that** new images fit the live match.
 **Acceptance:** Reconcile all twelve local concept boards against the five-board inventory, identify tracked originals and owned pilot candidates, and record rights, projection, current map/roster, canvas, pivots, layer/picking and performance baseline. Separate production assets from optional mechanics. Flag the old 20×20 geometry and narrow zoom claims as historical.
 **Risk:** low. **QA:** source count, manifest/rights audit and current code inspection; owner reviews the compact contract.
+
+**Builder evidence:** [Twelve-board inventory](../../../docs/art/reference-inventory.md), [current geometry](../../../docs/art/isometric-geometry.md), [CDMX source/rights record](../../../docs/art/cdmx-art-source.md) and the 28×28 manifest validator reconcile the old five-board/20×20 notes. No concept-board rule was imported.
 
 ### Story 1.2 — Play a four-asset style pilot
 
 **As a** RTS player, **I want** a readable tile, building, unit and Cibeles in the match, **so that** the art direction can be judged at game scale.
 **Acceptance:** Transparent traced sources and deterministic exports render together in a live La Roma match at 100%, 125%, fit view and a crowded center. Show ground contact, seam, palette, silhouette, landmark identity, control cue and selection. Record accept/revise/reject with screenshots and source/build IDs; owner approval remains owed until actually given.
 **Risk:** low. **QA:** art-manifest validation, Godot art/client checks, rendered capture, builder pilot decision and owner visual review.
+
+**Builder evidence:** The 100%, 125%, fit and dense [Godot captures](../../../docs/screenshots/cdmx-art/README.md) show tile, building, worker and Cibeles together. The first render had title and badge overlap; both were revised before the saved capture. The exporter is repeatable and the art/client checks pass. Owner style acceptance is pending.
 
 ## Sprint QA
 

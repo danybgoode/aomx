@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Shaping
+status: in-progress
+phase: Verifying
 slug: produce-cohesive-cdmx-art
 title: "Produce cohesive CDMX game art"
 area: 02-civilizations-and-world
@@ -75,6 +75,10 @@ Classic RTS players should recognize the battle for La Roma and its objective, f
 - **S2:** Complete the La Roma place/economy layer through the existing art catalog. Every visual follows simulation state and passes fog, selection, construction and resource checks.
 - **S3:** Cover the current five unit roles and four faction treatments with non-color cues, clear motion/state and crowded-board selection. Preserve rule and replay hashes.
 - **S4:** Run local and signed downloaded-build QA, merge/release evidence, and the owner-authorized uncoached task read. Keep owner-only checks open until actually performed.
+
+## Builder evidence
+
+The 2026-10-22 build adds the [traced CDMX art pack](../../../docs/art/cdmx-art-source.md), 27 deterministic exports and [actual-scene captures](../../../docs/screenshots/cdmx-art/README.md). The four-faction/five-role and five-building fixtures expose the retained current simulation, construction, damage, resource, fog and Cibeles overlays. The [QA record](QA-2026-10-22.md) separates machine and builder checks from the pending owner walkthrough and human comprehension study. No eligible cohort result is claimed.
 
 ## Deploy order
 

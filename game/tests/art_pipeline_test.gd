@@ -13,6 +13,10 @@ func _run() -> void:
 	var match_catalog = ArtCatalog.new()
 	match_catalog.load_manifest()
 	check(match_catalog.textures.has("prop_owned_flowers") and not match_catalog.textures.has("critter_boar_se_idle_0"), "match loads only approved owned art")
+	for id in ["terrain_cdmx_plaza_0", "building_cdmx_roma_command_post", "unit_cdmx_worker", "prop_cdmx_cibeles"]:
+		check(match_catalog.texture(id) != null, "CDMX match texture loads: " + id)
+	check(match_catalog.pivot("building_cdmx_roma_command_post") == Vector2(48, 79), "CDMX building ground contact")
+	check(match_catalog.texture("unit_cdmx_worker").get_size() == Vector2(40, 56), "CDMX unit export scale")
 	for id in ["terrain_owned_000", "terrain_owned_022", "prop_owned_flowers", "building_concept_command_post_blue"]:
 		check(catalog.texture(id) != null, "candidate texture loads: " + id)
 	check(catalog.texture("terrain_owned_022").get_size() == Vector2(48, 48), "raised tile export has 48x24 top projection")
