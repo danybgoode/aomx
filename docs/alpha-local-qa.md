@@ -1,5 +1,11 @@
 # Private alpha: local macOS download QA
 
+## CDMX geography owner preview · 2026-10-22
+
+The merged [geography stack](https://github.com/danybgoode/aomx/pull/75) exported signed Restricted preview `preview-53fcf2def066` from `master` `53fcf2def066` (`godot-4.7.2-skirmish-5` / `la-roma-world-5`). The source ZIP SHA-256 is `2562ef8cd0d23bb6a9b48c140949105efd585b97a38704f8150da0a5e915ec8c`. The full export gate passed. Owner-only Butler build `#2187758` is processing; confirm it is ready before downloading. [Geography QA](world/cdmx-geography-qa-2026-10-22.md) records the source, rules and compatibility checks. Builder setup captures show Roma Norte/Cibeles at two desktop sizes.
+
+On this exact downloaded build, select La Roma with each faction. Confirm the setup calls it a stylized Roma Norte battlefield and states both win routes. Finish a full match by destroying the opposing command post and another by holding Cibeles. Save, quit, resume and replay; verify the build ID in Settings. Record visible place confusion and portrayal decisions. Uncoached familiar/unfamiliar reader tasks require separately approved invitations and remain open. No public cohort result is claimed.
+
 ## CDMX art owner preview · 2026-10-22
 
 The approved [#15 art PR](https://github.com/danybgoode/aomx/pull/70) merged as `d93cfc7025f3`. Its signed Restricted `mac-private-alpha` release is ready as `preview-d93cfc7025f3`, Butler build `#2187202`; the local source ZIP SHA-256 is `74d73515f4da1d6aa73068f8c47ba835edba0434a5fadc8d5be53419226b67b9`. The full export gate passed. An authenticated independent Butler fetch matched the source ZIP extraction byte for byte; strict code-signature verification and bounded headless startup passed on the fetched app. The anonymous itch page returned 404 after the build became ready. [Builder captures](screenshots/cdmx-art/README.md) show the 100%, 125%, fit, dense, role and building fixtures; they do not replace the owner walkthrough.
