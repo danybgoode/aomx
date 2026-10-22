@@ -12,22 +12,22 @@ stories:
     i_want: "one playable shared battle"
     so_that: "we can finish a fair result together"
     risk: high
-    status: in-progress
+    status: done
   - id: S2.2
     title: "Recover the same slot after disconnect"
     as_a: "disconnected player"
     i_want: "to return to the server's current battle"
     so_that: "a brief outage does not discard our match"
     risk: high
-    status: in-progress
+    status: done
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** 🏗 Live service checks passed; final owner checks remain in Sprint 3. The current `aomx-match:0d29ed3` host passed a delayed second join, baseline and symmetric 150 ms/loss native macOS/Linux full matches, same-slot recovery within 60 seconds and visible `reconnect_expired` no-result for both clients. Each completed match produced one two-participant record and fogged replays; expiry produced none. The owner completed a downloaded-build GUI match, and the newest replay-file build passed independent itch fetch and builder GUI checks. The owner file-open/denial walkthrough remains. Admission is off in every environment. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
+**Status:** ✅ Restricted live service and owner checks passed. The current `aomx-match:0d29ed3` host passed a delayed second join, baseline and symmetric 150 ms/loss native macOS/Linux full matches, same-slot recovery within 60 seconds and visible `reconnect_expired` no-result for both clients. Each completed match produced one two-participant record and fogged replays; expiry produced none. The owner completed a downloaded-build GUI match, and the corrected replay-file build passed independent itch fetch and owner valid/bad-file checks. The owner's final GUI retry showed admission disabled; revoked-code behavior is separately covered by tests and a live rotation probe. Admission is off in every environment. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
 
 ## Stories
 
-### Story 2.1 — Finish a match through the Restricted host
+### ✅ Story 2.1 — Finish a match through the Restricted host
 
 **As a** pair of invited players, **I want** one playable shared battle, **so that** we can finish a fair result together.
 
@@ -35,7 +35,7 @@ stories:
 
 **Risk:** high — remote authority, invite access, shared VM and privacy; independent security and deployment review.
 
-### Story 2.2 — Recover the same slot after disconnect
+### ✅ Story 2.2 — Recover the same slot after disconnect
 
 **As a** disconnected player, **I want** to return to the server's current battle, **so that** a brief outage does not discard our match.
 

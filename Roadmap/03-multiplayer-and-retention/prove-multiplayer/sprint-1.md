@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 1: Model and session contract
 
-**Status:** ✅ Model and invited-session checks passed for the Restricted native slice. Native macOS/Linux Godot 4.7.2 clients accepted the same ordered commands at the 50-entity population cap under baseline, 100 ms no-loss and symmetric 150 ms/loss profiles and reported the same tick-150 hash; no first divergent tick was observed. The capped ARM64 host stayed within sampled CPU/memory limits. [Current QA](../../../docs/multiplayer-qa-2026-10-21.md) and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the model decision. A Web origin preflight failed on the Restricted route; Web play is deferred to the cross-platform seed. The epic still awaits the corrected downloaded-build owner checks.
+**Status:** ✅ Model and invited-session checks passed for the Restricted native slice. Native macOS/Linux Godot 4.7.2 clients accepted the same ordered commands at the 50-entity population cap under baseline, 100 ms no-loss and symmetric 150 ms/loss profiles and reported the same tick-150 hash; no first divergent tick was observed. The capped ARM64 host stayed within sampled CPU/memory limits. [Current QA](../../../docs/multiplayer-qa-2026-10-21.md) and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the model decision. A Web origin preflight failed on the Restricted route; Web play is deferred to the cross-platform seed.
 
 ## Stories
 

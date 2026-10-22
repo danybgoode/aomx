@@ -9,9 +9,9 @@ underwritten_by: wave-2026-10
 risk: high
 epic: "03-multiplayer-and-retention/prove-multiplayer"
 build_order: 14
-updated: 2026-10-21
+updated: 2026-10-22
 intent_ask: proxy
-hypothesis: "Today classic RTS players can finish only a solo match. A reliable private match and replay could give friends a reason to play and return together. We'll know first when two people finish a real network match and can watch the same outcome; later-day completion needs an eligible cohort."
+hypothesis: "Today classic RTS players can finish only a solo match. A reliable private match and replay could give friends a reason to play and return together. First prove a human owner and independent native client can finish and replay one network match; two-human play and later-day completion need an eligible cohort."
 persona: "Classic RTS players who want to finish a shared match with a friend and review what happened."
 grounded: false
 grounded_reason: "The owner and native clients completed Restricted network matches, but no eligible cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
@@ -34,15 +34,15 @@ Moves: `return_to_match` · Tests: value proposition, still an assumption.
 
 ## 2026-10-21 refinement — finish the approved QA bet
 
-This is already an owner-approved, funded L bet with a scaffolded [epic](../../03-multiplayer-and-retention/prove-multiplayer/README.md) in Restricted-host QA. The ask today is to refine #14 using current evidence, not to create a duplicate multiplayer bet or reopen its approved 1v1 boundary. The owner also requested a review of the new CDMX art handoff and seed coverage; that portfolio review is [separate](../art-world-coverage-2026-10-21.md). Visual polish, campaign geography, full UI and cross-platform production support do not enter #14's remaining QA.
+This is an owner-approved, funded L bet whose [epic](../../03-multiplayer-and-retention/prove-multiplayer/README.md) shipped to the Restricted owner alpha on 2026-10-22. The ask was to refine #14 using current evidence, without creating a duplicate multiplayer bet or reopening its approved 1v1 boundary. The owner also requested a review of the new CDMX art handoff and seed coverage; that portfolio review is [separate](../art-world-coverage-2026-10-21.md). Visual polish, campaign geography, full UI and cross-platform production support stay in later work.
 
-**Already possible today:** the Restricted server hosts an invite-bound authoritative 1v1. The owner completed a downloaded GUI match and online replay with a separate native Linux client; current-host baseline/impaired full matches and the 50-entity native network matrix passed. Replay files opened and failed safely in the signed local candidate. This is Restricted owner and builder evidence, **not** a public release, an eligible cohort or a broad reliability claim. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md), [earlier remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md) and [Learnings](../../LEARNINGS.md).
+**Already possible today:** the Restricted server hosts an invite-bound authoritative 1v1. The owner completed a downloaded GUI match and online replay with a separate native Linux client; current-host baseline/impaired full matches and the 50-entity native network matrix passed. The owner opened a saved replay and saw a readable invalid-file error in the corrected signed owner download. This is Restricted owner and builder evidence, **not** a public release, an eligible cohort or a broad reliability claim. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md), [earlier remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md) and [Learnings](../../LEARNINGS.md).
 
-**Remaining outcome, in order (updated after the 2026-10-21 QA runs):**
+**Completed Restricted outcome (2026-10-22):**
 
 1. The current host passed delayed second join, same-slot rejoin, 60-second expiry and baseline/symmetric-impaired native full matches. The 50-entity native cross-OS baseline, 100 ms and 150 ms/loss matrix passed with one final hash across all profiles; the [QA record](../../../docs/multiplayer-qa-2026-10-21.md) names actual RTT, drops, command bursts and resource samples. Keep admission off between bounded tests.
-2. Corrected owner-only itch build #2181405 is independently fetched, byte-compared, signature-checked and GUI-tested. Run the remaining **downloaded** owner file-open and post-revocation denial checks. The owner already completed a full GUI match and online replay on the preceding downloaded build; do not misattribute that observation to the new export.
-3. Close only the epic's checked Definition of Done, then update its retrospective/poster and regenerate and sync the board. Keep the epic `status: in-progress` until release and owner checks pass; a merged PR and signed local export alone do not close it.
+2. Corrected owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested. The owner opened and paused/resumed a valid replay, saw the unsupported-version error, and saw “Private match: match disabled” on a final join retry. The owner completed the full GUI match and online replay on the preceding downloaded build; that observation is not attributed to the new export.
+3. The epic's technical Definition of Done is checked against the [QA record](../../../docs/multiplayer-qa-2026-10-21.md); the retrospective and poster record what reached the Restricted owner alpha. A second human player and later-day retention remain unmeasured and are not claimed by this closeout.
 
 **Decision boundary:** The approved private 1v1, 60-second no-result policy and participant-only fog replay stand. Any public invitation, ranked/matchmaking scope, eligibility/trust change, extra game rules, or change to the agreed North Star is a new owner decision under [Ways of Working](../../WAYS-OF-WORKING.md#escalate-dont-guess). Web multiplayer remains a feasibility finding because the current local Web origin is rejected by the Restricted route; production Web/mobile support is [a later seed](prove-cross-platform-play.md).
 
@@ -74,7 +74,7 @@ quote: $50–300 (L, n=0, wide)
 
 ## Outcome & signal
 
-Two human clients on declared macOS and Linux builds join one Restricted remote server-controlled match with separate invite codes, play to the same terminal result, recover one disconnect and open a compatible post-match replay. The owner can inspect a test record of accepted/rejected orders, first divergence, network conditions, server resource use, replay verification and exactly one terminal result per participant. Later-day completion remains a candidate North Star input, not a success claim without an eligible cohort.
+One human owner on the declared macOS build and a separately running native Linux Godot client join one Restricted remote server-controlled match with separate invite codes, play to the same terminal result, recover one disconnect and open a compatible post-match replay. The owner can inspect a test record of accepted/rejected orders, first divergence, network conditions, server resource use, replay verification and exactly one terminal result per participant. This proves two-client operation, not the social experience of two human players. Later-day completion remains a candidate North Star input, not a success claim without an eligible cohort.
 
 **Plan decision, 2026-10-19:** The owner approved the plan with a Restricted remote host via invite code. The proposed 60-second no-result recovery policy and participant-only, fog-preserving replay were accepted with the rest of the plan. Merges and Restricted releases for this epic are pre-approved, subject to the recorded acceptance checks.
 
@@ -213,7 +213,7 @@ At each boundary, record build IDs, conditions, expected/actual results and a nu
 ## Acceptance criteria
 
 1. The model decision names tested OS/Godot versions, map, units, duration, seed, RTT/loss profiles and measured server tick CPU, memory and network volume. It explains divergence/reconciliation and updates ADR 004 before the 1v1 build continues.
-2. Two separate human clients join the Restricted TLS host only with distinct, revocable invite codes, matching protocol/game/content versions and bound slots; invalid or revoked codes, commands and versions never mutate server state. Secrets stay out of client exports and logs.
+2. Two separate native clients (one human owner and one automated Linux participant in this QA) join the Restricted TLS host only with distinct, revocable invite codes, matching protocol/game/content versions and bound slots; invalid or revoked codes, commands and versions never mutate server state. Secrets stay out of client exports and logs. Two-human play remains unmeasured.
 3. A complete 1v1 on separate macOS/Linux clients through the remote host under baseline and the declared 150 ms RTT/1% loss profile produces one identical server terminal result and no unexplained divergence. A failure under impairment blocks the reliability claim and triggers re-scope; local solo tests cannot prove a shared match.
 4. Reconnect restores the same slot from server state without duplicate commands or completions. Timeout behavior is visible to both players and documented before implementation.
 5. Both participants open a server-recorded replay, play/pause it and reproduce its result; corruption/version mismatches are named errors preserving the file. Hashes are diagnostic, not tamper proof.

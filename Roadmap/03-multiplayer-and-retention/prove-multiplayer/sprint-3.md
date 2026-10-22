@@ -12,29 +12,29 @@ stories:
     i_want: "a compatible post-match playback"
     so_that: "I can review the same battle and result"
     risk: high
-    status: in-progress
+    status: done
   - id: S3.2
     title: "Keep online results auditable"
     as_a: "operator"
     i_want: "server and client outcomes reconciled"
     so_that: "forged or duplicate results never inflate measurement"
     risk: high
-    status: in-progress
+    status: done
   - id: S3.3
     title: "Accept the Restricted build and host"
     as_a: "product owner"
     i_want: "a downloaded two-client walkthrough"
     so_that: "I know what actually works before any wider invitation"
     risk: high
-    status: in-progress
+    status: done
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** 🏗 Current host and corrected owner-only download passed builder checks; owner file-open/denial walkthrough remains open. The owner completed the preceding downloaded macOS GUI match and online replay against a separate Linux Godot client. The current host passed delayed second join, reconnect and expiry, baseline/impaired terminal matches and participant replay checks. PRs #65/#67/#68 repaired excluded receipt labels, added bounded offline participant replay files with readable corrupt/old-version handling, and corrected the replay control's layout. Corrected owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested for valid playback, pause/resume and bad-version file retention; see [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
+**Status:** ✅ Restricted replay, integrity and owner acceptance passed. The owner completed the preceding downloaded macOS GUI match and online replay against a separate Linux Godot client. The current host passed delayed second join, reconnect and expiry, baseline/impaired terminal matches and participant replay checks. PRs #65/#67/#68 repaired excluded receipt labels, added bounded offline participant replay files with readable corrupt/old-version handling, and corrected the replay control's layout. Corrected owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested. The owner opened a valid file, paused/resumed it, saw a clear unsupported-file error, and saw “Private match: match disabled” on the final join retry. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md) for the distinction between flag closure and revoked-code evidence.
 
 ## Stories
 
-### Story 3.1 — Watch a participant replay
+### ✅ Story 3.1 — Watch a participant replay
 
 **As a** match participant, **I want** a compatible post-match playback, **so that** I can review the same battle and result.
 
@@ -42,7 +42,7 @@ stories:
 
 **Risk:** high — untrusted input parsing, state disclosure and persistence; second reviewer.
 
-### Story 3.2 — Keep online results auditable
+### ✅ Story 3.2 — Keep online results auditable
 
 **As an** operator, **I want** server and client outcomes reconciled, **so that** forged or duplicate results never inflate measurement.
 
@@ -50,7 +50,7 @@ stories:
 
 **Risk:** high — North Star integrity, identity and private data; independent data/security review.
 
-### Story 3.3 — Accept the Restricted build and host
+### ✅ Story 3.3 — Accept the Restricted build and host
 
 **As the** product owner, **I want** a downloaded two-client walkthrough, **so that** I know what actually works before any wider invitation.
 
