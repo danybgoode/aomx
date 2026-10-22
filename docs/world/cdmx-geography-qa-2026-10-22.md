@@ -25,4 +25,8 @@
 
 ## Release record
 
-Pending merge and Restricted owner build. Fill in the master commit, build ID, archive SHA-256, Butler channel/build number, authenticated fetch and anonymous access result after release. A merge, local export or upload alone does not pass owner QA.
+- PRs [#73](https://github.com/danybgoode/aomx/pull/73), [#74](https://github.com/danybgoode/aomx/pull/74) and [#75](https://github.com/danybgoode/aomx/pull/75) merged in order. Final source commit: `53fcf2def0666a5b15b1aadb2ae182f0d20e629c` on `master`.
+- Full `npm run alpha:export` gate passed on that commit, including the geography test, Node tests, Godot tests, contract, multiplayer integration/replay and strict local macOS signature verification.
+- Signed Restricted preview: `preview-53fcf2def066`, archive `dist/alpha/battle-for-la-roma-preview-53fcf2def066-macos.zip`, SHA-256 `2562ef8cd0d23bb6a9b48c140949105efd585b97a38704f8150da0a5e915ec8c`.
+- The existing owner-only itch channel `mac-private-alpha` accepted Butler build `#2187758`. The anonymous page returned HTTP 404 before and after upload. The signed local export started cleanly in a bounded headless run. Butler processing, authenticated fetch and independent signature/startup checks are pending; do not count this as a ready downloaded build until those pass.
+- A merge, local export or upload alone does not pass owner QA.
