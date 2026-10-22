@@ -10,11 +10,10 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (8)
+## Backlog (7)
 
 _seeds with no pitch yet._
 
-- [Establish CDMX geography and map data](seeds/establish-cdmx-geography-and-maps.md) — #16 · 02 Civilizations And World · seed · Feature · risk: High · _docs: status raw_
 - [Audit gameplay fidelity against a pinned RTS reference](seeds/audit-gameplay-fidelity.md) — #17 · 01 Core Play · seed · Spike · risk: Low · _docs: status raw_
 - [Complete the game interfaces](seeds/complete-game-interfaces.md) — #18 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Build the audio and effects identity](seeds/build-audio-and-effects-identity.md) — #19 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
@@ -29,7 +28,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (13)
+## Ready (14)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -46,6 +45,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Build a strategic opponent](../01-core-play/build-strategic-opponent/README.md) — #12 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
 - [Expand civilizations and world](../02-civilizations-and-world/expand-civilizations-and-world/README.md) — #13 · 02 Civilizations And World · 0/8 stories · risk: High · appetite L · _docs: status in-progress_
 - [Produce cohesive CDMX game art](../02-civilizations-and-world/produce-cohesive-cdmx-art/README.md) — #15 · 02 Civilizations And World · 1/6 stories · risk: Low · appetite L · _docs: status in-progress_
+- [Establish CDMX geography and map data](../02-civilizations-and-world/establish-cdmx-geography-and-maps/README.md) — #16 · 02 Civilizations And World · 0/6 stories · risk: High · appetite M · _docs: status scaffolded_
 
 ## Building — live only
 
