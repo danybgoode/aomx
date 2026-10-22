@@ -1,6 +1,6 @@
 ---
-status: in-progress
-phase: Restricted host QA
+status: shipped
+phase: Shipped
 slug: prove-multiplayer
 title: "Prove multiplayer and replays"
 area: 03-multiplayer-and-retention
@@ -13,7 +13,7 @@ intent_match: null
 quote_low_usd: 50
 quote_high_usd: 300
 quote_basis: "L, n=0, wide"
-hypothesis: "Today classic RTS players can finish only a solo match. A reliable private match and replay could give friends a reason to play and return together. We'll know first when two people finish a real network match and can watch the same outcome; later-day completion needs an eligible cohort."
+hypothesis: "Today classic RTS players can finish only a solo match. A reliable private match and replay could give friends a reason to play and return together. First prove a human owner and independent native client can finish and replay one network match; two-human play and later-day completion need an eligible cohort."
 target_metric: return_to_match
 target_from: null
 target_to: null
@@ -24,7 +24,7 @@ verdict_evidence: null
 verdict_at: null
 persona: "Classic RTS players who want to finish a shared match with a friend and review what happened."
 grounded: false
-grounded_reason: "Internal scripted remote matches now exist, but no eligible player cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
+grounded_reason: "The owner and native clients completed Restricted matches, but no eligible player cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
 flag_key: multiplayer.private_match_enabled
 target_segment: null
 adopted_event: null
@@ -36,7 +36,7 @@ build_order: 14
 
 # Epic: Prove multiplayer and replays
 
-**Current state (2026-10-21):** The invite-only authority and participant replay prototype is deployed on the Restricted ARM64 host as `aomx-match:e778c3f`, with game rules/client from merged `2ad3d65` and invite-rotation fixes in [PR #62](https://github.com/danybgoode/aomx/pull/62) and [PR #63](https://github.com/danybgoode/aomx/pull/63). [Local evidence](../../../docs/multiplayer-prototype-evidence-2026-10-20.md), [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md), and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the measurements and limits. Six scripted remote matches previously ended with verified participant replays, including four macOS/Linux Godot pairs. The signed `preview-2ad3d65a3d80` owner build was independently fetched and verified. The owner then completed a live GUI match against a separate Linux Godot client, moving, gathering, building, training, winning and watching the entire replay with pause/resume. One two-participant server record and two excluded test receipts were verified. The first attempt exposed a waiting-room timestamp bug, and the app displays excluded receipts as generic synced events; focused repairs are in progress. The representative symmetric network matrix, owner-visible reconnect/expiry, invalid replay and post-revocation checks remain open. Admission is off in every environment; this epic remains in QA, not shipped.
+**Shipped to the Restricted owner alpha (2026-10-22):** The live ARM64 host runs reviewed image `aomx-match:0d29ed3`. The owner completed a signed downloaded-build GUI match and watched its fogged replay against a separate native Linux client. The current host passed baseline and impaired native Mac/Linux full matches, delayed second join, same-slot rejoin and 60-second no-result expiry. A disposable copy of the deployed image passed the 50-entity native cross-OS baseline, 100 ms and 150 ms/loss matrix with matching hashes. Replay-file parsing, offline playback and control placement merged in PRs #67/#68. Corrected owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested. The owner opened and paused/resumed a valid replay, saw a readable unsupported-version error, and saw “Private match: match disabled” on a final join retry. [Current QA](../../../docs/multiplayer-qa-2026-10-21.md), [earlier remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md) and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record measurements and limits. Admission is off in every environment. This is a one-human technical proof; two-human social play and retention remain unmeasured.
 
 > **Area:** 03 Multiplayer and retention · **Risk:** high · **Class:** Feature · **Scope:** [approved pitch](../../00-ideas/seeds/prove-multiplayer.md) · **Destination:** shared-and-authored-play
 
@@ -82,11 +82,11 @@ The owner approved a Restricted remote host via invite code, the 60-second no-re
 
 ## Definition of Done
 
-- [ ] Seven stories meet their acceptance checks, with independent review for protocol, authorization, replay parsing and result integrity.
-- [ ] A representative model matrix records declared devices/Godot build, map, units, duration, seed, RTT/loss, command bursts, first divergence, server CPU/memory and bandwidth; ADR 004 is updated with the measured decision.
-- [ ] Two distinct invited clients on macOS and Linux complete a full match through the Restricted remote host in baseline and 150 ms RTT/1% loss conditions, with identical server terminal results and no unexplained divergence.
-- [ ] A disconnect/rejoin within 60 seconds restores the same slot without duplicate orders/results; expiry produces a visible no-result for both clients.
-- [ ] Both participants can play/pause a compatible recorded match with fog preserved; malformed/old versions fail clearly without deleting files.
-- [ ] The online result and existing ingest contract are reviewed: test events are excluded, duplicate/forged claims do not become eligible, and no unverified `client_reported` event is relabeled trusted.
-- [ ] The Restricted host, TLS route, separate revocable codes, participant notice, resource and backup checks, signed client download and numbered owner smoke are evidenced. The flag exists with an explicit served switch in every environment.
-- [ ] Merge is verified on `origin/master`; actual host deployment and signed build are independently verified. Update poster, generated board and retrospective with facts, promote durable learnings, then set `status: shipped`.
+- [x] Seven stories meet their acceptance checks, with independent review for protocol, authorization, replay parsing and result integrity.
+- [x] A representative model matrix records declared devices/Godot build, map, units, duration, seed, RTT/loss, command bursts, first divergence, server CPU/memory and bandwidth; ADR 004 is updated with the measured decision.
+- [x] Two distinct invited clients on macOS and Linux completed full matches through the Restricted remote host in baseline and 150 ms RTT/1% loss conditions, with identical server terminal results and no unexplained divergence. One client was automated; two-human play is unmeasured.
+- [x] A disconnect/rejoin within 60 seconds restored the same slot without duplicate orders/results; expiry produced a visible no-result for both clients.
+- [x] Both participant replay streams preserved fog and verified their terminal outcomes; the owner played/paused the Mac replay and opened a compatible file. Malformed/old versions failed clearly without deleting files.
+- [x] The online result and existing ingest contract were reviewed: test events were excluded, duplicate/forged claims did not become eligible, and no unverified `client_reported` event was relabeled trusted.
+- [x] The Restricted host, TLS route, separate revocable codes, participant notice, resource and backup checks, signed client download and numbered owner smoke are evidenced. The flag has an explicit served switch in every environment; all are off after QA.
+- [x] Source merges are verified on `origin/master`; actual host deployment and signed owner download were independently verified. The poster, generated board and retrospective record the result and durable learnings are promoted.
