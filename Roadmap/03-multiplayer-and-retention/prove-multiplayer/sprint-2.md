@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** 🔧 In progress; the optimized `aomx-match:e778c3f` ARM64 host at 1.0 CPU and durable TLS route are deployed with admission off. Baseline scripted, Linux netem scripted and four cross-OS Godot scripted matches reached authoritative terminal records on the matching game source; the native macOS/Linux pair also exercised reconnect and 60-second no-result expiry. The impaired cross-OS match applied 150 ms egress delay and 1% loss to the isolated Linux client; a later run imposed a two-way 100 ms path without loss. The owner subsequently completed a live downloaded macOS GUI match against Linux Godot with a matching server result and replay. The first owner attempt exposed a waiting-room timestamp bug at tick 0; repair and focused live retest are open. The declared symmetric network profile and owner-visible reconnect/expiry remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🏗 Live service checks passed; final owner download checks remain in Sprint 3. The current `aomx-match:0d29ed3` host passed a delayed second join, baseline and symmetric 150 ms/loss native macOS/Linux full matches, same-slot recovery within 60 seconds and visible `reconnect_expired` no-result for both clients. Each completed match produced one two-participant record and fogged replays; expiry produced none. The owner completed a downloaded-build GUI match, but the newest replay-file build still needs independent itch fetch and owner walkthrough. Admission is off in every environment. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
 
 ## Stories
 

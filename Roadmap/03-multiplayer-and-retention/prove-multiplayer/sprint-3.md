@@ -30,7 +30,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** 🔧 In progress; the owner completed a downloaded macOS GUI match against a separate Linux Godot client, observed movement, gathering, building, training, victory, full replay, pause/resume and synced audit events. The server saved one two-participant terminal record and excluded both owner match events from public metrics. The first attempt exposed a waiting-room timer bug: after more than 60 seconds waiting, the match expired at tick 0 as soon as player two joined. The app also folds excluded receipts into a generic synced count. Fix those two paths and repeat their focused smoke; owner-visible reconnect/expiry and revocation checks, bad replay handling and the representative network matrix remain open; see [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** 🏗 Current host and signed local export checks passed; final owner-only download and owner file-open/denial walkthrough remain open. The owner completed the preceding downloaded macOS GUI match and online replay against a separate Linux Godot client. The current host passed delayed second join, reconnect and expiry, baseline/impaired terminal matches and participant replay checks. PRs #65/#67/#68 repaired excluded receipt labels, added bounded offline participant replay files with readable corrupt/old-version handling, and corrected the replay control's layout. A signed local export passed GUI playback/pause/error checks. The corrected owner-only itch build #2181405 is processing; see [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
 
 ## Stories
 

@@ -12,22 +12,22 @@ stories:
     i_want: "a representative cross-environment model comparison"
     so_that: "the shared match has a defensible authority design"
     risk: high
-    status: in-progress
+    status: done
   - id: S1.2
     title: "Join a versioned, invited session"
     as_a: "invited player"
     i_want: "my own authorized slot and validated commands"
     so_that: "a stranger or incompatible client cannot control my match"
     risk: high
-    status: in-progress
+    status: done
 ---
 # Prove multiplayer and replays — Sprint 1: Model and session contract
 
-**Status:** 🔧 In progress; the versioned, invite-bound contract passed local and Restricted-host tests. Native macOS/Linux join, recovery and terminal matches and an impaired Linux scripted terminal passed. The 50-entity population-cap profile matched hashes at 100 ms pacing, and the unchanged synthetic 162-entity back-to-back gate passed directly in the deployed ARM64 image at its 1.0 CPU cap. A scripted native cross-OS terminal also passed an imposed two-way 100 ms Linux path without loss. Web feasibility and the representative symmetric 150 ms/1% loss network matrix remain open. See [remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md).
+**Status:** ✅ Model and invited-session checks passed for the Restricted native slice. Native macOS/Linux Godot 4.7.2 clients accepted the same ordered commands at the 50-entity population cap under baseline, 100 ms no-loss and symmetric 150 ms/loss profiles and reported the same tick-150 hash; no first divergent tick was observed. The capped ARM64 host stayed within sampled CPU/memory limits. [Current QA](../../../docs/multiplayer-qa-2026-10-21.md) and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record the model decision. A Web origin preflight failed on the Restricted route; Web play is deferred to the cross-platform seed. The epic still awaits the corrected downloaded-build owner checks.
 
 ## Stories
 
-### Story 1.1 — Measure and select the network model
+### ✅ Story 1.1 — Measure and select the network model
 
 **As a** builder, **I want** a representative cross-environment model comparison, **so that** the shared match has a defensible authority design.
 
@@ -35,7 +35,7 @@ stories:
 
 **Risk:** high — shared simulation and model choice; independent architecture review.
 
-### Story 1.2 — Join a versioned, invited session
+### ✅ Story 1.2 — Join a versioned, invited session
 
 **As an** invited player, **I want** my own authorized slot and validated commands, **so that** a stranger or incompatible client cannot control my match.
 
