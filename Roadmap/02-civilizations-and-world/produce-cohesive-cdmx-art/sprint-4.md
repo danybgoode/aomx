@@ -24,7 +24,7 @@ stories:
 
 # Produce cohesive CDMX game art — Sprint 4: Playable art acceptance
 
-**Status:** 🏗 In progress — local verification passed; Restricted fetch and owner QA pending.
+**Status:** 🟦 In review — signed Restricted fetch passed; owner QA pending.
 
 ## Stories
 
@@ -34,7 +34,7 @@ stories:
 **Acceptance:** Review and merge all art/source/manifest changes, export a signed Restricted macOS build from the landed commit, independently fetch it and check archive identity and signature. Record frame/memory comparison under identical match/zoom conditions. In the downloaded build, verify four factions, both victory routes, save/resume, replay, center selection and test-event exclusion. The owner personally completes the visual and full-match walkthrough; keep that checkbox open until observed.
 **Risk:** low. **QA:** Godot/Node contract suite, manifest, source ZIP hash, strict signature, independent fetch and real downloaded-build smoke. No public invitation.
 
-**Evidence:** See [QA record](QA-2026-10-22.md) for the complete local check list and, after landing, the Restricted build ID, checksum and independent download. Owner full-match verification remains open.
+**Evidence:** See [QA record](QA-2026-10-22.md) for the local check list, ready Restricted build ID, checksum, byte-identical independent download and fetched-app signature/startup. Owner full-match verification remains open.
 
 ### Story 4.2 — Record uncoached visual comprehension
 
