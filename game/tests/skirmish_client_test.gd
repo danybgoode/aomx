@@ -26,6 +26,11 @@ func _run() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new(path)
 	root.add_child(client)
+	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
+		"La Roma setup gives sourced place context and both win routes")
+	client._choose_map(1)
+	check(client.selected_map == "narvarte" and "center" in client.setup_goal.text, "other map choice keeps generic objective copy")
+	client._choose_map(0)
 	check(client.outbox.state.events.size() == 1 and client.choosing_faction, "client opens setup without starting a match")
 	client._process(0.1)
 	check(client.sim.tick_number == 0 and client.match_id.is_empty(), "setup does not advance a match")
