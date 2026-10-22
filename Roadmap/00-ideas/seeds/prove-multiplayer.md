@@ -14,7 +14,7 @@ intent_ask: proxy
 hypothesis: "Today classic RTS players can finish only a solo match. A reliable private match and replay could give friends a reason to play and return together. We'll know first when two people finish a real network match and can watch the same outcome; later-day completion needs an eligible cohort."
 persona: "Classic RTS players who want to finish a shared match with a friend and review what happened."
 grounded: false
-grounded_reason: "No eligible player cohort, repeat-play baseline, multiplayer demand or live network match exists yet; this is a feasibility bet before a retention target."
+grounded_reason: "The owner and native clients completed Restricted network matches, but no eligible cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
 target_metric: return_to_match
 target_from: null
 target_to: null
@@ -36,12 +36,12 @@ Moves: `return_to_match` · Tests: value proposition, still an assumption.
 
 This is already an owner-approved, funded L bet with a scaffolded [epic](../../03-multiplayer-and-retention/prove-multiplayer/README.md) in Restricted-host QA. The ask today is to refine #14 using current evidence, not to create a duplicate multiplayer bet or reopen its approved 1v1 boundary. The owner also requested a review of the new CDMX art handoff and seed coverage; that portfolio review is [separate](../art-world-coverage-2026-10-21.md). Visual polish, campaign geography, full UI and cross-platform production support do not enter #14's remaining QA.
 
-**Already possible today:** the Restricted server can host an invite-bound authoritative 1v1; six scripted remote matches produced one server result each, four with native macOS/Linux Godot clients. Participant fogged replays verified, the deployed ARM64 image passed the unchanged 162-entity benchmark at its 1.0 CPU cap, and the matching signed macOS owner build was independently fetched, checked and rendered. This is implementation and builder evidence, **not** owner acceptance, a public release, an eligible cohort or a broad reliability claim. See the [remote QA record](../../../docs/multiplayer-remote-qa-2026-10-20.md) and [Learnings](../../LEARNINGS.md).
+**Already possible today:** the Restricted server hosts an invite-bound authoritative 1v1. The owner completed a downloaded GUI match and online replay with a separate native Linux client; current-host baseline/impaired full matches and the 50-entity native network matrix passed. Replay files opened and failed safely in the signed local candidate. This is Restricted owner and builder evidence, **not** a public release, an eligible cohort or a broad reliability claim. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md), [earlier remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md) and [Learnings](../../LEARNINGS.md).
 
 **Remaining outcome, in order (updated after the 2026-10-21 QA runs):**
 
 1. The current host passed delayed second join, same-slot rejoin, 60-second expiry and baseline/symmetric-impaired native full matches. The 50-entity native cross-OS baseline, 100 ms and 150 ms/loss matrix passed with one final hash across all profiles; the [QA record](../../../docs/multiplayer-qa-2026-10-21.md) names actual RTT, drops, command bursts and resource samples. Keep admission off between bounded tests.
-2. Finish the corrected owner-only itch upload after the previous build clears processing. Fetch it independently, compare signature/files/build ID and run the remaining **downloaded** owner file-open and post-revocation denial checks. The owner already completed a full GUI match and online replay on the preceding downloaded build; do not misattribute that observation to the new export.
+2. Corrected owner-only itch build #2181405 is independently fetched, byte-compared, signature-checked and GUI-tested. Run the remaining **downloaded** owner file-open and post-revocation denial checks. The owner already completed a full GUI match and online replay on the preceding downloaded build; do not misattribute that observation to the new export.
 3. Close only the epic's checked Definition of Done, then update its retrospective/poster and regenerate and sync the board. Keep the epic `status: in-progress` until release and owner checks pass; a merged PR and signed local export alone do not close it.
 
 **Decision boundary:** The approved private 1v1, 60-second no-result policy and participant-only fog replay stand. Any public invitation, ranked/matchmaking scope, eligibility/trust change, extra game rules, or change to the agreed North Star is a new owner decision under [Ways of Working](../../WAYS-OF-WORKING.md#escalate-dont-guess). Web multiplayer remains a feasibility finding because the current local Web origin is rejected by the Restricted route; production Web/mobile support is [a later seed](prove-cross-platform-play.md).
@@ -60,7 +60,7 @@ The original seed asks for a measured synchronization choice, semantic commands,
 2. Follow this repo's ways of working and project learnings.
 3. Preserve the seed's synchronization, reconnect, replay, integrity and real network-match requirements.
 
-**Teach-back:** pending — You want the next shared-match bet shaped from actual simulation evidence, with a replay and a real two-client/server proof, before approving build scope.
+**Teach-back:** The owner approved an invite-only Restricted 1v1, 60-second no-result recovery and participant-only fog replay on 2026-10-19. “Production” for this bet means the live Restricted alpha host and owner download, not a public release. The owner is the only human tester; the second client is native Linux Godot on the VM.
 
 ## Problem
 
@@ -98,12 +98,12 @@ Two human clients on declared macOS and Linux builds join one Restricted remote 
 
 **Out of v1 (no-gos):** Public matchmaking, ranked ratings, spectators, chat, lobbies, team modes, cross-platform release promises, mobile controls, mid-match game-version migration, replay sharing/cloud library, anti-cheat claims and accepting `client_reported` events as authoritative online results. [Alternate modes](add-more-ways-to-play.md) and [cross-platform production support](prove-cross-platform-play.md) remain separate ideas.
 
-## Rabbit holes
+## Rabbit holes identified at shaping
 
 - [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) favors server authority provisionally. Sprint 1 compares a representative four-resource, fogged large-army scenario across macOS/Linux and a Web feasibility run; record RTT/loss, command bursts, reconciliation, CPU/memory/bandwidth and first divergence. Proposed network profiles are baseline, 100 ms RTT with no loss, and 150 ms RTT with 1% packet loss. Keep or amend the ADR before transport work. Fixed ticks and two equal 700-tick hashes do not prove lockstep.
-- The current replay records one human side and regenerates AI orders. Multiplayer replay needs both sides' ordered accepted commands or server state checkpoints, a version contract, bounded parsing and a verifier. Do not reinterpret old solo files silently.
+- The original solo replay recorded one human side and regenerated AI orders. Multiplayer replay needed both sides' ordered accepted commands or server state checkpoints, a version contract, bounded parsing and a verifier. Do not reinterpret old solo files silently.
 - Reconnect needs an authoritative snapshot, last accepted command index and a clear timeout/no-result policy. Proposed proof policy: a 60-second rejoin window, then a visible no-result for both players. A client must not replay an acknowledged order twice or rejoin a different slot.
-- Online identity and result trust must be designed with the alpha ingest. The current service accepts only `client_reported` play; changing trust labels, eligibility or player identity requires a contract review and second reviewer.
+- Online identity and result trust must be designed with the alpha ingest. The ingest still accepts private client reports only as `client_reported`; changing trust labels, eligibility or player identity requires a contract review and second reviewer.
 - The existing Oracle VM and Restricted alpha route provide a bounded hosting rail. Reuse the invite-code store and HTTPS ingress; keep match authority isolated from ingest and database permissions. Record VM capacity, backup/restore and participant notice impacts before issuing a second-person code. The owner approved a Restricted remote host via invite code on 2026-10-19; no public release or open signup follows.
 
 ## What already exists (reuse, don't rebuild)

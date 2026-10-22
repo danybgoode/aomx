@@ -24,7 +24,7 @@ verdict_evidence: null
 verdict_at: null
 persona: "Classic RTS players who want to finish a shared match with a friend and review what happened."
 grounded: false
-grounded_reason: "Internal scripted remote matches now exist, but no eligible player cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
+grounded_reason: "The owner and native clients completed Restricted matches, but no eligible player cohort, repeat-play baseline or measured multiplayer demand exists; this remains a feasibility bet before a retention target."
 flag_key: multiplayer.private_match_enabled
 target_segment: null
 adopted_event: null
@@ -36,7 +36,7 @@ build_order: 14
 
 # Epic: Prove multiplayer and replays
 
-**Current state (2026-10-21):** The Restricted host runs reviewed image `aomx-match:0d29ed3` with the delayed-join and excluded-receipt repairs. The owner completed a signed downloaded-build GUI match and watched its fogged replay. On the current host, native macOS/Linux clients completed baseline and symmetric impaired full matches with matching terminal records/replays, and verified same-slot rejoin plus 60-second no-result expiry. A disposable copy of the current image passed the 50-entity native cross-OS baseline, 100 ms and 150 ms/loss network matrix. Replay-file parsing, offline playback and control placement are merged in PRs #67/#68 and passed signed local GUI checks. [Current QA](../../../docs/multiplayer-qa-2026-10-21.md), [earlier remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md), and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record measurements and limits. The corrected signed build is processing as owner-only itch build #2181405; independent fetch and owner file-open/denial walkthrough remain. Admission is off in every environment. The epic remains in QA until those release checks pass.
+**Current state (2026-10-22):** The Restricted host runs reviewed image `aomx-match:0d29ed3` with the delayed-join and excluded-receipt repairs. The owner completed a signed downloaded-build GUI match and watched its fogged replay. On the current host, native macOS/Linux clients completed baseline and symmetric impaired full matches with matching terminal records/replays, and verified same-slot rejoin plus 60-second no-result expiry. A disposable copy of the current image passed the 50-entity native cross-OS baseline, 100 ms and 150 ms/loss network matrix. Replay-file parsing, offline playback and control placement are merged in PRs #67/#68. [Current QA](../../../docs/multiplayer-qa-2026-10-21.md), [earlier remote QA](../../../docs/multiplayer-remote-qa-2026-10-20.md), and [ADR 004](../../../docs/architecture-decisions/004-synchronization-model.md) record measurements and limits. Corrected signed owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested for valid/bad replay files and controls. The owner's file-open/denial walkthrough remains. Admission is off in every environment. The epic remains in QA until those owner checks pass.
 
 > **Area:** 03 Multiplayer and retention · **Risk:** high · **Class:** Feature · **Scope:** [approved pitch](../../00-ideas/seeds/prove-multiplayer.md) · **Destination:** shared-and-authored-play
 

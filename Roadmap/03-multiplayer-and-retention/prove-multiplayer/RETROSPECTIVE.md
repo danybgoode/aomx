@@ -7,7 +7,7 @@ The Restricted implementation passed its native network and owner match checks. 
 - A server-authoritative, invite-bound two-player match, 60-second recovery/no-result policy and participant-only fogged replay landed through PRs #56–#59. The deployed ARM64 image passed the unchanged 162-entity stress gate at its 1.0 CPU cap.
 - The owner completed a signed downloaded-build GUI match and fogged online replay against a native Linux client. On the current host, native Mac/Linux baseline and symmetric impaired full matches reached matching results and verified replays. A disposable copy of the deployed image passed the 50-entity native network matrix at baseline, 100 ms and 150 ms/loss.
 - The first owner join exposed a permanent database binding to a revoked invite. PR #62 changes the binding to one active code per installation and keeps retained replays available to a properly bound replacement code. Independent review found a second slot-assignment edge case; PR #63 keeps a replacement in the installation's original slot. Both fixes and migration 006 are on the Restricted host.
-- PR #65 repaired a waiting-room timestamp bug and excluded receipt labels. PRs #67/#68 added bounded offline participant replay files, clear bad-file errors and a visible replay control. The corrected owner-only upload is processing; the signed local export passed GUI checks.
+- PR #65 repaired a waiting-room timestamp bug and excluded receipt labels. PRs #67/#68 added bounded offline participant replay files, clear bad-file errors and a visible replay control. Corrected owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested for valid and bad files.
 
 ## What went well
 
@@ -23,6 +23,6 @@ The Restricted implementation passed its native network and owner match checks. 
 
 ## Gaps / follow-ups
 
-- Fetch and verify corrected owner-only itch build #2181405, then finish the owner file-open and post-revocation denial checks on that download. The owner has already completed the full GUI match and online replay on the preceding download.
+- Finish the owner file-open and post-revocation denial checks on corrected owner-only itch build #2181405. The owner has already completed the full GUI match and online replay on the preceding download.
 - Web origin support is outside this Restricted native slice and remains with the cross-platform seed.
 - Keep admissions off and issue no second-person invitation until the remaining acceptance checks pass. There is no eligible retention cohort or observed later-day completion baseline.

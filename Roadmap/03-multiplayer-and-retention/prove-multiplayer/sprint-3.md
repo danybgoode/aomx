@@ -30,7 +30,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 3: Replay result integrity and acceptance
 
-**Status:** 🏗 Current host and signed local export checks passed; final owner-only download and owner file-open/denial walkthrough remain open. The owner completed the preceding downloaded macOS GUI match and online replay against a separate Linux Godot client. The current host passed delayed second join, reconnect and expiry, baseline/impaired terminal matches and participant replay checks. PRs #65/#67/#68 repaired excluded receipt labels, added bounded offline participant replay files with readable corrupt/old-version handling, and corrected the replay control's layout. A signed local export passed GUI playback/pause/error checks. The corrected owner-only itch build #2181405 is processing; see [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
+**Status:** 🏗 Current host and corrected owner-only download passed builder checks; owner file-open/denial walkthrough remains open. The owner completed the preceding downloaded macOS GUI match and online replay against a separate Linux Godot client. The current host passed delayed second join, reconnect and expiry, baseline/impaired terminal matches and participant replay checks. PRs #65/#67/#68 repaired excluded receipt labels, added bounded offline participant replay files with readable corrupt/old-version handling, and corrected the replay control's layout. Corrected owner-only itch build #2181405 was independently fetched, byte-compared, signature-checked and GUI-tested for valid playback, pause/resume and bad-version file retention; see [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
 
 ## Stories
 

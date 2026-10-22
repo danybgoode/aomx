@@ -23,7 +23,7 @@ stories:
 ---
 # Prove multiplayer and replays — Sprint 2: Restricted shared match and recovery
 
-**Status:** 🏗 Live service checks passed; final owner download checks remain in Sprint 3. The current `aomx-match:0d29ed3` host passed a delayed second join, baseline and symmetric 150 ms/loss native macOS/Linux full matches, same-slot recovery within 60 seconds and visible `reconnect_expired` no-result for both clients. Each completed match produced one two-participant record and fogged replays; expiry produced none. The owner completed a downloaded-build GUI match, but the newest replay-file build still needs independent itch fetch and owner walkthrough. Admission is off in every environment. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
+**Status:** 🏗 Live service checks passed; final owner checks remain in Sprint 3. The current `aomx-match:0d29ed3` host passed a delayed second join, baseline and symmetric 150 ms/loss native macOS/Linux full matches, same-slot recovery within 60 seconds and visible `reconnect_expired` no-result for both clients. Each completed match produced one two-participant record and fogged replays; expiry produced none. The owner completed a downloaded-build GUI match, and the newest replay-file build passed independent itch fetch and builder GUI checks. The owner file-open/denial walkthrough remains. Admission is off in every environment. See [current QA](../../../docs/multiplayer-qa-2026-10-21.md).
 
 ## Stories
 
