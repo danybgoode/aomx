@@ -1,29 +1,31 @@
 extends RefCounted
 
 const MANIFEST_PATH := "res://assets/manifest.v0.1.json"
+const CDMX_MANIFEST_PATH := "res://assets/cdmx-pack.json"
 
 var records: Dictionary = {}
 var textures: Dictionary = {}
 var hit_images: Dictionary = {}
 
 func load_manifest(include_pilot: bool = false) -> void:
-	var source := FileAccess.get_file_as_string(MANIFEST_PATH)
-	assert(not source.is_empty(), "Art manifest is missing.")
-	var data: Variant = JSON.parse_string(source)
-	assert(data is Dictionary and data.get("schema_version", 0) == 1, "Art manifest schema mismatch.")
 	records.clear()
 	textures.clear()
 	hit_images.clear()
-	for record in data.assets:
-		if record.get("runtime_use", "match") == "pilot" and not include_pilot:
-			continue
-		var id: String = record.id
-		assert(not records.has(id), "Duplicate art asset: " + id)
-		records[id] = record
-		var texture: Resource = ResourceLoader.load(record.path)
-		assert(texture is Texture2D, "Missing art texture: " + record.path)
-		textures[id] = texture
-		hit_images[id] = (texture as Texture2D).get_image()
+	for manifest_path in [MANIFEST_PATH, CDMX_MANIFEST_PATH]:
+		var source := FileAccess.get_file_as_string(manifest_path)
+		assert(not source.is_empty(), "Art manifest is missing: " + manifest_path)
+		var data: Variant = JSON.parse_string(source)
+		assert(data is Dictionary and data.get("schema_version", 0) == 1, "Art manifest schema mismatch.")
+		for record in data.assets:
+			if record.get("runtime_use", "match") == "pilot" and not include_pilot:
+				continue
+			var id: String = record.id
+			assert(not records.has(id), "Duplicate art asset: " + id)
+			records[id] = record
+			var texture: Resource = ResourceLoader.load(record.path)
+			assert(texture is Texture2D, "Missing art texture: " + record.path)
+			textures[id] = texture
+			hit_images[id] = (texture as Texture2D).get_image()
 
 func texture(id: String) -> Texture2D:
 	assert(textures.has(id), "Unknown art asset: " + id)

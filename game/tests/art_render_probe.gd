@@ -12,7 +12,7 @@ func _probe() -> void:
 	game._start_match(Skirmish.REGIOS)
 	var requested_zoom := OS.get_environment("AOMX_ART_ZOOM")
 	if requested_zoom.is_valid_float():
-		game.board_zoom = clampf(requested_zoom.to_float(), 1.0, 1.25)
+		game.board_zoom = clampf(requested_zoom.to_float(), game.ZOOM_MIN, game.ZOOM_MAX)
 	game.sim.ai_enabled = false
 	for offset in range(5):
 		game.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(3 + offset, 7))
@@ -29,6 +29,6 @@ func _probe() -> void:
 		prior_usec = now_usec
 		peak_memory = maxf(peak_memory, Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0)
 	intervals.sort()
-	print("Art render probe: 20x20, 12 units, 180 displayed frames, zoom %.0f%%; frame-interval median %.2f ms, p95 %.2f ms (includes display wait); process monitor %.2f ms, peak static memory %.1f MiB" % [
-		game.board_zoom * 100.0, intervals[90], intervals[171], Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, peak_memory])
+	print("Art render probe: %dx%d, %d entities, 180 displayed frames, zoom %.0f%%; frame-interval median %.2f ms, p95 %.2f ms (includes display wait); process monitor %.2f ms, peak static memory %.1f MiB" % [
+		game.sim.map_width, game.sim.map_height, game.sim.entities.size(), game.board_zoom * 100.0, intervals[90], intervals[171], Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, peak_memory])
 	quit()

@@ -30,6 +30,12 @@ func _run() -> void:
 	client._process(0.1)
 	check(client.sim.tick_number == 0 and client.match_id.is_empty(), "setup does not advance a match")
 	client._choose_faction(Skirmish.REGIOS)
+	check(client._terrain_id(Vector2i(0, 0)).begins_with("terrain_cdmx_"), "La Roma uses the traced CDMX ground pack")
+	for kind in ["worker", "melee", "ranged", "armored", "siege"]:
+		check(client._actor_art_id({"kind": kind, "side": Skirmish.HUMAN}) == "unit_cdmx_" + kind, "La Roma maps unit role: " + kind)
+	for kind in ["command_post", "barracks", "depot", "housing", "registry"]:
+		var expected: String = "roma_command_post" if kind == "command_post" else kind
+		check(client._actor_art_id({"kind": kind, "side": Skirmish.HUMAN}) == "building_cdmx_" + expected, "La Roma maps building: " + kind)
 	check(client.outbox.state.events.size() == 2, "faction choice saves one match start")
 	var start: Dictionary = client.outbox.state.events[1].event
 	check(start.type == "match_started" and start.test_account and start.faction == Skirmish.REGIOS, "client start is test tagged with chosen faction")

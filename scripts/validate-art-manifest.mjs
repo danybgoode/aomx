@@ -6,13 +6,14 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifestPath = path.join(root, "game/assets/manifest.v0.1.json");
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+const cdmx = JSON.parse(fs.readFileSync(path.join(root, "game/assets/cdmx-pack.json"), "utf8"));
 const errors = [];
 const ids = new Set();
 let ownedTexturePixels = 0;
 
 if (manifest.schema_version !== 1) errors.push("unsupported schema_version");
 if (manifest.tile_ground_size?.join("x") !== "48x24") errors.push("tile ground geometry mismatch");
-if (manifest.simulation_grid?.join("x") !== "20x20") errors.push("simulation grid mismatch");
+if (manifest.simulation_grid?.join("x") !== "28x28") errors.push("simulation grid mismatch");
 
 for (const asset of manifest.assets ?? []) {
   if (ids.has(asset.id)) errors.push("duplicate ID " + asset.id);
@@ -66,6 +67,47 @@ for (const asset of manifest.assets ?? []) {
 
 if (ownedTexturePixels * 4 > 1024 * 1024) errors.push("owned textures exceed 1 MiB uncompressed RGBA budget");
 
+if (cdmx.schema_version !== 1 || cdmx.tile_ground_size?.join("x") !== "48x24" ||
+    cdmx.simulation_grid?.join("x") !== "28x28") errors.push("CDMX pack geometry mismatch");
+let cdmxPixels = 0;
+for (const asset of cdmx.assets ?? []) {
+  if (ids.has(asset.id)) errors.push("duplicate ID " + asset.id);
+  ids.add(asset.id);
+  if (!asset.id.startsWith(asset.category + "_")) errors.push(asset.id + ": ID/category mismatch");
+  if (asset.runtime_use !== "match" || asset.rights !== "project-original-ai-assisted" ||
+      asset.states?.join() !== "static" || asset.frame_ms !== 0 ||
+      asset.anchor !== (asset.category === "terrain" ? "tile_center" : "ground_center")) {
+    errors.push(asset.id + ": contract mismatch");
+  }
+  if (!Array.isArray(asset.footprint) || asset.footprint.length !== 2 ||
+      !Array.isArray(asset.pivot) || asset.pivot.some((v, i) => !Number.isInteger(v) || v < 0 || v >= asset.canvas[i])) {
+    errors.push(asset.id + ": geometry metadata missing");
+  }
+  for (const [key, hashKey] of [["source", "source_sha256"], ["path", "export_sha256"]]) {
+    if (!asset[key]?.startsWith("res://assets/")) { errors.push(asset.id + ": bad " + key); continue; }
+    const file = path.join(root, "game", asset[key].slice("res://".length));
+    if (!fs.existsSync(file)) { errors.push(asset.id + ": missing " + key); continue; }
+    const png = fs.readFileSync(file);
+    if (png.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") errors.push(asset.id + ": not a PNG");
+    if (crypto.createHash("sha256").update(png).digest("hex") !== asset[hashKey]) errors.push(asset.id + ": " + hashKey + " mismatch");
+    if (key === "path") {
+      if ([png.readUInt32BE(16), png.readUInt32BE(20)].join("x") !== asset.canvas.join("x") || png[25] !== 6)
+        errors.push(asset.id + ": canvas/RGBA mismatch");
+      cdmxPixels += asset.canvas[0] * asset.canvas[1];
+    }
+  }
+  if (asset.export_recipe !== `scripts/export-cdmx-art.mjs:${asset.id}`) errors.push(asset.id + ": export recipe missing");
+}
+for (const kind of ["grass", "sidewalk", "asphalt", "plaza"])
+  for (let variant = 0; variant < 4; variant++)
+    if (!ids.has(`terrain_cdmx_${kind}_${variant}`)) errors.push(`CDMX terrain ${kind}/${variant} missing`);
+for (const kind of ["roma_command_post", "barracks", "depot", "housing", "registry"])
+  if (!ids.has(`building_cdmx_${kind}`)) errors.push(`CDMX building ${kind} missing`);
+for (const kind of ["worker", "melee", "ranged", "armored", "siege"])
+  if (!ids.has(`unit_cdmx_${kind}`)) errors.push(`CDMX unit ${kind} missing`);
+if (!ids.has("prop_cdmx_cibeles")) errors.push("CDMX Cibeles missing");
+if (cdmxPixels * 4 > 1024 * 1024) errors.push("CDMX textures exceed 1 MiB uncompressed RGBA budget");
+
 const expected = [
   ...["grass", "sidewalk", "asphalt", "plaza"].flatMap(
     kind => Array.from({ length: 4 }, (_, i) => "terrain_" + kind + "_" + i)
@@ -90,4 +132,4 @@ if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
 }
-console.log("Art manifest OK: " + ids.size + " RGBA textures, " + ownedTexturePixels * 4 + " owned RGBA bytes, " + (manifest.procedural?.length ?? 0) + " procedural cues.");
+console.log("Art manifest OK: " + ids.size + " RGBA textures, " + ownedTexturePixels * 4 + " owned and " + cdmxPixels * 4 + " CDMX RGBA bytes, " + (manifest.procedural?.length ?? 0) + " procedural cues.");
