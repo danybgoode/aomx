@@ -3,7 +3,7 @@ epic: establish-cdmx-geography-and-maps
 sprint: 3
 title: "Compatibility and owner acceptance"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,24 +12,24 @@ stories:
     i_want: "explicit version handling"
     so_that: "a map revision does not silently corrupt my match"
     risk: high
-    status: planned
+    status: done
   - id: S3.2
     title: "Record owner and reader acceptance"
     as_a: "product owner"
     i_want: "real build and comprehension evidence"
     so_that: "I can decide whether the map is ready to broaden"
     risk: low
-    status: planned
+    status: in-progress
 ---
 # Establish CDMX geography and map data — Sprint 3: Compatibility and owner acceptance
 
-**Status:** ⬜ not started
+**Status:** 🟡 compatibility verified; Restricted build and owner QA owed
 
 ## Stories
 
-### Story 3.1 — Preserve save and replay behavior
+### ✅ Story 3.1 — Preserve save and replay behavior
 **As a** returning player, **I want** explicit version handling, **so that** a map revision does not silently corrupt my match.
-**Acceptance:** New-content save/resume and solo/participant replay reproduce state hashes. An incompatible old save or replay reports a clear version/content reason and retains the file. Check multiplayer replay when a compatible Restricted room is available. Record content/build IDs.
+**Acceptance:** Current v5 save/resume and solo/participant replay reproduce state hashes. An incompatible old save or replay reports a clear version/content reason and retains the file. Check multiplayer replay when a compatible Restricted room is available. Record content/build IDs.
 **Risk:** high · player data and replay integrity.
 
 ### Story 3.2 — Record owner and reader acceptance
@@ -38,6 +38,7 @@ stories:
 **Risk:** low · observational research; invitations remain a separate approval.
 
 ## Sprint QA
+- **Evidence:** [builder QA record](../../../docs/world/cdmx-geography-qa-2026-10-22.md). The existing v5 content ID and deterministic hashes are unchanged; the new Restricted build and downloaded owner walkthrough remain open.
 - **Headless:** save, load, replay and content-hash fixtures; invalid old-content preservation; multiplayer replay if applicable.
 - **Real build:** signed Restricted download, offline owner play, both wins and event exclusion/ingest check.
 - **Human:** owner portrayal and full-match decision; uncoached familiar/unfamiliar task read after invitation approval.

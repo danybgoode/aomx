@@ -45,7 +45,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Build a strategic opponent](../01-core-play/build-strategic-opponent/README.md) — #12 · 01 Core Play · 0/6 stories · risk: High · appetite L · _docs: status in-progress_
 - [Expand civilizations and world](../02-civilizations-and-world/expand-civilizations-and-world/README.md) — #13 · 02 Civilizations And World · 0/8 stories · risk: High · appetite L · _docs: status in-progress_
 - [Produce cohesive CDMX game art](../02-civilizations-and-world/produce-cohesive-cdmx-art/README.md) — #15 · 02 Civilizations And World · 1/6 stories · risk: Low · appetite L · _docs: status in-progress_
-- [Establish CDMX geography and map data](../02-civilizations-and-world/establish-cdmx-geography-and-maps/README.md) — #16 · 02 Civilizations And World · 0/6 stories · risk: High · appetite M · _docs: status scaffolded_
+- [Establish CDMX geography and map data](../02-civilizations-and-world/establish-cdmx-geography-and-maps/README.md) — #16 · 02 Civilizations And World · 4/6 stories · risk: High · appetite M · _docs: status in-progress_
 
 ## Building — live only
 
