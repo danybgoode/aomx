@@ -99,3 +99,7 @@ Build a local desktop slice, check current Godot client and simulation contracts
 - `game/tests/skirmish_client_test.gd` passed on Godot 4.7.2 after the code changes. The 1024×700 and 1280×800 graphical captures show default and enlarged layouts; these are local debug captures, not signed owner-build evidence.
 - Signed Restricted preview `preview-04c443da8993` is ready as Butler build `#2190017`. An authenticated independent fetch matched the local extracted app byte for byte, passed strict signature and bounded startup checks, and rendered the faction setup. The owner download and full interactive walkthrough remain open.
 - The owner readability finding in the earlier HUD epic is transferred to this epic for the implementation and human acceptance pass. That epic's historical downloaded-build and blind-task obligations remain separate.
+
+## Owner finding · 2026-10-23
+
+The owner's `preview-222748c6be7a` screenshot at the currently labeled 200% scale shows clipped and overlapping objectives, settings, selection, command and context content. The owner finds this physical text size appropriate as the new 100% default and also reports competing persistent unit indicators. Treat these as open severe S3.3/DoD findings; the previous local captures do not close them. The [review and proposed interface contract](../../00-ideas/audits/2026-10-23-owner-interface-movement-map.md) records the exact states and acceptance checks. D2's 150% footprint cap needs a revised design before owner acceptance.

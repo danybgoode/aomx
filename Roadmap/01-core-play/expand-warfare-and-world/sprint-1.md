@@ -24,7 +24,7 @@ stories:
 
 # Expand warfare and world — Sprint 1: Scout and move on a larger map
 
-**Status:** 🟦 In review — local rules and rendered probes pass; signed downloaded-build smoke remains open.
+**Status:** 🏗 In progress — owner reports crowd stalls; S1.2 requires reproduction and repair before downloaded-build smoke.
 
 ### Story 1.1 — Scout an authored larger battlefield
 
@@ -39,6 +39,8 @@ stories:
 **As a** classic RTS player, **I want** my group to reach a lane or receive a clear no-route result, **so that** movement orders remain trustworthy in a larger battle.
 
 **Acceptance:** Seeded opposing crowds resolve without permanent overlap or a silent stuck unit. Building placement/destruction and restore trigger the expected route response. Declare the owner Mac target and route/tick/frame/memory budgets before tuning; measure the representative larger battle in debug/headless and rendered release builds. Retain the existing 48×48/163-entity matrix as comparison evidence.
+
+**Owner failure to resolve, 2026-10-23:** workers and other units can remain blocked against each other. Capture a saved/replayable owner case if available, and reproduce worker delivery/gathering and mixed-group lane conflicts beyond the current wait/abort thresholds. When a legal alternate route exists, units progress without permanent overlap. With no route, the failure remains visible in selected-unit status rather than silently becoming idle; a worker carrying resources has an explicit recoverable state. Verify swaps, same-destination orders, production exits, obstacle changes, restore/replay and cross-platform hashes. The [owner review](../../00-ideas/audits/2026-10-23-owner-interface-movement-map.md) records the plausible code mechanism and wider acceptance contract.
 
 **Risk:** high — pathing and performance of every match.
 
