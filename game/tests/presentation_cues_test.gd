@@ -63,6 +63,14 @@ func _run() -> void:
 	client._on_online_order_ack({"ok": false, "reason": "blocked_or_invalid_tile"})
 	check(client.cue_policy.last_kind_tick.has("order-reject") and client.order_flash_text.contains("rejected"),
 		"host rejection replaces queued feedback")
+	var pending_building: int = client.sim._add_entity(Skirmish.HUMAN, "depot", tile + Vector2i(1, 0))
+	client.sim.entities[pending_building].complete = false
+	client._activate_command("cancel_build_%d" % pending_building)
+	check(client.order_flash_pending and client.order_flash_text.contains("awaiting host"),
+		"online construction cancel stays pending without promising a refund")
+	client._on_online_order_ack({"ok": false, "reason": "cannot_cancel"})
+	check(not client.order_flash_pending and not client.order_flash_ok and client.order_flash_text.contains("rejected"),
+		"host rejection resolves online construction cancel")
 	client.online = false
 	client._baseline_presentation()
 	client.sim.tick_number += 40
@@ -96,6 +104,17 @@ func _run() -> void:
 	client.sim.entities[worker_id].hp -= 1
 	client._observe_events()
 	check(client.cue_policy.last_kind_tick.has("threat"), "friendly damage maps to threat cue")
+	var isolated: int = client.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(27, 27))
+	client.sim._refresh_visibility()
+	client._baseline_presentation()
+	client.sim.tick_number += 1
+	client.sim.entities.erase(isolated)
+	client.sim._refresh_visibility()
+	check(not client.sim.is_visible(Skirmish.HUMAN, Vector2i(27, 27)), "isolated fighter death tile returns to fog")
+	client._observe_events()
+	check(client.hud_ui.event_log.has("Friendly unit lost") and client.cue_policy.last_kind_tick.has("destruction"),
+		"owned loss remains announced without revealing a fogged location")
+	check(client.cue_effects.is_empty(), "fogged owned loss has no positional marker")
 	client._set_reduced_effects(true)
 	check(client.cue_effects.is_empty(), "reduced effects clears transient board effects")
 	check(JSON.parse_string(FileAccess.get_file_as_string(ui_settings)).reduced_effects,

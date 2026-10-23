@@ -91,6 +91,7 @@ var order_flash_tile := Vector2i(-1, -1)
 var order_flash_text := ""
 var order_flash_seconds := 0.0
 var order_flash_ok := true
+var order_flash_pending := false
 var accumulator := 0.0
 var syncing := false
 var sync_note := ""
@@ -1088,8 +1089,9 @@ func _observe_events() -> void:
 			continue
 		var previous: Dictionary = last_event_entities[id]
 		if previous.side == Skirmish.HUMAN and previous.kind in Skirmish.COMBAT_KINDS:
-			if _emit_cue("destruction", "%s:lost:%d" % [match_id, id], previous.pos):
-				hud_ui.show_notice("Friendly unit lost", true)
+			hud_ui.show_notice("Friendly unit lost", true)
+			var visible_tile: Vector2i = previous.pos if sim.is_visible(Skirmish.HUMAN, previous.pos) else Vector2i(-1, -1)
+			_emit_cue("destruction", "%s:lost:%d" % [match_id, id], visible_tile)
 	if sim.district_state != last_district_state:
 		if sim.district_state == "human_hold":
 			hud_ui.show_notice("Center captured • hold for %d seconds" % int(sim.content.objectives.district_hold_ticks / 10))
@@ -1283,7 +1285,7 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 		if accepted > 0:
 			result = {"ok": true, "reason": "group_order"}
 	var message := "Order sent; awaiting host." if online and result.ok else "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result)
-	_flash_order(tile, message, result.ok)
+	_flash_order(tile, message, result.ok, online and result.ok)
 	if result.ok and not online:
 		cue_serial += 1
 		_emit_cue("order-confirm", "%s:order:%d" % [match_id, cue_serial], tile)
@@ -1315,13 +1317,14 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 		"match_finished": return "Match finished. Press R to restart."
 	return str(result.get("reason", "Order failed.")).replace("_", " ").capitalize() + "."
 
-func _flash_order(tile: Vector2i, message: String, ok: bool) -> void:
+func _flash_order(tile: Vector2i, message: String, ok: bool, pending: bool = false) -> void:
 	order_flash_tile = tile
 	order_flash_text = message
 	order_flash_ok = ok
+	order_flash_pending = pending
 	order_flash_seconds = 1.6
 	sim.feedback = message
-	if not ok:
+	if not ok and not pending:
 		cue_serial += 1
 		_emit_cue("order-reject", "%s:rejected:%d" % [match_id, cue_serial], tile)
 
@@ -1527,7 +1530,8 @@ func _activate_command(action: String) -> void:
 		if worker_id != -1 and sim.entities.has(building_id):
 			var at: Vector2i = sim.entities[building_id].pos
 			var response: Dictionary = _send_game_order("cancel", worker_id, building_id)
-			_flash_order(at, _order_message("cancel", building_id, response), response.ok)
+			var cancel_message := "Order sent; awaiting host." if online and response.ok else _order_message("cancel", building_id, response)
+			_flash_order(at, cancel_message, response.ok, online and response.ok)
 			if response.ok and not online:
 				cue_serial += 1
 				_emit_cue("order-confirm", "%s:order:%d" % [match_id, cue_serial], at)
@@ -1763,7 +1767,7 @@ func _update_hud() -> void:
 	else:
 		ui.show_result("", "")
 		if order_flash_seconds > 0 and not order_flash_text.is_empty():
-			ui.show_notice(order_flash_text, not order_flash_ok)
+			ui.show_notice(order_flash_text, not order_flash_ok and not order_flash_pending)
 
 func _update_secondary() -> void:
 	var ui = hud_ui
@@ -2278,7 +2282,7 @@ func _draw() -> void:
 					Color(0.8, 0.9, 0.3, 0.55) if valid else Color(0.9, 0.25, 0.2, 0.55))
 	if order_flash_seconds > 0.0 and order_flash_tile.x >= 0:
 		var flash_center := _tile_to_screen(order_flash_tile)
-		var flash_color := Color("82e7d0") if order_flash_ok else Color("ff8b7e")
+		var flash_color := Color("f0cb84") if order_flash_pending else Color("82e7d0") if order_flash_ok else Color("ff8b7e")
 		draw_arc(flash_center, 22, 0, TAU, 32, flash_color, 3.0)
 		draw_string(ThemeDB.fallback_font, flash_center + Vector2(-100, -26), order_flash_text,
 			HORIZONTAL_ALIGNMENT_CENTER, 200, 18, flash_color)

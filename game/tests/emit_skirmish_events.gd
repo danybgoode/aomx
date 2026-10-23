@@ -27,4 +27,5 @@ func _run() -> void:
 	print("Skirmish client fixture saved: open, start, completed win")
 	root.remove_child(client)
 	client.queue_free()
+	await process_frame
 	quit(0)

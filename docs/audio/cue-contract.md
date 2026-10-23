@@ -19,7 +19,7 @@ The client observes accepted results or visibility-safe state transitions in `ga
 | `economy` | Friendly worker gathers from empty hands or delivers carried stock | 1 / 35 | Worker activity, stockpile, delivery notice |
 | `construction` | Friendly unit ready or building completed | 2 / 12 | Ready/complete notice and building state |
 | `threat` | Friendly entity HP drops | 4 / 18 | Attack notice, HP bar, small exclamation |
-| `destruction` | Friendly fighter disappears after a live state transition | 4 / 8 | Unit-lost notice, small exclamation |
+| `destruction` | Friendly fighter disappears after a live state transition | 4 / 8 | Unit-lost notice; small exclamation only while its old tile remains visible |
 | `objective` | Visible center becomes held or contested | 5 / 8 | Objective widget and center notice |
 | `result-win/loss/draw` | First terminal transition in a live match | 6 / 0 | Result title, cause and new-match action |
 
@@ -27,7 +27,7 @@ Effects last **0.55 seconds**, occupy a small ring and symbol at a visible tile,
 
 ## Visibility and replay
 
-Friendly state and a visible center can make cues. A hidden tile cannot make a sound or marker through the cue path. Threat cues identify the friendly target, never a hidden attacker. Start, resume, first network state and replay seek establish a silent baseline; only later observed transitions emit. Repeated terminal frames share a match result key and cannot replay the result tone. A host acknowledgement is the online order confirmation; a queued request is visibly labelled as awaiting the host.
+Friendly state and a visible center can make cues. A hidden tile cannot make a positional marker or reveal an enemy through the cue path. An owned fighter's loss remains audible and visible as a non-positional notice after its old tile returns to fog. Threat cues identify the friendly target, never a hidden attacker. Start, resume, first network state and replay seek establish a silent baseline; only later observed transitions emit. Repeated terminal frames share a match result key and cannot replay the result tone. A host acknowledgement is the online order confirmation; a queued request is visibly labelled as awaiting the host with an amber ring.
 
 ## Performance and QA
 
