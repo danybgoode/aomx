@@ -127,6 +127,12 @@ var ui_scale := 1.0
 var reduced_motion := false
 var reduced_effects := false
 
+func _exit_tree() -> void:
+	for voice in cue_voices:
+		voice.stop()
+		voice.stream = null
+	cue_streams.clear()
+
 func _ready() -> void:
 	art.load_manifest()
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
