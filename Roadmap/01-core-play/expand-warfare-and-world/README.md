@@ -94,3 +94,11 @@ Build on `feat/expand-warfare-and-world`, commit per story and review the full a
 - [ ] A downloaded Restricted build completes Conquest and La Roma as both factions against the computer, including save/resume and one test-tagged sync receipt. No public invitation or retention claim is inferred.
 - [ ] Independent high-risk review and required checks pass; the integration branch lands on `master` and the Restricted preview is verified. Record actual release and PR evidence here.
 - [ ] Update the poster and generated board, write a dated retrospective at actual close, promote durable findings to `Roadmap/LEARNINGS.md`, and set this README to `status: shipped` only when the above evidence exists.
+
+## Owner finding · 2026-10-23
+
+The owner reports workers and other units remaining blocked against one another, as well as a battlefield and resource layout that feel too compressed. These are open S1.2 and larger-map acceptance findings, not proof that the current 28×28 architecture target met the original larger-battlefield promise. The [review and proposed movement/map contract](../../00-ideas/audits/2026-10-23-owner-interface-movement-map.md) distinguishes the reproduction and repair work from the new playable map-size decision. Retain the existing performance budget as the 28×28 baseline; declare a new budget before any larger playable map is approved.
+
+The owner chose **one larger pilot map first** on 2026-10-23. Its dimensions, performance budget and content/version boundary still require design and playable verification; this choice alone does not change D4 or mark S1.1 complete.
+
+The owner clarified that the pilot should evoke an AoE II: DE **Large** match and start each side with a **bicitaxi scout**. The audit records official CDMX references and a proposed non-combat scouting role. The [L-sized follow-on plan](../../00-ideas/seeds/build-large-la-roma-battlefield.md) is in Refining; it is not implemented or balance-locked in the present 28×28 build. At its approval boundary, resolve this epic's older larger-map DoD explicitly without double-counting completion.
