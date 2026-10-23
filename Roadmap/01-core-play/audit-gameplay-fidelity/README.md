@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: audit-gameplay-fidelity
 title: "Audit gameplay fidelity against a pinned RTS reference"
@@ -55,6 +55,11 @@ build_order: 17      # integer position in the ONE global build sequence — the
 The owner needs a reproducible decision about which classic RTS behaviors to reproduce and which La Roma differences to keep before broader rules work consumes the budget.
 
 ## Architecture and reference lock
+- **D1 — Evidence authority:** ADR 002 selects DE; only a displayed, owned DE build plus a recorded setup can support numerical reference observations. Official update 185872 is a candidate, not an observed installation.
+- **D2 — Current behavior:** classify the present source and executable tests at the recorded project commit. An old review or GDD target cannot substitute for a passing check.
+- **D3 — Two independent axes:** label current-project implementation separately from reference fidelity; no project test alone proves parity.
+- **D4 — Decision boundary:** Terrenos, district victory and new modifiers require owner approval. This spike writes no game rules.
+- **Sprint contracts:** S1 fixes the reference protocol or explicit unknown; S2 gives ten evidence-backed rows and reproducible commands; S3 ranks follow-on work and names every owner decision.
 - This spike changes documents and evidence only. It never copies DE code, game data or assets and never changes game mechanics.
 - ADR 002 defines the reference edition. Numerical comparison requires an actually observed build ID, mode, settings, setup, observation, tolerance and dated source. If unavailable, mark the row unknown.
 - Current project behavior comes from the current source, tests and a versioned local or Restricted build, not from the 2026-10-16 architecture baseline.
@@ -81,3 +86,10 @@ Complete the reference contract before recording any numerical comparison. Run c
 - [ ] The comparison covers the ten scoped domains and separates observed, planned and unknown behavior.
 - [ ] Owner reviews the reference build, exception policy and ranked next work.
 - [ ] Update poster, generated board and retrospective only after the decision is accepted. Keep status in-progress while owner review is owed.
+
+## Builder evidence · 2026-10-22
+
+- [Reference contract](../../../docs/fidelity/reference-contract.md): official DE update 185872 is a fixed candidate; owner installed-build confirmation and numerical observations remain owed.
+- [Evidence matrix](../../../docs/fidelity/audit-2026-10-22.md): ten domains, exact project source/test paths and twelve passing Godot 4.7.2 suites. The first persistence run was blocked by the sandbox user-data path; a permitted normal-profile rerun passed.
+- [Proposed decision](../../../docs/fidelity/decision.md): prioritized next work and explicit Terrenos, district and modifier exceptions for owner review.
+- No game mechanics, telemetry or public release changed. A downloaded owner match and DE reference scenarios are still owed, so this epic remains in progress.
