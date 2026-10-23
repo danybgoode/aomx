@@ -3,7 +3,7 @@ epic: build-audio-and-effects-identity
 sprint: 2
 title: "Match-state pack"
 risk: low
-phase: Locking architecture
+phase: QA
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,27 +12,27 @@ stories:
     i_want: "restrained progress cues"
     so_that: "I can follow my economy without alert fatigue"
     risk: low
-    status: planned
+    status: done
   - id: S2.2
     title: "Notice threats and objective changes"
     as_a: "skirmish player"
     i_want: "prioritized, visibility-safe danger cues"
     so_that: "I can react during combat without losing the board"
     risk: low
-    status: planned
+    status: done
 ---
 # Build the audio and effects identity — Sprint 2: Match-state pack
 
-**Status:** ⬜ planned
+**Status:** ✅ builder checks passed; downloaded-build check remains in epic QA
 
 ## Stories
 
-### Story 2.1 — Notice economy and construction
+### ✅ Story 2.1 — Notice economy and construction
 **As a** skirmish player, **I want** restrained progress cues, **so that** I can follow my economy without alert fatigue.
 **Acceptance:** Gather/delivery milestones and friendly construction completion get original, traced cues and visible equivalents. Repeated ticks coalesce or suppress; the pack obeys its voice cap and lower economy priority. Reduced effects preserve readiness labels and non-color-only status.
 **Risk:** low
 
-### Story 2.2 — Notice threats and objective changes
+### ✅ Story 2.2 — Notice threats and objective changes
 **As a** skirmish player, **I want** prioritized, visibility-safe danger cues, **so that** I can react during combat without losing the board.
 **Acceptance:** Damage/destruction and objective contest/hold transitions cue only when visible/owned as defined in the contract. Threat/objective interrupts routine economy within the bounded mix. Cosmetic VFX never obscure the unit, selection ring, HUD, fog or command target and never alter rules or replay hash. Muted/reduced-effects paths expose equivalent readable states.
 **Risk:** low

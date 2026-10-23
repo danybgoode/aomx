@@ -1,6 +1,6 @@
 ---
-status: scaffolded
-phase: Locking architecture
+status: in-progress
+phase: Building
 slug: build-audio-and-effects-identity
 title: "Build the audio and effects identity"
 area: 02-civilizations-and-world
@@ -44,11 +44,17 @@ Players should notice important orders, threats and outcomes in a crowded battle
 
 ## Architecture and design lock
 
-- **Authority:** `game/skirmish.gd` and versioned content own rules. A client-side presentation mapper consumes accepted command results and visibility-safe state changes. Cue playback, effects and settings never enter saves, replay hashes, network commands or match results.
-- **Event policy:** Every cue has a stable key, owner/visibility rule, priority and repetition limit. Routine economy cues yield to threat, objective and terminal cues. Baseline state on start, resume and replay seek is silent; transitions after baseline may cue once. The same visible state supplies a text/shape equivalent.
-- **Sound and effects:** Original/generated assets have source, rights and export hashes. Use existing mute/volume and reduced-motion settings, retaining v1 preferences. Bound simultaneous voices and transient effect lifetime; no board occlusion, camera shake or flash. Set measured native budgets from baseline before close.
-- **Evidence:** Godot client/contract checks and rendered local captures are builder proof. Signed downloaded macOS build, both win routes, save/replay, owner read and two uncoached sound-on/muted reads are separate acceptance gates. Do not count another epic's open QA as this epic's pass.
-- **Boundary:** Native desktop first. #18 owns interface layout and caption hooks; #22 owns Web/mobile audio activation and device budgets. No new gameplay, North Star event schema, public release, invitation or music/voice/ambience wave.
+- **D1 — Authority:** `game/skirmish.gd` and versioned content own rules. A client-side presentation mapper consumes accepted command results and visibility-safe state changes. Cue playback, effects and settings never enter saves, replay hashes, network commands or match results.
+- **D2 — Event policy:** Every cue has a stable key, owner/visibility rule, priority and repetition limit. Routine economy cues yield to threat, objective and terminal cues. Baseline state on start, resume and replay seek is silent; transitions after baseline may cue once. The same visible state supplies a text/shape equivalent.
+- **D3 — Sound and effects:** Original/generated assets have source, rights and export hashes. Use existing mute/volume and reduced-motion settings, retaining v1 preferences. Bound simultaneous voices and transient effect lifetime; no board occlusion, camera shake or flash. Set measured native budgets from baseline before close.
+- **D4 — Evidence:** Godot client/contract checks and rendered local captures are builder proof. Signed downloaded macOS build, both win routes, save/replay, owner read and two uncoached sound-on/muted reads are separate acceptance gates. Do not count another epic's open QA as this epic's pass.
+- **D5 — Boundary:** Native desktop first. #18 owns interface layout and caption hooks; #22 owns Web/mobile audio activation and device budgets. No new gameplay, North Star event schema, public release, invitation or music/voice/ambience wave.
+
+### Sprint build contracts
+
+- **S1:** A pure presentation policy maps accepted/rejected command outcomes to cue IDs and suppresses duplicates. The client uses the existing order flash and saved audio controls. No rule or content version changes.
+- **S2:** Visible client state deltas drive bounded economy, construction, threat and objective cues. Draw only short, small view effects above visible terrain and below the HUD. Test fog, repeated ticks and sound-off equivalence.
+- **S3:** Terminal transition drives one result cue and keeps the visible result/cause. Save/resume and replay establish a silent baseline. Export and human QA are separate evidence; maintain open checks until observed.
 
 ## What already exists (reuse, don't rebuild)
 
@@ -71,9 +77,9 @@ Implement the local desktop contract and one vertical cue first, then broaden th
 ## Definition of Done (epic)
 
 - [ ] All six stories pass their behavior checks; story and sprint statuses match the evidence.
-- [ ] Original assets have source/export/rights records, with no copied samples or game-rule change.
-- [ ] Accepted/rejected orders, economy/construction, threat/objective and result remain intelligible when muted and with reduced effects; fog and replay rules pass.
-- [ ] Godot client and simulation/save/replay checks, Node contract, local captures and a recorded native performance comparison pass.
+- [x] Original assets have source/export/rights records, with no copied samples or game-rule change.
+- [x] Accepted/rejected orders, economy/construction, threat/objective and result have text/shape equivalents when muted and with reduced effects; fog and replay rules pass in local builder checks.
+- [x] Godot client and simulation/save/replay checks, Node contract, local captures and a recorded native performance comparison pass.
 - [ ] Signed downloaded Restricted macOS build passes both win routes, save/resume, replay and sound/mute/reduced-effects walkthrough, with build ID and test-tagged sync check.
 - [ ] Owner and two uncoached reviewers complete the prewritten recognition tasks; record misses/confusion and resolve severe findings before close. No human pass is inferred from automation.
 - [ ] Source branch is merged to `master`, Restricted owner release is verified, retrospective and poster updated, generated board synced. Mark `status: shipped` only after the real-build and human gates.

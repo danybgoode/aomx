@@ -3,7 +3,7 @@ epic: build-audio-and-effects-identity
 sprint: 1
 title: "Contract and first cue"
 risk: low
-phase: Locking architecture
+phase: QA
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,27 +12,27 @@ stories:
     i_want: "distinct accepted and rejected order feedback"
     so_that: "I know whether my command took effect"
     risk: low
-    status: planned
+    status: done
   - id: S1.2
     title: "Read the same result while muted"
     as_a: "player without sound"
     i_want: "persistent visible order status and saved cue controls"
     so_that: "I can act without hearing the game"
     risk: low
-    status: planned
+    status: done
 ---
 # Build the audio and effects identity — Sprint 1: Contract and first cue
 
-**Status:** ⬜ planned
+**Status:** ✅ builder checks passed; downloaded-build check remains in epic QA
 
 ## Stories
 
-### Story 1.1 — Confirm an order
+### ✅ Story 1.1 — Confirm an order
 **As a** skirmish player, **I want** distinct accepted and rejected order feedback, **so that** I know whether my command took effect.
 **Acceptance:** A documented mapper consumes an accepted command result, emits at most one matching cue, and pairs it with the current flash/notice. A rejected order has a different sound/shape and a plain reason. Multiplayer acknowledgement and local input use the same visible result; replay/resume baseline emits none. Gameplay legality and state hash do not change.
 **Risk:** low
 
-### Story 1.2 — Read the same result while muted
+### ✅ Story 1.2 — Read the same result while muted
 **As a** player without sound, **I want** visible order status and saved cue controls, **so that** I can act without hearing the game.
 **Acceptance:** Mute, zero volume and the saved v1 preference silence every gameplay cue, including a new rejected cue. A visual accepted/rejected signal and reason remain. Preferences survive restart; reduced effects do not hide the result.
 **Risk:** low

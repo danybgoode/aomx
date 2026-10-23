@@ -10,6 +10,7 @@ signal save_requested
 signal resume_requested
 signal ui_scale_changed(value: float)
 signal reduced_motion_changed(value: bool)
+signal reduced_effects_changed(value: bool)
 signal new_match_requested
 
 const HudSkin = preload("res://ui/hud_skin.gd")
@@ -108,6 +109,7 @@ var choice_list: VBoxContainer
 var choice_scroll: ScrollContainer
 var ui_scale_choice: OptionButton
 var reduced_motion_choice: CheckButton
+var reduced_effects_choice: CheckButton
 var user_scale := 1.0
 var result_panel: Panel
 var result_title: Label
@@ -366,7 +368,13 @@ func _build() -> void:
 	reduced_motion_choice.custom_minimum_size.y = 44
 	reduced_motion_choice.toggled.connect(func(value: bool) -> void: reduced_motion_changed.emit(value))
 	diag_col.add_child(reduced_motion_choice)
-	_label(diag_col, "Order cues also appear as text on the battlefield.", 16, HudSkin.MUTED)
+	reduced_effects_choice = CheckButton.new()
+	reduced_effects_choice.text = "Reduce effects"
+	reduced_effects_choice.add_theme_font_size_override("font_size", 16)
+	reduced_effects_choice.custom_minimum_size.y = 44
+	reduced_effects_choice.toggled.connect(func(value: bool) -> void: reduced_effects_changed.emit(value))
+	diag_col.add_child(reduced_effects_choice)
+	_label(diag_col, "Gameplay cues also appear as text and shapes.", 16, HudSkin.MUTED)
 	var sound_row := HBoxContainer.new()
 	diag_col.add_child(sound_row)
 	sound_mute = CheckButton.new()
@@ -378,7 +386,7 @@ func _build() -> void:
 	sound_volume.step = 5
 	sound_volume.value = 55
 	sound_volume.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sound_volume.tooltip_text = "Order cue volume"
+	sound_volume.tooltip_text = "Gameplay cue volume"
 	sound_row.add_child(sound_volume)
 	diagnostics_label = _label(diag_col, "", 16)
 	diagnostics_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

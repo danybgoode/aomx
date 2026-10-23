@@ -3,7 +3,7 @@ epic: build-audio-and-effects-identity
 sprint: 3
 title: "Outcome and human read"
 risk: low
-phase: Locking architecture
+phase: Building
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,7 +12,7 @@ stories:
     i_want: "a clear terminal cue paired with its cause"
     so_that: "I know how the battle ended and what to do next"
     risk: low
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Decide from human recognition"
     as_a: "product owner"
@@ -23,7 +23,7 @@ stories:
 ---
 # Build the audio and effects identity — Sprint 3: Outcome and human read
 
-**Status:** ⬜ planned
+**Status:** 🟨 building; human recognition remains open
 
 ## Stories
 

@@ -10,6 +10,7 @@ const MultiplayerClient = preload("res://multiplayer_client.gd")
 const MultiplayerState = preload("res://multiplayer_state.gd")
 const ParticipantReplay = preload("res://participant_replay.gd")
 const MapGeography = preload("res://map_geography.gd")
+const PresentationCues = preload("res://presentation_cues.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
 const ORIGIN := Vector2(640, 65)
@@ -110,10 +111,20 @@ var prior_unit_positions: Dictionary = {}
 var unit_facing: Dictionary = {}
 var unit_heading: Dictionary = {}
 var order_audio: AudioStreamPlayer
+var cue_policy = PresentationCues.new()
+var cue_streams: Dictionary = {}
+var cue_voices: Array[AudioStreamPlayer] = []
+var cue_voice_priority: Array[int] = []
+var cue_effects: Array[Dictionary] = []
+var cue_serial := 0
+var pending_online_cues: Array[Dictionary] = []
+var last_presentation_result := ""
+var last_presented_tick := 0
 var audio_settings_path := "user://audio-settings.v1.json"
 var ui_settings_path := "user://ui-settings.v1.json"
 var ui_scale := 1.0
 var reduced_motion := false
+var reduced_effects := false
 
 func _ready() -> void:
 	art.load_manifest()
@@ -142,9 +153,15 @@ func _ready() -> void:
 	add_child(layer)
 	_build_match_hud(layer)
 	_load_ui_settings()
-	order_audio = AudioStreamPlayer.new()
-	order_audio.stream = load("res://assets/audio/order-confirm.wav")
-	add_child(order_audio)
+	for kind in PresentationCues.RULES.keys():
+		cue_streams[kind] = load("res://assets/audio/%s.wav" % kind)
+	for i in range(3):
+		var voice := AudioStreamPlayer.new()
+		voice.stream = cue_streams["order-confirm"]
+		add_child(voice)
+		cue_voices.append(voice)
+		cue_voice_priority.append(-1)
+	order_audio = cue_voices[0]
 	_load_audio_settings()
 	instructions = Label.new()
 	instructions.visible = false
@@ -188,6 +205,7 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.resume_requested.connect(_resume_match)
 	hud_ui.ui_scale_changed.connect(_set_ui_scale)
 	hud_ui.reduced_motion_changed.connect(_set_reduced_motion)
+	hud_ui.reduced_effects_changed.connect(_set_reduced_effects)
 	hud_ui.new_match_requested.connect(_show_setup)
 	hud = hud_ui.diagnostics_label
 	selection_title = hud_ui.selection_title
@@ -219,8 +237,13 @@ func _load_ui_settings() -> void:
 			ui_scale = float(settings.scale)
 		if settings is Dictionary and settings.get("reduced_motion") is bool:
 			reduced_motion = bool(settings.reduced_motion)
+		if settings is Dictionary and settings.get("reduced_effects") is bool:
+			reduced_effects = bool(settings.reduced_effects)
+		else:
+			reduced_effects = reduced_motion
 	_set_ui_scale(ui_scale, false)
 	hud_ui.reduced_motion_choice.button_pressed = reduced_motion
+	hud_ui.reduced_effects_choice.button_pressed = reduced_effects
 
 func _set_ui_scale(value: float, persist: bool = true) -> void:
 	var allowed := [1.0, 1.25, 1.5, 2.0]
@@ -238,10 +261,17 @@ func _set_reduced_motion(value: bool) -> void:
 	_save_ui_settings()
 	queue_redraw()
 
+func _set_reduced_effects(value: bool) -> void:
+	reduced_effects = value
+	if value:
+		cue_effects.clear()
+	_save_ui_settings()
+	queue_redraw()
+
 func _save_ui_settings() -> void:
 	var file := FileAccess.open(ui_settings_path, FileAccess.WRITE)
 	if file != null:
-		file.store_string(JSON.stringify({"scale": ui_scale, "reduced_motion": reduced_motion}))
+		file.store_string(JSON.stringify({"scale": ui_scale, "reduced_motion": reduced_motion, "reduced_effects": reduced_effects}))
 
 func _load_audio_settings() -> void:
 	if FileAccess.file_exists(audio_settings_path):
@@ -252,13 +282,58 @@ func _load_audio_settings() -> void:
 	_audio_changed(false)
 
 func _audio_changed(persist: bool = true) -> void:
-	order_audio.volume_db = linear_to_db(maxf(0.001, float(hud_ui.sound_volume.value) / 100.0))
-	order_audio.stream_paused = hud_ui.sound_mute.button_pressed or hud_ui.sound_volume.value <= 0
+	for voice in cue_voices:
+		voice.volume_db = linear_to_db(maxf(0.001, float(hud_ui.sound_volume.value) / 100.0))
+		if hud_ui.sound_mute.button_pressed or hud_ui.sound_volume.value <= 0:
+			voice.stop()
 	if not persist:
 		return
 	var file := FileAccess.open(audio_settings_path, FileAccess.WRITE)
 	if file != null:
 		file.store_string(JSON.stringify({"muted": hud_ui.sound_mute.button_pressed, "volume": hud_ui.sound_volume.value}))
+
+func _baseline_presentation() -> void:
+	cue_policy.reset()
+	cue_effects.clear()
+	pending_online_cues.clear()
+	for voice in cue_voices:
+		voice.stop()
+	last_event_entities.clear()
+	for id in sim.entities:
+		last_event_entities[id] = sim.entities[id].duplicate(true)
+	last_district_state = sim.district_state
+	last_presentation_result = sim.result
+	last_presented_tick = sim.tick_number
+
+func _emit_cue(kind: String, key: String, tile: Vector2i = Vector2i(-1, -1)) -> bool:
+	if tile.x >= 0 and kind not in ["order-confirm", "order-reject"] and not sim.is_visible(Skirmish.HUMAN, tile):
+		return false
+	if not cue_policy.claim(kind, key, sim.tick_number):
+		return false
+	if not reduced_effects and tile.x >= 0 and kind not in ["order-confirm", "order-reject"]:
+		cue_effects.append({"tile": tile, "kind": kind, "seconds": 0.55})
+		if cue_effects.size() > 5:
+			cue_effects.pop_front()
+		queue_redraw()
+	if hud_ui.sound_mute.button_pressed or hud_ui.sound_volume.value <= 0 or not cue_streams.has(kind):
+		return true
+	var chosen := -1
+	for i in range(cue_voices.size()):
+		if not cue_voices[i].playing:
+			chosen = i
+			break
+	if chosen == -1:
+		var lowest := cue_policy.priority(kind)
+		for i in range(cue_voices.size()):
+			if cue_voice_priority[i] < lowest:
+				lowest = cue_voice_priority[i]
+				chosen = i
+	if chosen >= 0:
+		cue_voices[chosen].stop()
+		cue_voices[chosen].stream = cue_streams[kind]
+		cue_voice_priority[chosen] = cue_policy.priority(kind)
+		cue_voices[chosen].play()
+	return true
 
 func _toggle_pause() -> void:
 	if online or offline_replay:
@@ -517,6 +592,7 @@ func _show_setup() -> void:
 	paused = false
 	last_event_entities.clear()
 	last_district_state = "neutral"
+	_baseline_presentation()
 	setup_panel.show()
 	hud_ui.show_result("", "")
 	if online_client != null:
@@ -635,6 +711,7 @@ func _resume_match() -> void:
 	for id in sim.entities:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
 	last_district_state = sim.district_state
+	_baseline_presentation()
 	marker = Vector2i(-1, -1)
 	_reset_zoom()
 	order_flash_seconds = 0.0
@@ -711,6 +788,9 @@ func _on_online_state(response: Dictionary) -> void:
 			var started: Dictionary = outbox.queue("match_started", match_id, "", false, "multiplayer")
 			if not started.ok:
 				sync_note = "Match start could not be saved locally."
+			_baseline_presentation()
+		elif sim.tick_number <= last_presented_tick or sim.tick_number - last_presented_tick > 50:
+			_baseline_presentation()
 		for id in selected_ids.duplicate():
 			if not sim.entities.has(id):
 				selected_ids.erase(id)
@@ -732,8 +812,15 @@ func _on_online_state(response: Dictionary) -> void:
 		replay_button.text = "Watch replay"
 
 func _on_online_order_ack(response: Dictionary) -> void:
-	if not response.get("ok", false):
-		hud_ui.show_notice("Order rejected: " + str(response.get("reason", "unknown")).replace("_", " "), true)
+	if not online:
+		return
+	var pending: Dictionary = pending_online_cues.pop_front() if not pending_online_cues.is_empty() else {}
+	var at: Vector2i = pending.get("tile", Vector2i(-1, -1))
+	var accepted: bool = bool(response.get("ok", false))
+	_flash_order(at, "Order accepted by host." if accepted else "Order rejected: " + str(response.get("reason", "unknown")).replace("_", " "), accepted)
+	if accepted:
+		cue_serial += 1
+		_emit_cue("order-confirm", "%s:ack:%d" % [match_id, cue_serial], at)
 
 func _on_online_problem(message: String) -> void:
 	if choosing_faction:
@@ -819,6 +906,7 @@ func _open_replay_file(path: String) -> void:
 	replay_button.show()
 	replay_button.text = "Pause replay"
 	_show_replay_file_frame(0)
+	_baseline_presentation()
 
 func _show_replay_file_frame(index: int) -> void:
 	var frame: Dictionary = replay_recording.frames[index]
@@ -845,7 +933,17 @@ func _send_game_order(kind: String, actor_id: int, target: Variant) -> Dictionar
 		wire_target = [target.x, target.y]
 	elif target is Dictionary and target.get("pos") is Vector2i:
 		wire_target = {"kind": target.kind, "pos": [target.pos.x, target.pos.y]}
-	return online_client.queue_order(kind, actor_id, wire_target)
+	var queued: Dictionary = online_client.queue_order(kind, actor_id, wire_target)
+	if queued.ok:
+		var at: Vector2i = sim.entities[actor_id].pos if sim.entities.has(actor_id) else Vector2i(-1, -1)
+		if target is Vector2i:
+			at = target
+		elif target is Dictionary and target.get("pos") is Vector2i:
+			at = target.pos
+		elif target is int and sim.entities.has(target):
+			at = sim.entities[target].pos
+		pending_online_cues.append({"kind": kind, "tile": at})
+	return queued
 
 func _start_match(faction: String, difficulty: String = "") -> void:
 	if online_client != null:
@@ -883,6 +981,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	for id in sim.entities:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
 	last_district_state = sim.district_state
+	_baseline_presentation()
 	marker = Vector2i(-1, -1)
 	_reset_zoom()
 	_navigate_minimap(Vector2i(7, 7))
@@ -909,6 +1008,11 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	queue_redraw()
 
 func _process(delta: float) -> void:
+	for i in range(cue_effects.size() - 1, -1, -1):
+		cue_effects[i].seconds = float(cue_effects[i].seconds) - delta
+		if cue_effects[i].seconds <= 0.0:
+			cue_effects.remove_at(i)
+		queue_redraw()
 	if choosing_faction or paused or hud_ui.restart_scrim.visible:
 		return
 	_refresh_hover()
@@ -960,19 +1064,46 @@ func _observe_events() -> void:
 		if entity.side != Skirmish.HUMAN:
 			continue
 		if not last_event_entities.has(id):
-			if entity.kind in ["worker", "melee", "ranged"]:
+			if entity.kind in ["worker", "melee", "ranged", "armored", "siege"]:
 				hud_ui.show_notice("%s ready" % entity.kind.capitalize())
+				_emit_cue("construction", "%s:ready:%d" % [match_id, id], entity.pos)
 		elif not last_event_entities[id].complete and entity.complete:
 			hud_ui.show_notice("%s complete" % entity.kind.replace("_", " ").capitalize())
-		elif entity.hp < last_event_entities[id].hp and sim.tick_number - last_attack_notice_tick > 50:
-			hud_ui.show_notice("Unit under attack", true)
-			last_attack_notice_tick = sim.tick_number
+			_emit_cue("construction", "%s:complete:%d" % [match_id, id], entity.pos)
+		else:
+			var before: Dictionary = last_event_entities[id]
+			if entity.kind == "worker":
+				if int(before.carry) == 0 and int(entity.carry) > 0:
+					_emit_cue("economy", "%s:gather:%d:%d" % [match_id, id, sim.tick_number], entity.pos)
+				elif int(before.carry) > 0 and int(entity.carry) == 0:
+					if _emit_cue("economy", "%s:deliver:%d:%d" % [match_id, id, sim.tick_number], entity.pos):
+						hud_ui.show_notice("%s delivered" % str(before.carry_resource).capitalize())
+			if entity.hp < before.hp:
+				_emit_cue("threat", "%s:hit:%d:%d" % [match_id, id, sim.tick_number], entity.pos)
+				if sim.tick_number - last_attack_notice_tick > 50:
+					hud_ui.show_notice("Unit under attack", true)
+					last_attack_notice_tick = sim.tick_number
+	for id in last_event_entities:
+		if sim.entities.has(id):
+			continue
+		var previous: Dictionary = last_event_entities[id]
+		if previous.side == Skirmish.HUMAN and previous.kind in Skirmish.COMBAT_KINDS:
+			if _emit_cue("destruction", "%s:lost:%d" % [match_id, id], previous.pos):
+				hud_ui.show_notice("Friendly unit lost", true)
 	if sim.district_state != last_district_state:
 		if sim.district_state == "human_hold":
 			hud_ui.show_notice("Center captured • hold for %d seconds" % int(sim.content.objectives.district_hold_ticks / 10))
 		elif sim.district_state == "computer_hold":
 			hud_ui.show_notice("Enemy holds center • contest it", true)
+		elif sim.district_state == "contested":
+			hud_ui.show_notice("Center contested", true)
+		if sim.district_state in ["human_hold", "computer_hold", "contested"] and sim.is_visible(Skirmish.HUMAN, Vector2i(10, 10)):
+			_emit_cue("objective", "%s:objective:%s:%d" % [match_id, sim.district_state, sim.tick_number], Vector2i(10, 10))
 	last_district_state = sim.district_state
+	if sim.result != "" and last_presentation_result == "" and not replay_active and not offline_replay:
+		_emit_cue("result-" + sim.result, "%s:result" % match_id)
+	last_presentation_result = sim.result
+	last_presented_tick = sim.tick_number
 	last_event_entities.clear()
 	for id in sim.entities:
 		last_event_entities[id] = sim.entities[id].duplicate(true)
@@ -1151,9 +1282,11 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 				accepted += 1
 		if accepted > 0:
 			result = {"ok": true, "reason": "group_order"}
-	_flash_order(tile, "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result), result.ok)
-	if result.ok and not order_audio.stream_paused:
-		order_audio.play()
+	var message := "Order sent; awaiting host." if online and result.ok else "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result)
+	_flash_order(tile, message, result.ok)
+	if result.ok and not online:
+		cue_serial += 1
+		_emit_cue("order-confirm", "%s:order:%d" % [match_id, cue_serial], tile)
 	return result
 
 func _order_message(kind: String, target: Variant, result: Dictionary) -> String:
@@ -1188,6 +1321,9 @@ func _flash_order(tile: Vector2i, message: String, ok: bool) -> void:
 	order_flash_ok = ok
 	order_flash_seconds = 1.6
 	sim.feedback = message
+	if not ok:
+		cue_serial += 1
+		_emit_cue("order-reject", "%s:rejected:%d" % [match_id, cue_serial], tile)
 
 func _change_zoom(delta: float) -> void:
 	board_zoom = clampf(snappedf(board_zoom + delta, 0.05), ZOOM_MIN, ZOOM_MAX)
@@ -1392,6 +1528,9 @@ func _activate_command(action: String) -> void:
 			var at: Vector2i = sim.entities[building_id].pos
 			var response: Dictionary = _send_game_order("cancel", worker_id, building_id)
 			_flash_order(at, _order_message("cancel", building_id, response), response.ok)
+			if response.ok and not online:
+				cue_serial += 1
+				_emit_cue("order-confirm", "%s:order:%d" % [match_id, cue_serial], at)
 		_update_hud()
 		return
 	if action == "cancel":
@@ -2108,6 +2247,18 @@ func _draw() -> void:
 			var flight := clampf(float(sim.tick_number - int(projectile.launch)) / float(int(projectile.arrival) - int(projectile.launch)), 0.0, 1.0)
 			var point := _tile_to_screen(projectile.origin).lerp(_tile_to_screen(projectile.tile), flight)
 			draw_circle(point + Vector2(0, -18), 5.0, Color("ffe2a1"))
+	for effect in cue_effects:
+		var at: Vector2i = effect.tile
+		if not sim.is_visible(Skirmish.HUMAN, at):
+			continue
+		var center := _tile_to_screen(at)
+		var critical: bool = effect.kind in ["threat", "destruction", "objective"]
+		var tint := Color("ffb47c") if critical else Color("9ee7cf")
+		tint.a = clampf(float(effect.seconds) / 0.55, 0.0, 1.0)
+		draw_arc(center, 24 if critical else 18, 0, TAU, 28, tint, 3.0)
+		draw_rect(Rect2(center + Vector2(-9, -40), Vector2(18, 18)), Color(0.06, 0.09, 0.12, tint.a * 0.8))
+		draw_string(ThemeDB.fallback_font, center + Vector2(-7, -26), "!" if critical else "+",
+			HORIZONTAL_ALIGNMENT_CENTER, 14, 17, tint)
 	if sim.entities.has(selected_id):
 		var active: Dictionary = sim.entities[selected_id]
 		var active_building: bool = active.kind in sim.content.buildings
