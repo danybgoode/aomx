@@ -5,17 +5,15 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-22 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-10-23 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (7)
+## Backlog (5)
 
 _seeds with no pitch yet._
 
-- [Audit gameplay fidelity against a pinned RTS reference](seeds/audit-gameplay-fidelity.md) — #17 · 01 Core Play · seed · Spike · risk: Low · _docs: status raw_
-- [Complete the game interfaces](seeds/complete-game-interfaces.md) — #18 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Build the audio and effects identity](seeds/build-audio-and-effects-identity.md) — #19 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #20 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
 - [Add more ways to play](seeds/add-more-ways-to-play.md) — #21 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
@@ -28,7 +26,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (14)
+## Ready (16)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -46,6 +44,8 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Expand civilizations and world](../02-civilizations-and-world/expand-civilizations-and-world/README.md) — #13 · 02 Civilizations And World · 0/8 stories · risk: High · appetite L · _docs: status in-progress_
 - [Produce cohesive CDMX game art](../02-civilizations-and-world/produce-cohesive-cdmx-art/README.md) — #15 · 02 Civilizations And World · 1/6 stories · risk: Low · appetite L · _docs: status in-progress_
 - [Establish CDMX geography and map data](../02-civilizations-and-world/establish-cdmx-geography-and-maps/README.md) — #16 · 02 Civilizations And World · 4/6 stories · risk: High · appetite M · _docs: status in-progress_
+- [Audit gameplay fidelity against a pinned RTS reference](../01-core-play/audit-gameplay-fidelity/README.md) — #17 · 01 Core Play · 0/3 stories · risk: Low · appetite M · _docs: status scaffolded_
+- [Complete the game interfaces](../02-civilizations-and-world/complete-game-interfaces/README.md) — #18 · 02 Civilizations And World · 0/8 stories · risk: Low · appetite L · _docs: status scaffolded_
 
 ## Building — live only
 

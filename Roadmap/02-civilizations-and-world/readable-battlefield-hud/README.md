@@ -97,6 +97,9 @@ Owner QA found that resizing the window no longer zoomed the battlefield after t
 The owner then noticed that the top and bottom HUD remained fixed in size while the board grew. PR [#36](https://github.com/danybgoode/aomx/pull/36) scales the real HUD controls with desktop window growth and adds a visible Reset button with a pause-while-open confirmation. Cancel preserves progress; confirm starts a fresh same-faction match ID. The native four-size captures, Godot client test, Web export resize and a real browser click on Reset passed. Merged `master` commit `87bafb02fe41` was signed and exported as Restricted preview `preview-87bafb02fe41` (itch build `#2142965`; source ZIP SHA-256 `a73193c987f654836ad2a62ac33741d3efdc3e794cc0906d21aec6d5cefe1618`). The extracted app launched locally. Owner download QA and two uncoached reviews remain open.
 
 ## Definition of Done (epic)
+
+**Owner readability finding · 2026-10-22:** The current HUD's overall text, buttons and selection cues are too small and hard to read in human use. This is an open owner QA finding, so the epic remains `in-progress`. The proposed [#18 interface pitch](../../00-ideas/seeds/complete-game-interfaces.md) includes a human-scale pass and heuristic review; at its Plan gate, decide whether this finding is fixed in the current epic or explicitly transferred before crediting either epic's acceptance.
+
 - [x] Six story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
 - [x] Existing rules, selection/picking, offline outbox and content versions pass their checks.
 - [x] The redesigned desktop and mobile HUD is captured at the four requested sizes; private invite controls remain in the alpha support menu.
