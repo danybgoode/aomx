@@ -98,7 +98,7 @@ The owner then noticed that the top and bottom HUD remained fixed in size while 
 
 ## Definition of Done (epic)
 
-**Owner readability finding · 2026-10-22:** The current HUD's overall text, buttons and selection cues are too small and hard to read in human use. This is an open owner QA finding, so the epic remains `in-progress`. The proposed [#18 interface pitch](../../00-ideas/seeds/complete-game-interfaces.md) includes a human-scale pass and heuristic review; at its Plan gate, decide whether this finding is fixed in the current epic or explicitly transferred before crediting either epic's acceptance.
+**Owner readability finding · 2026-10-22:** The HUD's overall text, buttons and selection cues were too small for human use. The approved [#18 interface epic](../complete-game-interfaces/README.md) owns the implementation and human-scale acceptance pass; its [review package](../../../docs/interface-review/qa.md) records local builder proof and the still-owed signed/uncoached QA. This finding is not counted twice. The earlier HUD epic remains `in-progress` for its own historical downloaded-build and blind-task obligations.
 
 - [x] Six story outcomes have commit refs and each sprint has a reproducible local Godot walkthrough.
 - [x] Existing rules, selection/picking, offline outbox and content versions pass their checks.

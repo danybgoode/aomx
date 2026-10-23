@@ -3,7 +3,7 @@ epic: complete-game-interfaces
 sprint: 3
 title: "Finish and verify"
 risk: low
-phase: Shaping
+phase: Verifying
 stories_total: 3
 stories:
   - id: S3.1
@@ -12,34 +12,34 @@ stories:
     i_want: "clear victory, defeat and draw screens"
     so_that: "I can tell why the match ended and what to do next"
     risk: low
-    status: planned
+    status: done
   - id: S3.2
     title: "Operate without color or audio alone"
     as_a: "keyboard or low-vision player"
     i_want: "focus, scale, reduced motion and redundant status cues"
     so_that: "I can use essential controls"
     risk: low
-    status: planned
+    status: done
   - id: S3.3
     title: "Read the human QA result"
     as_a: "product owner"
     i_want: "uncoached task and heuristic findings"
     so_that: "I can decide whether the interface is readable"
     risk: low
-    status: planned
+    status: in-progress
 ---
 # Complete the game interfaces — Sprint 3: Finish and verify
 
-**Status:** ⬜ not started
+**Status:** 🟡 result and settings built; owner and uncoached QA owed
 
 ## Stories
 
-### Story 3.1 — Understand the result
+### ✅ Story 3.1 — Understand the result
 **As a** player, **I want** clear victory, defeat and draw screens, **so that** I can tell why the match ended and what to do next.
 **Acceptance:** Both victory routes and loss/draw render a stated cause, replay or new-match action and no duplicate completion. Save/resume and replay stay compatible.
 **Risk:** low
 
-### Story 3.2 — Operate without color or audio alone
+### ✅ Story 3.2 — Operate without color or audio alone
 **As a** keyboard or low-vision player, **I want** focus, scale, reduced motion and redundant status cues, **so that** I can use essential controls.
 **Acceptance:** Essential controls have focus, keyboard path, visible selection and status, non-color cues and reduced-motion/caption hooks where supported.
 **Risk:** low
@@ -51,6 +51,8 @@ stories:
 
 ## Sprint QA
 Run client result, focus, save/replay and event checks. Signed Restricted download with full matches and owner/uncoached read remains owed until humans perform it.
+
+Builder result: victory/defeat/draw cause copy, new-match action, visible text cues, focus styling, interface size and reduced unit motion are implemented. The local client test confirms the result without a duplicate terminal event. [Owner task script](../../../docs/interface-review/qa.md) is ready; no owner or uncoached result is claimed.
 
 ## Sprint 3 — Smoke walkthrough
 Env: local Godot 4.7.2 at game/project.godot; repeat on the signed Restricted owner build where applicable and record its build ID.

@@ -31,6 +31,9 @@ static func button(fill: Color, border: Color = BRONZE) -> StyleBoxFlat:
 	return s
 
 static func apply_button(b: Button) -> void:
+	b.custom_minimum_size.x = maxf(b.custom_minimum_size.x, 44.0)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 44.0)
+	b.add_theme_font_size_override("font_size", 16)
 	b.add_theme_stylebox_override("normal", button(STONE_LIGHT))
 	b.add_theme_stylebox_override("hover", button(Color("4b483b"), GOLD))
 	b.add_theme_stylebox_override("pressed", button(Color("6a5232"), GOLD))
@@ -38,7 +41,7 @@ static func apply_button(b: Button) -> void:
 	b.add_theme_stylebox_override("disabled", button(Color("222528"), Color("54534a")))
 	b.add_theme_color_override("font_color", TEXT)
 	b.add_theme_color_override("font_hover_color", GOLD)
-	b.add_theme_color_override("font_disabled_color", Color("777973"))
+	b.add_theme_color_override("font_disabled_color", MUTED)
 
 static func label(l: Label, size: int = 14, color: Color = TEXT) -> Label:
 	l.add_theme_font_size_override("font_size", size)
