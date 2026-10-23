@@ -97,4 +97,5 @@ Build a local desktop slice, check current Godot client and simulation contracts
 
 - [Interface review package](../../../docs/interface-review/qa.md) contains local screenshots, a ten-heuristic inspection and the exact owner/uncoached tasks.
 - `game/tests/skirmish_client_test.gd` passed on Godot 4.7.2 after the code changes. The 1024×700 and 1280×800 graphical captures show default and enlarged layouts; these are local debug captures, not signed owner-build evidence.
+- Signed Restricted preview `preview-04c443da8993` is ready as Butler build `#2190017`. An authenticated independent fetch matched the local extracted app byte for byte, passed strict signature and bounded startup checks, and rendered the faction setup. The owner download and full interactive walkthrough remain open.
 - The owner readability finding in the earlier HUD epic is transferred to this epic for the implementation and human acceptance pass. That epic's historical downloaded-build and blind-task obligations remain separate.

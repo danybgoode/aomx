@@ -2,14 +2,14 @@
 
 **State:** Local builder checks complete for the current interface code. Signed downloaded-build, owner and two uncoached reads remain owed. No public cohort or observed completion baseline exists.
 
-The full preview export gate passed for source commit `04c443da8993`. It produced signed `preview-04c443da8993` (`godot-4.7.2-skirmish-5` / `la-roma-world-5`), source ZIP SHA-256 `c0d6c2dd6a32023069bd6562f82c8d1228d9327ca87fc79917be2f62d69a7f4b`. The local extracted app passed strict signature verification and a bounded headless startup. Butler upload #2190017 targets the existing Restricted `mac-private-alpha` channel; channel processing and independent fetch must be checked before owner download QA.
+The full preview export gate passed for source commit `04c443da8993`. It produced signed `preview-04c443da8993` (`godot-4.7.2-skirmish-5` / `la-roma-world-5`), source ZIP SHA-256 `c0d6c2dd6a32023069bd6562f82c8d1228d9327ca87fc79917be2f62d69a7f4b`. Butler build #2190017 is ready on the existing Restricted `mac-private-alpha` channel. An authenticated independent fetch matched the local archive's extracted app byte for byte; strict signature verification and bounded headless startup passed on the fetched app. The fetched app also rendered the updated faction setup at 1280×864. Interactive HUD behavior on that fetched app remains for owner QA; the builder HUD captures below come from the local debug runner. The itch page returned HTTP 404 anonymously after readiness.
 
 ## Evidence and limits
 
 - Godot 4.7.2 graphical captures were made from `game/tests/hud_capture.gd` at 1024×700 and 1280×800. The capture script supports `HUD_CAPTURE_SCALE=1|1.5|2` and setup, worker, building, settings, reset and result modes. Representative captures are linked below; they are local debug images, not owner-signed binaries.
 - `game/tests/skirmish_client_test.gd` passes with result cause, text scale, board/minimap separation, control target, selection, save/replay and one-terminal-event checks. Existing simulation and fog checks remain separate.
 - The 200% option increases text to 200% and caps the HUD footprint at 150% on constrained windows. At 1024×700 this leaves a visible and pickable board region; secondary content is available through **Options** and horizontal command scrolling.
-- Actual human reading distance, misclick rate, keyboard-only traversal, Restricted admission and signed-download behavior are still unmeasured.
+- Actual human reading distance, misclick rate, keyboard-only traversal, Restricted admission and owner browser-download behavior are still unmeasured.
 
 ## Rendered examples
 
