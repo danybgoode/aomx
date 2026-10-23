@@ -32,7 +32,7 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-5"
+const GAME_VERSION := "godot-4.7.2-skirmish-6"
 const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
@@ -386,6 +386,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 					actor.target_id = target
 					rejected = {"ok": true, "reason": "attacking"}
 	if rejected.ok:
+		if actor.kind in content.units:
+			actor.blocked_ticks = 0
 		command_log.append({"command_id": "command_%05d" % next_command,
 			"schema_version": COMMAND_SCHEMA_VERSION, "sequence": next_command, "issued_tick": tick_number, "side": side, "kind": kind,
 			"actor_id": actor_id, "target": _log_target(target), "game_version": GAME_VERSION,
@@ -484,7 +486,7 @@ func tick() -> void:
 					entity.blocked_ticks = 0
 				elif _walkable(entity.path[0]):
 					entity.blocked_ticks += 3
-					if entity.blocked_ticks == 30:
+					if entity.blocked_ticks % 30 == 0 and entity.blocked_ticks < 90:
 						_reroute_occupied(entity)
 					elif entity.blocked_ticks >= 90:
 						entity.path.clear()
@@ -563,10 +565,28 @@ func _reroute_blocked(entity: Dictionary) -> void:
 		feedback = "No route to the ordered destination."
 
 func _reroute_occupied(entity: Dictionary) -> void:
-	# Crowds are transient obstacles. Static paths remain valid when a neighbor
-	# steps away (or swaps); abort explicitly after a bounded wait below.
-	if entity.side == HUMAN:
-		feedback = "Crowded route; unit waiting for a free tile."
+	# A stationary neighbor can block an otherwise valid static path forever.
+	# Replan against current unit positions while preserving the order and the
+	# original path if the crowd has no open detour yet.
+	var route: Array[Vector2i] = []
+	match entity.job:
+		"move", "attack_move":
+			route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
+		"gather":
+			if entity.source_resource in RESOURCE_IDS:
+				var source: Dictionary = resource_sources[entity.side][entity.source_resource]
+				if source.amount > 0:
+					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1, true)
+		"deliver", "build", "repair", "attack":
+			if entities.has(entity.target_id):
+				var target: Dictionary = entities[entity.target_id]
+				var reach := int(content.units[entity.kind].range) if entity.job == "attack" else 1
+				route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach, true)
+	if not route.is_empty():
+		entity.path = route
+		entity.blocked_ticks = 0
+	elif entity.side == HUMAN and entity.blocked_ticks == 30:
+		feedback = "Crowded route; unit looking for a free tile."
 
 func _tick_district() -> void:
 	var present := {HUMAN: false, COMPUTER: false}
@@ -1492,6 +1512,11 @@ func _route_until(from: Vector2i, condition: Callable, avoid_occupied: bool = fa
 	var empty: Array[Vector2i] = []
 	if condition.call(from):
 		return empty
+	var occupied_tiles: Dictionary = {}
+	if avoid_occupied:
+		for unit in entities.values():
+			if unit.hp > 0 and unit.kind in content.units:
+				occupied_tiles[unit.pos] = true
 	var queue: Array[Vector2i] = [from]
 	var parent: Dictionary = {from: from}
 	var index := 0
@@ -1500,7 +1525,7 @@ func _route_until(from: Vector2i, condition: Callable, avoid_occupied: bool = fa
 		index += 1
 		for step in ROUTE_STEPS:
 			var next: Vector2i = tile + step
-			if not parent.has(next) and _walkable(next) and (not avoid_occupied or _unit_at(next) == -1):
+			if not parent.has(next) and _walkable(next) and (not avoid_occupied or not occupied_tiles.has(next)):
 				parent[next] = tile
 				if condition.call(next):
 					var route: Array[Vector2i] = []

@@ -30,6 +30,28 @@ func _initialize() -> void:
 	for i in range(30):
 		crowd.tick()
 		check(crowd.entities[first].pos != crowd.entities[second].pos, "fighters never overlap")
+	var detour = Skirmish.new()
+	detour.ai_enabled = false
+	var walker := detour._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 10))
+	var parked := detour._add_entity(Skirmish.HUMAN, "melee", Vector2i(5, 10))
+	check(detour.issue(Skirmish.HUMAN, "move", walker, Vector2i(6, 10)).ok, "crowded route order accepted")
+	for i in range(55):
+		detour.tick()
+		check(detour.entities[walker].pos != detour.entities[parked].pos, "detour never overlaps parked unit")
+	check(detour.entities[walker].pos == Vector2i(6, 10) and detour.entities[walker].job == "idle", "walker routes around stationary friendly unit and completes order")
+	detour.entities[walker].blocked_ticks = 60
+	check(detour.issue(Skirmish.HUMAN, "move", walker, Vector2i(7, 10)).ok and detour.entities[walker].blocked_ticks == 0,
+		"new accepted order starts a fresh congestion wait")
+	var worker_detour = Skirmish.new()
+	worker_detour.ai_enabled = false
+	var gathering_worker := worker_detour._add_entity(Skirmish.HUMAN, "worker", Vector2i(5, 7))
+	var parked_worker := worker_detour._add_entity(Skirmish.HUMAN, "worker", Vector2i(6, 7))
+	check(worker_detour.issue(Skirmish.HUMAN, "gather", gathering_worker, Vector2i(7, 7)).ok, "worker order accepts crowded source approach")
+	for i in range(75):
+		worker_detour.tick()
+		check(worker_detour.entities[gathering_worker].pos != worker_detour.entities[parked_worker].pos, "worker detour never overlaps parked worker")
+	check(worker_detour.entities[gathering_worker].carry > 0 or worker_detour.balance(Skirmish.HUMAN, "terrenos") > 0,
+		"gatherer reaches a free side of the source and resumes collection")
 	var opponents = Skirmish.new()
 	opponents.ai_enabled = false
 	var human_opponent := opponents._add_entity(Skirmish.HUMAN, "melee", Vector2i(5, 20))

@@ -53,6 +53,9 @@ func _initialize() -> void:
 	corrupt.save_schema_version = 99
 	check(Save.restore(corrupt).reason == "unsupported_save_version", "future save version rejected")
 	corrupt = Save.capture(game, match_id)
+	corrupt.game_version = "godot-4.7.2-skirmish-5"
+	check(Save.restore(corrupt).reason == "unsupported_game_version", "prior movement rules save rejected explicitly")
+	corrupt = Save.capture(game, match_id)
 	corrupt.state.balances[0].erase("terrenos")
 	check(Save.restore(corrupt).reason == "state_balances_invalid", "missing resource balance rejected")
 	corrupt = Save.capture(game, match_id)
