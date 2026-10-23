@@ -1,5 +1,9 @@
 # Private alpha: local macOS download QA
 
+## Audio and effects owner preview · 2026-10-23
+
+The [#19 audio and effects PR](https://github.com/danybgoode/aomx/pull/81) merged as `c0ae0cded9cd`; source commit `222748c6be7a` is reachable from `master`. The signed Restricted preview is `preview-222748c6be7a` (`godot-4.7.2-skirmish-5` / `la-roma-world-5`), with source ZIP SHA-256 `502a58b1ffe2422a535b45a446a625833abadc2ca55ce403d027cdd9199f3314`. The full export gate, project CI and strict local signature check passed. Butler accepted it as build `#2193911` on the existing `mac-private-alpha` channel after the anonymous page returned HTTP 404. [Audio QA](audio/qa.md) records the cue contract, native captures and precise owner/reviewer tasks. Its downloaded-build and uncoached recognition checks remain open until recorded there.
+
 ## Complete interfaces owner preview · 2026-10-22
 
 The [#18 interface PR](https://github.com/danybgoode/aomx/pull/80) contains the full builder implementation and [interface review package](interface-review/qa.md). Its signed owner preview is `preview-04c443da8993` from source commit `04c443da8993`; source ZIP SHA-256 `c0d6c2dd6a32023069bd6562f82c8d1228d9327ca87fc79917be2f62d69a7f4b`. The full export gate passed. Butler build #2190017 is ready on the existing Restricted `mac-private-alpha` channel. An authenticated independent fetch matched the source ZIP extraction byte for byte; strict signature verification and bounded headless startup passed on the fetched app. Its updated faction setup rendered at 1280×864. The itch page returned HTTP 404 anonymously after readiness. Interactive HUD and owner browser-download behavior remain for the walkthrough.
