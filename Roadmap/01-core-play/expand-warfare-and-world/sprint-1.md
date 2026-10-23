@@ -63,3 +63,5 @@ Environment: the signed Restricted macOS preview; record its actual build ID and
 Record each step's result and failure by number. The owner checks the downloaded build; headless assertions alone do not close this sprint.
 
 **2026-10-18 checkpoint:** `preview-c5e705309257` was signed and uploaded to the Restricted channel as build #2157380; it is processing. Local rendered fog/crowd captures and deterministic checks passed. Downloaded-app steps 1–5 are pending owner execution and must be recorded individually before this sprint closes.
+
+**2026-10-23 repair checkpoint:** Occupancy-aware replanning now makes a moving unit detour around a parked ally and lets a gatherer approach a crowded source from another side. Both seeded cases assert no overlap and eventual progress in the Godot warfare suite; the game-to-ingest contract also passes. The owner crowd case, blocked-cargo recovery, larger-map benchmark, restore/replay and downloaded-app walkthrough remain open acceptance work.
