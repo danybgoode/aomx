@@ -27,9 +27,19 @@ func _run() -> void:
 	client.outbox = Outbox.new(path)
 	var audio_settings := "user://skirmish-audio-check-%d.json" % Time.get_ticks_usec()
 	var ui_settings := "user://skirmish-ui-check-%d.json" % Time.get_ticks_usec()
+	var legacy_ui_settings := "user://skirmish-ui-legacy-check-%d.json" % Time.get_ticks_usec()
+	var legacy_file := FileAccess.open(legacy_ui_settings, FileAccess.WRITE)
+	legacy_file.store_string(JSON.stringify({"scale": 2.0, "reduced_motion": true, "reduced_effects": true}))
+	legacy_file.close()
 	client.audio_settings_path = audio_settings
 	client.ui_settings_path = ui_settings
+	client.legacy_ui_settings_path = legacy_ui_settings
 	root.add_child(client)
+	check(client.ui_scale == 1.0 and client.reduced_motion and client.reduced_effects,
+		"legacy 200% and accessibility settings migrate to readable 100%")
+	var migrated_settings = JSON.parse_string(FileAccess.get_file_as_string(ui_settings))
+	check(migrated_settings is Dictionary and migrated_settings.get("version") == 2 and migrated_settings.get("scale") == 1.0,
+		"migrated interface preference is saved in v2 format")
 	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
 		"La Roma setup gives sourced place context and both win routes")
 	client._choose_map(1)
@@ -72,7 +82,7 @@ func _run() -> void:
 	check(client.sim.result.is_empty(), "restart clears terminal state")
 	var original_window_size := root.size
 	root.size = Vector2i(1024, 700)
-	for setting in [1.0, 1.5, 2.0]:
+	for setting in [1.0, 1.25, 1.5]:
 		client._set_ui_scale(setting, false)
 		await process_frame
 		var ui = client.hud_ui
@@ -82,8 +92,12 @@ func _run() -> void:
 			"%s interface size preserves a pickable battlefield and separated minimap" % setting)
 		check(ui.command_panel.get_global_rect().end.y <= bottom_rect.end.y and ui.selection_panel.get_global_rect().end.y <= bottom_rect.end.y,
 			"%s interface size keeps essential panels inside the HUD" % setting)
-		check(ui.selection_title.get_theme_font_size("font_size") * ui.scale.x >= 18.0 * setting - 0.5,
-			"%s interface size provides its promised title size" % setting)
+		check(ui.selection_title.get_theme_font_size("font_size") >= 27.0 * setting - 0.5,
+			"%s interface size stays readable at 1024 pixels" % setting)
+		check(ui.selection_panel.get_global_rect().encloses(ui.selection_hp_label.get_global_rect()),
+			"%s selection health stays inside its panel at 1024 pixels" % setting)
+		check(ui.selection_panel.get_global_rect().encloses(ui.secondary_toggle.get_global_rect()),
+			"%s context toggle stays inside its panel at 1024 pixels" % setting)
 		check(ui.menu_button.get_global_rect().size.x >= 44.0 and ui.menu_button.get_global_rect().size.y >= 44.0,
 			"%s interface size keeps settings target usable" % setting)
 	client._set_ui_scale(1.0, false)
@@ -306,7 +320,7 @@ func _run() -> void:
 	check(client.selected_ids == [wing_id] and not client.hud_ui.group_grid.visible,
 		"portrait subset returns to one unit")
 	var baseline_top_height := 52.0
-	for viewport_size in [Vector2i(1024, 700), Vector2i(1536, 960), Vector2i(1920, 1080), Vector2i(844, 390), Vector2i(390, 844)]:
+	for viewport_size in [Vector2i(1024, 700), Vector2i(1536, 960), Vector2i(1913, 1013), Vector2i(1920, 1080), Vector2i(844, 390), Vector2i(390, 844)]:
 		root.size = viewport_size
 		await process_frame
 		var bar: Panel = client.hud_ui.bottom
@@ -326,6 +340,21 @@ func _run() -> void:
 				check(top_rect.encloses(counter.get_global_rect()), "%s counter fits the 1024×700 HUD" % resource_id)
 			check(top_rect.encloses(client.hud_ui.age_label.get_global_rect()) and top_rect.encloses(client.hud_ui.population_label.get_global_rect()),
 				"age and population fit the 1024×700 HUD")
+		if viewport_size == Vector2i(1920, 1080):
+			client.hud_ui.objective_body.show()
+			client.hud_ui._layout()
+			await process_frame
+			check(client.hud_ui.selection_title.get_theme_font_size("font_size") >= 36,
+				"readable 100% default provides the former large desktop text")
+			check(client.hud_ui.objective_panel.get_global_rect().encloses(client.hud_ui.objective_title.get_global_rect()),
+				"objective text fits its expanded card")
+			check(client.hud_ui.objective_panel.get_global_rect().encloses(client.hud_ui.objective_body.get_child(1).get_global_rect())
+				and client.hud_ui.objective_panel.get_global_rect().encloses(client.hud_ui.objective_progress.get_global_rect()),
+				"objective alternative and progress fit the expanded card")
+			client.hud_ui.diagnostics.show()
+			check(client.hud_ui.diagnostics.get_global_rect().encloses(client.hud_ui.close_diagnostics.get_global_rect()),
+				"settings close action fits at the readable default")
+			client.hud_ui.diagnostics.hide()
 		if viewport_size == Vector2i(390, 844):
 			for resource_id in Skirmish.RESOURCE_IDS:
 				check(top_rect.encloses(client.hud_ui.resource_labels[resource_id].get_global_rect()),
@@ -394,6 +423,7 @@ func _run() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(audio_settings))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(ui_settings))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(legacy_ui_settings))
 	if not failed:
 		print("Skirmish client checks passed: saved start/result, one terminal event, restart")
 	quit(1 if failed else 0)

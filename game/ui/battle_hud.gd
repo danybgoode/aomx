@@ -125,21 +125,22 @@ func _ready() -> void:
 
 func _resize_for_viewport() -> void:
 	var view := get_viewport().get_visible_rect().size
-	# Reserve enough physical space for board picking at the largest text setting.
-	var factor := minf(_desired_scale(view), 1.5)
-	scale = Vector2.ONE * factor
-	size = view / factor
+	# Lay out in physical pixels. Scaling the whole Control shrank the available
+	# layout rectangle while enlarged labels continued to use fixed coordinates.
+	scale = Vector2.ONE
+	size = view
 	_layout()
 
 func _desired_scale(view: Vector2) -> float:
-	var desktop_factor := clampf(minf(view.x / 1280.0, view.y / 800.0), 1.0, 1.5)
-	return user_scale * desktop_factor
+	# The former 200% presentation is the readable desktop baseline. Small
+	# viewports retain a usable compact mode with the same saved preference.
+	return user_scale * clampf(view.x / 680.0, 1.0, 2.0)
 
 func _refresh_text_scale() -> void:
 	var boost := _desired_scale(get_viewport().get_visible_rect().size) / scale.x
 	_apply_text_scale(self, boost)
 	for button in command_buttons.values():
-		button.caption_scale = boost
+		button.caption_scale = minf(boost, 1.4)
 		button.queue_redraw()
 
 func _apply_text_scale(node: Node, boost: float) -> void:
@@ -153,9 +154,9 @@ func _apply_text_scale(node: Node, boost: float) -> void:
 		_apply_text_scale(child, boost)
 
 func set_ui_scale(value: float) -> void:
-	user_scale = clampf(value, 1.0, 2.0)
+	user_scale = clampf(value, 1.0, 1.5)
 	if ui_scale_choice != null:
-		ui_scale_choice.select([1.0, 1.25, 1.5, 2.0].find(user_scale))
+		ui_scale_choice.select([1.0, 1.25, 1.5].find(user_scale))
 	_resize_for_viewport()
 
 func _panel(parent: Node, padding: int = 8, stronger: bool = false) -> Panel:
@@ -280,7 +281,7 @@ func _build() -> void:
 	command_help.clip_text = true
 	secondary_panel = _panel(bottom, 7)
 	secondary_title = _label(secondary_panel, "CONTEXT", 16, HudSkin.GOLD)
-	secondary_status = _label(secondary_panel, "", 16, HudSkin.TEXT)
+	secondary_status = _label(secondary_panel, "", 14, HudSkin.TEXT)
 	secondary_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	secondary_reason = _label(secondary_panel, "", 16, HudSkin.MUTED)
 	secondary_details = _label(secondary_panel, "", 16, HudSkin.TEXT)
@@ -288,7 +289,7 @@ func _build() -> void:
 	queue_title = _label(secondary_panel, "QUEUE  0 / 3", 16, HudSkin.GOLD)
 	for i in 3:
 		var slot := _panel(secondary_panel, 3)
-		var slot_label := _label(slot, "—", 16, HudSkin.MUTED)
+		var slot_label := _label(slot, "—", 11, HudSkin.MUTED)
 		slot_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		queue_slots.append(slot)
 	secondary_scroll = ScrollContainer.new()
@@ -318,7 +319,7 @@ func _build() -> void:
 	objective_title = _label(objective_body, "Capture La Roma", 16)
 	objective_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_title.custom_minimum_size.y = 40
-	var objective_alternative := _label(objective_body, "or destroy enemy command post", 16, HudSkin.MUTED)
+	var objective_alternative := _label(objective_body, "or destroy enemy command post", 14, HudSkin.MUTED)
 	objective_alternative.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_progress = ProgressBar.new()
 	objective_progress.max_value = 600
@@ -356,11 +357,11 @@ func _build() -> void:
 	diag_col.add_child(scale_row)
 	_label(scale_row, "Interface size", 16)
 	ui_scale_choice = OptionButton.new()
-	for label in ["100%", "125%", "150%", "200%"]:
+	for label in ["100%", "125%", "150%"]:
 		ui_scale_choice.add_item(label)
 	ui_scale_choice.custom_minimum_size = Vector2(130, 44)
 	ui_scale_choice.add_theme_font_size_override("font_size", 16)
-	ui_scale_choice.item_selected.connect(func(index: int) -> void: ui_scale_changed.emit([1.0, 1.25, 1.5, 2.0][index]))
+	ui_scale_choice.item_selected.connect(func(index: int) -> void: ui_scale_changed.emit([1.0, 1.25, 1.5][index]))
 	scale_row.add_child(ui_scale_choice)
 	reduced_motion_choice = CheckButton.new()
 	reduced_motion_choice.text = "Reduce unit motion"
@@ -379,6 +380,8 @@ func _build() -> void:
 	diag_col.add_child(sound_row)
 	sound_mute = CheckButton.new()
 	sound_mute.text = "Mute cues"
+	sound_mute.add_theme_font_size_override("font_size", 16)
+	sound_mute.custom_minimum_size.y = 44
 	sound_row.add_child(sound_mute)
 	sound_volume = HSlider.new()
 	sound_volume.min_value = 0
@@ -446,11 +449,12 @@ func _layout() -> void:
 		return
 	var w := size.x
 	var h := size.y
-	var stacked := w < 950 or h < 560
+	var text_scale := _desired_scale(size)
+	var stacked := w < 1200 or h < 720 or (text_scale > 2.2 and w < 1750)
 	var narrow_top := w < 620
-	var compact_top := w < 1180
+	var compact_top := w < 1750 or text_scale > 1.6
 	var margin := 8.0 if stacked else 12.0
-	var top_h := 136.0 if narrow_top else (90.0 if compact_top else 64.0)
+	var top_h := 136.0 if narrow_top else (maxf(116.0, 46.0 * text_scale + 42.0) if compact_top else 72.0)
 	top.position = Vector2(margin, margin)
 	top.size = Vector2(w - margin * 2.0, top_h)
 	var top_row: HBoxContainer = top.get_node("TopRow")
@@ -469,41 +473,46 @@ func _layout() -> void:
 	top_divider.visible = not narrow_top
 	top_actions.position = Vector2(6, 49)
 	top_actions.size = Vector2(top.size.x - 12, 46)
-	top_row.position = Vector2(6, 5)
-	top_row.size = Vector2(top.size.x - 12, 48)
-	top_row.add_theme_constant_override("separation", 4 if compact_top else 9)
-	resource_row.position = Vector2(8, 101 if narrow_top else 54) if compact_top else Vector2.ZERO
-	resource_row.size = Vector2(top.size.x - 16, 30) if compact_top else Vector2.ZERO
+	top_row.position = Vector2(10, 6)
+	top_row.size = Vector2(top.size.x - 20, 54.0 if compact_top else 58.0)
+	top_row.add_theme_constant_override("separation", 4 if narrow_top else (18 if compact_top else 9))
+	resource_row.position = Vector2(10, 100 if narrow_top else 61) if compact_top else Vector2.ZERO
+	resource_row.size = Vector2(top.size.x - 20, top_h - (105 if narrow_top else 68)) if compact_top else Vector2.ZERO
 	resource_row.add_theme_constant_override("separation", 3 if narrow_top else (12 if compact_top else 10))
-	faction_label.custom_minimum_size.x = 95 if compact_top else 145
+	faction_label.custom_minimum_size.x = 95 if narrow_top else (190 if compact_top else 145)
 	faction_label.clip_text = true
 	faction_label.add_theme_font_size_override("font_size", 18)
 	for id in resource_labels:
 		(resource_labels[id] as Label).add_theme_font_size_override("font_size", 16 if narrow_top else 18)
 	age_label.add_theme_font_size_override("font_size", 18)
+	age_label.custom_minimum_size.x = 0 if narrow_top else (175 if compact_top else 0)
 	population_label.add_theme_font_size_override("font_size", 18)
 	timer_label.add_theme_font_size_override("font_size", 18)
 	timer_label.custom_minimum_size.x = 58
-	var bottom_h := 188.0 if stacked else 220.0
-	var bottom_w := minf(w - 2.0 * margin, 1250.0)
+	var selection_h := maxf(88.0, 53.0 * text_scale)
+	var bottom_h := selection_h + 170.0 if stacked else clampf(160.0 * text_scale, 250.0, minf(430.0, h * 0.44))
+	if narrow_top:
+		bottom_h = maxf(220.0, selection_h + 132.0)
+	var bottom_w := w - 2.0 * margin
 	bottom.position = Vector2((w - bottom_w) * 0.5, h - bottom_h - margin)
 	bottom.size = Vector2(bottom_w, bottom_h)
 	var available := bottom.size.x - 16.0
 	var content_h := bottom_h - 16.0
-	var left_w := minf(315.0, available * 0.28)
-	var right_w := clampf(available * 0.27, 230.0, 335.0)
-	var gap := 7.0
+	var left_w := minf(maxf(460.0, 225.0 * text_scale), available * 0.38)
+	var right_w := clampf(available * 0.25, 300.0, 450.0)
+	var gap := 10.0
 	var center_w := available - left_w - right_w - 2.0 * gap
 	if stacked:
 		selection_panel.position = Vector2(8, 8)
-		selection_panel.size = Vector2(available, 70)
-		command_panel.position = Vector2(8, 85)
-		command_panel.size = Vector2(available, content_h - 77)
-		secondary_panel.position = Vector2(8, -160)
-		secondary_panel.size = Vector2(available, 152)
+		selection_panel.size = Vector2(available, selection_h)
+		command_panel.position = Vector2(8, selection_h + 15.0)
+		command_panel.size = Vector2(available, content_h - selection_h - 7.0)
+		secondary_panel.position = Vector2(8, -190)
+		secondary_panel.size = Vector2(available, 182)
 		secondary_panel.visible = mobile_secondary_open
-		secondary_toggle.position = Vector2(available - 122, 18)
-		secondary_toggle.size = Vector2(116, 44)
+		var toggle_w := maxf(134.0, 90.0 * text_scale)
+		secondary_toggle.position = Vector2(available - toggle_w - 8.0, 19)
+		secondary_toggle.size = Vector2(toggle_w, maxf(50.0, 24.0 * text_scale))
 		secondary_toggle.show()
 	else:
 		selection_panel.position = Vector2(8, 8)
@@ -516,65 +525,84 @@ func _layout() -> void:
 		secondary_toggle.hide()
 	_layout_selection(stacked)
 	_layout_commands(stacked)
-	secondary_title.position = Vector2(5, 3)
-	secondary_scroll.position = Vector2(5, 40 if stacked else 25)
-	secondary_scroll.size = Vector2(secondary_panel.size.x - (126 if not stacked and secondary_title.text in ["PRODUCTION", "RESEARCH"] else 10), secondary_panel.size.y - (45 if stacked else 30))
-	secondary_status.position = Vector2(6, 30)
-	secondary_status.size = secondary_panel.size - Vector2(12, 38)
-	secondary_reason.position = Vector2(6, 22 if stacked else secondary_panel.size.y - 24)
-	secondary_reason.size = Vector2(secondary_panel.size.x - 12, 16)
+	var secondary_heading_h := maxf(44.0, 22.0 * text_scale)
+	var secondary_card_h := maxf(106.0, 55.0 * text_scale)
+	secondary_title.position = Vector2(8, 5)
+	secondary_title.size = Vector2(secondary_panel.size.x - 16, secondary_heading_h)
+	secondary_scroll.position = Vector2(6, secondary_heading_h + 5.0)
+	secondary_scroll.size = Vector2(secondary_panel.size.x - 12, secondary_card_h)
+	secondary_status.position = Vector2(8, secondary_heading_h + 7.0)
+	secondary_status.size = secondary_panel.size - Vector2(16, secondary_heading_h + 15.0)
+	secondary_reason.position = Vector2(8, secondary_heading_h + secondary_card_h + 8.0)
+	secondary_reason.size = Vector2(secondary_panel.size.x - 16, 32)
 	var queue_visible := not stacked and queue_title.visible
-	secondary_details.position = Vector2(114 if not stacked else 5, 29)
-	secondary_details.size = Vector2(maxf(0, secondary_panel.size.x - 126), 46)
-	secondary_details.visible = not stacked and not secondary_status.visible
-	queue_title.position = Vector2(114, 84)
-	queue_title.size = Vector2(secondary_panel.size.x - 122, 18)
+	secondary_details.hide()
+	secondary_reason.visible = secondary_reason.visible and not queue_visible
+	var queue_y := secondary_heading_h + secondary_card_h + 14.0
+	queue_title.position = Vector2(8, queue_y)
+	queue_title.size = Vector2(secondary_panel.size.x - 16, maxf(34.0, 18.0 * text_scale))
 	queue_title.visible = queue_visible
 	for i in 3:
 		var slot: Panel = queue_slots[i]
-		slot.position = Vector2(114 + i * 60, 106)
-		slot.size = Vector2(54, 49)
+		slot.position = Vector2(8 + i * 86, queue_y + queue_title.size.y + 4.0)
+		slot.size = Vector2(80, maxf(58.0, 27.0 * text_scale))
 		slot.visible = queue_visible
 		var slot_label: Label = slot.get_child(0)
-		slot_label.position = Vector2(2, 10)
-		slot_label.size = Vector2(46, 25)
-	var map_w := 180.0 if not stacked else 112.0
-	var map_h := 150.0 if not stacked else 105.0
+		slot_label.position = Vector2(2, 5)
+		slot_label.size = slot.size - Vector2(4, 10)
+	var map_w := 210.0 if not stacked else 112.0
+	var map_h := 175.0 if not stacked else 105.0
 	minimap.position = Vector2(w - margin - map_w, top.position.y + top_h + 8)
 	minimap.size = Vector2(map_w, map_h)
 	objective_panel.position = Vector2(margin, top.position.y + top_h + 8)
 	if stacked and not objective_panel.has_meta("mobile_initialized"):
 		objective_body.hide()
 		objective_panel.set_meta("mobile_initialized", true)
-	objective_panel.size = Vector2(310 if not stacked else 190, 150 if objective_body.visible else 44)
-	objective_panel.clip_contents = true
+	objective_panel.size = Vector2(minf(560.0, w - map_w - 3.0 * margin - 12.0) if not stacked else minf(300.0, w - map_w - 3.0 * margin - 12.0),
+		clampf(180.0 * text_scale - 180.0, 175.0, 365.0) if objective_body.visible else maxf(44.0, 28.0 * text_scale))
+	objective_panel.clip_contents = false
 	objective_button.text = ("GOALS " if stacked else "OBJECTIVES ") + ("v" if objective_body.visible else ">")
 	var objective_content: VBoxContainer = objective_panel.get_child(0)
 	objective_content.position = Vector2(6, 5)
 	objective_content.size = objective_panel.size - Vector2(12, 10)
 	objective_title.clip_text = false
 	notification_label.position = Vector2(7, 5)
-	notification_panel.position = Vector2((w - 480) * 0.5, bottom.position.y - 57)
-	notification_panel.size = Vector2(minf(480, w - 2 * margin), 48)
-	diagnostics.size = Vector2(minf(480, w - 22), minf(420, h - 22))
+	notification_panel.position = Vector2((w - minf(700.0, w - 2.0 * margin)) * 0.5, bottom.position.y - 72)
+	notification_panel.size = Vector2(minf(700.0, w - 2.0 * margin), 60)
+	notification_label.size = notification_panel.size - Vector2(14, 10)
+	notification_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	diagnostics.size = Vector2(minf(950.0, w - 24.0), minf(720.0, h - 24.0))
 	diagnostics.position = (size - diagnostics.size) * 0.5
 	var diag_scroll: ScrollContainer = diagnostics.get_child(0)
 	diag_scroll.position = Vector2(12, 12)
 	diag_scroll.size = diagnostics.size - Vector2(24, 24)
 	var diag_content: VBoxContainer = diag_scroll.get_child(0)
-	diag_content.position = Vector2(12, 12)
-	diag_content.size.x = diag_scroll.size.x - 24
+	diag_content.position = Vector2.ZERO
+	diag_content.custom_minimum_size.x = diag_scroll.size.x - 20.0
+	diag_content.size.x = diag_scroll.size.x - 20.0
 	restart_scrim.position = Vector2.ZERO
 	restart_scrim.size = size
-	restart_dialog.size = Vector2(minf(370, w - 24), 148)
+	restart_dialog.size = Vector2(minf(560.0, w - 24.0), 210.0 if text_scale > 1.3 else 148.0)
 	restart_dialog.position = (size - restart_dialog.size) * 0.5
-	choice_panel.size = Vector2(minf(370, w - 24), minf(300, h - 90))
+	var reset_title: Label = restart_dialog.get_child(0)
+	var reset_warning: Label = restart_dialog.get_child(1)
+	var reset_cancel: Button = restart_dialog.get_child(2)
+	reset_title.position = Vector2(14, 10)
+	reset_title.size = Vector2(restart_dialog.size.x - 28, 46 if text_scale > 1.3 else 28)
+	reset_warning.position = Vector2(14, 56 if text_scale > 1.3 else 42)
+	reset_warning.size = Vector2(restart_dialog.size.x - 28, 84 if text_scale > 1.3 else 50)
+	reset_warning.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reset_cancel.position = Vector2(14, restart_dialog.size.y - 58 if text_scale > 1.3 else 99)
+	reset_cancel.size = Vector2(minf(190.0, (restart_dialog.size.x - 42.0) * 0.45), 48 if text_scale > 1.3 else 36)
+	restart_confirm.position = Vector2(reset_cancel.position.x + reset_cancel.size.x + 8, reset_cancel.position.y)
+	restart_confirm.size = Vector2(restart_dialog.size.x - restart_confirm.position.x - 14, reset_cancel.size.y)
+	choice_panel.size = Vector2(minf(620.0, w - 24.0), minf(500.0, h - 90.0))
 	choice_panel.position = (size - choice_panel.size) * 0.5
 	choice_title.position = Vector2(12, 8)
-	choice_title.size = Vector2(choice_panel.size.x - 24, 24)
-	choice_scroll.position = Vector2(12, 37)
-	choice_scroll.size = Vector2(choice_panel.size.x - 24, choice_panel.size.y - 49)
-	result_panel.size = Vector2(minf(420, w - 24), 185)
+	choice_title.size = Vector2(choice_panel.size.x - 24, 46)
+	choice_scroll.position = Vector2(12, 59)
+	choice_scroll.size = Vector2(choice_panel.size.x - 24, choice_panel.size.y - 71)
+	result_panel.size = Vector2(minf(650.0, w - 24.0), 260.0 if text_scale > 1.3 else 185.0)
 	result_panel.position = (size - result_panel.size) * 0.5
 	var result_column: VBoxContainer = result_panel.get_child(0)
 	result_column.position = Vector2(15, 15)
@@ -583,49 +611,58 @@ func _layout() -> void:
 
 func _layout_selection(stacked: bool) -> void:
 	var s := selection_panel.size
-	var p := 56.0 if stacked else 104.0
+	var text_scale := _desired_scale(size)
+	var p := 64.0 if stacked else clampf(56.0 * text_scale, 112.0, 150.0)
 	selection_portrait.position = Vector2(6, 7)
 	selection_portrait.size = Vector2(p, minf(p, s.y - 14))
 	group_grid.columns = 6 if stacked else 3
 	group_grid.position = Vector2(5, 7)
-	group_grid.size = Vector2(270 if stacked else 138, 52 if stacked else 98)
-	var x := (270.0 if group_grid.visible else p + 12.0) if stacked else (150.0 if group_grid.visible else p + 12.0)
+	group_grid.size = Vector2(312 if stacked else p + 38.0, 64 if stacked else p)
+	var x := (320.0 if group_grid.visible else p + 16.0) if stacked else (162.0 if group_grid.visible else p + 16.0)
+	var title_h := maxf(42.0, 23.0 * text_scale)
 	selection_title.position = Vector2(x, 5)
 	selection_title.clip_text = true
-	selection_title.size = Vector2(maxf(0, s.x - x - (128 if stacked else 8)), 28)
-	selection_faction.position = Vector2(x, 29)
-	selection_faction.size = Vector2(maxf(0, s.x - x - (128 if stacked else 8)), 22)
+	selection_title.size = Vector2(maxf(0, s.x - x - (148 if stacked else 8)), title_h)
+	selection_faction.position = Vector2(x, title_h + 8.0)
+	selection_faction.size = Vector2(maxf(0, s.x - x - 8), maxf(32.0, 20.0 * text_scale))
 	selection_faction.visible = not stacked
-	selection_hp.position = Vector2(x, 51)
-	selection_hp.size = Vector2(s.x - x - 10, 13)
-	selection_hp_label.position = Vector2(x, 69)
-	selection_hp_label.size = Vector2(s.x - x - 10, 22)
+	selection_hp.position = Vector2(x, selection_faction.position.y + selection_faction.size.y + 8.0)
+	selection_hp.size = Vector2(s.x - x - 10, 15)
+	selection_hp_label.position = Vector2(x, selection_hp.position.y + 20.0)
+	selection_hp_label.size = Vector2(s.x - x - 10, maxf(34.0, 18.0 * text_scale))
 	if stacked:
-		selection_hp.position.y = 55
-		selection_hp.size.x = minf(180, maxf(0, s.x - x - 270))
-		selection_hp_label.position = Vector2(x + selection_hp.size.x + 8, 47)
-		selection_hp_label.size = Vector2(130, 22)
-	selection_details.position = Vector2(7, p + 13) if not stacked else Vector2(x, 29)
-	selection_details.size = Vector2(s.x - 14, 28) if not stacked else Vector2(maxf(0, s.x - x - 130), 24)
-	selection_stats.position = Vector2(7, p + 45)
-	selection_stats.size = Vector2(s.x - 14, 36)
+		selection_hp.position.y = s.y - 17.0
+		selection_hp.size.x = minf(180, maxf(0, s.x - x - 170))
+		var hp_offset := minf(250.0, maxf(140.0, s.x - x - 180.0))
+		selection_hp_label.position = Vector2(x + hp_offset, title_h + 8.0)
+		selection_hp_label.size = Vector2(180, maxf(30.0, 18.0 * text_scale))
+		if s.x < 500.0:
+			selection_hp_label.position.x = x + 68.0
+			selection_hp_label.size.x = 74.0
+	selection_details.position = Vector2(8, selection_hp_label.position.y + selection_hp_label.size.y + 6.0) if not stacked else Vector2(x, title_h + 8.0)
+	selection_details.size = Vector2(s.x - 16, maxf(38.0, 19.0 * text_scale)) if not stacked else Vector2(maxf(0, selection_hp_label.position.x - x - 8.0), maxf(32.0, 19.0 * text_scale))
+	selection_details.clip_text = stacked
+	selection_stats.position = Vector2(8, selection_details.position.y + selection_details.size.y + 6.0)
+	selection_stats.size = Vector2(s.x - 16, maxf(68.0, 24.0 * text_scale))
 	selection_stats.visible = not stacked
 	compact_details.visible = false
 
 func _layout_commands(stacked: bool) -> void:
 	var s := command_panel.size
+	var text_scale := _desired_scale(size)
+	var heading_h := maxf(38.0, 20.0 * text_scale)
 	var heading: Label = command_panel.get_node("Heading")
-	heading.position = Vector2(4, 2)
-	heading.size = Vector2(s.x - 8, 22)
+	heading.position = Vector2(6, 4)
+	heading.size = Vector2(s.x - 12, heading_h)
 	heading.text = "COMMANDS  •  SCROLL FOR MORE →" if stacked else "COMMANDS"
-	command_scroll.position = Vector2(4, 25)
-	command_scroll.size = Vector2(s.x - 8, s.y - (27 if stacked else 52))
+	command_scroll.position = Vector2(5, heading_h + 5.0)
+	command_scroll.size = Vector2(s.x - 10, s.y - command_scroll.position.y - (2.0 if stacked else 39.0))
 	command_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO if stacked else ScrollContainer.SCROLL_MODE_DISABLED
-	command_help.position = Vector2(4, s.y - 25)
-	command_help.size = Vector2(s.x - 8, 22)
+	command_help.position = Vector2(5, s.y - 37)
+	command_help.size = Vector2(s.x - 10, 34)
 	command_help.visible = not stacked
-	command_empty.position = Vector2(8, 31)
-	command_empty.size = Vector2(s.x - 16, 28)
+	command_empty.position = Vector2(8, heading_h + 8.0)
+	command_empty.size = Vector2(s.x - 16, 40)
 	reflow_commands()
 
 func set_action(action: String, state: Dictionary, cost: int, active: bool) -> void:
@@ -679,9 +716,9 @@ func _choose_entry(id: String) -> void:
 	command.emit(id)
 
 func reflow_commands() -> void:
-	var stacked := size.x < 950 or size.y < 560
-	var item_w := 88.0 if stacked else minf(90.0, (command_scroll.size.x - 20.0) / 4.0)
-	var item_h := 64.0 if stacked else 72.0
+	var stacked := size.x < 1200 or size.y < 720 or (_desired_scale(size) > 2.2 and size.x < 1750)
+	var item_w := 112.0 if stacked else minf(128.0, (command_scroll.size.x - 20.0) / 4.0)
+	var item_h := (72.0 if size.x < 620 else 82.0) if stacked else 94.0
 	var i := 0
 	for action in ACTIONS:
 		var b: Button = command_buttons[action]
@@ -702,6 +739,7 @@ func set_selection(portrait: Texture2D, title: String, faction: String, hp: int,
 	selection_hp.visible = max_hp > 0
 	selection_hp_label.text = "%d / %d HP" % [hp, max_hp] if max_hp > 0 else ""
 	selection_details.text = activity
+	selection_details.tooltip_text = activity
 	selection_stats.text = stats
 
 func set_group(items: Array) -> void:
@@ -730,13 +768,14 @@ func set_secondary(title: String, cards: Array[Dictionary]) -> void:
 	for card in cards:
 		var b := Button.new()
 		HudSkin.apply_button(b)
-		b.custom_minimum_size = Vector2(90, 74 if size.x < 950 else 104)
+		var card_scale := _desired_scale(size)
+		b.custom_minimum_size = Vector2(maxf(150.0, 65.0 * card_scale), maxf(104.0, 52.0 * card_scale))
 		b.icon = card.get("texture")
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		b.expand_icon = true
-		b.text = str(card.get("label", "")).get_slice("\n", 0) if size.x < 950 else card.get("label", "")
-		b.add_theme_font_size_override("font_size", 16)
+		b.text = str(card.get("label", "")).get_slice("\n", 0) if size.x < 1200 else card.get("label", "")
+		b.add_theme_font_size_override("font_size", 12)
 		b.disabled = not card.get("enabled", false)
 		b.tooltip_text = card.get("tooltip", "")
 		if card.has("action"):
@@ -761,6 +800,7 @@ func set_queue(entries: Array) -> void:
 			label.text = "—"
 	if size.x < 950 and show_queue:
 		secondary_reason.text = "Queue %d / 3" % entries.size()
+	_layout()
 
 func show_notice(message: String, important: bool = false) -> void:
 	if message.is_empty() or message == last_notification:
