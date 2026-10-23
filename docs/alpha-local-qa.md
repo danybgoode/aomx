@@ -1,5 +1,11 @@
 # Private alpha: local macOS download QA
 
+## Complete interfaces owner preview · 2026-10-22
+
+The [#18 interface PR](https://github.com/danybgoode/aomx/pull/80) contains the full builder implementation and [interface review package](interface-review/qa.md). Its signed owner preview is `preview-04c443da8993` from source commit `04c443da8993`; source ZIP SHA-256 `c0d6c2dd6a32023069bd6562f82c8d1228d9327ca87fc79917be2f62d69a7f4b`. The full export gate and local strict signature/startup checks passed. Butler build #2190017 is processing on the existing Restricted `mac-private-alpha` channel. Wait for a ready status and independent fetch verification before using it for the owner walkthrough.
+
+On that exact download, follow the seven uncoached tasks in the [review package](interface-review/qa.md), including 100/150/200% reading, selection/orders, both victory routes, loss/draw, save/replay, keyboard and reduced motion. Record build ID, window size, viewing distance, unreadable labels and misclicks. The owner and two fresh reviewers still owe this QA; no public cohort or release claim follows from the upload.
+
 ## CDMX geography owner preview · 2026-10-22
 
 The merged [geography stack](https://github.com/danybgoode/aomx/pull/75) exported signed Restricted preview `preview-53fcf2def066` from `master` `53fcf2def066` (`godot-4.7.2-skirmish-5` / `la-roma-world-5`). The source ZIP SHA-256 is `2562ef8cd0d23bb6a9b48c140949105efd585b97a38704f8150da0a5e915ec8c`. The full export gate passed. Owner-only Butler build `#2187758` is ready. An authenticated independent fetch matched the source ZIP extraction byte for byte; strict signature verification and bounded startup passed on the fetched app. The anonymous itch page returned 404 after readiness. [Geography QA](world/cdmx-geography-qa-2026-10-22.md) records the source, rules and compatibility checks. Builder setup captures show Roma Norte/Cibeles at two desktop sizes.

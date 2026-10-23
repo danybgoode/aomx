@@ -2,6 +2,8 @@
 
 **State:** Local builder checks complete for the current interface code. Signed downloaded-build, owner and two uncoached reads remain owed. No public cohort or observed completion baseline exists.
 
+The full preview export gate passed for source commit `04c443da8993`. It produced signed `preview-04c443da8993` (`godot-4.7.2-skirmish-5` / `la-roma-world-5`), source ZIP SHA-256 `c0d6c2dd6a32023069bd6562f82c8d1228d9327ca87fc79917be2f62d69a7f4b`. The local extracted app passed strict signature verification and a bounded headless startup. Butler upload #2190017 targets the existing Restricted `mac-private-alpha` channel; channel processing and independent fetch must be checked before owner download QA.
+
 ## Evidence and limits
 
 - Godot 4.7.2 graphical captures were made from `game/tests/hud_capture.gd` at 1024×700 and 1280×800. The capture script supports `HUD_CAPTURE_SCALE=1|1.5|2` and setup, worker, building, settings, reset and result modes. Representative captures are linked below; they are local debug images, not owner-signed binaries.
