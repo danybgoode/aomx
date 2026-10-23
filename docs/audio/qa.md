@@ -1,6 +1,6 @@
 # Audio and effects QA
 
-**State:** Builder checks passed locally; signed downloaded-build, owner and two uncoached recognition reads are open. No eligible cohort or numeric completion lift is claimed.
+**State:** Builder and authenticated fetched-build integrity/startup checks passed; owner gameplay walkthrough and two uncoached recognition reads are open. No eligible cohort or numeric completion lift is claimed.
 
 ## Builder evidence · 2026-10-23
 
@@ -15,11 +15,11 @@
 
 - [PR #81](https://github.com/danybgoode/aomx/pull/81) merged to `master` as `c0ae0cded9cd`; reviewed source commit `222748c6be7a` is reachable from it. GitHub project `verify` and CodeQL checks passed. A fresh local verifier found two client feedback issues, both fixed and rechecked. The separate Antigravity review route was rejected by automatic approval review because it would transmit private source outside the workspace.
 - The full native export gate passed again from `222748c6be7a`. Its signed preview ID is `preview-222748c6be7a`; source ZIP `battle-for-la-roma-preview-222748c6be7a-macos.zip` has SHA-256 `502a58b1ffe2422a535b45a446a625833abadc2ca55ce403d027cdd9199f3314`. Strict local signature verification passed. The export pins `godot-4.7.2-skirmish-5` / `la-roma-world-5`, the Restricted HTTPS ingest and match endpoints, and `test_account=true`.
-- The anonymous itch page returned HTTP 404 immediately before and after the upload. Butler accepted the ZIP to existing `mac-private-alpha` as build `#2193911`; it is still processing, so an independent fetch and downloaded-app checks remain open. No external keys or invitations were issued.
+- The anonymous itch page returned HTTP 404 before upload and again after readiness. Butler marked existing Restricted channel `mac-private-alpha` build `#2193911` ready as `preview-222748c6be7a`. An authenticated fresh `butler fetch` extracted 163.78 MiB. `diff -qr` found no file differences between the fetched app and a fresh extraction of the source ZIP. Strict `codesign --verify --deep --strict` passed on the fetched app; its executable exited cleanly after a bounded headless startup. Fetched executable SHA-256: `262c70cb5c773ff2093db20b498f81fe3a04b4d66d30acb876a68429f0749063`; fetched PCK SHA-256: `ba9c2c15a97d49c737148393e7b534ce106b6976375b209f20fd8fe663b40c4c`. No external keys or invitations were issued.
 
-## Signed downloaded-build checks still owed
+## Owner downloaded-build checks still owed
 
-Record the exact source commit, export build ID, ZIP and app hashes, signature result, Butler build number, owner download method and test-tagged ingest receipt. Use the existing Restricted owner channel; no invitation or public release. On the downloaded app:
+The source commit, export build ID, ZIP/app hashes, signature, Butler build number and independent fetch are recorded above. The owner still needs to record a browser download from the Restricted page, interactive play and any test-tagged ingest receipt. Use the existing owner channel; no invitation or public release. On that downloaded app:
 
 1. Start a solo match, make a valid Gather order and an unaffordable/blocked order. Record what plays and what the on-board text/ring says.
 2. Gather/deliver, finish a building, take friendly damage, lose a fighter, and hold/contest the center. Verify priority, absence of repeated noise and no cue from a hidden tile.
