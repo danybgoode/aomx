@@ -25,6 +25,10 @@ func _run() -> void:
 	var path := "user://skirmish-client-check-%d.json" % Time.get_ticks_usec()
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new(path)
+	var audio_settings := "user://skirmish-audio-check-%d.json" % Time.get_ticks_usec()
+	var ui_settings := "user://skirmish-ui-check-%d.json" % Time.get_ticks_usec()
+	client.audio_settings_path = audio_settings
+	client.ui_settings_path = ui_settings
 	root.add_child(client)
 	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
 		"La Roma setup gives sourced place context and both win routes")
@@ -361,12 +365,15 @@ func _run() -> void:
 	check(client.outbox.state.events.size() == 6 and client.outbox.state.events[5].event.type == "match_started",
 		"reset saves exactly one new match start")
 	client.hud_ui.sound_mute.button_pressed = true
-	check(client.order_audio.stream_paused, "mute control silences the order cue")
+	client._emit_cue("order-confirm", "test-muted-order", worker_tile)
+	check(not client.order_audio.playing, "mute control silences the order cue")
 	client.hud_ui.sound_mute.button_pressed = false
 	client.hud_ui.sound_volume.value = 0
-	check(client.order_audio.stream_paused, "zero volume silences the order cue")
+	client._emit_cue("order-confirm", "test-zero-volume-order", worker_tile)
+	check(not client.order_audio.playing, "zero volume silences the order cue")
 	client.hud_ui.sound_volume.value = 55
-	check(not client.order_audio.stream_paused, "volume control restores the order cue")
+	client._emit_cue("order-confirm", "test-restored-volume-order", worker_tile)
+	check(client.order_audio.playing, "volume control restores the order cue")
 	client._show_setup()
 	client._choose_map(1)
 	client._choose_opponent(4)
@@ -385,6 +392,8 @@ func _run() -> void:
 	client.queue_free()
 	await process_frame
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(audio_settings))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(ui_settings))
 	if not failed:
 		print("Skirmish client checks passed: saved start/result, one terminal event, restart")
 	quit(1 if failed else 0)

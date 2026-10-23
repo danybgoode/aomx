@@ -43,8 +43,22 @@ func _capture() -> void:
 		client.sim.result = "win"
 		client.sim.result_reason = "command_post"
 		client._update_hud()
+	if mode in ["effect", "crowded_effect"]:
+		client._set_reduced_effects(false)
+		client.sim._add_entity(Skirmish.HUMAN, "melee", Vector2i(9, 10))
+		if mode == "crowded_effect":
+			for tile in [Vector2i(8, 9), Vector2i(8, 10), Vector2i(9, 9), Vector2i(10, 9)]:
+				client.sim._add_entity(Skirmish.HUMAN, "melee", tile)
+			for tile in [Vector2i(11, 9), Vector2i(11, 10), Vector2i(12, 9), Vector2i(12, 10)]:
+				client.sim._add_entity(Skirmish.COMPUTER, "melee", tile)
+		client.sim._refresh_visibility()
+		client._baseline_presentation()
+		client.sim.tick_number += 1
+		client.sim.district_state = "human_hold"
+		client._observe_events()
+		client._update_hud()
 	client.queue_redraw()
-	for i in 8:
+	for i in (2 if mode in ["effect", "crowded_effect"] else 8):
 		await process_frame
 	var image := root.get_texture().get_image()
 	var error := image.save_png(path)

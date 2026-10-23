@@ -16,6 +16,8 @@ func _run() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new(path)
 	root.add_child(client)
+	# This fixture checks event exclusion, not playback. Keep its terminal cue off.
+	client.hud_ui.sound_mute.set_pressed_no_signal(true)
 	client._choose_faction(Skirmish.REGIOS)
 	var enemy_post: int = client.sim._find(Skirmish.COMPUTER, "command_post")
 	client.sim.entities[enemy_post].hp = 0
@@ -27,4 +29,5 @@ func _run() -> void:
 	print("Skirmish client fixture saved: open, start, completed win")
 	root.remove_child(client)
 	client.queue_free()
+	await process_frame
 	quit(0)

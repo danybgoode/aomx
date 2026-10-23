@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "generator_sha256": "a60127388d1a4bde46f95fc0cf715b9ff0f552593ea407be2e444ebce509b27c",
+  "assets": [
+    {
+      "id": "order-confirm",
+      "path": "res://assets/audio/order-confirm.wav",
+      "sha256": "6f2ba9ad907fe3242088268713162e8d72ced102cb9b0d36826f4c1a02bb1073",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 220
+    },
+    {
+      "id": "order-reject",
+      "path": "res://assets/audio/order-reject.wav",
+      "sha256": "116a180b6584d48bf338afb565f1691ec715613bc95867453182826dee153a8e",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 240
+    },
+    {
+      "id": "economy",
+      "path": "res://assets/audio/economy.wav",
+      "sha256": "6870e002b1822a9397eb40744795edd15365653886b41a31bf3df1e9a2182370",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 180
+    },
+    {
+      "id": "construction",
+      "path": "res://assets/audio/construction.wav",
+      "sha256": "655999c4b6b06a1609233e963a7add878e983ef2fbdb134269ccfb657175f7f3",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 300
+    },
+    {
+      "id": "threat",
+      "path": "res://assets/audio/threat.wav",
+      "sha256": "9c3fa4df4e6c7dab42c7f4312ef2909bdc5d91039a6ef03916be27c7161c5f40",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 300
+    },
+    {
+      "id": "destruction",
+      "path": "res://assets/audio/destruction.wav",
+      "sha256": "ef853ed0991168f6a9111624a472cd3be9d12b24ae907efe910f478c82930bfd",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 320
+    },
+    {
+      "id": "objective",
+      "path": "res://assets/audio/objective.wav",
+      "sha256": "e1327f3ea54696da91719ebad905341f611c7e7ff4f2a21ce4c23357cd0a48bf",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 340
+    },
+    {
+      "id": "result-win",
+      "path": "res://assets/audio/result-win.wav",
+      "sha256": "2d68554e0825159df48befa067b0b851006a0a8d8301f3ba82902585ebb4d482",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 460
+    },
+    {
+      "id": "result-loss",
+      "path": "res://assets/audio/result-loss.wav",
+      "sha256": "97d46c2a8df97318cdc0cc6d44d91db95a345393dbc0aa3579c6078abeaa9084",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 460
+    },
+    {
+      "id": "result-draw",
+      "path": "res://assets/audio/result-draw.wav",
+      "sha256": "d9b187202a393fb727a7cef70e65445be8b0a731c2dc357ec9f7cbc32a4ff298",
+      "source": "scripts/generate-game-audio.mjs",
+      "rights": "Project-original procedural synthesis; no external samples or recordings.",
+      "sample_rate": 22050,
+      "duration_ms": 420
+    }
+  ]
+}

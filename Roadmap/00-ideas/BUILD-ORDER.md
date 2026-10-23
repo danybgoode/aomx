@@ -10,11 +10,10 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (5)
+## Backlog (4)
 
 _seeds with no pitch yet._
 
-- [Build the audio and effects identity](seeds/build-audio-and-effects-identity.md) — #19 · 02 Civilizations And World · seed · Feature · risk: Low · _docs: status raw_
 - [Create campaigns and scenarios](seeds/create-campaigns-and-scenarios.md) — #20 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
 - [Add more ways to play](seeds/add-more-ways-to-play.md) — #21 · 03 Multiplayer And Retention · seed · Feature · risk: Low · _docs: status raw_
 - [Prove cross-platform play](seeds/prove-cross-platform-play.md) — #22 · 09 Platform And Measurement · seed · Feature · risk: High · _docs: status raw_
@@ -26,7 +25,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (16)
+## Ready (17)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -46,6 +45,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Establish CDMX geography and map data](../02-civilizations-and-world/establish-cdmx-geography-and-maps/README.md) — #16 · 02 Civilizations And World · 4/6 stories · risk: High · appetite M · _docs: status in-progress_
 - [Audit gameplay fidelity against a pinned RTS reference](../01-core-play/audit-gameplay-fidelity/README.md) — #17 · 01 Core Play · 3/3 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Complete the game interfaces](../02-civilizations-and-world/complete-game-interfaces/README.md) — #18 · 02 Civilizations And World · 7/8 stories · risk: Low · appetite L · _docs: status in-progress_
+- [Build the audio and effects identity](../02-civilizations-and-world/build-audio-and-effects-identity/README.md) — #19 · 02 Civilizations And World · 4/6 stories · risk: Low · appetite M · _docs: status in-progress_
 
 ## Building — live only
 
