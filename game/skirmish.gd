@@ -62,6 +62,7 @@ var entities: Dictionary = {}
 var sources: Dictionary = {}
 var stockpile: Dictionary = {HUMAN: 0, COMPUTER: 0}
 var resource_sources: Dictionary = {}
+var expansion_sources: Dictionary = {}
 var source_tiles: Dictionary = {}
 var other_stockpiles: Dictionary = {}
 var age_index: Dictionary = {HUMAN: 0, COMPUTER: 0}
@@ -119,6 +120,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	factions = {HUMAN: human_faction, COMPUTER: opponent_faction}
 	for side in [HUMAN, COMPUTER]:
 		resource_sources[side] = {}
+		expansion_sources[side] = {}
 		other_stockpiles[side] = {"comida": 0, "materiales": 0, "terrenos": 0}
 		for resource_id in RESOURCE_IDS:
 			var rule: Dictionary = content.resources[resource_id]
@@ -126,10 +128,17 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 			source_tiles[source_pos] = true
 			resource_sources[side][resource_id] = {"pos": source_pos,
 				"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
+			if map_id == "la_roma_large":
+				var expansion_pos := _point(rule.expansion_positions[side])
+				source_tiles[expansion_pos] = true
+				expansion_sources[side][resource_id] = {"pos": expansion_pos,
+					"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
 		sources[side] = resource_sources[side].varos
 	for side in [HUMAN, COMPUTER]:
 		_add_entity(side, "command_post", _point(content.map.command_posts[side]))
 		_add_entity(side, "worker", _point(content.map.workers[side]))
+		if map_id == "la_roma_large":
+			_add_entity(side, "bicitaxi", _point(content.map.scouts[side]))
 	_refresh_visibility()
 
 func issue_command(command: Dictionary) -> Dictionary:
@@ -212,7 +221,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			if actor.kind != "worker" or resource_id.is_empty():
 				rejected.reason = "resource_unavailable"
 			else:
-				var source: Dictionary = resource_sources[side][resource_id]
+				var source: Dictionary = _source_for_tile(side, resource_id, target)
 				if source.amount <= 0:
 					rejected.reason = "resource_depleted"
 				elif actor.carry > 0 and actor.carry_resource != resource_id:
@@ -224,6 +233,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 					else:
 						actor.path = route
 						actor.source_resource = resource_id
+						if map_id == "la_roma_large":
+							actor.order_pos = target
 						actor.job = "gather"
 						rejected = {"ok": true, "reason": "gathering"}
 		"build":
@@ -456,7 +467,8 @@ func tick() -> void:
 		if entity.job in ["attack_move", "hold"] and _tick_auto_attack(entity, damages):
 			continue
 		if not entity.path.is_empty():
-			if tick_number % int(content.factions[factions[entity.side]].move_ticks) == 0:
+			var movement_interval := int(content.units[entity.kind].move_ticks) if entity.kind == "bicitaxi" else int(content.factions[factions[entity.side]].move_ticks)
+			if tick_number % movement_interval == 0:
 				if moved_ids.has(id):
 					continue
 				var occupied_by := int(occupied.get(entity.path[0], -1))
@@ -539,7 +551,7 @@ func _reroute_blocked(entity: Dictionary) -> void:
 	match entity.job:
 		"gather":
 			if entity.source_resource in RESOURCE_IDS:
-				var source: Dictionary = resource_sources[entity.side][entity.source_resource]
+				var source: Dictionary = _ordered_source(entity)
 				if source.amount > 0:
 					entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
 					if not entity.path.is_empty() or _distance(entity.pos, source.pos) == 1:
@@ -574,7 +586,7 @@ func _reroute_occupied(entity: Dictionary) -> void:
 			route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
 		"gather":
 			if entity.source_resource in RESOURCE_IDS:
-				var source: Dictionary = resource_sources[entity.side][entity.source_resource]
+				var source: Dictionary = _ordered_source(entity)
 				if source.amount > 0:
 					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1, true)
 		"deliver", "build", "repair", "attack":
@@ -637,7 +649,7 @@ func snapshot() -> Dictionary:
 				"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
 		balances.append(side_balances)
 		source_states.append(side_sources)
-	return {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
+	var state := {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
 		"result_reason": result_reason, "district_side": district_side,
 		"district_progress": district_progress, "district_state": district_state,
 		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id, "map_id": map_id,
@@ -653,6 +665,17 @@ func snapshot() -> Dictionary:
 		"ai_enabled": ai_enabled, "ai_difficulty": ai_difficulty, "ai_opening": ai_opening,
 		"ai_plan": ai_plan, "ai_stall_reason": ai_stall_reason,
 		"ai_rejections": ai_rejections, "ai_last_rejection": ai_last_rejection}
+	if map_id == "la_roma_large":
+		var expansion_states: Array = []
+		for side in [HUMAN, COMPUTER]:
+			var side_expansion := {}
+			for resource_id in RESOURCE_IDS:
+				var source: Dictionary = expansion_sources[side][resource_id]
+				side_expansion[resource_id] = {"amount": source.amount,
+					"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
+			expansion_states.append(side_expansion)
+		state["expansion_sources"] = expansion_states
+	return state
 
 func state_hash() -> String:
 	var hash := HashingContext.new()
@@ -705,21 +728,32 @@ func _find(side: int, kind: String) -> int:
 func _tick_sources() -> void:
 	for side in [HUMAN, COMPUTER]:
 		for resource_id in RESOURCE_IDS:
-			var source: Dictionary = resource_sources[side][resource_id]
-			if source.amount > 0 or source.refreshes_left <= 0:
-				continue
-			if source.refresh_remaining <= 0:
-				source.refresh_remaining = int(content.resources[resource_id].refresh_ticks)
-			source.refresh_remaining -= 1
-			if source.refresh_remaining <= 0:
-				source.amount = int(content.resources[resource_id].refresh_amount)
-				source.refreshes_left -= 1
+			var sites: Array = [resource_sources[side][resource_id]]
+			if expansion_sources[side].has(resource_id):
+				sites.append(expansion_sources[side][resource_id])
+			for source in sites:
+				if source.amount > 0 or source.refreshes_left <= 0:
+					continue
+				if source.refresh_remaining <= 0:
+					source.refresh_remaining = int(content.resources[resource_id].refresh_ticks)
+				source.refresh_remaining -= 1
+				if source.refresh_remaining <= 0:
+					source.amount = int(content.resources[resource_id].refresh_amount)
+					source.refreshes_left -= 1
 
 func _resource_at(side: int, tile: Vector2i) -> String:
 	for resource_id in RESOURCE_IDS:
-		if resource_sources[side][resource_id].pos == tile:
+		if resource_sources[side][resource_id].pos == tile or expansion_sources[side].has(resource_id) and expansion_sources[side][resource_id].pos == tile:
 			return resource_id
 	return ""
+
+func _source_for_tile(side: int, resource_id: String, tile: Vector2i) -> Dictionary:
+	if expansion_sources[side].has(resource_id) and expansion_sources[side][resource_id].pos == tile:
+		return expansion_sources[side][resource_id]
+	return resource_sources[side][resource_id]
+
+func _ordered_source(entity: Dictionary) -> Dictionary:
+	return _source_for_tile(entity.side, entity.source_resource, entity.order_pos)
 
 func _dropoff_for(side: int, resource_id: String, from: Vector2i) -> Dictionary:
 	var best_id := -1
@@ -759,7 +793,7 @@ func _tick_gather(e: Dictionary) -> void:
 	if resource_id not in RESOURCE_IDS:
 		e.job = "idle"
 		return
-	var source: Dictionary = resource_sources[e.side][resource_id]
+	var source: Dictionary = _ordered_source(e)
 	if _distance(e.pos, source.pos) != 1:
 		e.job = "idle"
 	elif source.amount > 0 and e.carry < _carry_limit(e.side):
@@ -788,8 +822,8 @@ func _tick_deliver(e: Dictionary) -> void:
 	e.carry = 0
 	e.carry_resource = ""
 	e.target_id = -1
-	if e.source_resource in RESOURCE_IDS and resource_sources[e.side][e.source_resource].amount > 0:
-		var source: Dictionary = resource_sources[e.side][e.source_resource]
+	if e.source_resource in RESOURCE_IDS and _ordered_source(e).amount > 0:
+		var source: Dictionary = _ordered_source(e)
 		e.path = _route_until(e.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
 		e.job = "gather" if not e.path.is_empty() or _distance(e.pos, source.pos) == 1 else "idle"
 	else:
@@ -1367,7 +1401,7 @@ func _refresh_visibility() -> void:
 			if observer.hp <= 0:
 				continue
 			var side: int = observer.side
-			var radius := 7 if elevated_tiles.has(observer.pos) else 5
+			var radius := int(content.units.bicitaxi.sight) if observer.kind == "bicitaxi" else (7 if elevated_tiles.has(observer.pos) else 5)
 			if observer.kind in content.buildings:
 				radius = 6
 			var sight: Dictionary = _sight_for(observer.pos, radius)

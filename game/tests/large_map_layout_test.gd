@@ -1,6 +1,9 @@
 extends SceneTree
 
 const RulesContent = preload("res://rules_content.gd")
+const Skirmish = preload("res://skirmish.gd")
+const Save = preload("res://skirmish_persistence.gd")
+const Replay = preload("res://skirmish_replay.gd")
 const RESOURCES := ["comida", "materiales", "varos", "terrenos"]
 const STEPS := [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]
 var failed := false
@@ -14,11 +17,32 @@ func _initialize() -> void:
 	var overlay: Dictionary = JSON.parse_string(file.get_as_text())
 	var map: Dictionary = overlay.map
 	check(overlay.id == "la_roma_large" and map.width == 96 and map.height == 96, "one 96x96 pilot")
-	var content: Dictionary = RulesContent.load_default().data.duplicate(true)
-	content.map = map
-	for resource_id in RESOURCES:
-		content.resources[resource_id].source_positions = overlay.sources[resource_id]
-	check(RulesContent.validate(content).ok, "geometry passes current content validator")
+	var loaded: Dictionary = RulesContent.load_map("la_roma_large")
+	check(loaded.ok and loaded.data.map_id == "la_roma_large" and loaded.data.units.has("bicitaxi"), "large map and scout pass versioned content validator")
+	var match_game = Skirmish.new(Skirmish.REGIOS, {}, 41, "standard", "la_roma_large")
+	check(match_game.map_width == 96 and match_game.map_height == 96, "large map starts in simulation")
+	for side in 2:
+		var scout_id: int = match_game._find(side, "bicitaxi")
+		check(scout_id != -1 and match_game.entities[scout_id].pos == _point(map.scouts[side]), "side %d starts with bicitaxi" % side)
+		if side == Skirmish.HUMAN:
+			check(match_game.issue(side, "attack", scout_id, match_game._find(1 - side, "command_post")).reason == "combat_unit_and_target_required", "bicitaxi cannot attack")
+			check(match_game.issue(side, "gather", scout_id, _point(overlay.sources.comida[side])).reason == "resource_unavailable", "bicitaxi cannot gather")
+			check(match_game.issue(side, "build", scout_id, Vector2i(30, 30)).reason == "worker_required", "bicitaxi cannot build")
+		check(match_game.expansion_sources[side].size() == RESOURCES.size(), "side %d has four expansion sites" % side)
+	var human_worker: int = match_game._find(Skirmish.HUMAN, "worker")
+	var food_expansion: Dictionary = match_game.expansion_sources[Skirmish.HUMAN].comida
+	var original_amount: int = food_expansion.amount
+	check(match_game.issue(Skirmish.HUMAN, "gather", human_worker, food_expansion.pos).ok, "worker can target a distant expansion")
+	for i in 300:
+		match_game.tick()
+	check(food_expansion.amount < original_amount and match_game.resource_sources[Skirmish.HUMAN].comida.amount == int(loaded.data.resources.comida.amount),
+		"distant source gathers independently of the starter site")
+	var saved: Dictionary = Save.restore(Save.capture(match_game, "solo_0123456789abcdef0123456789abcdef"))
+	check(saved.ok and saved.game.state_hash() == match_game.state_hash(), "large expansion amounts survive save and resume")
+	var replayed: Dictionary = Replay.verify(Replay.record(match_game))
+	if not replayed.ok:
+		printerr("Large map replay: ", replayed)
+	check(replayed.ok and replayed.hash == match_game.state_hash(), "large map scout and expansion command replay deterministically")
 	var obstacles: Dictionary = {}
 	for point in map.blocked_tiles + map.cliff_tiles:
 		obstacles[_point(point)] = true

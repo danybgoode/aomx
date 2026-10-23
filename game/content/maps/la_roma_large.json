@@ -1460,5 +1460,25 @@
         51
       ]
     ]
+  },
+  "units": {
+    "bicitaxi": {
+      "health": 6,
+      "cost": 0,
+      "train_ticks": 1,
+      "costs": {
+        "comida": 0,
+        "materiales": 0,
+        "varos": 0,
+        "terrenos": 0
+      },
+      "min_age": "foranea",
+      "armor": 0,
+      "attack_class": "none",
+      "bonuses": {},
+      "projectile_ticks": 0,
+      "sight": 9,
+      "move_ticks": 1
+    }
   }
 }

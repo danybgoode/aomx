@@ -131,6 +131,9 @@ func _view(side: int) -> Dictionary:
 	state.balances[enemy] = {"comida": 0, "materiales": 0, "varos": 0, "terrenos": 0}
 	for source in state.resource_sources[enemy]:
 		state.resource_sources[enemy][source] = {"amount": 0, "refresh_remaining": 0, "refreshes_left": 0}
+	if state.has("expansion_sources"):
+		for source in state.expansion_sources[enemy]:
+			state.expansion_sources[enemy][source] = {"amount": 0, "refresh_remaining": 0, "refreshes_left": 0}
 	state.researched[enemy] = []
 	state.explored[enemy] = []
 	state.last_seen[enemy] = []
