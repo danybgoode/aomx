@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Shaping       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
+phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: complete-game-interfaces
 title: "Complete the game interfaces"
@@ -55,6 +55,11 @@ build_order: 18      # integer position in the ONE global build sequence — the
 Players need to read and operate the game at a normal viewing distance. The current small HUD hides otherwise playable choices, commands and recovery paths. This epic makes the existing rules understandable from setup to result.
 
 ## Architecture and design lock
+- **D1 — Authority:** `game/skirmish.gd` and versioned content remain the sole rule authority; UI projects state and issues semantic commands through `skirmish_main.gd`.
+- **D2 — Scale:** keep critical 18-unit and secondary 16-unit text at 100%; 44×44 logical targets; offer 100/125/150/200% settings. At 200%, cap the HUD footprint at 150% and grow text the remaining amount so board picking survives.
+- **D3 — Flow:** reuse setup, persistence, replay, Restricted join and current result events. Explain unavailable paths; do not create public mode or a new funnel event.
+- **D4 — Evidence:** local client checks and rendered captures are builder proof. Signed Restricted download, owner and two uncoached reads are the acceptance gate and remain owed.
+- **Sprint contracts:** S1 makes existing choices/recovery clear; S2 makes match information and commands readable without changing legality or fog; S3 makes the result and accessibility options explicit, then records human QA.
 - game/skirmish.gd and versioned content remain the only gameplay authority. UI projects state and issues existing semantic commands.
 - Reuse game/ui/battle_hud.gd, command_button.gd, minimap_panel.gd and hud_skin.gd; rebuild only what their current structure cannot present readably.
 - The owner's small text, button and selection finding is an open check in the original HUD epic. Transfer or close it explicitly; do not count it twice.
@@ -80,9 +85,16 @@ Players need to read and operate the game at a normal viewing distance. The curr
 Build a local desktop slice, check current Godot client and simulation contracts, then capture 1024×700 and 1280×800 at 100%, 150% and 200% UI scale. A signed Restricted download and owner/uncoached tasks are separate QA; a merge alone does not ship the interface. The L appetite is approved for this run, with review boundaries between sprints.
 
 ## Definition of Done (epic)
-- [ ] Eight story outcomes and relevant Godot client, save/replay, fog and event checks pass.
-- [ ] Rendered build records actual font/control sizes, contrast and no clipped essential actions at specified windows/scales; board picking remains usable.
+- [x] Builder implementation for setup, match, result, scale and reduced motion is recorded in the [current component spec](../../../docs/art/ui-component-spec.md).
+- [x] Local Godot client checks, including result, UI scaling, selection and board/minimap separation, pass; existing save/replay, fog and event contracts remain intact.
+- [ ] Owner accepts rendered size, contrast and no clipped essential actions at specified windows/scales on the signed download.
 - [ ] Owner and two uncoached reviewers complete the scripted readability and command tasks; record misclicks, unreadable labels, hesitation and failures.
 - [ ] A signed downloaded Restricted build passes both victory routes, save/resume and replay; preserve test-event exclusions and admission policy.
 - [ ] Ten-heuristic findings are recorded and severe findings resolved or explicitly re-scoped.
 - [ ] Poster, generated board, retrospective and durable learnings reflect the actual result. Keep status in-progress while owner QA is owed.
+
+## Builder evidence · 2026-10-22
+
+- [Interface review package](../../../docs/interface-review/qa.md) contains local screenshots, a ten-heuristic inspection and the exact owner/uncoached tasks.
+- `game/tests/skirmish_client_test.gd` passed on Godot 4.7.2 after the code changes. The 1024×700 and 1280×800 graphical captures show default and enlarged layouts; these are local debug captures, not signed owner-build evidence.
+- The owner readability finding in the earlier HUD epic is transferred to this epic for the implementation and human acceptance pass. That epic's historical downloaded-build and blind-task obligations remain separate.

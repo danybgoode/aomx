@@ -16,6 +16,9 @@ func _capture() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new("user://hud-capture-%d.json" % Time.get_ticks_usec())
 	root.add_child(client)
+	var ui_scale := OS.get_environment("HUD_CAPTURE_SCALE")
+	if ui_scale.is_valid_float():
+		client._set_ui_scale(float(ui_scale), false)
 	var mode := OS.get_environment("HUD_CAPTURE_MODE")
 	if mode != "setup":
 		var map_id := OS.get_environment("HUD_CAPTURE_MAP")
@@ -36,6 +39,10 @@ func _capture() -> void:
 		client.hud_ui.restart_button.pressed.emit()
 	if mode == "settings":
 		client._toggle_diagnostics()
+	if mode == "result":
+		client.sim.result = "win"
+		client.sim.result_reason = "command_post"
+		client._update_hud()
 	client.queue_redraw()
 	for i in 8:
 		await process_frame

@@ -13,10 +13,11 @@ var caption := "":
 	set(value):
 		caption = value
 		queue_redraw()
+var caption_scale := 1.0
 
 func _ready() -> void:
 	HudSkin.apply_button(self)
-	custom_minimum_size = Vector2(62, 58)
+	custom_minimum_size = Vector2(76, 64)
 	focus_mode = Control.FOCUS_ALL
 	mouse_entered.connect(queue_redraw)
 	mouse_exited.connect(queue_redraw)
@@ -24,11 +25,17 @@ func _ready() -> void:
 	button_up.connect(queue_redraw)
 
 func _draw() -> void:
-	var c: Color = HudSkin.GOLD if glyph == "gold" else (Color("777973") if disabled else (HudSkin.GOLD if active or is_hovered() else HudSkin.TEXT))
-	var o := Vector2(size.x * 0.5, 22)
+	var c: Color = HudSkin.GOLD if glyph == "gold" else (HudSkin.MUTED if disabled else (HudSkin.GOLD if active or is_hovered() else HudSkin.TEXT))
+	var o := Vector2(size.x * 0.5, 24)
 	if active:
 		draw_rect(Rect2(Vector2(3, 3), size - Vector2(6, 6)), HudSkin.GOLD, false, 2)
 	match glyph:
+		"stop":
+			draw_rect(Rect2(o - Vector2(12, 12), Vector2(24, 24)), c)
+		"hold":
+			poly([o + Vector2(-12, -13), o + Vector2(12, -13), o + Vector2(10, 6), o + Vector2(0, 15), o + Vector2(-10, 6)], c)
+		"attack_move":
+			poly([o + Vector2(-16, 3), o + Vector2(2, -13), o + Vector2(2, -5), o + Vector2(15, -5), o + Vector2(15, 7), o + Vector2(2, 7), o + Vector2(2, 14)], c)
 		"move":
 			poly([o + Vector2(-17, 0), o + Vector2(2, -15), o + Vector2(2, -6), o + Vector2(17, -6), o + Vector2(17, 6), o + Vector2(2, 6), o + Vector2(2, 15)], c)
 		"attack":
@@ -61,7 +68,7 @@ func _draw() -> void:
 		"gold":
 			poly([o + Vector2(-11, 3), o + Vector2(-6, -8), o + Vector2(8, -8), o + Vector2(13, 3), o + Vector2(6, 12), o + Vector2(-7, 12)], c)
 	if not caption.is_empty():
-		draw_string(ThemeDB.fallback_font, Vector2(2, size.y - 6), caption.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, 10, c)
+		draw_string(ThemeDB.fallback_font, Vector2(2, size.y - 9), caption.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, roundi(16.0 * caption_scale), c)
 
 func poly(points: Array[Vector2], color: Color) -> void:
 	draw_colored_polygon(PackedVector2Array(points), color)

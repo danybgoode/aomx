@@ -50,6 +50,7 @@ var setup_save_error: Label
 var setup_online_code: LineEdit
 var setup_online_button: Button
 var setup_replay_button: Button
+var setup_ui_scale: OptionButton
 var replay_file_dialog: FileDialog
 var online_client: Node
 var online := false
@@ -110,6 +111,9 @@ var unit_facing: Dictionary = {}
 var unit_heading: Dictionary = {}
 var order_audio: AudioStreamPlayer
 var audio_settings_path := "user://audio-settings.v1.json"
+var ui_settings_path := "user://ui-settings.v1.json"
+var ui_scale := 1.0
+var reduced_motion := false
 
 func _ready() -> void:
 	art.load_manifest()
@@ -137,6 +141,7 @@ func _ready() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	_build_match_hud(layer)
+	_load_ui_settings()
 	order_audio = AudioStreamPlayer.new()
 	order_audio.stream = load("res://assets/audio/order-confirm.wav")
 	add_child(order_audio)
@@ -181,6 +186,9 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.restart_requested.connect(_restart_match)
 	hud_ui.save_requested.connect(_save_match)
 	hud_ui.resume_requested.connect(_resume_match)
+	hud_ui.ui_scale_changed.connect(_set_ui_scale)
+	hud_ui.reduced_motion_changed.connect(_set_reduced_motion)
+	hud_ui.new_match_requested.connect(_show_setup)
 	hud = hud_ui.diagnostics_label
 	selection_title = hud_ui.selection_title
 	selection_details = hud_ui.selection_details
@@ -203,6 +211,37 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 func _toggle_diagnostics() -> void:
 	hud_ui.diagnostics.visible = not hud_ui.diagnostics.visible
 	_update_hud()
+
+func _load_ui_settings() -> void:
+	if FileAccess.file_exists(ui_settings_path):
+		var settings = JSON.parse_string(FileAccess.get_file_as_string(ui_settings_path))
+		if settings is Dictionary and settings.get("scale") is float:
+			ui_scale = float(settings.scale)
+		if settings is Dictionary and settings.get("reduced_motion") is bool:
+			reduced_motion = bool(settings.reduced_motion)
+	_set_ui_scale(ui_scale, false)
+	hud_ui.reduced_motion_choice.button_pressed = reduced_motion
+
+func _set_ui_scale(value: float, persist: bool = true) -> void:
+	var allowed := [1.0, 1.25, 1.5, 2.0]
+	var index := allowed.find(value)
+	ui_scale = allowed[index] if index >= 0 else 1.0
+	hud_ui.set_ui_scale(ui_scale)
+	if setup_ui_scale != null:
+		setup_ui_scale.select(allowed.find(ui_scale))
+	_layout_setup()
+	if persist:
+		_save_ui_settings()
+
+func _set_reduced_motion(value: bool) -> void:
+	reduced_motion = value
+	_save_ui_settings()
+	queue_redraw()
+
+func _save_ui_settings() -> void:
+	var file := FileAccess.open(ui_settings_path, FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify({"scale": ui_scale, "reduced_motion": reduced_motion}))
 
 func _load_audio_settings() -> void:
 	if FileAccess.file_exists(audio_settings_path):
@@ -276,10 +315,28 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	title.text = "Choose a faction"
 	title.add_theme_font_size_override("font_size", 30)
 	column.add_child(title)
+	var scale_row := HBoxContainer.new()
+	column.add_child(scale_row)
+	var scale_label := Label.new()
+	scale_label.text = "Interface size"
+	scale_label.add_theme_font_size_override("font_size", 18)
+	scale_row.add_child(scale_label)
+	setup_ui_scale = OptionButton.new()
+	for label in ["100%", "125%", "150%", "200%"]:
+		setup_ui_scale.add_item(label)
+	setup_ui_scale.custom_minimum_size = Vector2(130, 44)
+	setup_ui_scale.add_theme_font_size_override("font_size", 16)
+	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5, 2.0][index]))
+	scale_row.add_child(setup_ui_scale)
+	setup_ui_scale.select([1.0, 1.25, 1.5, 2.0].find(ui_scale))
 	setup_goal = Label.new()
 	setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 	setup_goal.add_theme_font_size_override("font_size", 18)
 	column.add_child(setup_goal)
+	var difficulty_label := Label.new()
+	difficulty_label.text = "Opponent difficulty"
+	difficulty_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(difficulty_label)
 	setup_difficulty = OptionButton.new()
 	for level in Skirmish.AI_LEVELS:
 		setup_difficulty.add_item(level.capitalize())
@@ -291,6 +348,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_difficulty_details.text = "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
 	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_difficulty_details)
+	var map_label := Label.new()
+	map_label.text = "Battlefield"
+	map_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(map_label)
 	setup_map = OptionButton.new()
 	var roma_copy: Dictionary = MapGeography.map_copy("la_roma")
 	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
@@ -303,6 +364,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_map_details)
 	_choose_map(0)
+	var opponent_label := Label.new()
+	opponent_label.text = "Opponent faction"
+	opponent_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(opponent_label)
 	setup_opponent = OptionButton.new()
 	for entry in ["Opponent: Classic rival", "Opponent: Regios", "Opponent: Poblanos", "Opponent: Oaxaqueños", "Opponent: Veracruzanos"]:
 		setup_opponent.add_item(entry)
@@ -348,6 +413,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_resume.custom_minimum_size.y = 50
 	setup_resume.pressed.connect(_resume_match)
 	preload("res://ui/hud_skin.gd").apply_button(setup_resume)
+	var recovery_label := Label.new()
+	recovery_label.text = "Continue or join privately"
+	recovery_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(recovery_label)
 	column.add_child(setup_resume)
 	setup_online_code = LineEdit.new()
 	setup_online_code.placeholder_text = "Private match invite code"
@@ -356,7 +425,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_online_code.custom_minimum_size.y = 42
 	column.add_child(setup_online_code)
 	setup_online_button = Button.new()
-	setup_online_button.text = "Join private match"
+	setup_online_button.text = "Join private match · invite and host required"
 	setup_online_button.custom_minimum_size.y = 50
 	setup_online_button.pressed.connect(_join_online_match)
 	preload("res://ui/hud_skin.gd").apply_button(setup_online_button)
@@ -371,7 +440,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
 	column.add_child(note)
-	column.move_child(note, 4)
+	column.move_child(note, 5)
 	setup_note = note
 	setup_save_error = Label.new()
 	setup_save_error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -382,8 +451,9 @@ func _layout_setup() -> void:
 	if setup_panel == null or get_viewport() == null:
 		return
 	var view := get_viewport().get_visible_rect().size
-	var mobile := view.x < 950.0 or view.y < 560.0
-	var landscape := view.x > view.y
+	var layout_view := view / ui_scale
+	var mobile := layout_view.x < 950.0 or layout_view.y < 560.0
+	var landscape := layout_view.x > layout_view.y
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
 		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
@@ -411,8 +481,9 @@ func _layout_setup() -> void:
 	setup_map.custom_minimum_size.y = 32 if mobile else 38
 	setup_opponent.custom_minimum_size.y = 32 if mobile else 38
 	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
-	setup_panel.size = Vector2(minf(810, view.x - 24), minf(view.y - 24, 350.0 if mobile and landscape else (700.0 if mobile else 640.0)))
-	setup_panel.position = (view - setup_panel.size) * 0.5
+	setup_panel.scale = Vector2.ONE * ui_scale
+	setup_panel.size = Vector2(minf(810, layout_view.x - 24), minf(layout_view.y - 24, 350.0 if mobile and landscape else (700.0 if mobile else 640.0)))
+	setup_panel.position = (view - setup_panel.size * ui_scale) * 0.5
 	if replay_button != null:
 		var objectives: Panel = hud_ui.objective_panel
 		var replay_x := objectives.position.x + objectives.size.x + 10.0
@@ -447,6 +518,7 @@ func _show_setup() -> void:
 	last_event_entities.clear()
 	last_district_state = "neutral"
 	setup_panel.show()
+	hud_ui.show_result("", "")
 	if online_client != null:
 		online_client.leave()
 	online = false
@@ -458,7 +530,9 @@ func _show_setup() -> void:
 	replay_frame_count = 0
 	if replay_button != null:
 		replay_button.hide()
-	setup_resume.visible = FileAccess.file_exists(save_path)
+	setup_resume.disabled = not FileAccess.file_exists(save_path)
+	setup_resume.text = "Resume saved match" if not setup_resume.disabled else "No saved match yet"
+	setup_resume.tooltip_text = "Save an active solo match from Settings to resume it here." if setup_resume.disabled else "Continue the saved solo match."
 	setup_save_error.text = ""
 	hover_hint.text = ""
 	instructions.text = "Choose a map, opponent and faction · Press 1–4, or click a choice"
@@ -1545,9 +1619,12 @@ func _update_hud() -> void:
 		ui.show_notice("Sync needs attention • open menu", true)
 	last_alert_state = "attention" if alert else "clear"
 	if sim.result != "":
+		ui.show_result(sim.result, sim.result_reason)
 		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
-	elif order_flash_seconds > 0 and not order_flash_text.is_empty():
-		ui.show_notice(order_flash_text, not order_flash_ok)
+	else:
+		ui.show_result("", "")
+		if order_flash_seconds > 0 and not order_flash_text.is_empty():
+			ui.show_notice(order_flash_text, not order_flash_ok)
 
 func _update_secondary() -> void:
 	var ui = hud_ui
@@ -1964,14 +2041,14 @@ func _draw() -> void:
 			draw_circle(ring_center, 23 if is_building else 16, Color(0.12, 0.78, 0.96, 0.26))
 			if not is_building and unit_heading.has(id):
 				var heading: Vector2 = unit_heading[id]
-				var tip := ring_center + heading * (18.0 if sim.tick_number % 4 < 2 else 16.0)
+				var tip := ring_center + heading * (16.0 if reduced_motion else (18.0 if sim.tick_number % 4 < 2 else 16.0))
 				var wing := Vector2(-heading.y, heading.x) * 5.0
 				draw_colored_polygon(PackedVector2Array([tip, ring_center + wing, ring_center - wing]), Color("7eeaff"))
 		elif id == hovered_entity_id:
 			draw_circle(ring_center, 23 if is_building else 15, Color(1.0, 0.83, 0.41, 0.2))
 			draw_arc(ring_center, 23 if is_building else 15, 0, TAU, 24, Color("ffe391"), 2.0)
 		var bob := 0.0
-		if not is_building:
+		if not is_building and not reduced_motion:
 			bob = -3.0 if e.job in ["move", "attack", "gather", "deliver", "build"] and sim.tick_number % 4 < 2 else -1.0 if sim.tick_number % 12 < 6 else 0.0
 		var sprite_rect := Rect2(ground - art.pivot(art_id) * art_scale + Vector2(0, bob),
 			art.texture(art_id).get_size() * art_scale)

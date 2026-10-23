@@ -50,6 +50,8 @@ func _run() -> void:
 	client.sim.entities[enemy_post].hp = 0
 	client._process(0.1)
 	check(client.sim.result == "win", "terminal result displayed from simulation")
+	check(client.hud_ui.result_panel.visible and client.hud_ui.result_title.text == "VICTORY" and client.hud_ui.result_reason.text.contains("command"),
+		"terminal result names the outcome and cause in the interface")
 	check(client.outbox.state.events.size() == 3, "one terminal event saved")
 	var finish: Dictionary = client.outbox.state.events[2].event
 	check(finish.type == "match_completed" and finish.result == "win" and finish.faction == Skirmish.REGIOS, "client saves actual terminal result with matching faction")
@@ -58,12 +60,30 @@ func _run() -> void:
 	check(client.outbox.state.events.size() == 3, "repeated frame cannot duplicate terminal result")
 	check(Outbox.new(path).state.events.size() == 3, "terminal result survives restart")
 	client._show_setup()
+	check(not client.hud_ui.result_panel.visible, "returning to setup clears the prior result")
 	check(client.choosing_faction and client.outbox.state.events.size() == 3, "restart returns to choice without starting early")
 	client._choose_faction(Skirmish.POBLANOS)
 	check(client.outbox.state.events.size() == 4 and client.match_id != start.match_id, "new faction choice creates a new match start")
 	check(client.outbox.state.events[3].event.faction == Skirmish.POBLANOS, "restart can choose other faction")
 	check(client.sim.result.is_empty(), "restart clears terminal state")
 	var original_window_size := root.size
+	root.size = Vector2i(1024, 700)
+	for setting in [1.0, 1.5, 2.0]:
+		client._set_ui_scale(setting, false)
+		await process_frame
+		var ui = client.hud_ui
+		var top_rect: Rect2 = ui.top.get_global_rect()
+		var bottom_rect: Rect2 = ui.bottom.get_global_rect()
+		check(top_rect.end.y < bottom_rect.position.y and ui.minimap.get_global_rect().end.y < bottom_rect.position.y,
+			"%s interface size preserves a pickable battlefield and separated minimap" % setting)
+		check(ui.command_panel.get_global_rect().end.y <= bottom_rect.end.y and ui.selection_panel.get_global_rect().end.y <= bottom_rect.end.y,
+			"%s interface size keeps essential panels inside the HUD" % setting)
+		check(ui.selection_title.get_theme_font_size("font_size") * ui.scale.x >= 18.0 * setting - 0.5,
+			"%s interface size provides its promised title size" % setting)
+		check(ui.menu_button.get_global_rect().size.x >= 44.0 and ui.menu_button.get_global_rect().size.y >= 44.0,
+			"%s interface size keeps settings target usable" % setting)
+	client._set_ui_scale(1.0, false)
+	root.size = original_window_size
 	root.size = Vector2i(1536, 960)
 	await process_frame
 	var large_window_zoom: float = client.board_zoom
@@ -193,7 +213,7 @@ func _run() -> void:
 	for resource_id in Skirmish.RESOURCE_IDS:
 		client.sim._add_balance(Skirmish.HUMAN, resource_id, 100)
 	client._update_hud()
-	check(client.hud_ui.resource_labels["terrenos"].text == "T 100", "Terrenos stockpile updates in the HUD")
+	check(client.hud_ui.resource_labels["terrenos"].text == "Terrenos 100", "Terrenos stockpile updates with its full name in the HUD")
 	check(client._building_reason("registry").contains("age"), "registry explains its age gate")
 	var post_id: int = client.sim._find(Skirmish.HUMAN, "command_post")
 	client.selected_id = post_id
@@ -302,6 +322,12 @@ func _run() -> void:
 				check(top_rect.encloses(counter.get_global_rect()), "%s counter fits the 1024×700 HUD" % resource_id)
 			check(top_rect.encloses(client.hud_ui.age_label.get_global_rect()) and top_rect.encloses(client.hud_ui.population_label.get_global_rect()),
 				"age and population fit the 1024×700 HUD")
+		if viewport_size == Vector2i(390, 844):
+			for resource_id in Skirmish.RESOURCE_IDS:
+				check(top_rect.encloses(client.hud_ui.resource_labels[resource_id].get_global_rect()),
+					"%s counter fits the narrow HUD" % resource_id)
+			for control in [client.hud_ui.pause_button, client.hud_ui.restart_button, client.hud_ui.menu_button]:
+				check(top_rect.encloses(control.get_global_rect()), "narrow HUD keeps pause, reset and menu visible")
 		if viewport_size.x >= 1280:
 			check(top_rect.size.y > baseline_top_height and bar_rect.size.y > 193.0,
 				"desktop top and bottom HUD grow with the battlefield at %s" % viewport_size)
