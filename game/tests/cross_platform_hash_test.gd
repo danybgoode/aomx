@@ -2,12 +2,12 @@ extends SceneTree
 
 const Skirmish = preload("res://skirmish.gd")
 const Replay = preload("res://skirmish_replay.gd")
-const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v5.json"
+const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v6.json"
 var failed := false
 
 func _initialize() -> void:
 	var fixture: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
-	check(fixture.schema_version == 5 and fixture.content_version == Skirmish.CONTENT_VERSION,
+	check(fixture.schema_version == 6 and fixture.game_version == Skirmish.GAME_VERSION and fixture.content_version == Skirmish.CONTENT_VERSION,
 		"hash fixture is pinned to world content version")
 	for map_id in Skirmish.MAP_IDS:
 		for faction_index in Skirmish.FACTION_IDS.size():
