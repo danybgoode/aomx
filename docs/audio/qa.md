@@ -11,6 +11,12 @@
 - Crowded center captures at [100% UI scale](../screenshots/audio-identity/crowded-100.png) and [125% UI scale](../screenshots/audio-identity/crowded-125.png), both 1280×800: status text, objective widget and units remain visible; the brief ring is less distinct under overlapping units at 125%, so the persistent text carries the state.
 - Dense native render probe: 600 frames / 80 units, p95 32.859 ms, peak static memory 43.624 MiB; the untouched master comparison was 32.778 ms and 43.444 MiB. Both are within 33.3 ms and 512 MiB. Single-run hardware measurements are directional.
 
+## Source integration and signed preview · 2026-10-23
+
+- [PR #81](https://github.com/danybgoode/aomx/pull/81) merged to `master` as `c0ae0cded9cd`; reviewed source commit `222748c6be7a` is reachable from it. GitHub project `verify` and CodeQL checks passed. A fresh local verifier found two client feedback issues, both fixed and rechecked. The separate Antigravity review route was rejected by automatic approval review because it would transmit private source outside the workspace.
+- The full native export gate passed again from `222748c6be7a`. Its signed preview ID is `preview-222748c6be7a`; source ZIP `battle-for-la-roma-preview-222748c6be7a-macos.zip` has SHA-256 `502a58b1ffe2422a535b45a446a625833abadc2ca55ce403d027cdd9199f3314`. Strict local signature verification passed. The export pins `godot-4.7.2-skirmish-5` / `la-roma-world-5`, the Restricted HTTPS ingest and match endpoints, and `test_account=true`.
+- The anonymous itch page returned HTTP 404 immediately before and after the upload. Butler accepted the ZIP to existing `mac-private-alpha` as build `#2193911`; it is still processing, so an independent fetch and downloaded-app checks remain open. No external keys or invitations were issued.
+
 ## Signed downloaded-build checks still owed
 
 Record the exact source commit, export build ID, ZIP and app hashes, signature result, Butler build number, owner download method and test-tagged ingest receipt. Use the existing Restricted owner channel; no invitation or public release. On the downloaded app:
