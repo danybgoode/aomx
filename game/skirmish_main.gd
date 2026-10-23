@@ -122,7 +122,8 @@ var pending_online_cues: Array[Dictionary] = []
 var last_presentation_result := ""
 var last_presented_tick := 0
 var audio_settings_path := "user://audio-settings.v1.json"
-var ui_settings_path := "user://ui-settings.v1.json"
+var ui_settings_path := "user://ui-settings.v2.json"
+var legacy_ui_settings_path := "user://ui-settings.v1.json"
 var ui_scale := 1.0
 var reduced_motion := false
 var reduced_effects := false
@@ -238,10 +239,13 @@ func _toggle_diagnostics() -> void:
 	_update_hud()
 
 func _load_ui_settings() -> void:
-	if FileAccess.file_exists(ui_settings_path):
-		var settings = JSON.parse_string(FileAccess.get_file_as_string(ui_settings_path))
+	var legacy := not FileAccess.file_exists(ui_settings_path) and FileAccess.file_exists(legacy_ui_settings_path)
+	var path := legacy_ui_settings_path if legacy else ui_settings_path
+	if FileAccess.file_exists(path):
+		var settings = JSON.parse_string(FileAccess.get_file_as_string(path))
 		if settings is Dictionary and settings.get("scale") is float:
-			ui_scale = float(settings.scale)
+			# The old 200% is the new readable 100% baseline.
+			ui_scale = clampf(float(settings.scale) / 2.0, 1.0, 1.5) if legacy else float(settings.scale)
 		if settings is Dictionary and settings.get("reduced_motion") is bool:
 			reduced_motion = bool(settings.reduced_motion)
 		if settings is Dictionary and settings.get("reduced_effects") is bool:
@@ -251,9 +255,11 @@ func _load_ui_settings() -> void:
 	_set_ui_scale(ui_scale, false)
 	hud_ui.reduced_motion_choice.button_pressed = reduced_motion
 	hud_ui.reduced_effects_choice.button_pressed = reduced_effects
+	if legacy:
+		_save_ui_settings()
 
 func _set_ui_scale(value: float, persist: bool = true) -> void:
-	var allowed := [1.0, 1.25, 1.5, 2.0]
+	var allowed := [1.0, 1.25, 1.5]
 	var index := allowed.find(value)
 	ui_scale = allowed[index] if index >= 0 else 1.0
 	hud_ui.set_ui_scale(ui_scale)
@@ -278,7 +284,7 @@ func _set_reduced_effects(value: bool) -> void:
 func _save_ui_settings() -> void:
 	var file := FileAccess.open(ui_settings_path, FileAccess.WRITE)
 	if file != null:
-		file.store_string(JSON.stringify({"scale": ui_scale, "reduced_motion": reduced_motion, "reduced_effects": reduced_effects}))
+		file.store_string(JSON.stringify({"version": 2, "scale": ui_scale, "reduced_motion": reduced_motion, "reduced_effects": reduced_effects}))
 
 func _load_audio_settings() -> void:
 	if FileAccess.file_exists(audio_settings_path):
@@ -404,13 +410,13 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	scale_label.add_theme_font_size_override("font_size", 18)
 	scale_row.add_child(scale_label)
 	setup_ui_scale = OptionButton.new()
-	for label in ["100%", "125%", "150%", "200%"]:
+	for label in ["100%", "125%", "150%"]:
 		setup_ui_scale.add_item(label)
 	setup_ui_scale.custom_minimum_size = Vector2(130, 44)
 	setup_ui_scale.add_theme_font_size_override("font_size", 16)
-	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5, 2.0][index]))
+	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5][index]))
 	scale_row.add_child(setup_ui_scale)
-	setup_ui_scale.select([1.0, 1.25, 1.5, 2.0].find(ui_scale))
+	setup_ui_scale.select([1.0, 1.25, 1.5].find(ui_scale))
 	setup_goal = Label.new()
 	setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 	setup_goal.add_theme_font_size_override("font_size", 18)
@@ -533,7 +539,8 @@ func _layout_setup() -> void:
 	if setup_panel == null or get_viewport() == null:
 		return
 	var view := get_viewport().get_visible_rect().size
-	var layout_view := view / ui_scale
+	var setup_factor := clampf(view.x / 760.0, 1.0, 1.65) * ui_scale
+	var layout_view := view / setup_factor
 	var mobile := layout_view.x < 950.0 or layout_view.y < 560.0
 	var landscape := layout_view.x > layout_view.y
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
@@ -563,9 +570,9 @@ func _layout_setup() -> void:
 	setup_map.custom_minimum_size.y = 32 if mobile else 38
 	setup_opponent.custom_minimum_size.y = 32 if mobile else 38
 	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
-	setup_panel.scale = Vector2.ONE * ui_scale
+	setup_panel.scale = Vector2.ONE * setup_factor
 	setup_panel.size = Vector2(minf(810, layout_view.x - 24), minf(layout_view.y - 24, 350.0 if mobile and landscape else (700.0 if mobile else 640.0)))
-	setup_panel.position = (view - setup_panel.size * ui_scale) * 0.5
+	setup_panel.position = (view - setup_panel.size * setup_factor) * 0.5
 	if replay_button != null:
 		var objectives: Panel = hud_ui.objective_panel
 		var replay_x := objectives.position.x + objectives.size.x + 10.0
@@ -2174,8 +2181,9 @@ func _draw() -> void:
 					"terrenos":
 						draw_colored_polygon(PackedVector2Array([center + Vector2(0, -8), center + Vector2(8, 0), center + Vector2(0, 8), center + Vector2(-8, 0)]), Color("dcc9f4"))
 			draw_string(ThemeDB.fallback_font, center + Vector2(-9, 5), resource_id.substr(0, 1).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 18, 15, Color.WHITE)
-			draw_string(ThemeDB.fallback_font, center + Vector2(-35, -22), "%s %d" % [resource_id.substr(0, 1).to_upper(), int(source.get("amount", 0))],
-				HORIZONTAL_ALIGNMENT_CENTER, 70, 12, Color.WHITE)
+			if resource_id == hovered_source_id:
+				draw_string(ThemeDB.fallback_font, center + Vector2(-35, -22), "%s %d" % [resource_id.substr(0, 1).to_upper(), int(source.get("amount", 0))],
+					HORIZONTAL_ALIGNMENT_CENTER, 70, 12, Color.WHITE)
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
@@ -2186,16 +2194,9 @@ func _draw() -> void:
 		var art_id := _actor_art_id(e)
 		var art_scale := 1.0 if is_building else UNIT_ART_SCALE
 		var ring_center := ground + Vector2(0, -24 if is_building else -5)
-		if id == selected_id:
-			draw_circle(ring_center, 23 if is_building else 16, Color(0.12, 0.78, 0.96, 0.26))
-			if not is_building and unit_heading.has(id):
-				var heading: Vector2 = unit_heading[id]
-				var tip := ring_center + heading * (16.0 if reduced_motion else (18.0 if sim.tick_number % 4 < 2 else 16.0))
-				var wing := Vector2(-heading.y, heading.x) * 5.0
-				draw_colored_polygon(PackedVector2Array([tip, ring_center + wing, ring_center - wing]), Color("7eeaff"))
-		elif id == hovered_entity_id:
-			draw_circle(ring_center, 23 if is_building else 15, Color(1.0, 0.83, 0.41, 0.2))
-			draw_arc(ring_center, 23 if is_building else 15, 0, TAU, 24, Color("ffe391"), 2.0)
+		var selected: bool = id == selected_id or id in selected_ids
+		if selected:
+			draw_arc(ring_center, 23 if is_building else 16, 0, TAU, 32, Color("7eeaff"), 2.0)
 		var bob := 0.0
 		if not is_building and not reduced_motion:
 			bob = -3.0 if e.job in ["move", "attack", "gather", "deliver", "build"] and sim.tick_number % 4 < 2 else -1.0 if sim.tick_number % 12 < 6 else 0.0
@@ -2204,16 +2205,16 @@ func _draw() -> void:
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset() + Vector2(ground.x * 2.0 * board_zoom, 0),
 				0.0, Vector2(-board_zoom, board_zoom))
-		if id == selected_id or id == hovered_entity_id:
-			_draw_sprite_outline(art_id, sprite_rect, Color("7eeaff") if id == selected_id else Color("ffe391"))
+		if id == hovered_entity_id and not selected:
+			_draw_sprite_outline(art_id, sprite_rect, Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)
-		if is_building and e.kind not in ["command_post", "barracks"]:
+		if is_building and (selected or id == hovered_entity_id) and e.kind not in ["command_post", "barracks"]:
 			var label_origin := ground + (Vector2(-35, 3) if sim.map_id == "la_roma" else Vector2(-35, -54))
 			draw_rect(Rect2(label_origin, Vector2(70, 16)), Color("1b2430"))
 			draw_string(ThemeDB.fallback_font, label_origin + Vector2(2, 12), e.kind.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 11, Color.WHITE)
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
-		if sim.map_id == "la_roma":
+		if sim.map_id == "la_roma" and (selected or id == hovered_entity_id):
 			var faction_id: String = str(sim.factions[e.side])
 			var symbol: String = {"regios": "R", "poblanos": "P", "oaxaquenos": "O", "veracruzanos": "V"}.get(faction_id, "?")
 			var mark_center := ground + Vector2(-28, -77) if is_building else ground + Vector2(-12, -29)
@@ -2227,7 +2228,7 @@ func _draw() -> void:
 				draw_rect(Rect2(mark_center - Vector2.ONE * mark_radius, Vector2.ONE * mark_radius * 2.0), side_color, false, 1.5)
 			if is_building or board_zoom >= 1.0:
 				draw_string(ThemeDB.fallback_font, mark_center + Vector2(-mark_radius + 1.0, 3.5), symbol, HORIZONTAL_ALIGNMENT_CENTER, (mark_radius - 1.0) * 2.0, 10, Color.WHITE)
-		if e.kind in ["armored", "siege"]:
+		if e.kind in ["armored", "siege"] and (selected or id == hovered_entity_id):
 			var badge_color := Color("79a9df") if e.kind == "armored" else Color("e9bc66")
 			var badge := Rect2(ground + Vector2(-10, -46), Vector2(20, 16))
 			draw_rect(badge, Color("1b2430"))
@@ -2243,11 +2244,12 @@ func _draw() -> void:
 		if sim.map_id == "la_roma" and is_building and e.hp > 0 and e.hp < max_hp / 2:
 			draw_line(ground + Vector2(-30, -54), ground + Vector2(24, -18), Color("f0a275"), 2.0)
 			draw_line(ground + Vector2(24, -53), ground + Vector2(-14, -16), Color("f0a275"), 2.0)
-		var bar_width := 42.0 if is_building else 24.0
-		var bar_y := -art.pivot(art_id).y * art_scale - 4.0
-		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))
-		draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
-			Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
+		if selected or id == hovered_entity_id or e.hp < max_hp or e.job == "attack":
+			var bar_width := 42.0 if is_building else 24.0
+			var bar_y := -art.pivot(art_id).y * art_scale - 4.0
+			draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))
+			draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
+				Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
 		if not is_building and e.job == "attack" and e.cooldown > Skirmish.COOLDOWN.get(e.kind, 1) - 2:
 			draw_circle(ground + Vector2(10 * art_scale * unit_facing.get(id, 1), -22 * art_scale + bob), 3.0, Color("ffe2a1"))
 		if not is_building and e.kind == "worker" and e.carry > 0:
