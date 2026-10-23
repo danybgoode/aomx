@@ -39,6 +39,9 @@ func _initialize() -> void:
 		detour.tick()
 		check(detour.entities[walker].pos != detour.entities[parked].pos, "detour never overlaps parked unit")
 	check(detour.entities[walker].pos == Vector2i(6, 10) and detour.entities[walker].job == "idle", "walker routes around stationary friendly unit and completes order")
+	detour.entities[walker].blocked_ticks = 60
+	check(detour.issue(Skirmish.HUMAN, "move", walker, Vector2i(7, 10)).ok and detour.entities[walker].blocked_ticks == 0,
+		"new accepted order starts a fresh congestion wait")
 	var worker_detour = Skirmish.new()
 	worker_detour.ai_enabled = false
 	var gathering_worker := worker_detour._add_entity(Skirmish.HUMAN, "worker", Vector2i(5, 7))

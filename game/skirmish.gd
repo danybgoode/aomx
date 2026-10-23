@@ -386,6 +386,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 					actor.target_id = target
 					rejected = {"ok": true, "reason": "attacking"}
 	if rejected.ok:
+		if actor.kind in content.units:
+			actor.blocked_ticks = 0
 		command_log.append({"command_id": "command_%05d" % next_command,
 			"schema_version": COMMAND_SCHEMA_VERSION, "sequence": next_command, "issued_tick": tick_number, "side": side, "kind": kind,
 			"actor_id": actor_id, "target": _log_target(target), "game_version": GAME_VERSION,
