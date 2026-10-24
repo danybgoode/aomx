@@ -63,6 +63,17 @@ func _initialize() -> void:
 	ai_game._ai_step()
 	check(ai_game.entities[ai_worker_id].job == "gather" and ai_game.entities[ai_worker_id].order_pos == ai_food.pos,
 		"computer gathers from a scouted expansion when starter sources expire")
+	var conquest = Skirmish.new(Skirmish.REGIOS, {}, 43, "standard", "la_roma_large")
+	conquest.ai_enabled = false
+	conquest.entities[conquest._find(Skirmish.COMPUTER, "command_post")].hp = 0
+	conquest.tick()
+	check(conquest.result == "win" and conquest.result_reason == "command_post", "large map resolves conquest")
+	var district_win = Skirmish.new(Skirmish.POBLANOS, {}, 44, "standard", "la_roma_large")
+	district_win.ai_enabled = false
+	district_win._add_entity(Skirmish.HUMAN, "melee", Vector2i(46, 46))
+	for i in int(district_win.content.objectives.district_hold_ticks):
+		district_win.tick()
+	check(district_win.result == "win" and district_win.result_reason == "district", "large map resolves uncontested district hold")
 	var obstacles: Dictionary = {}
 	for point in map.blocked_tiles + map.cliff_tiles:
 		obstacles[_point(point)] = true

@@ -11,7 +11,7 @@ func _initialize() -> void:
 	content.map.width = size
 	content.map.height = size
 	var game = Skirmish.new(Skirmish.REGIOS, content, 41, "standard", "la_roma_large")
-	game.ai_enabled = false
+	game.ai_enabled = OS.get_environment("LARGE_PERF_AI") == "1"
 	var fighters: Array[int] = []
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		var added := 0
@@ -52,16 +52,25 @@ func _initialize() -> void:
 	for logical_tick in total_ticks:
 		if logical_tick == 0:
 			for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
-				if game.issue(side, "attack_move", duel_ids[side], Vector2i(50, 44) if side == Skirmish.HUMAN else Vector2i(45, 44)).ok:
+				var started := Time.get_ticks_usec()
+				var combat_order: Dictionary = game.issue(side, "attack_move", duel_ids[side], Vector2i(50, 44) if side == Skirmish.HUMAN else Vector2i(45, 44))
+				route_us.append(Time.get_ticks_usec() - started)
+				if combat_order.ok:
 					mixed_orders.combat += 1
 			for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 				var scout_id := game._find(side, "bicitaxi")
 				for scout_goal in ([Vector2i(30, 30), Vector2i(25, 25), Vector2i(20, 25)] if side == Skirmish.HUMAN else [Vector2i(65, 65), Vector2i(70, 70), Vector2i(75, 70)]):
-					if game.issue(side, "move", scout_id, scout_goal).ok:
+					var started := Time.get_ticks_usec()
+					var scout_order: Dictionary = game.issue(side, "move", scout_id, scout_goal)
+					route_us.append(Time.get_ticks_usec() - started)
+					if scout_order.ok:
 						mixed_orders.scout += 1
 						break
 				var worker_id := game._find(side, "worker")
-				if game.issue(side, "gather", worker_id, game.resource_sources[side].comida.pos).ok:
+				var started := Time.get_ticks_usec()
+				var gather_order: Dictionary = game.issue(side, "gather", worker_id, game.resource_sources[side].comida.pos)
+				route_us.append(Time.get_ticks_usec() - started)
+				if gather_order.ok:
 					mixed_orders.gather += 1
 		if logical_tick == 100:
 			for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
@@ -70,15 +79,22 @@ func _initialize() -> void:
 				var worker_id := game._find(side, "worker")
 				var preferred: Vector2i = game._point(content.map.barracks_positions[side])
 				for offset in [Vector2i.ZERO, Vector2i(0, 3), Vector2i(3, 0), Vector2i(-3, 0), Vector2i(0, -3), Vector2i(4, 4)]:
-					if game.issue(side, "build", worker_id, {"kind": "barracks", "pos": preferred + offset}).ok:
+					var started := Time.get_ticks_usec()
+					var build_order: Dictionary = game.issue(side, "build", worker_id, {"kind": "barracks", "pos": preferred + offset})
+					route_us.append(Time.get_ticks_usec() - started)
+					if build_order.ok:
 						mixed_orders.build += 1
 						break
 		if logical_tick % 500 == 250:
 			for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 				var id := fighters[side * FIGHTERS_PER_SIDE]
 				var target := Vector2i(44, 47) if side == Skirmish.HUMAN else Vector2i(size - 45, 47)
-				if game.entities.has(id) and game.issue(side, "attack_move", id, target).ok:
-					mixed_orders.combat += 1
+				if game.entities.has(id):
+					var started := Time.get_ticks_usec()
+					var combat_order: Dictionary = game.issue(side, "attack_move", id, target)
+					route_us.append(Time.get_ticks_usec() - started)
+					if combat_order.ok:
+						mixed_orders.combat += 1
 		if logical_tick % 100 == 0 and OS.get_environment("LARGE_PERF_NO_ORDERS") != "1":
 			for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 				for index in range(side * FIGHTERS_PER_SIDE + posmod(logical_tick / 100, 3), side * FIGHTERS_PER_SIDE + FIGHTERS_PER_SIDE, order_stride):
@@ -110,6 +126,7 @@ func _initialize() -> void:
 		max_live_entities = maxi(max_live_entities, game.entities.size())
 	var duel_casualties := int(not game.entities.has(duel_ids[0])) + int(not game.entities.has(duel_ids[1]))
 	var report := {"map": "%dx%d" % [game.map_width, game.map_height], "live_entities": game.entities.size(),
+		"ai_enabled": game.ai_enabled, "completed_ticks": game.tick_number, "result": game.result,
 		"max_live_entities": max_live_entities, "mixed_orders": mixed_orders,
 		"duel_casualties": duel_casualties,
 		"ticks": total_ticks, "simulated_seconds": total_ticks / 10, "orders": route_us.size(), "accepted_orders": accepted,
@@ -122,7 +139,7 @@ func _initialize() -> void:
 	var budget_enforced := OS.get_environment("LARGE_PERF_ENFORCE") != "false"
 	report["budget_enforced"] = budget_enforced
 	print("LARGE_MAP_PERF_JSON=" + JSON.stringify(report))
-	quit(0 if route_us.size() >= 10 and accepted > 0 and max_live_entities <= UNITS and mixed_orders.scout == 2 and mixed_orders.gather == 2 and mixed_orders.build == 2 and mixed_orders.combat > 0 and duel_casualties > 0 and (not budget_enforced or (report.route_p95_ms <= 12.0 and report.tick_p95_ms <= 8.0 and peak_memory <= 768.0)) else 1)
+	quit(0 if route_us.size() >= 10 and accepted > 0 and max_live_entities <= UNITS and mixed_orders.scout == 2 and mixed_orders.gather == 2 and mixed_orders.build == 2 and mixed_orders.combat > 0 and duel_casualties > 0 and game.tick_number == total_ticks and (not budget_enforced or (report.route_p95_ms <= 12.0 and report.tick_p95_ms <= 8.0 and peak_memory <= 768.0)) else 1)
 
 func _p95(values: Array[int]) -> float:
 	if values.is_empty():

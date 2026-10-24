@@ -109,6 +109,18 @@ func _initialize() -> void:
 		lost_dropoff.tick()
 	check(lost_dropoff.entities[replacement_worker].carry == 0 and lost_dropoff.balance(Skirmish.HUMAN, "comida") >= 2,
 		"blocked worker redirects cargo after its chosen depot is destroyed")
+	var adjacent_delivery = Skirmish.new()
+	adjacent_delivery.ai_enabled = false
+	var adjacent_worker := adjacent_delivery._add_entity(Skirmish.HUMAN, "worker", Vector2i(4, 2))
+	adjacent_delivery.entities[adjacent_worker].carry = 2
+	adjacent_delivery.entities[adjacent_worker].carry_resource = "comida"
+	adjacent_delivery.entities[adjacent_worker].job = "deliver"
+	adjacent_delivery.entities[adjacent_worker].target_id = adjacent_delivery._find(Skirmish.HUMAN, "command_post")
+	adjacent_delivery.entities[adjacent_worker].blocked_ticks = 90
+	for i in 35:
+		adjacent_delivery.tick()
+	check(adjacent_delivery.entities[adjacent_worker].carry == 0,
+		"retrying cargo deposits when a valid drop-off is already adjacent")
 	var empty_source = Skirmish.new()
 	empty_source.ai_enabled = false
 	var stopped_gatherer := empty_source._add_entity(Skirmish.HUMAN, "worker", Vector2i(5, 7))

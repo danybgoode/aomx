@@ -626,6 +626,9 @@ func _retry_waiting_job(entity: Dictionary) -> void:
 			if entity.job != "deliver":
 				entity.blocked_ticks = 0
 				return
+			if entities.has(entity.target_id) and _distance_to_entity(entity.pos, entities[entity.target_id]) == 1:
+				entity.blocked_ticks = 0
+				return
 		"gather":
 			if entity.source_resource not in RESOURCE_IDS or _ordered_source(entity).amount <= 0:
 				if entity.carry > 0:
@@ -635,10 +638,22 @@ func _retry_waiting_job(entity: Dictionary) -> void:
 					entity.path.clear()
 				entity.blocked_ticks = 0
 				return
+			if _distance(entity.pos, _ordered_source(entity).pos) == 1:
+				entity.blocked_ticks = 0
+				return
 		"build", "repair", "attack":
 			if not entities.has(entity.target_id):
 				entity.job = "idle"
 				entity.path.clear()
+				entity.blocked_ticks = 0
+				return
+			var target: Dictionary = entities[entity.target_id]
+			var reach := int(content.units[entity.kind].range) if entity.job == "attack" else 1
+			if _distance_to_entity(entity.pos, target) <= reach:
+				entity.blocked_ticks = 0
+				return
+		"move", "attack_move":
+			if entity.pos == entity.order_pos:
 				entity.blocked_ticks = 0
 				return
 	_reroute_occupied(entity)
