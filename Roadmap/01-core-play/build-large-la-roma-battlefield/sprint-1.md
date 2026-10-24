@@ -3,7 +3,7 @@ epic: build-large-la-roma-battlefield
 sprint: 1
 title: "Large playable start"
 risk: high
-phase: Verifying
+phase: In review
 stories_total: 1
 stories:
   - id: S1.1
@@ -17,7 +17,7 @@ stories:
 
 # Build a large La Roma battlefield — Sprint 1: Large playable start
 
-**Status:** 🏗 In progress — local start/scout checks pass; downloaded-build and owner observation remain open
+**Status:** 🟦 In review — local start/scout checks pass; downloaded-build and owner observation remain open
 
 ### Story 1.1 — Scout a readable large La Roma
 

@@ -1,6 +1,6 @@
 ---
 status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Verifying       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+phase: In review       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: build-large-la-roma-battlefield
 title: "Build a large La Roma battlefield"
@@ -85,7 +85,7 @@ Keep current 28×28 matches and private-match host version stable while the new 
 
 ## Definition of Done (epic)
 - [ ] One large La Roma match supports scouting, separated resources, fair AI, the bicitaxi and both victory routes without stuck or overlapped units; existing maps still work.
-- [ ] Save/resume, replay, content/version validation, cross-platform hashes and required Godot/Node/CI checks pass; the independent high-risk review is resolved.
-- [ ] A representative 96×96 owner-Mac release export reports route/tick/frame/memory against D7's predeclared budgets; any change in final dimensions or budget is recorded before acceptance.
+- [x] Save/resume, replay, content/version validation, cross-platform hashes and required Godot/Node/CI checks pass; the independent high-risk review is resolved.
+- [x] A representative 96×96 owner-Mac release export reports route/tick/frame/memory against D7's predeclared budgets; any change in final dimensions or budget is recorded before acceptance.
 - [ ] Signed Restricted preview is independently fetched, byte/signature/startup checked and used for numbered smoke steps. The owner accepts or requests revision on Large-map feel, resource spacing and pace; an uncoached player identifies the scout and objective.
 - [ ] Poster, generated board, retrospective and durable learning record the actual result. Keep `status: in-progress` while owner downloaded-build QA is owed; set `shipped` only after the full outcome is accepted and synced.
