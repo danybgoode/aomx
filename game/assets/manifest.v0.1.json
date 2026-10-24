@@ -1722,6 +1722,60 @@
       "export_sha256": "3db335879ca0d8fc860911f84cab39f1c305c1ffcc596047f1c08658bc48bf9c",
       "export_recipe": "scripts/export-owned-art.sh: native size",
       "runtime_use": "pilot"
+    },
+    {
+      "id": "unit_bicitaxi_blue",
+      "category": "unit",
+      "path": "res://assets/render/unit_bicitaxi_blue.png",
+      "source": "res://assets/source/bicitaxi/blue.svg",
+      "canvas": [
+        64,
+        56
+      ],
+      "pivot": [
+        32,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "blue",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
+    },
+    {
+      "id": "unit_bicitaxi_red",
+      "category": "unit",
+      "path": "res://assets/render/unit_bicitaxi_red.png",
+      "source": "res://assets/source/bicitaxi/red.svg",
+      "canvas": [
+        64,
+        56
+      ],
+      "pivot": [
+        32,
+        55
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "tile_center",
+      "faction_color": "red",
+      "states": [
+        "idle_key_pose"
+      ],
+      "directions": [
+        "SE"
+      ],
+      "rights": "project-original-ai-assisted"
     }
   ],
   "procedural": [

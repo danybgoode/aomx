@@ -3,9 +3,10 @@ extends RefCounted
 const DEFAULT_PATH := "res://content/skirmish.v1.json"
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const UNIT_IDS := ["worker", "melee", "ranged", "armored", "siege"]
+const SCOUT_ID := "bicitaxi"
 const BUILDING_IDS := ["command_post", "barracks", "depot", "housing", "registry"]
 const FACTION_IDS := ["regios", "poblanos", "oaxaquenos", "veracruzanos"]
-const MAP_IDS := ["la_roma", "narvarte", "copilco"]
+const MAP_IDS := ["la_roma", "narvarte", "copilco", "la_roma_large"]
 const AGE_IDS := ["foranea", "universitaria", "godin", "gentrificacion"]
 const TECH_IDS := ["carry_capacity_i", "construction_rate_i", "combat_training_i", "cooperative_build_i", "street_exchange_i"]
 const EFFECT_IDS := ["carry_capacity", "construction_rate", "combat_training", "trade_bonus"]
@@ -38,10 +39,16 @@ static func load_map(map_id: String) -> Dictionary:
 	var data: Dictionary = base.data.duplicate(true)
 	data.map_id = map_id
 	data.map = overlay.get("map")
+	if map_id == "la_roma_large":
+		if not overlay.get("expansion_sources") is Dictionary or not overlay.get("units") is Dictionary or not overlay.units.get(SCOUT_ID) is Dictionary:
+			return _bad("large_map_content_invalid")
+		data.units[SCOUT_ID] = overlay.units[SCOUT_ID]
 	for resource_id in RESOURCE_IDS:
 		if not overlay.sources.get(resource_id) is Array:
 			return _bad("map_sources_invalid")
 		data.resources[resource_id].source_positions = overlay.sources[resource_id]
+		if map_id == "la_roma_large":
+			data.resources[resource_id].expansion_positions = overlay.expansion_sources.get(resource_id)
 	var check := validate(data)
 	if not check.ok:
 		return check
@@ -76,13 +83,27 @@ static func validate(value: Variant) -> Dictionary:
 				return _bad("invalid_%s_positions" % id)
 			if not map_check.reachable.has(Vector2i(int(point[0]), int(point[1]))):
 				return _bad("inaccessible_%s_source" % id)
+		if d.map_id == "la_roma_large":
+			if not source.get("expansion_positions") is Array or source.expansion_positions.size() != 2:
+				return _bad("invalid_%s_expansion_positions" % id)
+			for point in source.expansion_positions:
+				if not _point(point, int(d.map.width), int(d.map.height)) or not map_check.reachable.has(Vector2i(int(point[0]), int(point[1]))):
+					return _bad("invalid_%s_expansion_positions" % id)
 		for key in ["amount", "refresh_amount", "refresh_ticks", "refresh_count"]:
 			if not _whole(source.get(key), 1):
 				return _bad("invalid_%s_%s" % [id, key])
 	var source_tiles := {}
 	for resource_id in RESOURCE_IDS:
 		for point in d.resources[resource_id].source_positions:
-			source_tiles[Vector2i(int(point[0]), int(point[1]))] = true
+			var tile := Vector2i(int(point[0]), int(point[1]))
+			if source_tiles.has(tile):
+				return _bad("source_positions_overlap")
+			source_tiles[tile] = true
+		for point in d.resources[resource_id].get("expansion_positions", []):
+			var tile := Vector2i(int(point[0]), int(point[1]))
+			if source_tiles.has(tile):
+				return _bad("source_positions_overlap")
+			source_tiles[tile] = true
 	var occupied_anchors := {}
 	for point in d.map.command_posts + d.map.barracks_positions:
 		var at := Vector2i(int(point[0]), int(point[1]))
@@ -92,9 +113,18 @@ static func validate(value: Variant) -> Dictionary:
 				if tile.x >= int(d.map.width) or tile.y >= int(d.map.height) or not map_check.reachable.has(tile) or source_tiles.has(tile) or occupied_anchors.has(tile):
 					return _bad("map_building_footprint_invalid")
 				occupied_anchors[tile] = true
-	if not _known_keys(d.units, UNIT_IDS):
+	if d.map_id == "la_roma_large":
+		if not d.map.get("scouts") is Array or d.map.scouts.size() != 2:
+			return _bad("map_scouts_invalid")
+		for point in d.map.scouts:
+			if not _point(point, int(d.map.width), int(d.map.height)):
+				return _bad("map_scouts_invalid")
+			var tile := Vector2i(int(point[0]), int(point[1]))
+			if not map_check.reachable.has(tile) or source_tiles.has(tile) or occupied_anchors.has(tile):
+				return _bad("map_scouts_invalid")
+	if not _known_keys(d.units, UNIT_IDS + ([SCOUT_ID] if d.map_id == "la_roma_large" else [])):
 		return _bad("unit_ids_invalid")
-	for id in UNIT_IDS:
+	for id in d.units:
 		var u: Dictionary = d.units[id]
 		if not _whole(u.get("armor"), 0) or u.get("attack_class") not in ["none", "blunt", "piercing", "siege"] or not u.get("bonuses") is Dictionary or not _whole(u.get("projectile_ticks"), 0):
 			return _bad("invalid_%s_combat" % id)
@@ -108,7 +138,9 @@ static func validate(value: Variant) -> Dictionary:
 			return _bad("invalid_%s_costs" % id)
 		if u.get("min_age") not in AGE_IDS:
 			return _bad("invalid_%s_min_age" % id)
-		if id != "worker":
+		if id == SCOUT_ID and (not _whole(u.get("sight"), 6) or not _whole(u.get("move_ticks"), 1)):
+			return _bad("invalid_scout_mobility")
+		if id not in ["worker", SCOUT_ID]:
 			for key in ["damage", "range", "cooldown_ticks"]:
 				if not _whole(u.get(key), 1):
 					return _bad("invalid_%s_%s" % [id, key])

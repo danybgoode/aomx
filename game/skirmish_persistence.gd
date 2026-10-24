@@ -101,6 +101,12 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 			source.amount = int(saved_source.amount)
 			source.refresh_remaining = int(saved_source.refresh_remaining)
 			source.refreshes_left = int(saved_source.refreshes_left)
+			if map_id == "la_roma_large":
+				var saved_expansion: Dictionary = state.expansion_sources[side][resource_id]
+				var expansion: Dictionary = game.expansion_sources[side][resource_id]
+				expansion.amount = int(saved_expansion.amount)
+				expansion.refresh_remaining = int(saved_expansion.refresh_remaining)
+				expansion.refreshes_left = int(saved_expansion.refreshes_left)
 		game.sources[side] = game.resource_sources[side].varos
 		game.age_index[side] = int(state.age_index[side])
 		game.researched[side] = state.researched[side].duplicate()
@@ -186,6 +192,8 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_balances_invalid")
 	if not s.get("resource_sources") is Array or s.resource_sources.size() != 2:
 		return _bad("state_resource_sources_invalid")
+	if content.map_id == "la_roma_large" and (not s.get("expansion_sources") is Array or s.expansion_sources.size() != 2):
+		return _bad("state_expansion_sources_invalid")
 	if not s.get("age_index") is Array or s.age_index.size() != 2:
 		return _bad("state_age_index_invalid")
 	if not s.get("researched") is Array or s.researched.size() != 2:
@@ -209,6 +217,19 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 					return _bad("state_resource_sources_invalid")
 			if int(source.refreshes_left) > int(content.resources[resource_id].refresh_count):
 				return _bad("state_resource_sources_invalid")
+		if content.map_id == "la_roma_large":
+			var expansion_set: Variant = s.expansion_sources[side]
+			if not _keys_exact(expansion_set, RESOURCE_IDS):
+				return _bad("state_expansion_sources_invalid")
+			for resource_id in RESOURCE_IDS:
+				var expansion: Variant = expansion_set[resource_id]
+				if not _keys_exact(expansion, ["amount", "refresh_remaining", "refreshes_left"]):
+					return _bad("state_expansion_sources_invalid")
+				for field in ["amount", "refresh_remaining", "refreshes_left"]:
+					if not _integer(expansion[field], 0):
+						return _bad("state_expansion_sources_invalid")
+				if int(expansion.refreshes_left) > int(content.resources[resource_id].refresh_count):
+					return _bad("state_expansion_sources_invalid")
 		if not _integer(s.age_index[side], 0) or int(s.age_index[side]) >= content.ages.order.size():
 			return _bad("state_age_index_invalid")
 		if not s.researched[side] is Array or s.researched[side].size() > content.techs.size():

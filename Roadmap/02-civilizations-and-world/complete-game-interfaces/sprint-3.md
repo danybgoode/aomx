@@ -54,6 +54,8 @@ Run client result, focus, save/replay and event checks. Signed Restricted downlo
 
 Earlier builder result: victory/defeat/draw cause copy, new-match action, visible text cues, focus styling, interface size and reduced unit motion were implemented. The local client test confirmed the result without a duplicate terminal event. The [owner screenshot finding](../../00-ideas/audits/2026-10-23-owner-interface-movement-map.md) now shows the scale/layout and indicator acceptance failing in a Restricted preview, so S3.2 is reopened. [Owner task script](../../../docs/interface-review/qa.md) is ready; no passing owner or uncoached result is claimed.
 
+**2026-10-24 repair checkpoint:** PR #86 merged the 200%-to-100% baseline migration, responsive HUD and quieter unit marks. The 96×96 release-export opening at 1280×800 and 1024×700 shows contained text and a selectable battlefield; the client layout checks pass. [Updated QA](../../../docs/interface-review/qa.md) separates these captures from the older scale set. The owner's downloaded-app judgment and two uncoached reads still decide S3.2/S3.3 acceptance.
+
 ## Sprint 3 — Smoke walkthrough
 Env: local Godot 4.7.2 at game/project.godot; repeat on the signed Restricted owner build where applicable and record its build ID.
 

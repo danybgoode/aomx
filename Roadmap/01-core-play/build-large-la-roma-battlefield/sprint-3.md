@@ -3,7 +3,7 @@ epic: build-large-la-roma-battlefield
 sprint: 3
 title: "Complete match proof"
 risk: high
-phase: Locking architecture
+phase: Verifying
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,12 +12,12 @@ stories:
     i_want: "a complete large-map match against a fair opponent"
     so_that: "exploration and expansion lead to a finishable strategy game"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Build a large La Roma battlefield — Sprint 3: Complete match proof
 
-**Status:** ⬜ Planned — follows resource and movement verification
+**Status:** 🏗 In progress — build and integration checks underway; signed download, four outcomes and owner/uncoached reads remain open
 
 ### Story 3.1 — Finish both routes on the large map
 
@@ -44,3 +44,5 @@ Environment: signed Restricted macOS preview, record its exact build ID and down
 5. Ask one uncoached player to identify the bicitaxi's purpose, a distant expansion and both win routes. → Record exact answers and any confusion, without supplying CDMX context first.
 
 Record every failure by step and build ID. Only the owner can close the final feel and human-acceptance checks.
+
+**2026-10-24 builder checkpoint:** New-map conquest and uncontested district outcomes pass deterministic checks. An independent reviewer also completed a legal district hold after moving from home and observed standard-AI conquest on the 96×96 map. The AI-enabled mixed 6000-tick probe passed route p95 4.802/12 ms and tick p95 1.378/8 ms with two real combat casualties. An isolated release export passed frame p95 at both target windows (26.141/33.3 ms at 1280×800; 25.720/33.3 ms at 1024×700), with process RSS below 768 MiB. See [QA evidence](../../../docs/world/large-la-roma-qa-2026-10-23.md). CI, signed Restricted fetch, four downloaded-app outcomes, owner feel decision, one event receipt and uncoached recognition remain open.

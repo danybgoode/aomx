@@ -32,7 +32,7 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-6"
+const GAME_VERSION := "godot-4.7.2-skirmish-7"
 const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
@@ -51,7 +51,8 @@ var visible_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var explored_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var last_seen: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var sight_cache: Dictionary = {}
-var visibility_signature: PackedInt32Array = PackedInt32Array()
+var observer_sight: Dictionary = {}
+var visibility_counts: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var move_route_cache: Dictionary = {}
 var building_tiles: Dictionary = {}
 var projectiles: Array[Dictionary] = []
@@ -62,6 +63,7 @@ var entities: Dictionary = {}
 var sources: Dictionary = {}
 var stockpile: Dictionary = {HUMAN: 0, COMPUTER: 0}
 var resource_sources: Dictionary = {}
+var expansion_sources: Dictionary = {}
 var source_tiles: Dictionary = {}
 var other_stockpiles: Dictionary = {}
 var age_index: Dictionary = {HUMAN: 0, COMPUTER: 0}
@@ -119,6 +121,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	factions = {HUMAN: human_faction, COMPUTER: opponent_faction}
 	for side in [HUMAN, COMPUTER]:
 		resource_sources[side] = {}
+		expansion_sources[side] = {}
 		other_stockpiles[side] = {"comida": 0, "materiales": 0, "terrenos": 0}
 		for resource_id in RESOURCE_IDS:
 			var rule: Dictionary = content.resources[resource_id]
@@ -126,10 +129,17 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 			source_tiles[source_pos] = true
 			resource_sources[side][resource_id] = {"pos": source_pos,
 				"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
+			if map_id == "la_roma_large":
+				var expansion_pos := _point(rule.expansion_positions[side])
+				source_tiles[expansion_pos] = true
+				expansion_sources[side][resource_id] = {"pos": expansion_pos,
+					"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
 		sources[side] = resource_sources[side].varos
 	for side in [HUMAN, COMPUTER]:
 		_add_entity(side, "command_post", _point(content.map.command_posts[side]))
 		_add_entity(side, "worker", _point(content.map.workers[side]))
+		if map_id == "la_roma_large":
+			_add_entity(side, "bicitaxi", _point(content.map.scouts[side]))
 	_refresh_visibility()
 
 func issue_command(command: Dictionary) -> Dictionary:
@@ -212,7 +222,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			if actor.kind != "worker" or resource_id.is_empty():
 				rejected.reason = "resource_unavailable"
 			else:
-				var source: Dictionary = resource_sources[side][resource_id]
+				var source: Dictionary = _source_for_tile(side, resource_id, target)
 				if source.amount <= 0:
 					rejected.reason = "resource_depleted"
 				elif actor.carry > 0 and actor.carry_resource != resource_id:
@@ -224,6 +234,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 					else:
 						actor.path = route
 						actor.source_resource = resource_id
+						if map_id == "la_roma_large":
+							actor.order_pos = target
 						actor.job = "gather"
 						rejected = {"ok": true, "reason": "gathering"}
 		"build":
@@ -450,13 +462,15 @@ func tick() -> void:
 		if entity.job == "attack" and (not entities.has(entity.target_id) or entities[entity.target_id].hp <= 0 or not is_entity_visible(entity.side, entities[entity.target_id])):
 			entity.job = "idle"
 			entity.path.clear()
+			entity.blocked_ticks = 0
 			entity.target_id = -1
 			if entity.side == HUMAN:
 				feedback = "Target lost from sight. Scout before attacking again."
 		if entity.job in ["attack_move", "hold"] and _tick_auto_attack(entity, damages):
 			continue
 		if not entity.path.is_empty():
-			if tick_number % int(content.factions[factions[entity.side]].move_ticks) == 0:
+			var movement_interval := int(content.units[entity.kind].move_ticks) if entity.kind == "bicitaxi" else int(content.factions[factions[entity.side]].move_ticks)
+			if tick_number % movement_interval == 0:
 				if moved_ids.has(id):
 					continue
 				var occupied_by := int(occupied.get(entity.path[0], -1))
@@ -490,11 +504,15 @@ func tick() -> void:
 						_reroute_occupied(entity)
 					elif entity.blocked_ticks >= 90:
 						entity.path.clear()
-						entity.job = "idle"
+						entity.blocked_ticks = 90
 						if entity.side == HUMAN:
-							feedback = "No free route. Choose another destination."
+							feedback = "Route blocked; unit will retry or accept a new order."
 				else:
 					_reroute_blocked(entity)
+			continue
+		if entity.blocked_ticks >= 90:
+			if tick_number % 30 == 0:
+				_retry_waiting_job(entity)
 			continue
 		if entity.kind == "worker" and entity.job == "idle" and entity.carry > 0:
 			_begin_delivery(entity)
@@ -537,12 +555,18 @@ func tick() -> void:
 func _reroute_blocked(entity: Dictionary) -> void:
 	entity.path.clear()
 	match entity.job:
+		"move", "attack_move":
+			entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
+			if not entity.path.is_empty() or entity.pos == entity.order_pos:
+				entity.blocked_ticks = 0
+				return
 		"gather":
 			if entity.source_resource in RESOURCE_IDS:
-				var source: Dictionary = resource_sources[entity.side][entity.source_resource]
+				var source: Dictionary = _ordered_source(entity)
 				if source.amount > 0:
 					entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
 					if not entity.path.is_empty() or _distance(entity.pos, source.pos) == 1:
+						entity.blocked_ticks = 0
 						return
 		"deliver":
 			_begin_delivery(entity)
@@ -552,6 +576,7 @@ func _reroute_blocked(entity: Dictionary) -> void:
 				var building: Dictionary = entities[entity.target_id]
 				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, building) == 1)
 				if not entity.path.is_empty() or _distance_to_entity(entity.pos, building) == 1:
+					entity.blocked_ticks = 0
 					return
 		"attack":
 			if entities.has(entity.target_id):
@@ -559,10 +584,11 @@ func _reroute_blocked(entity: Dictionary) -> void:
 				var reach := int(content.units[entity.kind].range)
 				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach)
 				if not entity.path.is_empty() or _distance_to_entity(entity.pos, target) <= reach:
+					entity.blocked_ticks = 0
 					return
-	entity.job = "idle"
+	entity.blocked_ticks = 90
 	if entity.side == HUMAN:
-		feedback = "No route to the ordered destination."
+		feedback = "Route blocked; unit will retry or accept a new order."
 
 func _reroute_occupied(entity: Dictionary) -> void:
 	# A stationary neighbor can block an otherwise valid static path forever.
@@ -571,22 +597,73 @@ func _reroute_occupied(entity: Dictionary) -> void:
 	var route: Array[Vector2i] = []
 	match entity.job:
 		"move", "attack_move":
-			route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
+			if _unit_at(entity.order_pos) == -1 and _walkable(entity.order_pos):
+				route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
 		"gather":
 			if entity.source_resource in RESOURCE_IDS:
-				var source: Dictionary = resource_sources[entity.side][entity.source_resource]
-				if source.amount > 0:
+				var source: Dictionary = _ordered_source(entity)
+				if source.amount > 0 and _has_free_approach(source.pos, false):
 					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1, true)
 		"deliver", "build", "repair", "attack":
 			if entities.has(entity.target_id):
 				var target: Dictionary = entities[entity.target_id]
 				var reach := int(content.units[entity.kind].range) if entity.job == "attack" else 1
-				route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach, true)
+				if reach > 1 or _has_free_approach(target.pos, target.kind in content.buildings):
+					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach, true)
 	if not route.is_empty():
 		entity.path = route
 		entity.blocked_ticks = 0
 	elif entity.side == HUMAN and entity.blocked_ticks == 30:
 		feedback = "Crowded route; unit looking for a free tile."
+
+func _retry_waiting_job(entity: Dictionary) -> void:
+	# Jobs can change while a unit waits: a source empties, a drop-off falls,
+	# or the original build/attack target disappears. Re-evaluate these before
+	# retrying the old target, so a worker never becomes a permanent cargo trap.
+	match entity.job:
+		"deliver":
+			_begin_delivery(entity)
+			if entity.job != "deliver":
+				entity.blocked_ticks = 0
+				return
+			if entities.has(entity.target_id) and _distance_to_entity(entity.pos, entities[entity.target_id]) == 1:
+				entity.blocked_ticks = 0
+				return
+		"gather":
+			if entity.source_resource not in RESOURCE_IDS or _ordered_source(entity).amount <= 0:
+				if entity.carry > 0:
+					_begin_delivery(entity)
+				else:
+					entity.job = "idle"
+					entity.path.clear()
+				entity.blocked_ticks = 0
+				return
+			if _distance(entity.pos, _ordered_source(entity).pos) == 1:
+				entity.blocked_ticks = 0
+				return
+		"build", "repair", "attack":
+			if not entities.has(entity.target_id):
+				entity.job = "idle"
+				entity.path.clear()
+				entity.blocked_ticks = 0
+				return
+			var target: Dictionary = entities[entity.target_id]
+			var reach := int(content.units[entity.kind].range) if entity.job == "attack" else 1
+			if _distance_to_entity(entity.pos, target) <= reach:
+				entity.blocked_ticks = 0
+				return
+		"move", "attack_move":
+			if entity.pos == entity.order_pos:
+				entity.blocked_ticks = 0
+				return
+	_reroute_occupied(entity)
+
+func _has_free_approach(target: Vector2i, is_building: bool) -> bool:
+	var neighbors: Array = _perimeter(target) if is_building else [target + Vector2i.LEFT, target + Vector2i.UP, target + Vector2i.RIGHT, target + Vector2i.DOWN]
+	for tile in neighbors:
+		if _walkable(tile) and _unit_at(tile) == -1:
+			return true
+	return false
 
 func _tick_district() -> void:
 	var present := {HUMAN: false, COMPUTER: false}
@@ -637,7 +714,7 @@ func snapshot() -> Dictionary:
 				"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
 		balances.append(side_balances)
 		source_states.append(side_sources)
-	return {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
+	var state := {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
 		"result_reason": result_reason, "district_side": district_side,
 		"district_progress": district_progress, "district_state": district_state,
 		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id, "map_id": map_id,
@@ -653,6 +730,17 @@ func snapshot() -> Dictionary:
 		"ai_enabled": ai_enabled, "ai_difficulty": ai_difficulty, "ai_opening": ai_opening,
 		"ai_plan": ai_plan, "ai_stall_reason": ai_stall_reason,
 		"ai_rejections": ai_rejections, "ai_last_rejection": ai_last_rejection}
+	if map_id == "la_roma_large":
+		var expansion_states: Array = []
+		for side in [HUMAN, COMPUTER]:
+			var side_expansion := {}
+			for resource_id in RESOURCE_IDS:
+				var source: Dictionary = expansion_sources[side][resource_id]
+				side_expansion[resource_id] = {"amount": source.amount,
+					"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
+			expansion_states.append(side_expansion)
+		state["expansion_sources"] = expansion_states
+	return state
 
 func state_hash() -> String:
 	var hash := HashingContext.new()
@@ -690,11 +778,15 @@ func _release_building(at: Vector2i) -> void:
 
 func rebuild_navigation() -> void:
 	move_route_cache.clear()
-	visibility_signature.clear()
+	sight_cache.clear()
+	observer_sight.clear()
+	visibility_counts = {HUMAN: {}, COMPUTER: {}}
+	visible_tiles = {HUMAN: {}, COMPUTER: {}}
 	building_tiles.clear()
 	for e in entities.values():
 		if e.kind in content.buildings and e.hp > 0:
 			_occupy_building(e.pos)
+	_refresh_visibility()
 
 func _find(side: int, kind: String) -> int:
 	for id in entities:
@@ -705,21 +797,32 @@ func _find(side: int, kind: String) -> int:
 func _tick_sources() -> void:
 	for side in [HUMAN, COMPUTER]:
 		for resource_id in RESOURCE_IDS:
-			var source: Dictionary = resource_sources[side][resource_id]
-			if source.amount > 0 or source.refreshes_left <= 0:
-				continue
-			if source.refresh_remaining <= 0:
-				source.refresh_remaining = int(content.resources[resource_id].refresh_ticks)
-			source.refresh_remaining -= 1
-			if source.refresh_remaining <= 0:
-				source.amount = int(content.resources[resource_id].refresh_amount)
-				source.refreshes_left -= 1
+			var sites: Array = [resource_sources[side][resource_id]]
+			if expansion_sources[side].has(resource_id):
+				sites.append(expansion_sources[side][resource_id])
+			for source in sites:
+				if source.amount > 0 or source.refreshes_left <= 0:
+					continue
+				if source.refresh_remaining <= 0:
+					source.refresh_remaining = int(content.resources[resource_id].refresh_ticks)
+				source.refresh_remaining -= 1
+				if source.refresh_remaining <= 0:
+					source.amount = int(content.resources[resource_id].refresh_amount)
+					source.refreshes_left -= 1
 
 func _resource_at(side: int, tile: Vector2i) -> String:
 	for resource_id in RESOURCE_IDS:
-		if resource_sources[side][resource_id].pos == tile:
+		if resource_sources[side][resource_id].pos == tile or expansion_sources[side].has(resource_id) and expansion_sources[side][resource_id].pos == tile:
 			return resource_id
 	return ""
+
+func _source_for_tile(side: int, resource_id: String, tile: Vector2i) -> Dictionary:
+	if expansion_sources[side].has(resource_id) and expansion_sources[side][resource_id].pos == tile:
+		return expansion_sources[side][resource_id]
+	return resource_sources[side][resource_id]
+
+func _ordered_source(entity: Dictionary) -> Dictionary:
+	return _source_for_tile(entity.side, entity.source_resource, entity.order_pos)
 
 func _dropoff_for(side: int, resource_id: String, from: Vector2i) -> Dictionary:
 	var best_id := -1
@@ -759,7 +862,7 @@ func _tick_gather(e: Dictionary) -> void:
 	if resource_id not in RESOURCE_IDS:
 		e.job = "idle"
 		return
-	var source: Dictionary = resource_sources[e.side][resource_id]
+	var source: Dictionary = _ordered_source(e)
 	if _distance(e.pos, source.pos) != 1:
 		e.job = "idle"
 	elif source.amount > 0 and e.carry < _carry_limit(e.side):
@@ -788,8 +891,8 @@ func _tick_deliver(e: Dictionary) -> void:
 	e.carry = 0
 	e.carry_resource = ""
 	e.target_id = -1
-	if e.source_resource in RESOURCE_IDS and resource_sources[e.side][e.source_resource].amount > 0:
-		var source: Dictionary = resource_sources[e.side][e.source_resource]
+	if e.source_resource in RESOURCE_IDS and _ordered_source(e).amount > 0:
+		var source: Dictionary = _ordered_source(e)
 		e.path = _route_until(e.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
 		e.job = "gather" if not e.path.is_empty() or _distance(e.pos, source.pos) == 1 else "idle"
 	else:
@@ -1053,6 +1156,33 @@ func _ai_issue_waypoint(actor_id: int, preferred: Vector2i) -> bool:
 			return true
 	return false
 
+func _ai_scout_large() -> void:
+	if map_id != "la_roma_large":
+		return
+	var scout_id := _find(COMPUTER, "bicitaxi")
+	if scout_id == -1 or entities[scout_id].job != "idle":
+		return
+	# These geometric waypoints are map knowledge, not hidden enemy or source
+	# state. Workers may use an expansion only after normal sight explores it.
+	for waypoint in [Vector2i(62, 68), Vector2i(69, 55), Vector2i(47, 47)]:
+		if not is_explored(COMPUTER, waypoint):
+			for offset in [Vector2i.ZERO, Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]:
+				var at: Vector2i = waypoint + offset
+				if _walkable(at) and issue(COMPUTER, "move", scout_id, at).ok:
+					ai_plan = "scout"
+					return
+			return
+
+func _ai_source(side: int, resource_id: String) -> Dictionary:
+	var starter: Dictionary = resource_sources[side][resource_id]
+	if starter.amount > 0:
+		return starter
+	if map_id == "la_roma_large" and expansion_sources[side].has(resource_id):
+		var expansion: Dictionary = expansion_sources[side][resource_id]
+		if expansion.amount > 0 and is_explored(side, expansion.pos):
+			return expansion
+	return {}
+
 func _ai_step() -> void:
 	var side := COMPUTER
 	var profile := _ai_profile()
@@ -1060,6 +1190,7 @@ func _ai_step() -> void:
 	var goal := _ai_goal(observed)
 	ai_stall_reason = ""
 	ai_plan = str(goal.get("kind", "hold"))
+	_ai_scout_large()
 	if not goal.is_empty() and _can_pay(side, goal.costs):
 		var actor_id := -1
 		match goal.kind:
@@ -1087,14 +1218,14 @@ func _ai_step() -> void:
 	var resource_id: String = _ai_shortage(goal.costs) if not goal.is_empty() else str(RESOURCE_IDS[int(tick_number / int(profile.step_ticks)) % RESOURCE_IDS.size()])
 	var needed_resource := resource_id
 	var needed_missing := maxi(0, int(goal.costs.get(needed_resource, 0)) - balance(side, needed_resource)) if not goal.is_empty() else 0
-	if resource_sources[side][resource_id].amount <= 0:
+	if _ai_source(side, resource_id).is_empty():
 		if needed_missing > 0:
 			ai_stall_reason = "waiting_for_resource_refresh" if resource_sources[side][resource_id].refreshes_left > 0 else "needed_resource_exhausted"
 		for alternate in RESOURCE_IDS:
-			if resource_sources[side][alternate].amount > 0:
+			if not _ai_source(side, alternate).is_empty():
 				resource_id = alternate
 				break
-		if resource_sources[side][resource_id].amount <= 0:
+		if _ai_source(side, resource_id).is_empty():
 			var can_refresh := false
 			for candidate in RESOURCE_IDS:
 				if resource_sources[side][candidate].refreshes_left > 0:
@@ -1105,7 +1236,8 @@ func _ai_step() -> void:
 	ids.sort()
 	var assigned_to_needed := false
 	for id in ids:
-		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"]:
+		var assigned_source: Dictionary = _ai_source(side, resource_id)
+		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"] and (map_id != "la_roma_large" or not assigned_source.is_empty() and entities[id].order_pos == assigned_source.pos):
 			assigned_to_needed = true
 			break
 	var reassigned := false
@@ -1117,10 +1249,10 @@ func _ai_step() -> void:
 			continue
 		if worker.carry > 0:
 			continue
-		var may_reassign: bool = worker.job == "gather" and worker.source_resource != resource_id and not assigned_to_needed and not reassigned and tick_number % 80 == 0
+		var source: Dictionary = _ai_source(side, resource_id)
+		var may_reassign: bool = worker.job == "gather" and (worker.source_resource != resource_id or map_id == "la_roma_large" and not source.is_empty() and worker.order_pos != source.pos) and not assigned_to_needed and not reassigned and tick_number % 80 == 0
 		if worker.job == "idle" or may_reassign:
-			var source: Dictionary = resource_sources[side][resource_id]
-			if source.amount > 0:
+			if not source.is_empty():
 				if issue(side, "gather", id, source.pos).ok:
 					assigned_to_needed = true
 					reassigned = true
@@ -1350,34 +1482,46 @@ func is_explored(side: int, tile: Vector2i) -> bool:
 func _refresh_visibility() -> void:
 	var ids: Array = entities.keys()
 	ids.sort()
-	var signature := PackedInt32Array()
+	var live_observers: Dictionary = {}
 	for id in ids:
 		var observer: Dictionary = entities[id]
 		if observer.hp <= 0:
 			continue
-		var radius := 7 if elevated_tiles.has(observer.pos) else 5
+		live_observers[id] = true
+		var radius := int(content.units.bicitaxi.sight) if observer.kind == "bicitaxi" else (7 if elevated_tiles.has(observer.pos) else 5)
 		if observer.kind in content.buildings:
 			radius = 6
-		signature.append_array(PackedInt32Array([id, observer.side, observer.pos.x, observer.pos.y, radius]))
-	if signature != visibility_signature:
-		visibility_signature = signature
-		visible_tiles = {HUMAN: {}, COMPUTER: {}}
-		for id in ids:
-			var observer: Dictionary = entities[id]
-			if observer.hp <= 0:
+		if observer_sight.has(id):
+			var prior: Dictionary = observer_sight[id]
+			if prior.pos == observer.pos and prior.radius == radius and prior.side == observer.side:
 				continue
-			var side: int = observer.side
-			var radius := 7 if elevated_tiles.has(observer.pos) else 5
-			if observer.kind in content.buildings:
-				radius = 6
-			var sight: Dictionary = _sight_for(observer.pos, radius)
-			visible_tiles[side].merge(sight, true)
-			explored_tiles[side].merge(sight, true)
+			_remove_observer_sight(prior)
+		var side: int = observer.side
+		var sight: Dictionary = _sight_for(observer.pos, radius)
+		for tile in sight:
+			visibility_counts[side][tile] = int(visibility_counts[side].get(tile, 0)) + 1
+			visible_tiles[side][tile] = true
+			explored_tiles[side][tile] = true
+		observer_sight[id] = {"side": side, "pos": observer.pos, "radius": radius, "sight": sight}
+	for id in observer_sight.keys():
+		if not live_observers.has(id):
+			_remove_observer_sight(observer_sight[id])
+			observer_sight.erase(id)
 	for side in [HUMAN, COMPUTER]:
 		for id in ids:
 			var e: Dictionary = entities[id]
 			if e.side != side and e.hp > 0 and is_entity_visible(side, e):
 				last_seen[side][id] = {"pos": e.pos, "kind": e.kind, "tick": tick_number}
+
+func _remove_observer_sight(prior: Dictionary) -> void:
+	var side: int = prior.side
+	for tile in prior.sight:
+		var remaining := int(visibility_counts[side].get(tile, 0)) - 1
+		if remaining <= 0:
+			visibility_counts[side].erase(tile)
+			visible_tiles[side].erase(tile)
+		else:
+			visibility_counts[side][tile] = remaining
 
 func _visible_enemy_ids(side: int) -> Array:
 	var observed: Array = []

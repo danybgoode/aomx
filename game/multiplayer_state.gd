@@ -7,7 +7,10 @@ static func restore_for_side(state: Dictionary, match_id: String, side: int) -> 
 		return {"ok": false, "reason": "invalid_slot"}
 	var local_state: Dictionary = state.duplicate(true)
 	if side == 1:
-		for key in ["factions", "balances", "resource_sources", "age_index", "researched", "explored", "last_seen"]:
+		var side_arrays := ["factions", "balances", "resource_sources", "age_index", "researched", "explored", "last_seen"]
+		if local_state.has("expansion_sources"):
+			side_arrays.append("expansion_sources")
+		for key in side_arrays:
 			if not local_state.get(key) is Array or local_state[key].size() != 2:
 				return {"ok": false, "reason": "network_state_invalid"}
 			local_state[key].reverse()

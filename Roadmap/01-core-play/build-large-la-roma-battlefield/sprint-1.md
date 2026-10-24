@@ -3,7 +3,7 @@ epic: build-large-la-roma-battlefield
 sprint: 1
 title: "Large playable start"
 risk: high
-phase: Locking architecture
+phase: Verifying
 stories_total: 1
 stories:
   - id: S1.1
@@ -12,12 +12,12 @@ stories:
     i_want: "a bicitaxi and a readable home view on a much larger map"
     so_that: "I can choose where to explore before committing my economy or army"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Build a large La Roma battlefield — Sprint 1: Large playable start
 
-**Status:** ⬜ Planned — architecture and baseline comparison before implementation
+**Status:** 🏗 In progress — local start/scout checks pass; downloaded-build and owner observation remain open
 
 ### Story 1.1 — Scout a readable large La Roma
 
@@ -43,3 +43,5 @@ Environment: signed Restricted macOS preview, record its exact build ID and down
 4. Start the old La Roma map, then save and resume. → Its original size and save behavior remain intact.
 
 Record every failure by step and build ID; local captures alone do not close owner QA.
+
+**2026-10-23 builder checkpoint:** The authored 96×96 overlay, symmetric starts, 2 side-specific scout spawns, noncombat bicitaxi role and readable start camera pass local Godot rules/client tests. A 128×128 synthetic stress candidate fits the route/tick/memory limits but raises more outlier cost, so the funded pilot remains 96×96. The minimap reaches the far quadrant; bicitaxi selection uses original vector-derived art. The signed downloaded-app steps above and owner visual read remain open.

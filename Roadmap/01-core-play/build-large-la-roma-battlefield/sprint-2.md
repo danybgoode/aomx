@@ -3,7 +3,7 @@ epic: build-large-la-roma-battlefield
 sprint: 2
 title: "Resource journeys"
 risk: high
-phase: Locking architecture
+phase: Verifying
 stories_total: 1
 stories:
   - id: S2.1
@@ -12,12 +12,12 @@ stories:
     i_want: "safe starting resources and separate contested expansion sites"
     so_that: "scouting and positioning change my plan"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Build a large La Roma battlefield — Sprint 2: Resource journeys
 
-**Status:** ⬜ Planned — follows the readable scouting slice
+**Status:** 🏗 In progress — route/resource simulation checks pass; downloaded-build and owner observation remain open
 
 ### Story 2.1 — Expand beyond the starting economy
 
@@ -43,3 +43,5 @@ Environment: signed Restricted macOS preview, record its exact build ID and down
 4. Save, quit and resume. → Positions, fog, orders and resources match the saved state.
 
 Record every failure by step and build ID; a synthetic crowd check alone is insufficient.
+
+**2026-10-23 builder checkpoint:** Starter and expansion sites have symmetric route lengths; the four expansion stocks save and replay independently. The AI bicitaxi now receives legal scouting waypoints, and workers select an expansion only after normal sight has explored it. Blocked workers preserve cargo, redirect after a drop-off is destroyed, deposit at an adjacent valid drop-off and release an exhausted source order. Static obstacle and parked-unit reroutes pass deterministic checks. An independent reviewer verified district and enemy-post routes from both homes and exercised the AI conquest path. The owner crossing, spacing and downloaded-build observations remain open.
