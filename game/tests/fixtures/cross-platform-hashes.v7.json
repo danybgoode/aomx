@@ -15,10 +15,10 @@
     "copilco_poblanos_700": "ae91f29a75c160b78dc9e3f3e1ed136c885067c17c62e7dc9ac9e6ef5b2b65c2",
     "copilco_oaxaquenos_700": "9bee11a92ed1871ebf8572e2ff5b56062f38f700b2ca07b6fb06cac307a52d7f",
     "copilco_veracruzanos_700": "3045acdcc4abb29eeeabaef85334a48d013655bb99a85b5697918793516e5a9c",
-    "la_roma_large_regios_700": "79ff452ecd970ba87170d6990f6b6e658fd30f0db02e306096d2649e4c5a445f",
-    "la_roma_large_poblanos_700": "987675cab21a4d0586668eead76054fe6c79723f2b61d82c1ab41ff7a6e28140",
-    "la_roma_large_oaxaquenos_700": "ade1373de380e85e86c996930d4652c48ee17d6705f0b2aece576d0ea6d6b8bb",
-    "la_roma_large_veracruzanos_700": "f062cbea7a102e177048eb640d64b2286e98ad25d8dad41ff52f042fffa53fec"
+    "la_roma_large_regios_700": "89718e7f58430186717dc127e475d6c7425e03f9592d76db8b96dfbe01eac871",
+    "la_roma_large_poblanos_700": "767608bf39ab7bbc315f0fdb8b789e0fbf710f9c2cc818771dec4ee0ee73919c",
+    "la_roma_large_oaxaquenos_700": "2a7f4a27d8aba7ba73f0e47288e8d201dae42cc5478b6861ceb2d31de10ac10b",
+    "la_roma_large_veracruzanos_700": "5979b31072fc60ba2e22db290f34eda5b4257efe811aab1381e3666898731e3c"
   },
   "game_version": "godot-4.7.2-skirmish-7"
 }

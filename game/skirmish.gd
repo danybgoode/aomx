@@ -512,7 +512,7 @@ func tick() -> void:
 			continue
 		if entity.blocked_ticks >= 90:
 			if tick_number % 30 == 0:
-				_reroute_occupied(entity)
+				_retry_waiting_job(entity)
 			continue
 		if entity.kind == "worker" and entity.job == "idle" and entity.carry > 0:
 			_begin_delivery(entity)
@@ -615,6 +615,33 @@ func _reroute_occupied(entity: Dictionary) -> void:
 		entity.blocked_ticks = 0
 	elif entity.side == HUMAN and entity.blocked_ticks == 30:
 		feedback = "Crowded route; unit looking for a free tile."
+
+func _retry_waiting_job(entity: Dictionary) -> void:
+	# Jobs can change while a unit waits: a source empties, a drop-off falls,
+	# or the original build/attack target disappears. Re-evaluate these before
+	# retrying the old target, so a worker never becomes a permanent cargo trap.
+	match entity.job:
+		"deliver":
+			_begin_delivery(entity)
+			if entity.job != "deliver":
+				entity.blocked_ticks = 0
+				return
+		"gather":
+			if entity.source_resource not in RESOURCE_IDS or _ordered_source(entity).amount <= 0:
+				if entity.carry > 0:
+					_begin_delivery(entity)
+				else:
+					entity.job = "idle"
+					entity.path.clear()
+				entity.blocked_ticks = 0
+				return
+		"build", "repair", "attack":
+			if not entities.has(entity.target_id):
+				entity.job = "idle"
+				entity.path.clear()
+				entity.blocked_ticks = 0
+				return
+	_reroute_occupied(entity)
 
 func _has_free_approach(target: Vector2i, is_building: bool) -> bool:
 	var neighbors: Array = _perimeter(target) if is_building else [target + Vector2i.LEFT, target + Vector2i.UP, target + Vector2i.RIGHT, target + Vector2i.DOWN]
@@ -1114,6 +1141,33 @@ func _ai_issue_waypoint(actor_id: int, preferred: Vector2i) -> bool:
 			return true
 	return false
 
+func _ai_scout_large() -> void:
+	if map_id != "la_roma_large":
+		return
+	var scout_id := _find(COMPUTER, "bicitaxi")
+	if scout_id == -1 or entities[scout_id].job != "idle":
+		return
+	# These geometric waypoints are map knowledge, not hidden enemy or source
+	# state. Workers may use an expansion only after normal sight explores it.
+	for waypoint in [Vector2i(62, 68), Vector2i(69, 55), Vector2i(47, 47)]:
+		if not is_explored(COMPUTER, waypoint):
+			for offset in [Vector2i.ZERO, Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]:
+				var at: Vector2i = waypoint + offset
+				if _walkable(at) and issue(COMPUTER, "move", scout_id, at).ok:
+					ai_plan = "scout"
+					return
+			return
+
+func _ai_source(side: int, resource_id: String) -> Dictionary:
+	var starter: Dictionary = resource_sources[side][resource_id]
+	if starter.amount > 0:
+		return starter
+	if map_id == "la_roma_large" and expansion_sources[side].has(resource_id):
+		var expansion: Dictionary = expansion_sources[side][resource_id]
+		if expansion.amount > 0 and is_explored(side, expansion.pos):
+			return expansion
+	return {}
+
 func _ai_step() -> void:
 	var side := COMPUTER
 	var profile := _ai_profile()
@@ -1121,6 +1175,7 @@ func _ai_step() -> void:
 	var goal := _ai_goal(observed)
 	ai_stall_reason = ""
 	ai_plan = str(goal.get("kind", "hold"))
+	_ai_scout_large()
 	if not goal.is_empty() and _can_pay(side, goal.costs):
 		var actor_id := -1
 		match goal.kind:
@@ -1148,14 +1203,14 @@ func _ai_step() -> void:
 	var resource_id: String = _ai_shortage(goal.costs) if not goal.is_empty() else str(RESOURCE_IDS[int(tick_number / int(profile.step_ticks)) % RESOURCE_IDS.size()])
 	var needed_resource := resource_id
 	var needed_missing := maxi(0, int(goal.costs.get(needed_resource, 0)) - balance(side, needed_resource)) if not goal.is_empty() else 0
-	if resource_sources[side][resource_id].amount <= 0:
+	if _ai_source(side, resource_id).is_empty():
 		if needed_missing > 0:
 			ai_stall_reason = "waiting_for_resource_refresh" if resource_sources[side][resource_id].refreshes_left > 0 else "needed_resource_exhausted"
 		for alternate in RESOURCE_IDS:
-			if resource_sources[side][alternate].amount > 0:
+			if not _ai_source(side, alternate).is_empty():
 				resource_id = alternate
 				break
-		if resource_sources[side][resource_id].amount <= 0:
+		if _ai_source(side, resource_id).is_empty():
 			var can_refresh := false
 			for candidate in RESOURCE_IDS:
 				if resource_sources[side][candidate].refreshes_left > 0:
@@ -1166,7 +1221,8 @@ func _ai_step() -> void:
 	ids.sort()
 	var assigned_to_needed := false
 	for id in ids:
-		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"]:
+		var assigned_source: Dictionary = _ai_source(side, resource_id)
+		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"] and (map_id != "la_roma_large" or not assigned_source.is_empty() and entities[id].order_pos == assigned_source.pos):
 			assigned_to_needed = true
 			break
 	var reassigned := false
@@ -1178,10 +1234,10 @@ func _ai_step() -> void:
 			continue
 		if worker.carry > 0:
 			continue
-		var may_reassign: bool = worker.job == "gather" and worker.source_resource != resource_id and not assigned_to_needed and not reassigned and tick_number % 80 == 0
+		var source: Dictionary = _ai_source(side, resource_id)
+		var may_reassign: bool = worker.job == "gather" and (worker.source_resource != resource_id or map_id == "la_roma_large" and not source.is_empty() and worker.order_pos != source.pos) and not assigned_to_needed and not reassigned and tick_number % 80 == 0
 		if worker.job == "idle" or may_reassign:
-			var source: Dictionary = resource_sources[side][resource_id]
-			if source.amount > 0:
+			if not source.is_empty():
 				if issue(side, "gather", id, source.pos).ok:
 					assigned_to_needed = true
 					reassigned = true

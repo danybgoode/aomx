@@ -94,6 +94,33 @@ func _initialize() -> void:
 		cargo_wait.tick()
 	check(cargo_wait.entities[cargo_worker].carry == 0 and cargo_wait.balance(Skirmish.HUMAN, "comida") >= 2,
 		"blocked cargo reaches an opened drop-off side")
+	var lost_dropoff = Skirmish.new()
+	lost_dropoff.ai_enabled = false
+	var replacement_worker := lost_dropoff._add_entity(Skirmish.HUMAN, "worker", Vector2i(9, 8))
+	var doomed_depot := lost_dropoff._add_entity(Skirmish.HUMAN, "depot", Vector2i(8, 8))
+	lost_dropoff.entities[replacement_worker].carry = 2
+	lost_dropoff.entities[replacement_worker].carry_resource = "comida"
+	lost_dropoff.entities[replacement_worker].job = "deliver"
+	lost_dropoff.entities[replacement_worker].target_id = doomed_depot
+	lost_dropoff.entities[replacement_worker].blocked_ticks = 90
+	lost_dropoff._release_building(Vector2i(8, 8))
+	lost_dropoff.entities.erase(doomed_depot)
+	for i in 150:
+		lost_dropoff.tick()
+	check(lost_dropoff.entities[replacement_worker].carry == 0 and lost_dropoff.balance(Skirmish.HUMAN, "comida") >= 2,
+		"blocked worker redirects cargo after its chosen depot is destroyed")
+	var empty_source = Skirmish.new()
+	empty_source.ai_enabled = false
+	var stopped_gatherer := empty_source._add_entity(Skirmish.HUMAN, "worker", Vector2i(5, 7))
+	empty_source.entities[stopped_gatherer].job = "gather"
+	empty_source.entities[stopped_gatherer].source_resource = "terrenos"
+	empty_source.entities[stopped_gatherer].blocked_ticks = 90
+	empty_source.resource_sources[Skirmish.HUMAN].terrenos.amount = 0
+	empty_source.resource_sources[Skirmish.HUMAN].terrenos.refreshes_left = 0
+	for i in 30:
+		empty_source.tick()
+	check(empty_source.entities[stopped_gatherer].job == "idle" and empty_source.entities[stopped_gatherer].blocked_ticks == 0,
+		"blocked gatherer releases a depleted source order")
 	var opponents = Skirmish.new()
 	opponents.ai_enabled = false
 	var human_opponent := opponents._add_entity(Skirmish.HUMAN, "melee", Vector2i(5, 20))

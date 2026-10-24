@@ -43,6 +43,26 @@ func _initialize() -> void:
 	if not replayed.ok:
 		printerr("Large map replay: ", replayed)
 	check(replayed.ok and replayed.hash == match_game.state_hash(), "large map scout and expansion command replay deterministically")
+	var ai_game = Skirmish.new(Skirmish.REGIOS, {}, 42, "standard", "la_roma_large")
+	var ai_scout_id: int = ai_game._find(Skirmish.COMPUTER, "bicitaxi")
+	ai_game._ai_step()
+	check(ai_game.entities[ai_scout_id].job == "move" and not ai_game.entities[ai_scout_id].path.is_empty(),
+		"computer bicitaxi receives a legal opening scout route")
+	var ai_food: Dictionary = ai_game.expansion_sources[Skirmish.COMPUTER].comida
+	ai_game.entities[ai_scout_id].pos = ai_food.pos + Vector2i(1, 0)
+	ai_game._refresh_visibility()
+	check(ai_game.is_explored(Skirmish.COMPUTER, ai_food.pos), "scout reveals expansion through ordinary sight")
+	for resource_id in RESOURCES:
+		ai_game.resource_sources[Skirmish.COMPUTER][resource_id].amount = 0
+		ai_game.resource_sources[Skirmish.COMPUTER][resource_id].refreshes_left = 0
+		if resource_id != "comida":
+			ai_game.expansion_sources[Skirmish.COMPUTER][resource_id].amount = 0
+	var ai_worker_id: int = ai_game._find(Skirmish.COMPUTER, "worker")
+	ai_game.entities[ai_worker_id].job = "idle"
+	ai_game.entities[ai_worker_id].path.clear()
+	ai_game._ai_step()
+	check(ai_game.entities[ai_worker_id].job == "gather" and ai_game.entities[ai_worker_id].order_pos == ai_food.pos,
+		"computer gathers from a scouted expansion when starter sources expire")
 	var obstacles: Dictionary = {}
 	for point in map.blocked_tiles + map.cliff_tiles:
 		obstacles[_point(point)] = true
