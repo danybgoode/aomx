@@ -9,9 +9,12 @@ import { SkirmishVersions } from '../src/multiplayer/versions.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const godot = process.env.GODOT_BIN ?? 'godot';
 const channel = process.env.AOMX_BUILD_CHANNEL ?? 'preview';
+const userDataDir = process.env.AOMX_USER_DIR ?? 'BattleForLaRomaAlpha';
 const endpoint = process.env.AOMX_INGEST_URL;
 const matchEndpoint = process.env.AOMX_MATCH_URL ?? (endpoint ? new URL(endpoint).origin : '');
 if (!['preview', 'production'].includes(channel)) throw new Error('AOMX_BUILD_CHANNEL must be preview or production');
+if (!/^BattleForLaRoma[A-Za-z0-9]{1,48}$/.test(userDataDir)) throw new Error('AOMX_USER_DIR must be a BattleForLaRoma-prefixed simple directory name');
+if (channel === 'production' && userDataDir !== 'BattleForLaRomaAlpha') throw new Error('Production builds must use the standard user data directory');
 if (!endpoint || !endpoint.startsWith('https://') || new URL(endpoint).pathname !== '/v1/events') {
   throw new Error('AOMX_INGEST_URL must be an HTTPS /v1/events endpoint');
 }
@@ -48,7 +51,7 @@ try {
   const projectFile = path.join(game, 'project.godot');
   fs.writeFileSync(projectFile, fs.readFileSync(projectFile, 'utf8')
     .replace('config/name="Battle for La Roma — RTS Prototype"', 'config/name="Battle for La Roma Alpha"')
-    .replace('config/custom_user_dir_name="BattleForLaRomaPrototype"', 'config/custom_user_dir_name="BattleForLaRomaAlpha"'));
+    .replace('config/custom_user_dir_name="BattleForLaRomaPrototype"', `config/custom_user_dir_name="${userDataDir}"`));
   fs.writeFileSync(path.join(game, 'alpha_config.gd'), `extends RefCounted\nconst ENDPOINT := ${JSON.stringify(endpoint)}\nconst MATCH_ENDPOINT := ${JSON.stringify(matchEndpoint)}\nconst TEST_ACCOUNT := ${channel === 'preview'}\nconst CHANNEL := ${JSON.stringify(channel)}\nconst BUILD_ID := ${JSON.stringify(buildId)}\nconst SIMULATION_HASH := ${JSON.stringify(SkirmishVersions.simulationHash)}\n`);
   fs.mkdirSync(out, { recursive: true });
   const archive = path.join(out, `battle-for-la-roma-${buildId}-macos.zip`);
@@ -63,7 +66,7 @@ try {
     run('codesign', ['--verify', '--deep', '--strict', '--verbose=2', path.join(extracted, apps[0])]);
   }
   const checksum = createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
-  const manifest = { build_id: buildId, channel, commit: sha, godot: '4.7.2',
+  const manifest = { build_id: buildId, channel, commit: sha, godot: '4.7.2', user_data_dir: userDataDir,
     game_version: gameVersion, content_version: currentContentVersion,
     endpoint, match_endpoint: matchEndpoint, archive: path.basename(archive), sha256: checksum };
   fs.writeFileSync(path.join(out, `${buildId}.json`), JSON.stringify(manifest, null, 2) + '\n');
