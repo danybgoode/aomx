@@ -3,7 +3,7 @@ epic: build-large-la-roma-battlefield
 sprint: 2
 title: "Resource journeys"
 risk: high
-phase: Verifying
+phase: In review
 stories_total: 1
 stories:
   - id: S2.1
@@ -17,7 +17,7 @@ stories:
 
 # Build a large La Roma battlefield — Sprint 2: Resource journeys
 
-**Status:** 🏗 In progress — route/resource simulation checks pass; downloaded-build and owner observation remain open
+**Status:** 🟦 In review — route/resource simulation checks pass; downloaded-build and owner observation remain open
 
 ### Story 2.1 — Expand beyond the starting economy
 

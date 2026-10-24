@@ -2,6 +2,10 @@
 
 **State, 2026-10-23:** The 96×96 solo pilot and related #11 movement repair are in verification. Code integration and local game checks do not close the owner downloaded-build walkthrough, map-feel decision or uncoached read. There is no public game release or eligible cohort.
 
+**Restricted preview, 2026-10-24:** [PR #87](https://github.com/danybgoode/aomx/pull/87) merged the pilot, and [PR #89](https://github.com/danybgoode/aomx/pull/89) isolated its local profile; both passed Project checks and CodeQL. The complete `alpha:export` gate signed `preview-48708a90fc4b` from reviewed source commit `48708a90fc4b` (`godot-4.7.2-skirmish-7` / `la-roma-world-5`); archive SHA-256 is `a639c0bc8576140aecf003f97383fd4542633ef9326dba50e75222cf81fc621c`. Butler build **#2200970** is ready on the separate Restricted `mac-large-map-pilot` channel, superseding the first pilot upload #2200926. An authenticated fresh fetch matched the source ZIP extraction byte for byte, strict code-signature verification passed, and the fetched app exited cleanly after a bounded headless startup. It uses `BattleForLaRomaLargePilot` for save, outbox and invite state; the standard `BattleForLaRomaAlpha` directory was unchanged by the startup check. The page returned HTTP 404 anonymously after upload. The existing `mac-private-alpha` channel remains on `preview-222748c6be7a` for compatible online play.
+
+The large-map pilot is **solo only**. The server has not been moved to game version 7, so online joins and in-app event receipts from this pilot are not accepted evidence. The VM's temporary SSH `/32` is stale, and automatic approval review rejected discovering this workstation's public IP through a third-party service. A compatible host/ingest update and one excluded test receipt remain open; no user-facing online claim follows from this pilot.
+
 ## What the build contains
 
 - The three original 28×28 maps remain selectable alongside one 96×96 La Roma Large pilot. Both large-map starts have a worker and a faster, farther-sighted, noncombat bicitaxi. The camera opens on home at a readable unit scale; the minimap can navigate to the far quadrant.
