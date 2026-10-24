@@ -70,6 +70,8 @@ GODOT_BIN=/path/to/Godot AOMX_BUILD_CHANNEL=preview \
   AOMX_INGEST_URL=https://alpha-api.example.test/v1/events npm run alpha:export
 ```
 
+For a separate owner-only pilot, set `AOMX_USER_DIR=BattleForLaRomaLargePilot` during export. The manifest records that directory. It keeps the pilot's save, event outbox and invite state separate from the standard alpha app; production exports always use `BattleForLaRomaAlpha`.
+
 Preview builds set `test_account=true`. Production builds set it false; release
 eligibility still depends on the served Golden Frijoles flag and server policy.
 Alpha builds ask for an individual invite code and save it in the app's
