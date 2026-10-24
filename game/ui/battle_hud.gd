@@ -454,7 +454,7 @@ func _layout() -> void:
 	var narrow_top := w < 620
 	var compact_top := w < 1750 or text_scale > 1.6
 	var margin := 8.0 if stacked else 12.0
-	var top_h := 136.0 if narrow_top else (maxf(116.0, 46.0 * text_scale + 42.0) if compact_top else 72.0)
+	var top_h := 136.0 if narrow_top else (maxf(100.0, 38.0 * text_scale + 24.0) if compact_top else 72.0)
 	top.position = Vector2(margin, margin)
 	top.size = Vector2(w - margin * 2.0, top_h)
 	var top_row: HBoxContainer = top.get_node("TopRow")
@@ -474,10 +474,10 @@ func _layout() -> void:
 	top_actions.position = Vector2(6, 49)
 	top_actions.size = Vector2(top.size.x - 12, 46)
 	top_row.position = Vector2(10, 6)
-	top_row.size = Vector2(top.size.x - 20, 54.0 if compact_top else 58.0)
+	top_row.size = Vector2(top.size.x - 20, 50.0 if compact_top else 58.0)
 	top_row.add_theme_constant_override("separation", 4 if narrow_top else (18 if compact_top else 9))
-	resource_row.position = Vector2(10, 100 if narrow_top else 61) if compact_top else Vector2.ZERO
-	resource_row.size = Vector2(top.size.x - 20, top_h - (105 if narrow_top else 68)) if compact_top else Vector2.ZERO
+	resource_row.position = Vector2(10, 100 if narrow_top else 53) if compact_top else Vector2.ZERO
+	resource_row.size = Vector2(top.size.x - 20, top_h - (105 if narrow_top else 58)) if compact_top else Vector2.ZERO
 	resource_row.add_theme_constant_override("separation", 3 if narrow_top else (12 if compact_top else 10))
 	faction_label.custom_minimum_size.x = 95 if narrow_top else (190 if compact_top else 145)
 	faction_label.clip_text = true
@@ -490,7 +490,7 @@ func _layout() -> void:
 	timer_label.add_theme_font_size_override("font_size", 18)
 	timer_label.custom_minimum_size.x = 58
 	var selection_h := maxf(88.0, 53.0 * text_scale)
-	var bottom_h := selection_h + 170.0 if stacked else clampf(160.0 * text_scale, 250.0, minf(430.0, h * 0.44))
+	var bottom_h := selection_h + 170.0 if stacked else clampf(135.0 * text_scale, 235.0, minf(390.0, h * 0.4))
 	if narrow_top:
 		bottom_h = maxf(220.0, selection_h + 132.0)
 	var bottom_w := w - 2.0 * margin
@@ -555,9 +555,9 @@ func _layout() -> void:
 	minimap.position = Vector2(w - margin - map_w, top.position.y + top_h + 8)
 	minimap.size = Vector2(map_w, map_h)
 	objective_panel.position = Vector2(margin, top.position.y + top_h + 8)
-	if stacked and not objective_panel.has_meta("mobile_initialized"):
+	if not objective_panel.has_meta("initially_collapsed"):
 		objective_body.hide()
-		objective_panel.set_meta("mobile_initialized", true)
+		objective_panel.set_meta("initially_collapsed", true)
 	objective_panel.size = Vector2(minf(560.0, w - map_w - 3.0 * margin - 12.0) if not stacked else minf(300.0, w - map_w - 3.0 * margin - 12.0),
 		clampf(180.0 * text_scale - 180.0, 175.0, 365.0) if objective_body.visible else maxf(44.0, 28.0 * text_scale))
 	objective_panel.clip_contents = false

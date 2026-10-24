@@ -1,4 +1,4 @@
-export const gameVersion = 'godot-4.7.2-skirmish-6';
+export const gameVersion = 'godot-4.7.2-skirmish-7';
 export const currentContentVersion = 'la-roma-world-5';
 export const supportedVersions = [
   { game: 'godot-4.7.2-skirmish-1', content: 'original-skirmish-map-1' },
@@ -7,5 +7,6 @@ export const supportedVersions = [
   { game: 'godot-4.7.2-skirmish-3', content: 'la-roma-warfare-3' },
   { game: 'godot-4.7.2-skirmish-4', content: 'la-roma-opponent-4' },
   { game: 'godot-4.7.2-skirmish-5', content: currentContentVersion },
+  { game: 'godot-4.7.2-skirmish-6', content: currentContentVersion },
   { game: gameVersion, content: currentContentVersion }
 ];

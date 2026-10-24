@@ -7,9 +7,13 @@ var sim: RefCounted
 var camera_tile := Vector2i(10, 10)
 var view_span := Vector2(20, 20)
 var terrain_classifier: Callable
+var terrain_texture: ImageTexture
+var cached_game_id := -1
+var cached_tick := -1
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	custom_minimum_size = Vector2.ZERO
 	tooltip_text = "LA ROMA MAP • click to center view"
 
@@ -19,27 +23,36 @@ func _draw() -> void:
 	draw_rect(inner, Color("383b31"))
 	var width: int = sim.map_width if sim != null else Skirmish.WIDTH
 	var height: int = sim.map_height if sim != null else Skirmish.HEIGHT
-	for x in width:
-		for y in height:
-			var tile := Vector2i(x, y)
-			var cell := Rect2(inner.position + Vector2(float(x) / width, float(y) / height) * inner.size,
-				inner.size / Vector2(width, height) + Vector2.ONE)
-			var terrain: String = terrain_classifier.call(tile) if terrain_classifier.is_valid() else "terrain_grass_0"
-			var color := Color("454945") if terrain.contains("asphalt") else Color("777368") if terrain.contains("sidewalk") else Color("4e624b")
-			if terrain.contains("plaza"):
-				color = HudSkin.BRONZE
-			if sim != null and not sim.is_explored(Skirmish.HUMAN, tile):
-				color = Color("141a21")
-			elif sim != null and not sim.is_visible(Skirmish.HUMAN, tile):
-				color = color.darkened(0.65)
-			draw_rect(cell, color)
+	var game_id: int = sim.get_instance_id() if sim != null else 0
+	var current_tick: int = sim.tick_number if sim != null else 0
+	if terrain_texture == null or cached_game_id != game_id or cached_tick != current_tick:
+		var pixels := Image.create_empty(width, height, false, Image.FORMAT_RGBA8)
+		for x in width:
+			for y in height:
+				var tile := Vector2i(x, y)
+				var terrain: String = terrain_classifier.call(tile) if terrain_classifier.is_valid() else "terrain_grass_0"
+				var color := Color("454945") if terrain.contains("asphalt") else Color("777368") if terrain.contains("sidewalk") else Color("4e624b")
+				if terrain.contains("plaza"):
+					color = HudSkin.BRONZE
+				if sim != null and not sim.is_explored(Skirmish.HUMAN, tile):
+					color = Color("141a21")
+				elif sim != null and not sim.is_visible(Skirmish.HUMAN, tile):
+					color = color.darkened(0.65)
+				pixels.set_pixel(x, y, color)
+		terrain_texture = ImageTexture.create_from_image(pixels)
+		cached_game_id = game_id
+		cached_tick = current_tick
+	draw_texture_rect(terrain_texture, inner, false)
 	if sim != null:
 		var resource_colors := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
 		for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 			for id in Skirmish.RESOURCE_IDS:
-				var source: Dictionary = sim.resource_sources[side][id]
-				if source.amount > 0 and sim.is_visible(Skirmish.HUMAN, source.pos):
-					draw_circle(_point(inner, source.pos), 2.5, resource_colors[id])
+				var sites: Array = [sim.resource_sources[side][id]]
+				if sim.expansion_sources[side].has(id):
+					sites.append(sim.expansion_sources[side][id])
+				for source in sites:
+					if source.amount > 0 and sim.is_visible(Skirmish.HUMAN, source.pos):
+						draw_circle(_point(inner, source.pos), 2.5, resource_colors[id])
 		for entity in sim.entities.values():
 			if entity.hp <= 0 or (entity.side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue

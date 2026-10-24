@@ -1,0 +1,24 @@
+{
+  "schema_version": 7,
+  "godot": "4.7.2",
+  "content_version": "la-roma-world-5",
+  "cases": {
+    "la_roma_regios_700": "908ccdd3dd84ba1980d51cce68671d9e1bcec44e434eed4b63941fb50e59d717",
+    "la_roma_poblanos_700": "175e15f4600dc51af3d0b39d13af697aca9606614c9d7112e8e9706b7f38f4fe",
+    "la_roma_oaxaquenos_700": "0736ac8fdf47c9489908e7337b5a28699f9b0c260c4ec1733e0b08f6793f2375",
+    "la_roma_veracruzanos_700": "6fdf6a74db79ad9422498b0f13dc5c7735781334c78b10526ffd30a66b30aa69",
+    "narvarte_regios_700": "7af1f92a6b5ab2dc37ee93181677db49701fc122795db36635ca6900c3a6eae2",
+    "narvarte_poblanos_700": "d3ad1121c53e87bae99ff6b0134cf112c62ca7f408b729c1fba9e47efd62980d",
+    "narvarte_oaxaquenos_700": "5988e6cc49c1172121ce45482ced016e3bace4aef044b75443dfebbb418f66f0",
+    "narvarte_veracruzanos_700": "5584904cd6a71fe4ea6490db38cb383b49cd61c8ed9f1a4e73206de12eb57695",
+    "copilco_regios_700": "7cb9156da8c7c30d59c3cff818735272c2949ba643c43f349dc3c588690ae3bd",
+    "copilco_poblanos_700": "ae91f29a75c160b78dc9e3f3e1ed136c885067c17c62e7dc9ac9e6ef5b2b65c2",
+    "copilco_oaxaquenos_700": "9bee11a92ed1871ebf8572e2ff5b56062f38f700b2ca07b6fb06cac307a52d7f",
+    "copilco_veracruzanos_700": "3045acdcc4abb29eeeabaef85334a48d013655bb99a85b5697918793516e5a9c",
+    "la_roma_large_regios_700": "79ff452ecd970ba87170d6990f6b6e658fd30f0db02e306096d2649e4c5a445f",
+    "la_roma_large_poblanos_700": "987675cab21a4d0586668eead76054fe6c79723f2b61d82c1ab41ff7a6e28140",
+    "la_roma_large_oaxaquenos_700": "ade1373de380e85e86c996930d4652c48ee17d6705f0b2aece576d0ea6d6b8bb",
+    "la_roma_large_veracruzanos_700": "f062cbea7a102e177048eb640d64b2286e98ad25d8dad41ff52f042fffa53fec"
+  },
+  "game_version": "godot-4.7.2-skirmish-7"
+}

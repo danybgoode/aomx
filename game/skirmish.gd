@@ -32,7 +32,7 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-6"
+const GAME_VERSION := "godot-4.7.2-skirmish-7"
 const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
@@ -51,7 +51,8 @@ var visible_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var explored_tiles: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var last_seen: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var sight_cache: Dictionary = {}
-var visibility_signature: PackedInt32Array = PackedInt32Array()
+var observer_sight: Dictionary = {}
+var visibility_counts: Dictionary = {HUMAN: {}, COMPUTER: {}}
 var move_route_cache: Dictionary = {}
 var building_tiles: Dictionary = {}
 var projectiles: Array[Dictionary] = []
@@ -461,6 +462,7 @@ func tick() -> void:
 		if entity.job == "attack" and (not entities.has(entity.target_id) or entities[entity.target_id].hp <= 0 or not is_entity_visible(entity.side, entities[entity.target_id])):
 			entity.job = "idle"
 			entity.path.clear()
+			entity.blocked_ticks = 0
 			entity.target_id = -1
 			if entity.side == HUMAN:
 				feedback = "Target lost from sight. Scout before attacking again."
@@ -502,11 +504,15 @@ func tick() -> void:
 						_reroute_occupied(entity)
 					elif entity.blocked_ticks >= 90:
 						entity.path.clear()
-						entity.job = "idle"
+						entity.blocked_ticks = 90
 						if entity.side == HUMAN:
-							feedback = "No free route. Choose another destination."
+							feedback = "Route blocked; unit will retry or accept a new order."
 				else:
 					_reroute_blocked(entity)
+			continue
+		if entity.blocked_ticks >= 90:
+			if tick_number % 30 == 0:
+				_reroute_occupied(entity)
 			continue
 		if entity.kind == "worker" and entity.job == "idle" and entity.carry > 0:
 			_begin_delivery(entity)
@@ -549,12 +555,18 @@ func tick() -> void:
 func _reroute_blocked(entity: Dictionary) -> void:
 	entity.path.clear()
 	match entity.job:
+		"move", "attack_move":
+			entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
+			if not entity.path.is_empty() or entity.pos == entity.order_pos:
+				entity.blocked_ticks = 0
+				return
 		"gather":
 			if entity.source_resource in RESOURCE_IDS:
 				var source: Dictionary = _ordered_source(entity)
 				if source.amount > 0:
 					entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
 					if not entity.path.is_empty() or _distance(entity.pos, source.pos) == 1:
+						entity.blocked_ticks = 0
 						return
 		"deliver":
 			_begin_delivery(entity)
@@ -564,6 +576,7 @@ func _reroute_blocked(entity: Dictionary) -> void:
 				var building: Dictionary = entities[entity.target_id]
 				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, building) == 1)
 				if not entity.path.is_empty() or _distance_to_entity(entity.pos, building) == 1:
+					entity.blocked_ticks = 0
 					return
 		"attack":
 			if entities.has(entity.target_id):
@@ -571,10 +584,11 @@ func _reroute_blocked(entity: Dictionary) -> void:
 				var reach := int(content.units[entity.kind].range)
 				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach)
 				if not entity.path.is_empty() or _distance_to_entity(entity.pos, target) <= reach:
+					entity.blocked_ticks = 0
 					return
-	entity.job = "idle"
+	entity.blocked_ticks = 90
 	if entity.side == HUMAN:
-		feedback = "No route to the ordered destination."
+		feedback = "Route blocked; unit will retry or accept a new order."
 
 func _reroute_occupied(entity: Dictionary) -> void:
 	# A stationary neighbor can block an otherwise valid static path forever.
@@ -583,22 +597,31 @@ func _reroute_occupied(entity: Dictionary) -> void:
 	var route: Array[Vector2i] = []
 	match entity.job:
 		"move", "attack_move":
-			route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
+			if _unit_at(entity.order_pos) == -1 and _walkable(entity.order_pos):
+				route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
 		"gather":
 			if entity.source_resource in RESOURCE_IDS:
 				var source: Dictionary = _ordered_source(entity)
-				if source.amount > 0:
+				if source.amount > 0 and _has_free_approach(source.pos, false):
 					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1, true)
 		"deliver", "build", "repair", "attack":
 			if entities.has(entity.target_id):
 				var target: Dictionary = entities[entity.target_id]
 				var reach := int(content.units[entity.kind].range) if entity.job == "attack" else 1
-				route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach, true)
+				if reach > 1 or _has_free_approach(target.pos, target.kind in content.buildings):
+					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach, true)
 	if not route.is_empty():
 		entity.path = route
 		entity.blocked_ticks = 0
 	elif entity.side == HUMAN and entity.blocked_ticks == 30:
 		feedback = "Crowded route; unit looking for a free tile."
+
+func _has_free_approach(target: Vector2i, is_building: bool) -> bool:
+	var neighbors: Array = _perimeter(target) if is_building else [target + Vector2i.LEFT, target + Vector2i.UP, target + Vector2i.RIGHT, target + Vector2i.DOWN]
+	for tile in neighbors:
+		if _walkable(tile) and _unit_at(tile) == -1:
+			return true
+	return false
 
 func _tick_district() -> void:
 	var present := {HUMAN: false, COMPUTER: false}
@@ -713,11 +736,15 @@ func _release_building(at: Vector2i) -> void:
 
 func rebuild_navigation() -> void:
 	move_route_cache.clear()
-	visibility_signature.clear()
+	sight_cache.clear()
+	observer_sight.clear()
+	visibility_counts = {HUMAN: {}, COMPUTER: {}}
+	visible_tiles = {HUMAN: {}, COMPUTER: {}}
 	building_tiles.clear()
 	for e in entities.values():
 		if e.kind in content.buildings and e.hp > 0:
 			_occupy_building(e.pos)
+	_refresh_visibility()
 
 func _find(side: int, kind: String) -> int:
 	for id in entities:
@@ -1384,34 +1411,46 @@ func is_explored(side: int, tile: Vector2i) -> bool:
 func _refresh_visibility() -> void:
 	var ids: Array = entities.keys()
 	ids.sort()
-	var signature := PackedInt32Array()
+	var live_observers: Dictionary = {}
 	for id in ids:
 		var observer: Dictionary = entities[id]
 		if observer.hp <= 0:
 			continue
-		var radius := 7 if elevated_tiles.has(observer.pos) else 5
+		live_observers[id] = true
+		var radius := int(content.units.bicitaxi.sight) if observer.kind == "bicitaxi" else (7 if elevated_tiles.has(observer.pos) else 5)
 		if observer.kind in content.buildings:
 			radius = 6
-		signature.append_array(PackedInt32Array([id, observer.side, observer.pos.x, observer.pos.y, radius]))
-	if signature != visibility_signature:
-		visibility_signature = signature
-		visible_tiles = {HUMAN: {}, COMPUTER: {}}
-		for id in ids:
-			var observer: Dictionary = entities[id]
-			if observer.hp <= 0:
+		if observer_sight.has(id):
+			var prior: Dictionary = observer_sight[id]
+			if prior.pos == observer.pos and prior.radius == radius and prior.side == observer.side:
 				continue
-			var side: int = observer.side
-			var radius := int(content.units.bicitaxi.sight) if observer.kind == "bicitaxi" else (7 if elevated_tiles.has(observer.pos) else 5)
-			if observer.kind in content.buildings:
-				radius = 6
-			var sight: Dictionary = _sight_for(observer.pos, radius)
-			visible_tiles[side].merge(sight, true)
-			explored_tiles[side].merge(sight, true)
+			_remove_observer_sight(prior)
+		var side: int = observer.side
+		var sight: Dictionary = _sight_for(observer.pos, radius)
+		for tile in sight:
+			visibility_counts[side][tile] = int(visibility_counts[side].get(tile, 0)) + 1
+			visible_tiles[side][tile] = true
+			explored_tiles[side][tile] = true
+		observer_sight[id] = {"side": side, "pos": observer.pos, "radius": radius, "sight": sight}
+	for id in observer_sight.keys():
+		if not live_observers.has(id):
+			_remove_observer_sight(observer_sight[id])
+			observer_sight.erase(id)
 	for side in [HUMAN, COMPUTER]:
 		for id in ids:
 			var e: Dictionary = entities[id]
 			if e.side != side and e.hp > 0 and is_entity_visible(side, e):
 				last_seen[side][id] = {"pos": e.pos, "kind": e.kind, "tick": tick_number}
+
+func _remove_observer_sight(prior: Dictionary) -> void:
+	var side: int = prior.side
+	for tile in prior.sight:
+		var remaining := int(visibility_counts[side].get(tile, 0)) - 1
+		if remaining <= 0:
+			visibility_counts[side].erase(tile)
+			visible_tiles[side].erase(tile)
+		else:
+			visibility_counts[side][tile] = remaining
 
 func _visible_enemy_ids(side: int) -> Array:
 	var observed: Array = []

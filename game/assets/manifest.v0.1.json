@@ -1726,8 +1726,8 @@
     {
       "id": "unit_bicitaxi_blue",
       "category": "unit",
-      "path": "res://assets/render/unit_bicitaxi_blue.svg",
-      "source": "res://assets/render/unit_bicitaxi_blue.svg",
+      "path": "res://assets/render/unit_bicitaxi_blue.png",
+      "source": "res://assets/source/bicitaxi/blue.svg",
       "canvas": [
         64,
         56
@@ -1748,13 +1748,13 @@
       "directions": [
         "SE"
       ],
-      "rights": "project-original-vector"
+      "rights": "project-original-ai-assisted"
     },
     {
       "id": "unit_bicitaxi_red",
       "category": "unit",
-      "path": "res://assets/render/unit_bicitaxi_red.svg",
-      "source": "res://assets/render/unit_bicitaxi_red.svg",
+      "path": "res://assets/render/unit_bicitaxi_red.png",
+      "source": "res://assets/source/bicitaxi/red.svg",
       "canvas": [
         64,
         56
@@ -1775,7 +1775,7 @@
       "directions": [
         "SE"
       ],
-      "rights": "project-original-vector"
+      "rights": "project-original-ai-assisted"
     }
   ],
   "procedural": [

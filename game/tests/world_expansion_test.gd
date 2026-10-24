@@ -21,6 +21,7 @@ func _initialize() -> void:
 				for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 					var source_tile: Vector2i = route_game.resource_sources[side][resource_id].pos
 					var worker_tile: Vector2i = route_game.entities[route_game._find(side, "worker")].pos
+					# Legacy maps retain their original fixture; the large-map layout test measures real adjacent routes.
 					distances.append(route_game._route_until(worker_tile, func(tile: Vector2i) -> bool: return tile == source_tile).size())
 				check(absi(distances[0] - distances[1]) <= 1, "comparable opening route: " + map_id + "/" + resource_id)
 		for i in Skirmish.FACTION_IDS.size():
@@ -46,12 +47,12 @@ func _initialize() -> void:
 				check(conquest.result == "win" and conquest.result_reason == "command_post", "conquest terminal: " + label)
 				var hold = Skirmish.new(faction, {}, 41, level, map_id, opponent)
 				hold.ai_enabled = false
-				hold._add_entity(Skirmish.HUMAN, "melee", Vector2i(9, 10))
+				hold._add_entity(Skirmish.HUMAN, "melee", Vector2i(int(hold.content.map.district_min[0]) + 1, int(hold.content.map.district_min[1]) + 1))
 				hold.district_side = Skirmish.HUMAN
 				hold.district_progress = int(hold.content.objectives.district_hold_ticks) - 1
 				hold.tick()
 				check(hold.result == "win" and hold.result_reason == "district", "center-hold terminal: " + label)
-	check(hashes.size() == 3 and hashes.la_roma != hashes.narvarte and hashes.narvarte != hashes.copilco,
+	check(hashes.size() == 4 and hashes.la_roma != hashes.narvarte and hashes.narvarte != hashes.copilco and hashes.copilco != hashes.la_roma_large,
 		"map choices pin distinct content hashes")
 	var oax = Skirmish.new(Skirmish.OAXAQUENOS)
 	var ver = Skirmish.new(Skirmish.VERACRUZANOS)
@@ -92,7 +93,7 @@ func _initialize() -> void:
 	invalid.resources.varos.source_positions[0] = invalid.map.blocked_tiles[0]
 	check(RulesContent.validate(invalid).reason == "inaccessible_varos_source", "blocked map resource rejected")
 	if not failed:
-		print("World expansion checks passed: 4 factions x 3 maps x 3 AI levels, both terminals, save and replay")
+		print("World expansion checks passed: 4 factions x 4 maps x 3 AI levels, both terminals, save and replay")
 	quit(1 if failed else 0)
 
 func check(ok: bool, label: String) -> void:

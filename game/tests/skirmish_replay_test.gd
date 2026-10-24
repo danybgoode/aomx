@@ -35,6 +35,8 @@ func _initialize() -> void:
 	old = recording.duplicate(true)
 	old.game_version = "godot-4.7.2-skirmish-5"
 	check(Replay.verify(old).reason == "game_version_mismatch", "prior movement rules replay rejected explicitly")
+	old.game_version = "godot-4.7.2-skirmish-6"
+	check(Replay.verify(old).reason == "game_version_mismatch", "prior crowd recovery replay rejected explicitly")
 	var altered: Dictionary = recording.duplicate(true)
 	altered.checkpoints[0].hash = "0".repeat(64)
 	var mismatch: Dictionary = Replay.verify(altered)

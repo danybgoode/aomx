@@ -52,6 +52,48 @@ func _initialize() -> void:
 		check(worker_detour.entities[gathering_worker].pos != worker_detour.entities[parked_worker].pos, "worker detour never overlaps parked worker")
 	check(worker_detour.entities[gathering_worker].carry > 0 or worker_detour.balance(Skirmish.HUMAN, "terrenos") > 0,
 		"gatherer reaches a free side of the source and resumes collection")
+	var waiting = Skirmish.new()
+	waiting.ai_enabled = false
+	var blocked_unit := waiting._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 10))
+	var parked_target := waiting._add_entity(Skirmish.HUMAN, "melee", Vector2i(6, 10))
+	check(waiting.issue(Skirmish.HUMAN, "move", blocked_unit, Vector2i(6, 10)).ok, "occupied destination order accepted")
+	for i in 100:
+		waiting.tick()
+	check(waiting.entities[blocked_unit].job == "move" and waiting.entities[blocked_unit].blocked_ticks >= 90,
+		"fully occupied destination remains an explicit retrying order")
+	waiting.entities[parked_target].pos = Vector2i(8, 10)
+	for i in 45:
+		waiting.tick()
+	check(waiting.entities[blocked_unit].pos == Vector2i(6, 10) and waiting.entities[blocked_unit].job == "idle",
+		"blocked move completes when its occupied destination clears")
+	var changed_lane = Skirmish.new()
+	changed_lane.ai_enabled = false
+	var lane_unit := changed_lane._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 10))
+	check(changed_lane.issue(Skirmish.HUMAN, "move", lane_unit, Vector2i(6, 10)).ok, "lane move starts before an obstacle change")
+	changed_lane.blocked_tiles[Vector2i(5, 10)] = true
+	for i in 45:
+		changed_lane.tick()
+	check(changed_lane.entities[lane_unit].pos == Vector2i(6, 10), "new static obstacle causes a legal detour")
+	var cargo_wait = Skirmish.new()
+	cargo_wait.ai_enabled = false
+	var cargo_worker := cargo_wait._add_entity(Skirmish.HUMAN, "worker", Vector2i(4, 4))
+	cargo_wait.entities[cargo_worker].carry = 2
+	cargo_wait.entities[cargo_worker].carry_resource = "comida"
+	var freeable := -1
+	for tile in cargo_wait._perimeter(Vector2i(2, 2)):
+		if cargo_wait._walkable(tile) and cargo_wait._unit_at(tile) == -1:
+			var blocker := cargo_wait._add_entity(Skirmish.HUMAN, "melee", tile)
+			if freeable == -1:
+				freeable = blocker
+	for i in 100:
+		cargo_wait.tick()
+	check(cargo_wait.entities[cargo_worker].carry == 2 and cargo_wait.entities[cargo_worker].job == "deliver" and cargo_wait.entities[cargo_worker].blocked_ticks >= 90,
+		"carrying worker keeps a visible retrying delivery order")
+	cargo_wait.entities[freeable].pos = Vector2i(8, 10)
+	for i in 55:
+		cargo_wait.tick()
+	check(cargo_wait.entities[cargo_worker].carry == 0 and cargo_wait.balance(Skirmish.HUMAN, "comida") >= 2,
+		"blocked cargo reaches an opened drop-off side")
 	var opponents = Skirmish.new()
 	opponents.ai_enabled = false
 	var human_opponent := opponents._add_entity(Skirmish.HUMAN, "melee", Vector2i(5, 20))

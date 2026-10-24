@@ -32,7 +32,7 @@ try {
   run('npm', ['test'], { cwd: root });
   // Fresh checkouts need Godot's imported art cache before scene-based tests run.
   run(godot, ['--headless', '--path', path.join(root, 'game'), '--import']);
-  for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd', 'presentation_cues_test.gd',
+  for (const test of ['simulation_test.gd', 'outbox_test.gd', 'skirmish_test.gd', 'faction_test.gd', 'district_test.gd', 'skirmish_client_test.gd', 'large_map_client_test.gd', 'large_map_layout_test.gd', 'presentation_cues_test.gd',
     'rules_content_test.gd', 'strategic_economy_test.gd', 'strategic_progression_test.gd', 'strategic_ai_test.gd',
     'skirmish_persistence_test.gd', 'skirmish_replay_test.gd', 'multiplayer_replay_test.gd', 'world_expansion_test.gd', 'geography_test.gd', 'cross_platform_hash_test.gd', 'skirmish_save_client_test.gd',
     'skirmish_scale_benchmark.gd', 'art_pipeline_test.gd', 'warfare_test.gd',
@@ -40,6 +40,7 @@ try {
     run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', `res://tests/${test}`]);
   }
   run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', 'res://warfare_performance_probe.gd']);
+  run(godot, ['--headless', '--path', path.join(root, 'game'), '--script', 'res://large_map_performance_probe.gd']);
   run('npm', ['run', 'skirmish:contract'], { cwd: root, env: { ...process.env, GODOT_BIN: godot } });
   run('npm', ['run', 'multiplayer:integration'], { cwd: root, env: { ...process.env, GODOT_BIN: godot } });
   run('npm', ['run', 'multiplayer:replay-integration'], { cwd: root, env: { ...process.env, GODOT_BIN: godot } });
