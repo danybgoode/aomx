@@ -1,6 +1,7 @@
 extends RefCounted
 
 const RulesContent = preload("res://rules_content.gd")
+const CampaignMissions = preload("res://campaign_missions.gd")
 
 const WIDTH := 28
 const HEIGHT := 28
@@ -41,6 +42,11 @@ const AI_LEVELS := ["learner", "standard", "challenger"]
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
 var content_hash := ""
+var mission_id := ""
+var mission_hash := ""
+var mission_definition: Dictionary = {}
+var mission_steps: Array = []
+var mission_result := ""
 var map_id := "la_roma"
 var map_width := WIDTH
 var map_height := HEIGHT
@@ -89,7 +95,7 @@ var ai_rejections := 0
 var ai_last_rejection := ""
 var pending_footprint := Vector2i(-1, -1)
 
-func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "") -> void:
+func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "", selected_mission: String = "") -> void:
 	assert(human_faction in FACTION_IDS, "Choose a supported faction.")
 	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
 	if opponent_faction.is_empty():
@@ -106,6 +112,12 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 		content = custom_content.duplicate(true)
 		content_hash = JSON.stringify(content).sha256_text()
 	map_id = str(content.map_id)
+	if not selected_mission.is_empty():
+		var mission := CampaignMissions.find_mission(selected_mission)
+		assert(mission.ok and mission.data.map_id == map_id, "Mission and map must both be valid before play.")
+		mission_id = selected_mission
+		mission_hash = mission.hash
+		mission_definition = mission.data
 	map_width = int(content.map.width)
 	map_height = int(content.map.height)
 	for point in content.map.blocked_tiles:
@@ -413,7 +425,7 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 	return rejected
 
 func tick() -> void:
-	if result != "":
+	if result != "" or mission_result != "":
 		return
 	move_route_cache.clear()
 	tick_number += 1
@@ -549,8 +561,21 @@ func tick() -> void:
 		if result == "" and tick_number >= int(content.objectives.draw_tick):
 			_finish("draw", "time_limit")
 	_refresh_visibility()
-	if tick_number % 50 == 0 or result != "":
+	_advance_mission()
+	if tick_number % 50 == 0 or result != "" or mission_result != "":
 		hash_checkpoints.append({"tick": tick_number, "hash": state_hash()})
+
+func _advance_mission() -> void:
+	if mission_id.is_empty() or mission_result != "":
+		return
+	if result in ["loss", "draw"]:
+		mission_result = "loss"
+		return
+	mission_steps = CampaignMissions.advance(self, mission_definition, mission_steps)
+	if mission_steps.size() == mission_definition.steps.size():
+		mission_result = "win"
+	elif result != "":
+		mission_result = "loss"
 
 func _reroute_blocked(entity: Dictionary) -> void:
 	entity.path.clear()
@@ -740,6 +765,11 @@ func snapshot() -> Dictionary:
 					"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
 			expansion_states.append(side_expansion)
 		state["expansion_sources"] = expansion_states
+	if not mission_id.is_empty():
+		state["mission_id"] = mission_id
+		state["mission_hash"] = mission_hash
+		state["mission_steps"] = mission_steps.duplicate()
+		state["mission_result"] = mission_result
 	return state
 
 func state_hash() -> String:

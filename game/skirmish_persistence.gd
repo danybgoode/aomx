@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
+const CampaignMissions = preload("res://campaign_missions.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
 const SAVE_SCHEMA_VERSION := 5
 const MAX_SAVE_BYTES := 16777216
@@ -82,7 +83,11 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 			return _bad("save_history_invalid")
 		if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
 			return _bad("save_history_invalid")
-	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1])
+	var selected_mission := str(state.get("mission_id", ""))
+	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1], selected_mission)
+	if not selected_mission.is_empty():
+		game.mission_steps = state.mission_steps.duplicate()
+		game.mission_result = state.mission_result
 	game.tick_number = int(state.tick)
 	game.result = state.result
 	game.terminal_tick = int(state.terminal_tick)
@@ -175,6 +180,21 @@ static func restore_network(state: Dictionary, match_id: String) -> Dictionary:
 static func _validate_state(s: Dictionary, content: Dictionary, hash: String) -> Dictionary:
 	if s.get("state_schema_version") != Skirmish.STATE_SCHEMA_VERSION or s.get("content_version") != content.content_id or s.get("content_hash") != hash or s.get("map_id") != content.map_id:
 		return _bad("state_version_mismatch")
+	if s.has("mission_id"):
+		if not s.get("mission_id") is String or not s.get("mission_hash") is String or not s.get("mission_steps") is Array or s.get("mission_result") not in ["", "win", "loss"]:
+			return _bad("state_mission_invalid")
+		var mission := CampaignMissions.find_mission(s.mission_id)
+		if not mission.ok or mission.data.map_id != content.map_id or mission.hash != s.mission_hash or s.mission_steps.size() > mission.data.steps.size():
+			return _bad("state_mission_invalid")
+		for i in s.mission_steps.size():
+			if s.mission_steps[i] != mission.data.steps[i].id:
+				return _bad("state_mission_invalid")
+		if s.mission_result == "win" and s.mission_steps.size() != mission.data.steps.size():
+			return _bad("state_mission_invalid")
+	else:
+		for field in ["mission_hash", "mission_steps", "mission_result"]:
+			if s.has(field):
+				return _bad("state_mission_invalid")
 	for key in ["tick", "district_progress", "next_id", "next_command", "rng_state", "initial_seed"]:
 		if not _integer(s.get(key), 1 if key in ["next_id", "next_command", "rng_state", "initial_seed"] else 0):
 			return _bad("state_" + key + "_invalid")

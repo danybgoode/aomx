@@ -3,7 +3,7 @@ epic: create-campaigns-and-scenarios
 sprint: 1
 title: "Mission contract"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S1.1
@@ -12,21 +12,21 @@ stories:
     i_want: "a checked format for missions on existing maps"
     so_that: "bad objectives cannot enter a match"
     risk: high
-    status: planned
+    status: done
   - id: S1.2
     title: "Advance objectives on fixed ticks"
     as_a: "campaign player"
     i_want: "mission goals that follow my actual orders"
     so_that: "progress and results feel fair and repeatable"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Create the first campaign chapter — Sprint 1: Mission contract
 
-**Status:** ⬜ Not started
+**Status:** 🟨 In progress — manifest validation and fixed-tick goals pass; native rendered walkthrough remains open.
 
-### Story 1.1 — Validate bounded mission definitions
+### Story 1.1 — Validate bounded mission definitions ✅ 4a66f9d
 
 **As a** campaign author, **I want** a checked format for missions on existing maps, **so that** bad objectives cannot enter a match.
 
@@ -58,3 +58,5 @@ Environment: local Godot 4.7.2, launched from the repository root with the comma
 4. Load an intentionally invalid mission fixture in a test profile. → The game rejects it with a reason and leaves the good saved match intact.
 
 Record failed step, build ID and observed result.
+
+**Builder checkpoint · 2026-10-27:** The three-mission manifest rejects invalid prerequisites, unsupported conditions and excessive thresholds. Fixed-tick mission goals, conditional snapshot state, save restore and legal-command replay pass game/tests/campaign_missions_test.gd. Existing skirmish, replay, persistence, cross-platform hash and Godot-to-ingest checks pass. The rendered owner walkthrough and independent review are still owed before sprint close.
