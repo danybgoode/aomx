@@ -59,3 +59,7 @@ Environment: local Godot 4.7.2 in a disposable user profile; record the profile 
 5. Open a profile with damaged chapter progress. → A readable error appears, and the good match save remains present.
 
 Record failed step, profile and observed result.
+
+## Local verification · 2026-10-27
+
+Godot `campaign_progress_test.gd` and `campaign_client_test.gd` pass in a disposable profile: initial locks, verified unlock, duplicate, restart, damaged ledger, final map selection and unchanged skirmish entry. The [native captures](../../../docs/screenshots/campaign/README.md) show the setup at both desktop sizes. Owner downloaded-build checks and independent player-data review remain open.

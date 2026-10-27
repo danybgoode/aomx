@@ -57,6 +57,25 @@ The client writes test-tagged first-open, later-day open, match-start and match-
 
 Godot flushes a temporary JSON file and renames it into place. Its API does not expose directory fsync, so sudden power loss at that boundary remains unproven. This debug match is a complete local play loop and a contract exercise, not an eligible launch cohort.
 
+## Campaign chapter
+
+The **Campaign chapter** choice in setup starts three authored missions in
+order: Arrival in Copilco, Foothold in Narvarte, then a full La Roma Large
+battle. The first two are guided lessons and do not enter the match funnel.
+A verified win unlocks the next mission in `user://campaign-progress.v1.json`;
+the match save remains separate. A damaged progress file stays on disk and
+blocks new unlocks with a recovery message.
+
+Development builds expose the chapter for local testing. Preview and
+production default off until the invite-bound backend serves
+`campaign.chapter_enabled` for the same pseudonymous ID used by the outbox.
+The client stores the last versioned decision in
+`user://campaign-flag.v1.json` for offline play. A served off version blocks
+new starts after the next online check. No provider or growth key is included
+in a game export. Run `campaign_missions_test.gd`, `campaign_progress_test.gd`,
+`campaign_flag_cache_test.gd` and `campaign_client_test.gd` with the same
+headless Godot command used above. See the [native render checks](../docs/screenshots/campaign/README.md).
+
 ## Private alpha export
 
 The source tree is test-tagged and points to loopback. `npm run alpha:export`

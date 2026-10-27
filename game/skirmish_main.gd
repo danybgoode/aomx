@@ -12,6 +12,7 @@ const ParticipantReplay = preload("res://participant_replay.gd")
 const MapGeography = preload("res://map_geography.gd")
 const CampaignMissions = preload("res://campaign_missions.gd")
 const CampaignProgress = preload("res://campaign_progress.gd")
+const CampaignFlagCache = preload("res://campaign_flag_cache.gd")
 const PresentationCues = preload("res://presentation_cues.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
@@ -42,6 +43,10 @@ var selected_map := "la_roma"
 var campaign_mode := false
 var selected_mission := "arrival_copilco"
 var campaign_progress_path := CampaignProgress.PATH
+var campaign_flag_path := CampaignFlagCache.PATH
+var campaign_flag: Dictionary = {"enabled": false, "served": false}
+var campaign_flag_request: HTTPRequest
+var campaign_check_pending := false
 var setup_mode: OptionButton
 var setup_mission: OptionButton
 var setup_campaign_note: Label
@@ -152,6 +157,10 @@ func _ready() -> void:
 	request.timeout = 3.0
 	add_child(request)
 	request.request_completed.connect(_on_request_completed)
+	campaign_flag_request = HTTPRequest.new()
+	campaign_flag_request.timeout = 3.0
+	add_child(campaign_flag_request)
+	campaign_flag_request.request_completed.connect(_on_campaign_flag_completed)
 	online_client = MultiplayerClient.new()
 	add_child(online_client)
 	online_client.joined.connect(_on_online_joined)
@@ -188,6 +197,8 @@ func _ready() -> void:
 	hover_hint.add_theme_color_override("font_color", Color("ffe391"))
 	layer.add_child(hover_hint)
 	_build_faction_setup(layer)
+	if outbox.state.has("player_id"):
+		campaign_flag = CampaignFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, campaign_flag_path)
 	replay_file_dialog = FileDialog.new()
 	replay_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	replay_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
@@ -472,7 +483,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_mode = OptionButton.new()
 	setup_mode.add_item("Solo skirmish")
 	setup_mode.add_item("Campaign chapter")
-	setup_mode.set_item_disabled(1, AlphaConfig.CHANNEL != "development")
+	setup_mode.set_item_disabled(1, not _campaign_allowed())
 	setup_mode.item_selected.connect(_choose_mode)
 	setup_mode.custom_minimum_size.y = 42
 	column.add_child(setup_mode)
@@ -487,6 +498,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_campaign_note = Label.new()
 	setup_campaign_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_campaign_note)
+	column.move_child(mode_label, 2)
+	column.move_child(setup_mode, 3)
+	column.move_child(setup_mission, 4)
+	column.move_child(setup_campaign_note, 5)
 	_refresh_campaign_setup()
 	var opponent_label := Label.new()
 	opponent_label.text = "Opponent faction"
@@ -564,7 +579,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	note.text = "These are fictional strategies, not descriptions of regional people."
 	note.add_theme_font_size_override("font_size", 17)
 	column.add_child(note)
-	column.move_child(note, 5)
+	column.move_child(note, 7)
 	setup_note = note
 	setup_save_error = Label.new()
 	setup_save_error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -606,7 +621,7 @@ func _layout_setup() -> void:
 	var column: VBoxContainer = setup_panel.get_child(0).get_child(0).get_child(0)
 	column.add_theme_constant_override("separation", 6 if mobile else 7)
 	var title: Label = column.get_child(0)
-	title.text = "Choose a faction · scroll for all 4" if mobile and landscape else "Choose a faction"
+	title.text = ("Campaign chapter · scroll for factions" if mobile and landscape else "Campaign chapter") if campaign_mode else ("Choose a faction · scroll for all 4" if mobile and landscape else "Choose a faction")
 	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
 	setup_difficulty.custom_minimum_size.y = 32 if mobile else 38
 	setup_map.custom_minimum_size.y = 32 if mobile else 38
@@ -667,6 +682,7 @@ func _show_setup() -> void:
 	setup_resume.tooltip_text = "Save an active solo match from Settings to resume it here." if setup_resume.disabled else "Continue the saved solo match."
 	setup_save_error.text = ""
 	_refresh_campaign_setup()
+	_check_campaign_flag()
 	hover_hint.text = ""
 	instructions.text = "Choose a map, opponent and faction · Press 1–4, or click a choice"
 	_update_hud()
@@ -683,8 +699,10 @@ func _choose_faction(faction: String) -> void:
 	_start_match(faction)
 
 func _choose_mode(index: int) -> void:
-	campaign_mode = index == 1 and AlphaConfig.CHANNEL == "development"
+	campaign_mode = index == 1 and _campaign_allowed()
+	setup_mode.select(1 if campaign_mode else 0)
 	_refresh_campaign_setup()
+	_layout_setup()
 
 func _choose_mission(index: int) -> void:
 	if index < 0 or index >= CampaignMissions.MISSION_IDS.size():
@@ -695,6 +713,10 @@ func _choose_mission(index: int) -> void:
 func _refresh_campaign_setup() -> void:
 	if setup_mission == null or setup_campaign_note == null:
 		return
+	setup_mode.set_item_disabled(1, not _campaign_allowed())
+	if campaign_mode and not _campaign_allowed():
+		campaign_mode = false
+		setup_mode.select(0)
 	setup_map.disabled = campaign_mode
 	setup_mission.visible = campaign_mode
 	setup_campaign_note.visible = campaign_mode
@@ -702,7 +724,7 @@ func _refresh_campaign_setup() -> void:
 		return
 	var progress := CampaignProgress.read(campaign_progress_path)
 	if not progress.ok:
-		setup_campaign_note.text = "Chapter progress could not be read: %s. The saved match is unchanged." % str(progress.reason).replace("_", " ")
+		setup_campaign_note.text = "Chapter progress could not be read: %s. The file and saved match are kept; contact alpha support for recovery." % str(progress.reason).replace("_", " ")
 		return
 	var chapter := CampaignMissions.load_manifest()
 	if not chapter.ok:
@@ -776,6 +798,9 @@ func _resume_match() -> void:
 		else:
 			hud_ui.show_notice(message, true)
 		return
+	if not restored.game.mission_id.is_empty() and not _campaign_allowed():
+		setup_save_error.text = "Campaign is currently unavailable. The saved mission is kept."
+		return
 	if _outbox_has_terminal(restored.match_id) and restored.game.result == "" and restored.game.mission_result == "":
 		var completed_note := "That saved match already finished. Start a new match; the save file is kept."
 		if choosing_faction:
@@ -800,6 +825,9 @@ func _resume_match() -> void:
 	outbox.faction = sim.factions[Skirmish.HUMAN]
 	choosing_faction = false
 	setup_panel.hide()
+	if campaign_mode:
+		hud_ui.objective_body.show()
+		hud_ui._layout()
 	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
 	paused = false
 	hud_ui.pause_button.text = "II"
@@ -1072,6 +1100,9 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
+	if campaign_mode:
+		hud_ui.objective_body.show()
+		hud_ui._layout()
 	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
 	match_id = "solo_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	completion_queued = false
@@ -1096,7 +1127,11 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	_navigate_minimap(_starting_camera_tile())
 	order_flash_seconds = 0.0
 	if campaign_mode:
-		sync_note = "Chapter mission started. Progress saves after a verified win."
+		if selected_mission == "battle_la_roma":
+			var started := outbox.queue("match_started", match_id, "", false, "campaign", selected_mission)
+			sync_note = "Final battle start saved." if started.ok else "Battle start could not be saved; check device storage."
+		else:
+			sync_note = "Chapter mission started. Progress saves after a verified win."
 	else:
 		var saved: Dictionary = outbox.queue("match_started", match_id)
 		sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
@@ -1151,13 +1186,19 @@ func _process(delta: float) -> void:
 		accumulator -= TICK_SECONDS
 		advanced = true
 	if campaign_mode and sim.mission_result != "" and not completion_queued:
+		var terminal_saved := true
+		if sim.mission_id == "battle_la_roma":
+			terminal_saved = outbox.queue("match_completed", match_id, sim.result, false, "campaign", sim.mission_id).ok
 		if sim.mission_result == "win":
 			var progress := CampaignProgress.record_verified(sim, campaign_progress_path)
-			completion_queued = progress.ok
-			sync_note = "Mission complete. Next mission unlocked." if progress.ok else "Progress could not be saved; check device storage."
+			var adoption_saved := false
+			if progress.ok:
+				adoption_saved = outbox.queue("campaign_mission_completed", match_id, "win", false, "campaign", sim.mission_id).ok
+			completion_queued = terminal_saved and progress.ok and adoption_saved
+			sync_note = "Mission complete. Next mission unlocked." if completion_queued else "Mission completion could not be saved; check device storage."
 		else:
-			completion_queued = true
-			sync_note = "Mission ended. You can retry from the chapter menu."
+			completion_queued = terminal_saved
+			sync_note = "Mission ended. You can retry from the chapter menu." if completion_queued else "Battle result could not be saved; check device storage."
 	if not campaign_mode and sim.result != "" and not completion_queued:
 		var saved: Dictionary = outbox.queue("match_completed", match_id, sim.result)
 		completion_queued = saved.ok
@@ -1811,9 +1852,18 @@ func _update_hud() -> void:
 		var mission := CampaignMissions.find_mission(sim.mission_id)
 		if mission.ok:
 			var step_index: int = mini(sim.mission_steps.size(), mission.data.steps.size() - 1)
-			ui.objective_title.text = "%s: %s" % [mission.data.title, mission.data.steps[step_index].label]
+			ui.objective_title.text = mission.data.steps[step_index].label
+			ui.objective_title.tooltip_text = mission.data.title
 	ui.objective_progress.value = sim.district_progress
 	ui.objective_progress.tooltip_text = _district_note()
+	ui.objective_progress.max_value = int(sim.content.objectives.district_hold_ticks)
+	ui.objective_alternative.text = "or destroy enemy command post"
+	if campaign_mode:
+		var chapter_goal := CampaignMissions.find_mission(sim.mission_id)
+		if chapter_goal.ok and chapter_goal.data.tutorial:
+			ui.objective_alternative.text = "Finish all tasks."
+			ui.objective_progress.max_value = chapter_goal.data.steps.size()
+			ui.objective_progress.value = sim.mission_steps.size()
 	ui.minimap.sim = sim
 	var visible_view := get_viewport().get_visible_rect().size
 	var hud_bottom: float = (ui.get_global_transform() * ui.bottom.position).y
@@ -2050,7 +2100,33 @@ func _save_invite_code() -> void:
 	invite_code = candidate
 	invite_input.clear()
 	sync_note = "Invite code saved. Saved play will sync when online."
+	_check_campaign_flag()
 	_send_next()
+
+func _campaign_allowed() -> bool:
+	return AlphaConfig.CHANNEL == "development" or bool(campaign_flag.get("enabled", false))
+
+func _check_campaign_flag() -> void:
+	if AlphaConfig.CHANNEL == "development" or campaign_check_pending or invite_code.is_empty() or not outbox.state.has("player_id"):
+		return
+	var headers := ["Content-Type: application/json", "X-Aomx-Invite-Code: " + invite_code]
+	var endpoint := AlphaConfig.ENDPOINT.replace("/v1/events", "/v1/campaign/flag")
+	campaign_check_pending = campaign_flag_request.request(endpoint, headers,
+		HTTPClient.METHOD_POST, JSON.stringify({"player_id": str(outbox.state.player_id)})) == OK
+
+func _on_campaign_flag_completed(result_code: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	campaign_check_pending = false
+	if result_code != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not outbox.state.has("player_id"):
+		return
+	var decision = JSON.parse_string(body.get_string_from_utf8())
+	if not decision is Dictionary:
+		return
+	if CampaignFlagCache.write(str(outbox.state.player_id), AlphaConfig.CHANNEL, decision, campaign_flag_path):
+		campaign_flag = CampaignFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, campaign_flag_path)
+		if choosing_faction:
+			_refresh_campaign_setup()
+			if not _campaign_allowed():
+				setup_save_error.text = "Campaign is currently unavailable."
 
 func _copy_support_id() -> void:
 	if outbox.state.has("player_id"):

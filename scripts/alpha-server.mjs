@@ -1,7 +1,9 @@
-import { createFlagProvider } from '@golden-frijoles/sdk';
+import { createFlagProvider, createGrowthEngineClient } from '@golden-frijoles/sdk';
 import { PostgresFunnel } from '../src/funnel/postgres.mjs';
 import { serve } from '../src/funnel/http.mjs';
 import { supportedVersions } from '../src/alpha/versions.mjs';
+import { campaignDecision } from '../src/alpha/campaign-flags.mjs';
+import { createHash } from 'node:crypto';
 
 if (!process.env.AOMX_DATABASE_URL) throw new Error('AOMX_DATABASE_URL is required');
 if (!['preview', 'production'].includes(process.env.GOLDEN_FRIJOLES_ENVIRONMENT)) {
@@ -21,12 +23,24 @@ const resolveFlag = playerId => provider ? {
   ...provider.resolveBooleanEvaluation('telemetry.play_funnel_enabled', false, { targetingKey: playerId }),
   snapshotVersion: provider.getStatus().snapshotVersion, environment
 } : { value: false, reason: 'provider_not_configured', environment };
-const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL, { resolveFlag,
+const resolveCampaignFlag = playerId => provider ? {
+  ...provider.resolveBooleanEvaluation('campaign.chapter_enabled', false, { targetingKey: playerId }),
+  snapshotVersion: provider.getStatus().snapshotVersion, environment
+} : { value: false, reason: 'provider_not_configured', environment };
+const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL, { resolveFlag, resolveCampaignFlag,
   requireInvite: true,
   forceExcludeReason: environment === 'preview' ? 'preview_environment' : null,
   supportedVersions });
 await funnel.health();
-const server = serve(funnel, { host: '0.0.0.0', port: Number(process.env.AOMX_PORT ?? 8787), publicMode: true });
+const growthKey = process.env.AOMX_GROWTH_ENGINE_API_KEY;
+const growthKeyVerified = growthKey && process.env.AOMX_VERIFIED_PROJECT === 'aomx' &&
+  createHash('sha256').update(growthKey).digest('hex') === process.env.AOMX_VERIFIED_KEY_SHA256;
+const growthForPlayer = growthKeyVerified ? playerId => createGrowthEngineClient({
+  apiKey: process.env.AOMX_GROWTH_ENGINE_API_KEY, userId: playerId,
+  ...(process.env.GOLDEN_FRIJOLES_URL ? { baseUrl: process.env.GOLDEN_FRIJOLES_URL } : {})
+}) : null;
+const server = serve(funnel, { host: '0.0.0.0', port: Number(process.env.AOMX_PORT ?? 8787), publicMode: true,
+  campaignDecision: campaignDecision({ provider, growthForPlayer, environment }) });
 server.on('listening', () => process.stdout.write(`aomx ingest listening on ${server.address().port}\n`));
 async function stop() { server.close(); provider?.shutdown(); await funnel.close(); }
 process.once('SIGINT', stop);

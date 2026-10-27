@@ -57,6 +57,14 @@ retaining its existing default network. Add the reviewed site from
 certificate before pointing a game build at the route. Do not edit panfleto's
 Postgres, backup retention, or other site blocks. `GET /healthz` is the only
 public read route; `/v1/audit` and `/v1/report` return 404 in public mode.
+`POST /v1/campaign/flag` uses the same operator allowlist and rate limit as
+`/v1/events`, then checks that the invite is already bound to the requested
+pseudonymous player ID. Its response contains only the served decision and
+version. The ingest server needs its independently verified aomx growth key
+and flag read key to expose an enabled chapter; otherwise it serves off.
+The Godot client keeps the last served choice for offline starts, and a served
+off version stops new starts after the next online check. Do not put either
+server key in a game export.
 The current restricted preview site is live at
 `alpha-api.159.54.158.4.sslip.io`; access is limited to the operator's
 current `/32`. The Caddyfile and `aomx_proxy` attachment are tracked in

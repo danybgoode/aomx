@@ -41,7 +41,12 @@ static func available(mission_id: String, completed: Array) -> bool:
 	return false
 
 static func record_verified(game: RefCounted, path: String = PATH) -> Dictionary:
-	if game.mission_result != "win" or game.mission_id.is_empty() or game.mission_steps.size() != game.mission_definition.steps.size():
+	if game.mission_result != "win" or game.mission_id.is_empty() or game.tick_number < 1 or game.mission_steps.size() != game.mission_definition.steps.size():
+		return _bad("mission_not_won")
+	for i in game.mission_steps.size():
+		if game.mission_steps[i] != game.mission_definition.steps[i].id:
+			return _bad("mission_not_won")
+	if not game.mission_definition.tutorial and (game.result != "win" or game.terminal_tick < 1):
 		return _bad("mission_not_won")
 	var progress := read(path)
 	if not progress.ok:

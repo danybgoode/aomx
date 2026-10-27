@@ -46,7 +46,7 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Complete the game interfaces](../02-civilizations-and-world/complete-game-interfaces/README.md) — #18 · 02 Civilizations And World · 6/8 stories · risk: Low · appetite L · _docs: status in-progress_
 - [Build the audio and effects identity](../02-civilizations-and-world/build-audio-and-effects-identity/README.md) — #19 · 02 Civilizations And World · 4/6 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Build a large La Roma battlefield](../01-core-play/build-large-la-roma-battlefield/README.md) — #20 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status in-progress_
-- [Create the first campaign chapter](../03-multiplayer-and-retention/create-campaigns-and-scenarios/README.md) — #24 · 03 Multiplayer And Retention · 0/7 stories · risk: High · appetite M · _docs: status scaffolded_
+- [Create the first campaign chapter](../03-multiplayer-and-retention/create-campaigns-and-scenarios/README.md) — #24 · 03 Multiplayer And Retention · 1/7 stories · risk: High · appetite M · _docs: status in-progress_
 
 ## Building — live only
 

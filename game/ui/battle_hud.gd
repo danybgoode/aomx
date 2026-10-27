@@ -42,6 +42,7 @@ var objective_panel: Panel
 var objective_button: Button
 var objective_body: VBoxContainer
 var objective_title: Label
+var objective_alternative: Label
 var objective_progress: ProgressBar
 var notification_panel: Panel
 var notification_label: Label
@@ -319,7 +320,7 @@ func _build() -> void:
 	objective_title = _label(objective_body, "Capture La Roma", 16)
 	objective_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_title.custom_minimum_size.y = 40
-	var objective_alternative := _label(objective_body, "or destroy enemy command post", 14, HudSkin.MUTED)
+	objective_alternative = _label(objective_body, "or destroy enemy command post", 14, HudSkin.MUTED)
 	objective_alternative.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_progress = ProgressBar.new()
 	objective_progress.max_value = 600

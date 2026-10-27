@@ -3,7 +3,7 @@ epic: create-campaigns-and-scenarios
 sprint: 3
 title: "Play and measure"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 3
 stories:
   - id: S3.1
@@ -12,14 +12,14 @@ stories:
     i_want: "a complete path into a La Roma battle"
     so_that: "each learned choice leads to a finishable final contest"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Measure adoption and eligible results"
     as_a: "product owner"
     i_want: "served campaign exposure and honest match events"
     so_that: "tutorial play does not distort the North Star"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.3
     title: "Read uncoached chapter comprehension"
     as_a: "product owner"
@@ -31,7 +31,7 @@ stories:
 
 # Create the first campaign chapter — Sprint 3: Play and measure
 
-**Status:** ⬜ Not started
+**Status:** 🟡 Verifying — local chapter, flag and funnel contracts pass; independent review and owner download remain open.
 
 ### Story 3.1 — Finish the three-map chapter
 
@@ -76,3 +76,10 @@ Environment: signed Restricted macOS download on the owner channel; record build
 7. With separately authorized familiar and unfamiliar readers, ask each to explain the current goal and La Roma win route before any hint. → Record exact answers, confusion and completion without claiming cohort lift.
 
 Record every failure by step, build ID and receipt. Only actual owner and reader evidence closes the last two acceptance gates.
+
+## Local verification · 2026-10-27
+
+- Node funnel, flag, invite-bound route and adoption publisher contracts pass. The full `npm test` run passes 41 tests; three database integration tests are skipped without the CI database.
+- Godot mission, progress, flag cache, native client, save, replay and cross-platform hash checks pass on macOS. The final battle client check queues a start, terminal event and adoption in order; tutorial completion queues adoption only. These are test-tagged local events.
+- Native captures at [1024×700 and 1280×800](../../../docs/screenshots/campaign/README.md) show the chapter entry and first goal. The first compact goal clipped; the revised copy fits in the final capture.
+- This does not close the signed Restricted download, independent high-risk review, #24 large-map owner decision, owner full-match play or separately authorized comprehension reads.
