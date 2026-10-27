@@ -3,7 +3,7 @@ epic: create-campaigns-and-scenarios
 sprint: 2
 title: "Chapter path"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,19 +12,19 @@ stories:
     i_want: "to see the chapter and why a mission is locked"
     so_that: "I know what to play next"
     risk: low
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Keep unlocks across restarts"
     as_a: "campaign player"
     i_want: "verified wins to unlock the next mission once"
     so_that: "my progress survives without changing skirmish"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Create the first campaign chapter — Sprint 2: Chapter path
 
-**Status:** ⬜ Not started
+**Status:** 🟡 Building — Godot contracts pass; rendered smoke, data review and owner download remain open.
 
 ### Story 2.1 — Choose a mission and read its lock
 

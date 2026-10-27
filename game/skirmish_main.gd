@@ -10,6 +10,8 @@ const MultiplayerClient = preload("res://multiplayer_client.gd")
 const MultiplayerState = preload("res://multiplayer_state.gd")
 const ParticipantReplay = preload("res://participant_replay.gd")
 const MapGeography = preload("res://map_geography.gd")
+const CampaignMissions = preload("res://campaign_missions.gd")
+const CampaignProgress = preload("res://campaign_progress.gd")
 const PresentationCues = preload("res://presentation_cues.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
@@ -37,6 +39,12 @@ var setup_difficulty: OptionButton
 var setup_difficulty_details: Label
 var selected_difficulty := "standard"
 var selected_map := "la_roma"
+var campaign_mode := false
+var selected_mission := "arrival_copilco"
+var campaign_progress_path := CampaignProgress.PATH
+var setup_mode: OptionButton
+var setup_mission: OptionButton
+var setup_campaign_note: Label
 var selected_opponent := ""
 var setup_regios: Button
 var setup_poblanos: Button
@@ -457,6 +465,29 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_map_details)
 	_choose_map(0)
+	var mode_label := Label.new()
+	mode_label.text = "Play mode"
+	mode_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(mode_label)
+	setup_mode = OptionButton.new()
+	setup_mode.add_item("Solo skirmish")
+	setup_mode.add_item("Campaign chapter")
+	setup_mode.set_item_disabled(1, AlphaConfig.CHANNEL != "development")
+	setup_mode.item_selected.connect(_choose_mode)
+	setup_mode.custom_minimum_size.y = 42
+	column.add_child(setup_mode)
+	setup_mission = OptionButton.new()
+	var chapter := CampaignMissions.load_manifest()
+	if chapter.ok:
+		for mission in chapter.data.missions:
+			setup_mission.add_item(mission.title)
+	setup_mission.item_selected.connect(_choose_mission)
+	setup_mission.custom_minimum_size.y = 42
+	column.add_child(setup_mission)
+	setup_campaign_note = Label.new()
+	setup_campaign_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(setup_campaign_note)
+	_refresh_campaign_setup()
 	var opponent_label := Label.new()
 	opponent_label.text = "Opponent faction"
 	opponent_label.add_theme_font_size_override("font_size", 18)
@@ -555,6 +586,10 @@ func _layout_setup() -> void:
 		setup_goal.text = ("Scout, expand, hold center for %ds." % hold_seconds) if mobile else ("Explore the larger district; destroy the opposing post or hold the center for %d seconds." % hold_seconds)
 	else:
 		setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
+	if campaign_mode:
+		var selected := CampaignMissions.find_mission(selected_mission)
+		if selected.ok:
+			setup_goal.text = selected.data.description
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
@@ -631,6 +666,7 @@ func _show_setup() -> void:
 	setup_resume.text = "Resume saved match" if not setup_resume.disabled else "No saved match yet"
 	setup_resume.tooltip_text = "Save an active solo match from Settings to resume it here." if setup_resume.disabled else "Continue the saved solo match."
 	setup_save_error.text = ""
+	_refresh_campaign_setup()
 	hover_hint.text = ""
 	instructions.text = "Choose a map, opponent and faction · Press 1–4, or click a choice"
 	_update_hud()
@@ -639,7 +675,53 @@ func _show_setup() -> void:
 func _choose_faction(faction: String) -> void:
 	if not choosing_faction or faction not in Skirmish.FACTION_IDS:
 		return
+	if campaign_mode:
+		var progress := CampaignProgress.read(campaign_progress_path)
+		if not progress.ok or not CampaignProgress.available(selected_mission, progress.completed):
+			setup_save_error.text = "Mission is locked or chapter progress could not be read. Your saved match is unchanged."
+			return
 	_start_match(faction)
+
+func _choose_mode(index: int) -> void:
+	campaign_mode = index == 1 and AlphaConfig.CHANNEL == "development"
+	_refresh_campaign_setup()
+
+func _choose_mission(index: int) -> void:
+	if index < 0 or index >= CampaignMissions.MISSION_IDS.size():
+		return
+	selected_mission = CampaignMissions.MISSION_IDS[index]
+	_refresh_campaign_setup()
+
+func _refresh_campaign_setup() -> void:
+	if setup_mission == null or setup_campaign_note == null:
+		return
+	setup_map.disabled = campaign_mode
+	setup_mission.visible = campaign_mode
+	setup_campaign_note.visible = campaign_mode
+	if not campaign_mode:
+		return
+	var progress := CampaignProgress.read(campaign_progress_path)
+	if not progress.ok:
+		setup_campaign_note.text = "Chapter progress could not be read: %s. The saved match is unchanged." % str(progress.reason).replace("_", " ")
+		return
+	var chapter := CampaignMissions.load_manifest()
+	if not chapter.ok:
+		setup_campaign_note.text = "Campaign content could not be read."
+		return
+	for i in chapter.data.missions.size():
+		var mission: Dictionary = chapter.data.missions[i]
+		var available: bool = CampaignProgress.available(mission.id, progress.completed)
+		setup_mission.set_item_text(i, "%s · %s" % [mission.title, "available" if available else "locked"])
+	setup_mission.select(CampaignMissions.MISSION_IDS.find(selected_mission))
+	var selected := CampaignMissions.find_mission(selected_mission)
+	if not selected.ok:
+		setup_campaign_note.text = "Mission content unavailable."
+		return
+	selected_map = selected.data.map_id
+	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
+	_choose_map(Skirmish.MAP_IDS.find(selected_map))
+	setup_goal.text = selected.data.description
+	setup_campaign_note.text = "Available now." if CampaignProgress.available(selected_mission, progress.completed) else "Locked: finish %s first." % selected.data.prerequisite.replace("_", " ").capitalize()
 
 func _choose_map(index: int) -> void:
 	if index >= 0 and index < Skirmish.MAP_IDS.size():
@@ -676,7 +758,7 @@ func _save_match() -> void:
 	if online:
 		hud_ui.show_notice("Private matches save on the host. Open the replay after the result.")
 		return
-	if choosing_faction or sim.result != "":
+	if choosing_faction or sim.result != "" or sim.mission_result != "":
 		hud_ui.show_notice("Start an active match before saving", true)
 		return
 	var saved: Dictionary = MatchSave.write(sim, match_id, completion_queued, save_path)
@@ -694,7 +776,7 @@ func _resume_match() -> void:
 		else:
 			hud_ui.show_notice(message, true)
 		return
-	if _outbox_has_terminal(restored.match_id) and restored.game.result == "":
+	if _outbox_has_terminal(restored.match_id) and restored.game.result == "" and restored.game.mission_result == "":
 		var completed_note := "That saved match already finished. Start a new match; the save file is kept."
 		if choosing_faction:
 			setup_save_error.text = completed_note
@@ -702,6 +784,9 @@ func _resume_match() -> void:
 			hud_ui.show_notice(completed_note, true)
 		return
 	sim = restored.game as Skirmish
+	campaign_mode = not sim.mission_id.is_empty()
+	selected_mission = sim.mission_id if campaign_mode else "arrival_copilco"
+	setup_mode.select(1 if campaign_mode else 0)
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
@@ -711,7 +796,7 @@ func _resume_match() -> void:
 	setup_difficulty.select(Skirmish.AI_LEVELS.find(selected_difficulty))
 	_choose_difficulty(Skirmish.AI_LEVELS.find(selected_difficulty))
 	match_id = restored.match_id
-	completion_queued = restored.completion_queued or sim.result != ""
+	completion_queued = restored.completion_queued or (sim.result != "" and not campaign_mode)
 	outbox.faction = sim.factions[Skirmish.HUMAN]
 	choosing_faction = false
 	setup_panel.hide()
@@ -980,7 +1065,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	replay_frame_count = 0
 	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
-	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent)
+	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent, selected_mission if campaign_mode else "")
 	paused = false
 	hud_ui.pause_button.text = "II"
 	hud_ui.diagnostics.hide()
@@ -1010,8 +1095,11 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	_reset_zoom()
 	_navigate_minimap(_starting_camera_tile())
 	order_flash_seconds = 0.0
-	var saved: Dictionary = outbox.queue("match_started", match_id)
-	sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
+	if campaign_mode:
+		sync_note = "Chapter mission started. Progress saves after a verified win."
+	else:
+		var saved: Dictionary = outbox.queue("match_started", match_id)
+		sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
 	if OS.is_debug_build():
 		match OS.get_environment("SKIRMISH_SMOKE_SCENARIO"):
 			"win":
@@ -1062,7 +1150,15 @@ func _process(delta: float) -> void:
 		sim.tick()
 		accumulator -= TICK_SECONDS
 		advanced = true
-	if sim.result != "" and not completion_queued:
+	if campaign_mode and sim.mission_result != "" and not completion_queued:
+		if sim.mission_result == "win":
+			var progress := CampaignProgress.record_verified(sim, campaign_progress_path)
+			completion_queued = progress.ok
+			sync_note = "Mission complete. Next mission unlocked." if progress.ok else "Progress could not be saved; check device storage."
+		else:
+			completion_queued = true
+			sync_note = "Mission ended. You can retry from the chapter menu."
+	if not campaign_mode and sim.result != "" and not completion_queued:
 		var saved: Dictionary = outbox.queue("match_completed", match_id, sim.result)
 		completion_queued = saved.ok
 		if not saved.ok:
@@ -1711,6 +1807,11 @@ func _update_hud() -> void:
 		source_notes[resource_id] = "%d at source; %d refreshes left" % [int(source.get("amount", 0)), int(source.get("refreshes_left", 0))]
 	ui.set_economy(stockpiles, _age_display(_age_id()), sim._population_used(Skirmish.HUMAN), sim._population_cap(Skirmish.HUMAN), source_notes)
 	ui.objective_title.text = _district_note()
+	if campaign_mode:
+		var mission := CampaignMissions.find_mission(sim.mission_id)
+		if mission.ok:
+			var step_index: int = mini(sim.mission_steps.size(), mission.data.steps.size() - 1)
+			ui.objective_title.text = "%s: %s" % [mission.data.title, mission.data.steps[step_index].label]
 	ui.objective_progress.value = sim.district_progress
 	ui.objective_progress.tooltip_text = _district_note()
 	ui.minimap.sim = sim
@@ -1788,7 +1889,9 @@ func _update_hud() -> void:
 	if alert and last_alert_state != "attention":
 		ui.show_notice("Sync needs attention • open menu", true)
 	last_alert_state = "attention" if alert else "clear"
-	if sim.result != "":
+	if campaign_mode and sim.mission_result != "":
+		ui.show_result(sim.mission_result, "Mission complete" if sim.mission_result == "win" else "Mission failed")
+	elif sim.result != "":
 		ui.show_result(sim.result, sim.result_reason)
 		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
 	else:
