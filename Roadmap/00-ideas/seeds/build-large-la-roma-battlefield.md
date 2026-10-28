@@ -8,7 +8,7 @@ appetite: L
 underwritten_by: wave-2026-10
 risk: high
 epic: "01-core-play/build-large-la-roma-battlefield"
-build_order: 24
+build_order: 20
 updated: 2026-10-23
 intent_ask: verbatim
 hypothesis: "A genuinely expansive La Roma skirmish with separated resources and a starting bicitaxi scout will give classic RTS players meaningful exploration and expansion decisions; check an owner-completed match and uncoached route/resource comprehension now, then later-day match completion after an eligible cohort exists."

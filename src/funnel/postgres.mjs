@@ -6,13 +6,14 @@ import { makeReport } from './report.mjs';
 // A transaction-wide lock serializes policy decisions across service instances.
 // Each decision uses the same pure Ingest policy as the local JSONL prototype.
 export class PostgresFunnel {
-  constructor(connectionString, { resolveFlag, now, pool, supportedVersions, requireInvite = false,
+  constructor(connectionString, { resolveFlag, resolveCampaignFlag, now, pool, supportedVersions, requireInvite = false,
     forceExcludeReason = null } = {}) {
     const hostname = connectionString ? new URL(connectionString).hostname : '';
     const privateHost = ['localhost', '127.0.0.1', 'postgres'].includes(hostname);
     this.pool = pool ?? new pg.Pool({ connectionString, max: 4, connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000, ssl: privateHost ? false : { rejectUnauthorized: true } });
     this.resolveFlag = resolveFlag;
+    this.resolveCampaignFlag = resolveCampaignFlag;
     this.now = now;
     this.supportedVersions = supportedVersions;
     this.requireInvite = requireInvite;
@@ -49,7 +50,7 @@ export class PostgresFunnel {
       const { rows } = await client.query('select row from alpha_private.audit_events order by id');
       let appended;
       const store = { rows: rows.map(r => r.row), append(row) { appended = row; this.rows.push(row); } };
-      const receipt = new Ingest(store, { resolveFlag: this.resolveFlag, now: this.now,
+      const receipt = new Ingest(store, { resolveFlag: this.resolveFlag, resolveCampaignFlag: this.resolveCampaignFlag, now: this.now,
         supportedVersions: this.supportedVersions,
         forceExcludeReason: this.forceExcludeReason }).accept(event);
       if (claimInvite && appended && ['accepted', 'excluded'].includes(receipt.status)) {
@@ -69,6 +70,21 @@ export class PostgresFunnel {
       throw error;
     } finally {
       client.release();
+    }
+  }
+
+  async authorizeCampaign(playerId, inviteToken) {
+    if (typeof playerId !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{7,127}$/.test(playerId) ||
+      typeof inviteToken !== 'string' || !/^[A-Za-z0-9_-]{24,80}$/.test(inviteToken)) {
+      throw Object.assign(new Error('invite_required'), { statusCode: 401 });
+    }
+    const hash = createHash('sha256').update(inviteToken).digest('hex');
+    const playerHash = createHash('sha256').update(playerId).digest('hex');
+    const { rows } = await this.pool.query(`select i.player_id, i.revoked,
+      exists(select 1 from alpha_private.player_deletions where player_hash=$2) as deleted
+      from alpha_private.invite_tokens i where i.token_hash=$1`, [hash, playerHash]);
+    if (!rows.length || rows[0].revoked || rows[0].deleted || rows[0].player_id !== playerId) {
+      throw Object.assign(new Error('invite_invalid'), { statusCode: 401 });
     }
   }
 

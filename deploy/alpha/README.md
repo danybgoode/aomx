@@ -57,6 +57,14 @@ retaining its existing default network. Add the reviewed site from
 certificate before pointing a game build at the route. Do not edit panfleto's
 Postgres, backup retention, or other site blocks. `GET /healthz` is the only
 public read route; `/v1/audit` and `/v1/report` return 404 in public mode.
+`POST /v1/campaign/flag` uses the same operator allowlist and rate limit as
+`/v1/events`, then checks that the invite is already bound to the requested
+pseudonymous player ID. Its response contains only the served decision and
+version. The ingest server needs its independently verified aomx growth key
+and flag read key to expose an enabled chapter; otherwise it serves off.
+The Godot client keeps the last served choice for offline starts, and a served
+off version stops new starts after the next online check. Do not put either
+server key in a game export.
 The current restricted preview site is live at
 `alpha-api.159.54.158.4.sslip.io`; access is limited to the operator's
 current `/32`. The Caddyfile and `aomx_proxy` attachment are tracked in
@@ -207,6 +215,25 @@ and show corrections. A changed published day needs a reviewed backfill; the
 publisher refuses to silently replace it. Run
 `npm run alpha:publish` to inspect pending mature readings and conflicts.
 `--send` also requires an independently verified aomx key fingerprint.
+
+For the campaign, verify that the growth key belongs to `aomx` in a separate
+operator step, then derive its scrypt attestation into
+`AOMX_VERIFIED_CAMPAIGN_KEY_SCRYPT` in both `ingest.env` and `operator.env`.
+Use the same `AOMX_GROWTH_ENGINE_API_KEY` in both files; keep both mode 600.
+With the key already loaded in the operator shell, this prints only the derived
+attestation:
+
+```sh
+node -e "const {scryptSync}=require('node:crypto'); process.stdout.write(scryptSync(process.env.AOMX_GROWTH_ENGINE_API_KEY,'aomx-growth-project-attestation-v1',32).toString('hex')+'\n')"
+```
+
+Run `npm run alpha:campaign-publish` to preview at most 100 mission completion
+rows, then `npm run alpha:campaign-publish -- --send` with
+`AOMX_CAMPAIGN_CURSOR_PATH=/opt/aomx/campaign-publish-cursor.json` to send them.
+The cursor advances only after the batch succeeds. Repeat while
+`more_may_remain` is true. This publisher runs outside the ingest transaction
+lock and uses the event ID for retry-safe Golden Frijoles writes. The server
+serves campaign off if the key attestation or exposure report is unavailable.
 
 ## Restricted itch.io distribution
 

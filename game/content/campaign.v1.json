@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "chapter_id": "arrival-to-la-roma",
+  "missions": [
+    {
+      "id": "arrival_copilco",
+      "title": "Arrival in Copilco",
+      "map_id": "copilco",
+      "prerequisite": "",
+      "tutorial": true,
+      "description": "Gather resources, build a recruitment post, and train a fighter. Each task uses the normal match rules.",
+      "steps": [
+        {"id": "gather", "label": "Collect 4 Varos", "kind": "balance_gte", "resource": "varos", "amount": 4},
+        {"id": "build", "label": "Build a recruitment post", "kind": "building_exists", "building": "barracks"},
+        {"id": "recruit", "label": "Train a melee fighter", "kind": "unit_exists", "unit": "melee"}
+      ]
+    },
+    {
+      "id": "foothold_narvarte",
+      "title": "Foothold in Narvarte",
+      "map_id": "narvarte",
+      "prerequisite": "arrival_copilco",
+      "tutorial": true,
+      "description": "Place a resource depot, then hold the marked center while your opponent can contest it.",
+      "steps": [
+        {"id": "expand", "label": "Build a resource depot", "kind": "building_exists", "building": "depot"},
+        {"id": "contest", "label": "Hold the center for 10 seconds", "kind": "district_progress_gte", "ticks": 100}
+      ]
+    },
+    {
+      "id": "battle_la_roma",
+      "title": "Battle for La Roma",
+      "map_id": "la_roma_large",
+      "prerequisite": "foothold_narvarte",
+      "tutorial": false,
+      "description": "Win a full La Roma Large match by destroying the rival command post or holding the center.",
+      "steps": [
+        {"id": "victory", "label": "Win the full battle", "kind": "match_win"}
+      ]
+    }
+  ]
+}

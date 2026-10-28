@@ -1,6 +1,7 @@
 extends RefCounted
 
 const AlphaConfig = preload("res://alpha_config.gd")
+const CampaignMissions = preload("res://campaign_missions.gd")
 const SCHEMA_VERSION := 1
 const GAME_VERSION := "godot-4.7.2-skirmish-1"
 const CONTENT_VERSION := "la-roma-prototype-1"
@@ -39,11 +40,16 @@ func queue_open_for_launch() -> Dictionary:
 		return {"ok": true, "event": last_open, "existing": true}
 	return queue("game_opened", "", "", not last_open.is_empty())
 
-func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo") -> Dictionary:
-	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed"]:
+func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo", mission_id: String = "") -> Dictionary:
+	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed", "campaign_mission_completed"]:
 		return {"ok": false, "reason": "outbox_unavailable"}
-	if mode not in ["solo", "multiplayer"]:
+	if mode not in ["solo", "multiplayer", "campaign"]:
 		return {"ok": false, "reason": "invalid_mode"}
+	if mode == "campaign":
+		if mission_id not in CampaignMissions.MISSION_IDS or type == "game_opened" or (type != "campaign_mission_completed" and mission_id != "battle_la_roma"):
+			return {"ok": false, "reason": "invalid_campaign_context"}
+	elif not mission_id.is_empty() or type == "campaign_mission_completed":
+		return {"ok": false, "reason": "invalid_campaign_context"}
 	for item in state.events:
 		if item.event.type == type and (type == "game_opened" and not new_session or type != "game_opened" and item.event.get("match_id", "") == match_id):
 			return {"ok": true, "event": item.event, "existing": true}
@@ -51,7 +57,9 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 		return {"ok": false, "reason": "missing_match_id"}
 	if type == "match_completed" and result not in ["win", "loss", "draw"]:
 		return {"ok": false, "reason": "invalid_result"}
-	if type != "match_completed" and not result.is_empty():
+	if type == "campaign_mission_completed" and result != "win":
+		return {"ok": false, "reason": "invalid_result"}
+	if type not in ["match_completed", "campaign_mission_completed"] and not result.is_empty():
 		return {"ok": false, "reason": "unexpected_result"}
 	if type == "match_completed" and not state.events.any(func(item: Dictionary) -> bool:
 		return item.event.type == "match_started" and item.event.get("match_id", "") == match_id):
@@ -65,6 +73,10 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 		event.match_id = match_id
 	if type == "match_completed":
 		event.result = result
+	if type == "campaign_mission_completed":
+		event.result = "win"
+	if mode == "campaign":
+		event.mission_id = mission_id
 	var next: Dictionary = state.duplicate(true)
 	next.events.append({"event": event, "status": "pending", "receipt": null})
 	next.next_sequence += 1

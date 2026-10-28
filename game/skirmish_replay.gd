@@ -2,6 +2,7 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const RulesContent = preload("res://rules_content.gd")
+const CampaignMissions = preload("res://campaign_missions.gd")
 const Save = preload("res://skirmish_persistence.gd")
 const REPLAY_SCHEMA_VERSION := 5
 
@@ -10,7 +11,7 @@ static func record(game: RefCounted) -> Dictionary:
 	for command in game.command_log:
 		if command.side == Skirmish.HUMAN:
 			human.append(command.duplicate(true))
-	return {"format": "battle-for-la-roma-replay", "replay_schema_version": REPLAY_SCHEMA_VERSION,
+	var recording := {"format": "battle-for-la-roma-replay", "replay_schema_version": REPLAY_SCHEMA_VERSION,
 		"game_version": Skirmish.GAME_VERSION, "content_version": game.content.content_id,
 		"content_hash": game.content_hash, "map_id": game.map_id,
 		"human_faction": game.factions[Skirmish.HUMAN], "opponent_faction": game.factions[Skirmish.COMPUTER],
@@ -19,6 +20,10 @@ static func record(game: RefCounted) -> Dictionary:
 		"human_commands": human, "checkpoints": game.hash_checkpoints.duplicate(true),
 		"expected_hash": game.state_hash(),
 		"expected_log_hash": JSON.stringify(game.command_log).sha256_text()}
+	if not game.mission_id.is_empty():
+		recording["mission_id"] = game.mission_id
+		recording["mission_hash"] = game.mission_hash
+	return recording
 
 static func verify(recording: Dictionary) -> Dictionary:
 	if recording.get("format") != "battle-for-la-roma-replay" or recording.get("replay_schema_version") != REPLAY_SCHEMA_VERSION:
@@ -30,6 +35,13 @@ static func verify(recording: Dictionary) -> Dictionary:
 	var loaded: Dictionary = RulesContent.load_map(recording.map_id)
 	if not loaded.ok or recording.get("content_version") != loaded.data.content_id or recording.get("content_hash") != loaded.hash:
 		return _bad("content_version_mismatch", 0)
+	var selected_mission := str(recording.get("mission_id", ""))
+	if not selected_mission.is_empty():
+		var mission := CampaignMissions.find_mission(selected_mission)
+		if not mission.ok or mission.data.map_id != recording.map_id or recording.get("mission_hash") != mission.hash:
+			return _bad("mission_version_mismatch", 0)
+	elif recording.has("mission_hash"):
+		return _bad("mission_metadata_invalid", 0)
 	if recording.get("human_faction") not in Skirmish.FACTION_IDS or recording.get("opponent_faction") not in Skirmish.FACTION_IDS or recording.get("ai_difficulty") not in Skirmish.AI_LEVELS or not _integer(recording.get("initial_seed"), 1) or not _integer(recording.get("end_tick"), 0):
 		return _bad("replay_metadata_invalid", 0)
 	if not recording.get("human_commands") is Array or not recording.get("checkpoints") is Array:
@@ -53,7 +65,7 @@ static func verify(recording: Dictionary) -> Dictionary:
 		if not entry is Dictionary or not _integer(entry.get("tick"), 1) or int(entry.tick) <= last_checkpoint_tick or int(entry.tick) > end_tick or not entry.get("hash") is String or entry.hash.length() != 64:
 			return _bad("replay_history_invalid", 0)
 		last_checkpoint_tick = int(entry.tick)
-	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed), recording.ai_difficulty, recording.map_id, recording.opponent_faction)
+	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed), recording.ai_difficulty, recording.map_id, recording.opponent_faction, selected_mission)
 	var command_index := 0
 	var checkpoint_index := 0
 	for logical_tick in range(end_tick + 1):

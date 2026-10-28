@@ -20,7 +20,9 @@ func _capture() -> void:
 	if ui_scale.is_valid_float():
 		client._set_ui_scale(float(ui_scale), false)
 	var mode := OS.get_environment("HUD_CAPTURE_MODE")
-	if mode != "setup":
+	if mode in ["campaign_setup", "campaign_goal"]:
+		client._choose_mode(1)
+	if mode not in ["setup", "campaign_setup"]:
 		var map_id := OS.get_environment("HUD_CAPTURE_MAP")
 		if map_id in Skirmish.MAP_IDS:
 			client.selected_map = map_id
