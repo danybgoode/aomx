@@ -38,7 +38,7 @@ const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
 const AI_LEVELS := ["learner", "standard", "challenger"]
-const OBJECTIVE_IDS := ["la_roma", "conquest"]
+const OBJECTIVE_IDS := ["la_roma", "conquest", "wonder"]
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
@@ -50,6 +50,7 @@ var mission_steps: Array = []
 var mission_result := ""
 var map_id := "la_roma"
 var objective_id := "la_roma"
+var wonder_progress := [0, 0]
 var map_width := WIDTH
 var map_height := HEIGHT
 var blocked_tiles: Dictionary = {}
@@ -101,19 +102,21 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	assert(human_faction in FACTION_IDS, "Choose a supported faction.")
 	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
 	assert(selected_objective in OBJECTIVE_IDS, "Choose a supported objective.")
+	assert(selected_objective != "wonder" or selected_map == "la_roma", "Wonder is available on the 28x28 La Roma map only.")
 	assert(selected_mission.is_empty() or selected_objective == "la_roma", "Missions pin their own objective.")
 	objective_id = selected_objective
 	if opponent_faction.is_empty():
 		opponent_faction = POBLANOS if human_faction == REGIOS else REGIOS
 	assert(opponent_faction in FACTION_IDS, "Choose a supported opponent.")
 	if custom_content.is_empty():
-		var loaded := RulesContent.load_map(selected_map)
+		var loaded := RulesContent.load_wonder(selected_map) if selected_objective == "wonder" else RulesContent.load_map(selected_map)
 		assert(loaded.ok, "Could not load validated skirmish content: " + str(loaded.get("reason", "unknown")))
 		content = loaded.data
 		content_hash = loaded.hash
 	else:
 		var checked := RulesContent.validate(custom_content)
 		assert(checked.ok, "Invalid skirmish content: " + str(checked.get("reason", "unknown")))
+		assert((selected_objective == "wonder") == (custom_content.get("content_id") == RulesContent.WONDER_CONTENT_ID), "Objective and content must match.")
 		content = custom_content.duplicate(true)
 		content_hash = JSON.stringify(content).sha256_text()
 	map_id = str(content.map_id)
@@ -267,6 +270,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				rejected.reason = "worker_required"
 			elif building_kind not in content.buildings or building_kind == "command_post":
 				rejected.reason = "building_unavailable"
+			elif building_kind == "wonder" and _find(side, "wonder") != -1:
+				rejected.reason = "wonder_already_active"
 			elif not _age_allows(side, content.buildings[building_kind].min_age):
 				rejected.reason = "age_required"
 			elif not _can_pay(side, _costs(side, building_kind)):
@@ -564,6 +569,8 @@ func tick() -> void:
 	else:
 		if objective_id == "la_roma":
 			_tick_district()
+		elif objective_id == "wonder":
+			_tick_wonder()
 		if result == "" and tick_number >= int(content.objectives.draw_tick):
 			_finish("draw", "time_limit")
 	_refresh_visibility()
@@ -721,6 +728,18 @@ func _tick_district() -> void:
 	if district_progress >= int(content.objectives.district_hold_ticks):
 		_finish("win" if owner == HUMAN else "loss", "district")
 
+func _tick_wonder() -> void:
+	for side in [HUMAN, COMPUTER]:
+		var id := _find(side, "wonder")
+		wonder_progress[side] = wonder_progress[side] + 1 if id != -1 and entities[id].hp > 0 and entities[id].complete else 0
+	var goal := int(content.objectives.wonder_hold_ticks)
+	if wonder_progress[HUMAN] >= goal and wonder_progress[COMPUTER] >= goal:
+		_finish("draw", "simultaneous_wonders")
+	elif wonder_progress[HUMAN] >= goal:
+		_finish("win", "wonder")
+	elif wonder_progress[COMPUTER] >= goal:
+		_finish("loss", "wonder")
+
 func snapshot() -> Dictionary:
 	var list: Array = []
 	var ids: Array = entities.keys()
@@ -778,6 +797,8 @@ func snapshot() -> Dictionary:
 		state["mission_result"] = mission_result
 	if objective_id != "la_roma":
 		state["objective_id"] = objective_id
+	if objective_id == "wonder":
+		state["wonder_progress"] = wonder_progress.duplicate()
 	return state
 
 func state_hash() -> String:
@@ -1113,6 +1134,12 @@ func _ai_goal(observed: Array[Dictionary] = []) -> Dictionary:
 		return {"kind": "hold", "id": "carry_capacity_i", "costs": {}}
 	if age_index[side] == 1 and not _queued(side, "age", "godin"):
 		return {"kind": "advance", "id": "godin", "costs": content.ages.transitions.godin.costs}
+	if objective_id == "wonder" and age_index[side] >= 2:
+		var wonder_id := _find(side, "wonder")
+		if wonder_id == -1:
+			return {"kind": "build", "id": "wonder", "costs": _costs(side, "wonder")}
+		if not entities[wonder_id].complete:
+			return {"kind": "wait", "id": wonder_id, "costs": {}}
 	if age_index[side] >= 2 and "construction_rate_i" not in researched[side] and not _queued(side, "tech", "construction_rate_i"):
 		return {"kind": "research", "id": "construction_rate_i", "costs": content.techs.construction_rate_i.costs}
 	if age_index[side] == 2 and "construction_rate_i" not in researched[side]:
@@ -1303,19 +1330,23 @@ func _ai_step() -> void:
 				break
 	var human_post := -1
 	var human_district := -1
+	var human_wonder := -1
 	for enemy in observed:
 		if enemy.kind == "command_post":
 			human_post = enemy.id
+		if objective_id == "wonder" and enemy.kind == "wonder":
+			human_wonder = enemy.id
 		if objective_id == "la_roma" and enemy.kind in COMBAT_KINDS and _in_district(enemy.pos):
 			human_district = enemy.id
 	var own_post := _find(side, "command_post")
+	var own_wonder := _find(side, "wonder") if objective_id == "wonder" else -1
 	var nearby_threat := -1
 	if own_post != -1:
 		for enemy in observed:
-			if enemy.kind in COMBAT_KINDS and _distance(enemy.pos, entities[own_post].pos) <= 6:
+			if enemy.kind in COMBAT_KINDS and (_distance(enemy.pos, entities[own_post].pos) <= 6 or own_wonder != -1 and _distance(enemy.pos, entities[own_wonder].pos) <= 6):
 				nearby_threat = enemy.id
 				break
-	if tick_number < int(profile.attack_tick if objective_id == "conquest" else profile.district_tick) or age_index[side] < (2 if objective_id == "conquest" else 3):
+	if tick_number < int(profile.attack_tick if objective_id in ["conquest", "wonder"] else profile.district_tick) or age_index[side] < (2 if objective_id in ["conquest", "wonder"] else 3):
 		var early_target := human_district if human_district != -1 else nearby_threat
 		if early_target != -1:
 			for id in ids:
@@ -1332,10 +1363,11 @@ func _ai_step() -> void:
 			if unit.job != "attack" or unit.target_id != defense_target:
 				if issue(side, "attack", id, defense_target).ok:
 					ai_plan = "defend"
-		elif tick_number >= int(profile.attack_tick) and (objective_id == "conquest" or not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
-			if human_post != -1:
-				if unit.job != "attack" or unit.target_id != human_post:
-					if issue(side, "attack", id, human_post).ok:
+		elif tick_number >= int(profile.attack_tick) and (objective_id in ["conquest", "wonder"] or not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
+			var attack_target := human_wonder if human_wonder != -1 else human_post
+			if attack_target != -1:
+				if unit.job != "attack" or unit.target_id != attack_target:
+					if issue(side, "attack", id, attack_target).ok:
 						ai_plan = "conquest"
 			elif unit.job in ["idle", "move"]:
 				var search_pos := _point(content.map.command_posts[HUMAN])

@@ -19,6 +19,10 @@ func _capture() -> void:
 	var objective := OS.get_environment("HUD_CAPTURE_OBJECTIVE")
 	if objective == "conquest":
 		client._choose_objective(1)
+	elif objective == "wonder":
+		client.wonder_flag = {"enabled": true, "served": true, "flag_version": 1}
+		client._refresh_wonder_setup()
+		client._choose_objective(2)
 	var ui_scale := OS.get_environment("HUD_CAPTURE_SCALE")
 	if ui_scale.is_valid_float():
 		client._set_ui_scale(float(ui_scale), false)
@@ -46,7 +50,18 @@ func _capture() -> void:
 		client._toggle_diagnostics()
 	if mode == "result":
 		client.sim.result = "win"
-		client.sim.result_reason = "command_post"
+		client.sim.result_reason = "wonder" if objective == "wonder" else "command_post"
+		client._update_hud()
+	if mode == "wonder_progress":
+		var wonder: int = client.sim._add_entity(Skirmish.HUMAN, "wonder", Vector2i(5, 8))
+		client.sim.entities[wonder].complete = true
+		var enemy_wonder: int = client.sim._add_entity(Skirmish.COMPUTER, "wonder", Vector2i(16, 9))
+		client.sim.entities[enemy_wonder].complete = true
+		client.sim.wonder_progress = [430, 270]
+		client.paused = true
+		client.selected_id = wonder
+		client.selected_ids.clear()
+		client.selected_ids.append(wonder)
 		client._update_hud()
 	if mode in ["effect", "crowded_effect"]:
 		client._set_reduced_effects(false)

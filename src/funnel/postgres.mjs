@@ -6,7 +6,7 @@ import { makeReport } from './report.mjs';
 // A transaction-wide lock serializes policy decisions across service instances.
 // Each decision uses the same pure Ingest policy as the local JSONL prototype.
 export class PostgresFunnel {
-  constructor(connectionString, { resolveFlag, resolveCampaignFlag, now, pool, supportedVersions, requireInvite = false,
+  constructor(connectionString, { resolveFlag, resolveCampaignFlag, resolveWonderFlag, now, pool, supportedVersions, requireInvite = false,
     forceExcludeReason = null } = {}) {
     const hostname = connectionString ? new URL(connectionString).hostname : '';
     const privateHost = ['localhost', '127.0.0.1', 'postgres'].includes(hostname);
@@ -14,6 +14,7 @@ export class PostgresFunnel {
       idleTimeoutMillis: 30000, ssl: privateHost ? false : { rejectUnauthorized: true } });
     this.resolveFlag = resolveFlag;
     this.resolveCampaignFlag = resolveCampaignFlag;
+    this.resolveWonderFlag = resolveWonderFlag;
     this.now = now;
     this.supportedVersions = supportedVersions;
     this.requireInvite = requireInvite;
@@ -50,7 +51,7 @@ export class PostgresFunnel {
       const { rows } = await client.query('select row from alpha_private.audit_events order by id');
       let appended;
       const store = { rows: rows.map(r => r.row), append(row) { appended = row; this.rows.push(row); } };
-      const receipt = new Ingest(store, { resolveFlag: this.resolveFlag, resolveCampaignFlag: this.resolveCampaignFlag, now: this.now,
+      const receipt = new Ingest(store, { resolveFlag: this.resolveFlag, resolveCampaignFlag: this.resolveCampaignFlag, resolveWonderFlag: this.resolveWonderFlag, now: this.now,
         supportedVersions: this.supportedVersions,
         forceExcludeReason: this.forceExcludeReason }).accept(event);
       if (claimInvite && appended && ['accepted', 'excluded'].includes(receipt.status)) {

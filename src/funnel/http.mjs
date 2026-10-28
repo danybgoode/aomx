@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { makeReport } from './report.mjs';
 
 export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = false,
-  requestsPerMinute = 30, globalRequestsPerMinute = 300, campaignDecision = null } = {}) {
+  requestsPerMinute = 30, globalRequestsPerMinute = 300, campaignDecision = null, wonderDecision = null } = {}) {
   const traffic = new Map();
   const server = http.createServer(async (req, res) => {
     res.setHeader('content-type', 'application/json');
@@ -18,7 +18,7 @@ export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = fa
       }
       return;
     }
-    if (req.method === 'POST' && (req.url === '/v1/events' || req.url === '/v1/campaign/flag' && campaignDecision)) {
+    if (req.method === 'POST' && (req.url === '/v1/events' || req.url === '/v1/campaign/flag' && campaignDecision || req.url === '/v1/modes/flag' && wonderDecision)) {
       try {
         if (publicMode) {
           const ip = req.socket.remoteAddress ?? 'unknown';
@@ -49,7 +49,7 @@ export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = fa
           chunks.push(chunk);
         }
         const payload = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-        if (req.url === '/v1/campaign/flag') {
+        if (req.url === '/v1/campaign/flag' || req.url === '/v1/modes/flag') {
           if (!payload || typeof payload !== 'object' || Array.isArray(payload) ||
             Object.keys(payload).length !== 1 || typeof payload.player_id !== 'string') {
             res.statusCode = 400;
@@ -57,7 +57,7 @@ export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = fa
             return;
           }
           await ingest.authorizeCampaign(payload.player_id, req.headers['x-aomx-invite-code']);
-          res.end(JSON.stringify(await campaignDecision(payload.player_id)));
+          res.end(JSON.stringify(await (req.url === '/v1/modes/flag' ? wonderDecision : campaignDecision)(payload.player_id)));
         } else {
           const receipt = await ingest.accept(payload, { inviteToken: req.headers['x-aomx-invite-code'] });
           res.statusCode = receipt.status === 'rejected' ? 422 : 200;

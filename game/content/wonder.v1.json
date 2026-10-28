@@ -1,0 +1,15 @@
+{
+  "content_id": "la-roma-wonder-1",
+  "map_id": "la_roma",
+  "building": {
+    "health": 80,
+    "cost": 20,
+    "costs": {"comida": 16, "materiales": 20, "varos": 20, "terrenos": 12},
+    "build_ticks": 180,
+    "trains": [],
+    "min_age": "godin",
+    "population_bonus": 0,
+    "armor": 1
+  },
+  "hold_ticks": 900
+}

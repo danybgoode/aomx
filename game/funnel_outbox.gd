@@ -40,8 +40,8 @@ func queue_open_for_launch() -> Dictionary:
 		return {"ok": true, "event": last_open, "existing": true}
 	return queue("game_opened", "", "", not last_open.is_empty())
 
-func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo", mission_id: String = "") -> Dictionary:
-	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed", "campaign_mission_completed"]:
+func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo", mission_id: String = "", objective_id: String = "la_roma", wonder_flag_version: int = -1) -> Dictionary:
+	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed", "campaign_mission_completed", "wonder_match_completed"]:
 		return {"ok": false, "reason": "outbox_unavailable"}
 	if mode not in ["solo", "multiplayer", "campaign"]:
 		return {"ok": false, "reason": "invalid_mode"}
@@ -50,20 +50,35 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 			return {"ok": false, "reason": "invalid_campaign_context"}
 	elif not mission_id.is_empty() or type == "campaign_mission_completed":
 		return {"ok": false, "reason": "invalid_campaign_context"}
+	if objective_id not in ["la_roma", "conquest", "wonder"] or (objective_id != "la_roma" and mode != "solo") or (type == "wonder_match_completed" and (objective_id != "wonder" or mode != "solo")):
+		return {"ok": false, "reason": "invalid_objective"}
 	for item in state.events:
 		if item.event.type == type and (type == "game_opened" and not new_session or type != "game_opened" and item.event.get("match_id", "") == match_id):
 			return {"ok": true, "event": item.event, "existing": true}
 	if type != "game_opened" and match_id.is_empty():
 		return {"ok": false, "reason": "missing_match_id"}
-	if type == "match_completed" and result not in ["win", "loss", "draw"]:
+	if type in ["match_completed", "wonder_match_completed"] and result not in ["win", "loss", "draw"]:
 		return {"ok": false, "reason": "invalid_result"}
 	if type == "campaign_mission_completed" and result != "win":
 		return {"ok": false, "reason": "invalid_result"}
-	if type not in ["match_completed", "campaign_mission_completed"] and not result.is_empty():
+	if type not in ["match_completed", "campaign_mission_completed", "wonder_match_completed"] and not result.is_empty():
 		return {"ok": false, "reason": "unexpected_result"}
 	if type == "match_completed" and not state.events.any(func(item: Dictionary) -> bool:
 		return item.event.type == "match_started" and item.event.get("match_id", "") == match_id):
 		return {"ok": false, "reason": "missing_match_start"}
+	if type == "wonder_match_completed" and not state.events.any(func(item: Dictionary) -> bool:
+		return item.event.type == "match_completed" and item.event.get("match_id", "") == match_id and item.event.get("objective_id", "") == "wonder"):
+		return {"ok": false, "reason": "missing_wonder_finish"}
+	if objective_id == "wonder":
+		if type == "match_started" and wonder_flag_version < 0:
+			return {"ok": false, "reason": "wonder_flag_version_missing"}
+		if type != "match_started":
+			for item in state.events:
+				if item.event.type == "match_started" and item.event.get("match_id", "") == match_id:
+					wonder_flag_version = int(item.event.get("wonder_flag_version", -1))
+					break
+			if wonder_flag_version < 0:
+				return {"ok": false, "reason": "wonder_flag_version_missing"}
 	var utc := Time.get_datetime_string_from_system(true) + ".000Z"
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
 		"player_id": state.player_id, "claimed_at": utc, "local_sequence": state.next_sequence,
@@ -71,12 +86,16 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 		"mode": mode, "faction": faction, "test_account": test_account, "bot": false}
 	if type != "game_opened":
 		event.match_id = match_id
-	if type == "match_completed":
+	if type in ["match_completed", "wonder_match_completed"]:
 		event.result = result
 	if type == "campaign_mission_completed":
 		event.result = "win"
 	if mode == "campaign":
 		event.mission_id = mission_id
+	if type != "game_opened" and objective_id != "la_roma":
+		event.objective_id = objective_id
+	if objective_id == "wonder" and type != "game_opened":
+		event.wonder_flag_version = wonder_flag_version
 	var next: Dictionary = state.duplicate(true)
 	next.events.append({"event": event, "status": "pending", "receipt": null})
 	next.next_sequence += 1

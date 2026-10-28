@@ -24,7 +24,8 @@
     "alpha:health": "node scripts/alpha-health.mjs",
     "alpha:invite": "node scripts/alpha-invite.mjs",
     "alpha:publish": "node scripts/alpha-publish.mjs",
-    "alpha:campaign-publish": "node scripts/alpha-campaign-publish.mjs"
+    "alpha:campaign-publish": "node scripts/alpha-campaign-publish.mjs",
+    "alpha:wonder-publish": "node scripts/alpha-wonder-publish.mjs"
   },
   "dependencies": {
     "@golden-frijoles/sdk": "1.1.0",

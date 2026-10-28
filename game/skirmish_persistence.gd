@@ -67,7 +67,12 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 	var map_id: Variant = payload.get("map_id")
 	if not map_id is String or map_id not in preload("res://rules_content.gd").MAP_IDS:
 		return _bad("save_map_invalid")
-	var loaded: Dictionary = preload("res://rules_content.gd").load_map(map_id)
+	if not payload.get("state") is Dictionary:
+		return _bad("save_state_invalid")
+	var objective_id := str(payload.state.get("objective_id", "la_roma"))
+	if objective_id not in Skirmish.OBJECTIVE_IDS:
+		return _bad("state_objective_invalid")
+	var loaded: Dictionary = preload("res://rules_content.gd").load_wonder(map_id) if objective_id == "wonder" else preload("res://rules_content.gd").load_map(map_id)
 	if not loaded.ok or payload.get("content_version") != loaded.data.content_id or payload.get("content_hash") != loaded.hash:
 		return _bad("content_version_mismatch")
 	if not _match_id(payload.get("match_id")) or not payload.get("completion_queued") is bool:
@@ -95,6 +100,8 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 	game.district_side = int(state.district_side)
 	game.district_progress = int(state.district_progress)
 	game.district_state = state.district_state
+	if game.objective_id == "wonder":
+		game.wonder_progress = [int(state.wonder_progress[0]), int(state.wonder_progress[1])]
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		var saved_balances: Dictionary = state.balances[side]
 		game.stockpile[side] = int(saved_balances.varos)
@@ -187,6 +194,11 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_objective_invalid")
 	if s.has("mission_id") and s.get("objective_id", "la_roma") != "la_roma":
 		return _bad("state_objective_invalid")
+	if s.get("objective_id", "la_roma") == "wonder":
+		if not s.get("wonder_progress") is Array or s.wonder_progress.size() != 2 or not _integer(s.wonder_progress[0], 0) or not _integer(s.wonder_progress[1], 0) or int(s.wonder_progress[0]) > 900 or int(s.wonder_progress[1]) > 900:
+			return _bad("state_wonder_progress_invalid")
+	elif s.has("wonder_progress"):
+		return _bad("state_wonder_progress_invalid")
 	if s.has("mission_id"):
 		if not s.get("mission_id") is String or not s.get("mission_hash") is String or not s.get("mission_steps") is Array or s.get("mission_result") not in ["", "win", "loss"]:
 			return _bad("state_mission_invalid")

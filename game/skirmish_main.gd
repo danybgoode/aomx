@@ -13,6 +13,7 @@ const MapGeography = preload("res://map_geography.gd")
 const CampaignMissions = preload("res://campaign_missions.gd")
 const CampaignProgress = preload("res://campaign_progress.gd")
 const CampaignFlagCache = preload("res://campaign_flag_cache.gd")
+const WonderFlagCache = preload("res://wonder_flag_cache.gd")
 const PresentationCues = preload("res://presentation_cues.gd")
 const TILE_W := 48.0
 const TILE_H := 24.0
@@ -52,6 +53,10 @@ var campaign_flag_request: HTTPRequest
 var campaign_check_pending := false
 var campaign_check_after_open := false
 var campaign_online_blocked := false
+var wonder_flag_path := WonderFlagCache.PATH
+var wonder_flag: Dictionary = {"enabled": false, "served": false}
+var wonder_flag_request: HTTPRequest
+var wonder_check_pending := false
 var setup_mode: OptionButton
 var setup_mission: OptionButton
 var setup_campaign_note: Label
@@ -167,6 +172,10 @@ func _ready() -> void:
 	campaign_flag_request.timeout = 3.0
 	add_child(campaign_flag_request)
 	campaign_flag_request.request_completed.connect(_on_campaign_flag_completed)
+	wonder_flag_request = HTTPRequest.new()
+	wonder_flag_request.timeout = 3.0
+	add_child(wonder_flag_request)
+	wonder_flag_request.request_completed.connect(_on_wonder_flag_completed)
 	online_client = MultiplayerClient.new()
 	add_child(online_client)
 	online_client.joined.connect(_on_online_joined)
@@ -205,6 +214,7 @@ func _ready() -> void:
 	_build_faction_setup(layer)
 	if outbox.state.has("player_id"):
 		campaign_flag = CampaignFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, campaign_flag_path)
+		wonder_flag = WonderFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, wonder_flag_path)
 	replay_file_dialog = FileDialog.new()
 	replay_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	replay_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
@@ -501,6 +511,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	for label in ["La Roma — post or center", "Conquest — post only", "Wonder — build and defend"]:
 		setup_objective.add_item(label)
 	setup_objective.set_item_disabled(2, true)
+	setup_objective.set_item_tooltip(2, "Wonder is off until a served alpha decision enables it on La Roma.")
 	setup_objective.item_selected.connect(_choose_objective)
 	setup_objective.custom_minimum_size.y = 42
 	column.add_child(setup_objective)
@@ -627,7 +638,7 @@ func _layout_setup() -> void:
 	elif selected_objective == "conquest":
 		setup_goal.text = "Conquest: destroy the opposing command post. Holding the center does not win."
 	elif selected_objective == "wonder":
-		setup_goal.text = "Wonder: build and defend a project, or destroy the opposing command post."
+		setup_goal.text = "Wonder: build at Godín, defend for 90 seconds, or destroy the enemy post."
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
@@ -707,6 +718,8 @@ func _show_setup() -> void:
 	setup_save_error.text = ""
 	_refresh_campaign_setup()
 	_check_campaign_flag()
+	_check_wonder_flag()
+	_refresh_wonder_setup()
 	hover_hint.text = ""
 	instructions.text = "Choose a map, opponent and faction · Press 1–4, or click a choice"
 	_update_hud()
@@ -729,6 +742,7 @@ func _choose_mode(index: int) -> void:
 	_layout_setup()
 
 func _choose_objective(index: int) -> void:
+	_refresh_wonder_setup()
 	if index < 0 or index >= Skirmish.OBJECTIVE_IDS.size() or setup_objective.is_item_disabled(index):
 		return
 	selected_objective = Skirmish.OBJECTIVE_IDS[index]
@@ -792,7 +806,20 @@ func _choose_map(index: int) -> void:
 			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
 			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 		if setup_objective != null:
+			_refresh_wonder_setup()
 			_layout_setup()
+
+func _wonder_allowed() -> bool:
+	return selected_map == "la_roma" and bool(wonder_flag.get("served", false)) and bool(wonder_flag.get("enabled", false))
+
+func _refresh_wonder_setup() -> void:
+	if setup_objective == null:
+		return
+	setup_objective.set_item_disabled(2, not _wonder_allowed())
+	setup_objective_label.text = "Solo objective" if _wonder_allowed() else "Solo objective · Wonder unavailable until enabled"
+	if selected_objective == "wonder" and not _wonder_allowed():
+		selected_objective = "la_roma"
+		setup_objective.select(0)
 
 func _choose_opponent(index: int) -> void:
 	selected_opponent = "" if index == 0 else Skirmish.FACTION_IDS[index - 1]
@@ -853,6 +880,8 @@ func _resume_match() -> void:
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
+	# A running saved match keeps its pinned objective even if a newer served flag is off.
+	selected_objective = sim.objective_id
 	setup_opponent.select(Skirmish.FACTION_IDS.find(selected_opponent) + 1)
 	selected_difficulty = sim.ai_difficulty
 	setup_difficulty.select(Skirmish.AI_LEVELS.find(selected_difficulty))
@@ -860,9 +889,10 @@ func _resume_match() -> void:
 	match_id = restored.match_id
 	completion_queued = restored.completion_queued or (sim.result != "" and not campaign_mode)
 	outbox.faction = sim.factions[Skirmish.HUMAN]
+	outbox.content_version = sim.content.content_id
 	choosing_faction = false
 	setup_panel.hide()
-	if campaign_mode:
+	if campaign_mode or sim.objective_id == "wonder":
 		hud_ui.objective_body.show()
 		hud_ui._layout()
 	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
@@ -1120,6 +1150,9 @@ func _send_game_order(kind: String, actor_id: int, target: Variant) -> Dictionar
 	return queued
 
 func _start_match(faction: String, difficulty: String = "") -> void:
+	if not campaign_mode and selected_objective == "wonder" and not _wonder_allowed():
+		setup_save_error.text = "Wonder is currently unavailable. Choose La Roma or Conquest."
+		return
 	if online_client != null:
 		online_client.leave()
 	online = false
@@ -1131,13 +1164,14 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
 	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective)
+	outbox.content_version = sim.content.content_id
 	paused = false
 	hud_ui.pause_button.text = "II"
 	hud_ui.diagnostics.hide()
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	if campaign_mode:
+	if campaign_mode or sim.objective_id == "wonder":
 		hud_ui.objective_body.show()
 		hud_ui._layout()
 	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
@@ -1170,7 +1204,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 		else:
 			sync_note = "Chapter mission started. Progress saves after a verified win."
 	else:
-		var saved: Dictionary = outbox.queue("match_started", match_id)
+		var saved: Dictionary = outbox.queue("match_started", match_id, "", false, "solo", "", sim.objective_id, int(wonder_flag.get("flag_version", -1)))
 		sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
 	if OS.is_debug_build():
 		match OS.get_environment("SKIRMISH_SMOKE_SCENARIO"):
@@ -1237,8 +1271,10 @@ func _process(delta: float) -> void:
 			completion_queued = terminal_saved
 			sync_note = "Mission ended. You can retry from the chapter menu." if completion_queued else "Battle result could not be saved; check device storage."
 	if not campaign_mode and sim.result != "" and not completion_queued:
-		var saved: Dictionary = outbox.queue("match_completed", match_id, sim.result)
+		var saved: Dictionary = outbox.queue("match_completed", match_id, sim.result, false, "solo", "", sim.objective_id)
 		completion_queued = saved.ok
+		if saved.ok and sim.objective_id == "wonder":
+			completion_queued = outbox.queue("wonder_match_completed", match_id, sim.result, false, "solo", "", "wonder").ok
 		if not saved.ok:
 			sync_note = "Result could not be saved; check device storage."
 	if advanced:
@@ -1584,6 +1620,8 @@ func _age_gate(id: String) -> String:
 	return "Requires %s age" % _age_display(age) if sim.content.ages.order.find(age) > int(sim.age_index[Skirmish.HUMAN]) else ""
 
 func _building_reason(id: String) -> String:
+	if id == "wonder" and sim._find(Skirmish.HUMAN, "wonder") != -1:
+		return "One active Wonder per side"
 	var reason := _age_gate(id)
 	if reason.is_empty():
 		reason = _missing_costs(sim._costs(Skirmish.HUMAN, id))
@@ -1691,7 +1729,7 @@ func _activate_command(action: String) -> void:
 		return
 	if action.begins_with("build_"):
 		build_kind = action.trim_prefix("build_")
-		if sim.result != "" or _selected_kind() != "worker" or selected_ids.size() != 1 or build_kind not in BUILD_CHOICES:
+		if sim.result != "" or _selected_kind() != "worker" or selected_ids.size() != 1 or build_kind not in BUILD_CHOICES + (["wonder"] if sim.objective_id == "wonder" else []):
 			_flash_order(Vector2i(-1, -1), "Select a living worker to build.", false)
 			return
 		var build_reason := _building_reason(build_kind)
@@ -1751,7 +1789,7 @@ func _activate_command(action: String) -> void:
 			_train(action.trim_prefix("train_"))
 		elif action == "build":
 			var choices: Array[Dictionary] = []
-			for id in BUILD_CHOICES:
+			for id in BUILD_CHOICES + (["wonder"] if sim.objective_id == "wonder" else []):
 				var reason := _building_reason(id)
 				choices.append({"id": "build_" + id, "label": "%s · %s%s" % [id.capitalize(), _cost_text(sim._costs(Skirmish.HUMAN, id)), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
 			hud_ui.show_choices("CHOOSE BUILDING", choices)
@@ -1899,6 +1937,10 @@ func _update_hud() -> void:
 		ui.objective_progress.value = 0
 		ui.objective_progress.max_value = 1
 		ui.objective_alternative.text = "Center hold is disabled."
+	if not campaign_mode and sim.objective_id == "wonder":
+		ui.objective_progress.max_value = int(sim.content.objectives.wonder_hold_ticks)
+		ui.objective_progress.value = sim.wonder_progress[Skirmish.HUMAN]
+		ui.objective_alternative.text = "or destroy enemy command post"
 	if campaign_mode:
 		var chapter_goal := CampaignMissions.find_mission(sim.mission_id)
 		if chapter_goal.ok and chapter_goal.data.tutorial:
@@ -1919,6 +1961,8 @@ func _update_hud() -> void:
 		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	if not campaign_mode and sim.objective_id == "conquest":
 		ui.secondary_status.text = "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s" % [own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+	if not campaign_mode and sim.objective_id == "wonder":
+		ui.secondary_status.text = "Wonder: build at Godín age\nHold: yours %ds / enemy %ds of 90s\nPosts: %d HP / %s" % [int(sim.wonder_progress[Skirmish.HUMAN] / 10), int(sim.wonder_progress[Skirmish.COMPUTER] / 10), own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	var group_signature := str(selected_ids)
 	if group_signature != last_group_signature:
 		last_group_signature = group_signature
@@ -1988,6 +2032,15 @@ func _update_hud() -> void:
 		ui.show_result(sim.result, sim.result_reason)
 		if sim.objective_id == "conquest":
 			ui.result_reason.text = "Conquest • " + ui.result_reason.text
+		elif sim.objective_id == "wonder":
+			var wonder_result := "Project defended for 90 seconds." if sim.result == "win" else "Enemy project held for 90 seconds."
+			if sim.result_reason == "command_post":
+				wonder_result = "Enemy command post destroyed." if sim.result == "win" else "Your command post fell."
+			elif sim.result_reason == "simultaneous_wonders":
+				wonder_result = "Both projects finished together."
+			elif sim.result_reason != "wonder":
+				wonder_result = ui.result_reason.text
+			ui.result_reason.text = "Wonder • " + wonder_result
 		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
 	else:
 		ui.show_result("", "")
@@ -2076,6 +2129,8 @@ func _sync_brief() -> String:
 func _district_note() -> String:
 	if sim.objective_id == "conquest":
 		return "Conquest — destroy enemy command post"
+	if sim.objective_id == "wonder":
+		return "Wonder: You %ds · AI %ds" % [int(sim.wonder_progress[Skirmish.HUMAN] / 10), int(sim.wonder_progress[Skirmish.COMPUTER] / 10)]
 	match sim.district_state:
 		"human_hold": return "Your hold %d / %d seconds" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
 		"computer_hold": return "Enemy hold %d / %d seconds — contest it" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
@@ -2155,7 +2210,27 @@ func _save_invite_code() -> void:
 	invite_input.clear()
 	sync_note = "Invite code saved. Saved play will sync when online."
 	_check_campaign_flag()
+	_check_wonder_flag()
 	_send_next()
+
+func _check_wonder_flag() -> void:
+	if wonder_check_pending or invite_code.is_empty() or not outbox.state.has("player_id"):
+		return
+	var headers := ["Content-Type: application/json", "X-Aomx-Invite-Code: " + invite_code]
+	var endpoint := AlphaConfig.ENDPOINT.replace("/v1/events", "/v1/modes/flag")
+	wonder_check_pending = wonder_flag_request.request(endpoint, headers,
+		HTTPClient.METHOD_POST, JSON.stringify({"player_id": str(outbox.state.player_id)})) == OK
+
+func _on_wonder_flag_completed(result_code: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	wonder_check_pending = false
+	if result_code != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not outbox.state.has("player_id"):
+		return
+	var decision = JSON.parse_string(body.get_string_from_utf8())
+	if decision is Dictionary and WonderFlagCache.write(str(outbox.state.player_id), AlphaConfig.CHANNEL, decision, wonder_flag_path):
+		wonder_flag = WonderFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, wonder_flag_path)
+		if choosing_faction:
+			_refresh_wonder_setup()
+			_layout_setup()
 
 func _campaign_allowed() -> bool:
 	return AlphaConfig.CHANNEL == "development" or (bool(campaign_flag.get("enabled", false)) and not campaign_online_blocked)
@@ -2531,6 +2606,10 @@ func _draw() -> void:
 		if id == hovered_entity_id and not selected:
 			_draw_sprite_outline(art_id, sprite_rect, Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)
+		if e.kind == "wonder":
+			var crest := ground + Vector2(0, -67)
+			draw_arc(crest, 19, 0, TAU, 24, Color("f7cf67"), 3.0)
+			draw_string(ThemeDB.fallback_font, crest + Vector2(-11, 7), "W", HORIZONTAL_ALIGNMENT_CENTER, 22, 22, Color("fff2ae"))
 		if is_building and (selected or id == hovered_entity_id) and e.kind not in ["command_post", "barracks"]:
 			var label_origin := ground + (Vector2(-35, 3) if sim.map_id == "la_roma" else Vector2(-35, -54))
 			draw_rect(Rect2(label_origin, Vector2(70, 16)), Color("1b2430"))
