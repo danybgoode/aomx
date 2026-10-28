@@ -1038,6 +1038,7 @@ func _resume_match() -> void:
 	_baseline_presentation()
 	marker = Vector2i(-1, -1)
 	_reset_zoom()
+	_navigate_minimap(_starting_camera_tile())
 	order_flash_seconds = 0.0
 	hud_ui.show_notice("Saved match resumed")
 	_update_hud()

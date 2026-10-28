@@ -87,6 +87,13 @@ func _run() -> void:
 	check(ui.bottom.position.y - (ui.top.position.y + ui.top.size.y) >= 300.0,
 		"phone portrait keeps the battlefield available")
 	root.size = original_size
+	client.save_path = OS.get_temp_dir().path_join("platform-touch-save-%d.json" % Time.get_ticks_usec())
+	client._save_match()
+	client._show_setup()
+	client._resume_match()
+	check(not client.choosing_faction and ui.minimap.camera_tile == client._starting_camera_tile() and client.board_pan != Vector2.ZERO,
+		"imported or resumed solo match centers its camera in the visible board band")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(client.save_path))
 	client.queue_free()
 	if not failed:
 		print("Platform touch checks passed")
