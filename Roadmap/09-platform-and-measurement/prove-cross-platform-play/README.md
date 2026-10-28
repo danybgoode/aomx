@@ -1,6 +1,6 @@
 ---
-status: scaffolded   # authoritative until real-build QA closes
-phase: Locking architecture
+status: in-progress   # authoritative until real-build QA closes
+phase: Building
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: prove-cross-platform-play
 title: "Prove cross-platform play"
@@ -56,6 +56,8 @@ destination: accessible-cross-platform-release
 
 Players who choose another computer or browser cannot yet rely on finishing and resuming the same RTS battle. This epic proves the current game on named desktop targets first, then designed touch play on physical phones, and finally Restricted Web multiplayer. Each support claim follows a full match and a recorded device result. The owner approved the plan, option B matrix, proof budget and one orchestrated build on 2026-10-28, including merges and releases. The exact physical device inventory is still being gathered.
 
+The owner can provide one Windows PC, one Android phone and one iPhone alongside the current Mac. No physical Linux PC was named. iOS development signing is unavailable. Native Linux and native iOS therefore remain **unverified** support rows unless those dependencies change; Linux headless checks and iPhone Safari can still run as separate checks. Exact models/OS versions are collected at QA.
+
 ## Platform-first note
 
 The Godot simulation owns rules/content/state, the match service owns online results, and the existing ingest owns event eligibility. Platform adapters issue validated commands; they do not fork rules, saves, protocol or reporting. The [scope pitch](../../00-ideas/seeds/prove-cross-platform-play.md) holds the accepted matrix and exclusions.
@@ -78,6 +80,8 @@ The Godot simulation owns rules/content/state, the match service owns online res
 - **D6 · Online:** The existing server remains authoritative. Only a named Restricted origin gets CORS permission; bad origins/codes stay rejected. `multiplayer.private_match_enabled` controls new admissions and is left off after QA. No public invite or eligibility change is implied by a preview.
 - **D7 · Measurement:** Reuse accepted `match_started`/`match_completed`; test traffic stays excluded. The provisional 15% return target and North Star definitions do not change.
 - **D8 · Claims:** A row is supported only after a physical-device/browser full match, save/resume and the declared frame/memory check. Missing hardware is unverified. Browser solo and browser multiplayer are separate claims.
+
+**Verified source constraints at lock:** `game/export_presets.cfg` has macOS and single-threaded Web presets only; Windows, Linux, Android and iOS need presets. `game/skirmish_persistence.gd` has a validated schema-5 save but only a local `user://` path; `game/skirmish_main.gd` has replay file selection, not portable solo save dialogs. `game/project.godot` enables touch-to-mouse emulation; the match input handler consumes mouse events and has no gesture adapter. `src/multiplayer/http.mjs` has no OPTIONS or origin policy, consistent with the recorded Web preflight failure. The generated kickoff's `origin/main`, implied deployment on merge, mandatory new flag, and local `session-resume.mjs`/`epic-phase.mjs`/`review-route.mjs` assumptions do not fit this checkout; the branch base is `master`, release is separate, the existing admission flag is reused, and the project runbook plus available pinned kit commands govern verification. The owner approved the entire L run, so the wave review does not require a second appetite decision.
 
 ## Scope — stories
 

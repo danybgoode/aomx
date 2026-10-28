@@ -25,7 +25,7 @@ stories:
 
 **Status:** ⬜ not started
 
-Start after the Sprint 1 wave review. One physical Android 11+ phone with Chrome and one iPhone 12-class or newer with Safari are candidate targets for both native and mobile Web. The owner will identify actual available models. iOS native export requires local Xcode, a development team and a device installation path; lack of access is unverified, not passed. Retain the same rules/content and declared match scenario.
+Start after the Sprint 1 wave review. The owner can provide one physical Android phone and one iPhone; exact models and OS versions are owed at QA. The Android phone with Chrome and the iPhone with Safari are mobile Web candidates, and Android native is a candidate after local SDK setup. iOS native signing is unavailable, so that row is unverified and cannot become a support claim in this run. Retain the same rules/content and declared match scenario.
 
 ## Stories
 
