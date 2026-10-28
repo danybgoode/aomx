@@ -3,7 +3,7 @@ epic: prove-cross-platform-play
 sprint: 1
 title: "Desktop and browser solo proof"
 risk: high
-phase: Locking architecture
+phase: Building
 stories_total: 3
 stories:
   - id: S1.1
@@ -12,7 +12,7 @@ stories:
     i_want: "native desktop and Web artifacts tied to one source and content version"
     so_that: "every test names exactly what ran"
     risk: low
-    status: planned
+    status: in-progress
   - id: S1.2
     title: "Finish the same battle on desktop and Web"
     as_a: "player"
@@ -26,13 +26,13 @@ stories:
     i_want: "export, import and resume a same-version match"
     so_that: "browser storage loss does not erase my progress"
     risk: high
-    status: planned
+    status: in-progress
 ---
 # Prove cross-platform play — Sprint 1: Desktop and browser solo proof
 
-**Status:** ⬜ not started
+**Status:** 🔄 local builds and save path implemented; real-device full-match and transfer QA open
 
-This is the first end-to-end slice. The owner approved the 28×28 La Roma Standard / 24 population-per-side proof scenario and a p95 frame target of 33.3 ms or less. Device-specific memory ceilings are recorded with each actual machine before a support claim. The owner Mac, one Windows 11 x64 machine and one Ubuntu 24.04 x64 machine form the approved candidate desktop matrix; current Chrome/Firefox on Windows and Safari on Mac are the desktop Web browser candidates. Missing hardware yields an unverified row.
+This is the first end-to-end slice. The owner approved the 28×28 La Roma Standard / 24 population-per-side proof scenario and a p95 frame target of 33.3 ms or less. Device-specific memory ceilings are recorded with each actual machine before a support claim. The owner Mac and one Windows PC form the available desktop candidates; the Windows model and OS are still owed. There is no physical Linux PC. Chrome/Firefox on Windows and Safari on Mac are desktop Web browser candidates. Missing hardware yields an unverified row.
 
 ## Stories
 

@@ -16,6 +16,16 @@ func _run() -> void:
 	var worker: int = client.sim._find(Skirmish.HUMAN, "worker")
 	var pos: Vector2i = client.sim.entities[worker].pos
 	var point: Vector2 = Vector2(640, 305) + (client._tile_to_screen(pos) - Vector2(640, 305)) * client.board_zoom + client.board_pan + client._board_view_offset()
+	var emulated := InputEventMouseButton.new()
+	emulated.device = InputEvent.DEVICE_ID_EMULATION
+	emulated.button_index = MOUSE_BUTTON_LEFT
+	emulated.position = point
+	emulated.pressed = true
+	client._unhandled_input(emulated)
+	check(client.selected_id == -1, "emulated touch mouse does not dispatch a duplicate board click")
+	_touch(client, 0, Vector2(20, 20), true)
+	_touch(client, 0, Vector2(20, 20), false)
+	check(client.selected_id == -1, "a touch beginning over the HUD cannot select the board beneath it")
 	_touch(client, 0, point, true)
 	_touch(client, 0, point, false)
 	check(client.selected_id == worker, "single touch selects a worker through the normal command path")

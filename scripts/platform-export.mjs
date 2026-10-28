@@ -27,6 +27,9 @@ for (const [name, value, pathname] of [['ingest', ingest, '/v1/events'], ['match
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.pathname !== pathname) {
     throw new Error(`${name} must be an HTTP(S) URL with no credentials and path ${pathname}`);
   }
+  if (parsed.protocol !== 'https:' && !['127.0.0.1', 'localhost', '[::1]'].includes(parsed.hostname)) {
+    throw new Error(`${name} must use HTTPS outside local loopback`);
+  }
 }
 const run = (cmd, args, options = {}) => {
   const result = spawnSync(cmd, args, { encoding: 'utf8', ...options });

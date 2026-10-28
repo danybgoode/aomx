@@ -58,7 +58,7 @@ The Restricted owner build proves macOS play, and the repo can export a local We
 
 **L** — a larger epic reviewed between proof waves. The budget pays for representative compatibility and a support decision, with the mobile wave re-evaluated after the desktop/Web read. It does not buy every device, store release or broad hardware optimization.
 
-**Approval, 2026-10-28:** The owner approved this plan, option B's candidate device matrix, the proposed 28×28 / 24-population / 30 FPS proof budget, and placing #22 ahead of release candidate #23. The owner authorized one orchestrated build through completion, including its merges and releases. Actual device models and iOS signing access remain to be recorded before claiming those targets.
+**Approval, 2026-10-28:** The owner approved this plan, option B's candidate device matrix, the proposed 28×28 / 24-population / 30 FPS proof budget, and placing #22 ahead of release candidate #23. The owner authorized one orchestrated build through completion, including its merges and releases. One Windows PC, one Android phone and one iPhone are available in principle; exact models and OS versions are owed. iOS development signing is unavailable, so native iOS remains unverified.
 
 quote: $50–300 (L, n=0, wide)
 

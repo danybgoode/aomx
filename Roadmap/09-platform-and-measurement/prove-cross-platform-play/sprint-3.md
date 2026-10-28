@@ -3,7 +3,7 @@ epic: prove-cross-platform-play
 sprint: 3
 title: "Restricted shared play and support decision"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S3.1
@@ -12,7 +12,7 @@ stories:
     i_want: "join, command, reconnect and replay against a native peer"
     so_that: "browser shared play has real authority-backed proof"
     risk: high
-    status: planned
+    status: in-progress
   - id: S3.2
     title: "Publish only tested support claims"
     as_a: "product owner"
@@ -23,7 +23,7 @@ stories:
 ---
 # Prove cross-platform play — Sprint 3: Restricted shared play and support decision
 
-**Status:** ⬜ not started
+**Status:** 🔄 exact-origin code and contracts implemented; hosted pair and support sign-off open
 
 Desktop Web online play is a separate claim from Web solo export. The existing match service remains authoritative; its current deployed join route failed a locally served Web origin preflight. This sprint permits an exact Restricted origin for internal testing, verifies denial paths, and leaves admission off afterward. No public invitation or eligible cohort is created.
 

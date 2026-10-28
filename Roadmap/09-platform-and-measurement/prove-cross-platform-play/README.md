@@ -1,7 +1,7 @@
 ---
 status: in-progress   # authoritative until real-build QA closes
 phase: Building
-                     # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
+                     # WRITTEN at each cadence event, never inferred. Shipped requires the real-build DoD.
 slug: prove-cross-platform-play
 title: "Prove cross-platform play"
 area: 09-platform-and-measurement
@@ -54,9 +54,11 @@ destination: accessible-cross-platform-release
 
 ## Why
 
-Players who choose another computer or browser cannot yet rely on finishing and resuming the same RTS battle. This epic proves the current game on named desktop targets first, then designed touch play on physical phones, and finally Restricted Web multiplayer. Each support claim follows a full match and a recorded device result. The owner approved the plan, option B matrix, proof budget and one orchestrated build on 2026-10-28, including merges and releases. The exact physical device inventory is still being gathered.
+Players who choose another computer or browser cannot yet rely on finishing and resuming the same RTS battle. This epic proves the current game on named desktop targets first, then designed touch play on physical phones, and finally Restricted Web multiplayer. Each support claim follows a full match and a recorded device result. The owner approved the plan, option B matrix, proof budget and one orchestrated build on 2026-10-28, including merges and releases. Exact device models and OS versions remain to be recorded at QA.
 
 The owner can provide one Windows PC, one Android phone and one iPhone alongside the current Mac. No physical Linux PC was named. iOS development signing is unavailable. Native Linux and native iOS therefore remain **unverified** support rows unless those dependencies change; Linux headless checks and iPhone Safari can still run as separate checks. Exact models/OS versions are collected at QA.
+
+The first implementation is on `feat/prove-cross-platform-play`: isolated test-tagged Web/macOS/Windows/Linux exports, portable solo save transfer, a touch command adapter, and an exact-origin Restricted Web match policy. Local contracts and a headless Chrome launch have passed; full real-device matches, Android SDK setup, browser save transfer, hosted Web/native play, independent data/security review and final support decisions remain open. The [QA ledger](../../../docs/platform/prove-cross-platform-qa.md) distinguishes each result.
 
 ## Platform-first note
 

@@ -3,7 +3,7 @@ epic: prove-cross-platform-play
 sprint: 2
 title: "Designed touch and mobile proof"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,7 +12,7 @@ stories:
     i_want: "select, order, cancel and navigate without accidental commands"
     so_that: "I can control the same battle on a phone"
     risk: low
-    status: planned
+    status: in-progress
   - id: S2.2
     title: "Decide native and mobile Web support from devices"
     as_a: "game operator"
@@ -23,9 +23,9 @@ stories:
 ---
 # Prove cross-platform play — Sprint 2: Designed touch and mobile proof
 
-**Status:** ⬜ not started
+**Status:** 🔄 touch dispatch implemented and headless tested; physical phone QA open
 
-Start after the Sprint 1 wave review. The owner can provide one physical Android phone and one iPhone; exact models and OS versions are owed at QA. The Android phone with Chrome and the iPhone with Safari are mobile Web candidates, and Android native is a candidate after local SDK setup. iOS native signing is unavailable, so that row is unverified and cannot become a support claim in this run. Retain the same rules/content and declared match scenario.
+The owner approved continuous execution across the waves. The Android phone and iPhone are available in principle; exact models, OS versions and connection to this Mac are owed at QA. Android Chrome and iPhone Safari are mobile Web candidates, and Android native depends on local SDK setup. iOS native signing is unavailable, so that row is unverified and cannot become a support claim in this run. Retain the same rules/content and declared match scenario.
 
 ## Stories
 

@@ -1484,6 +1484,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch or event is InputEventScreenDrag:
 		_handle_board_touch(event)
 		return
+	if (event is InputEventMouseButton or event is InputEventMouseMotion) and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_EQUAL, KEY_PLUS, KEY_KP_ADD:
@@ -1599,6 +1601,8 @@ func _handle_board_touch(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch: InputEventScreenTouch = event
 		if touch.pressed:
+			if _touch_hits_ui(touch.position):
+				return
 			touch_points[touch.index] = touch.position
 			if touch_points.size() == 1:
 				touch_start = touch.position
@@ -1646,6 +1650,16 @@ func _handle_board_touch(event: InputEvent) -> void:
 func _touch_distance() -> float:
 	var points := touch_points.values()
 	return (points[0] as Vector2).distance_to(points[1] as Vector2)
+
+func _touch_hits_ui(point: Vector2) -> bool:
+	if hud_ui == null:
+		return false
+	for control: Control in [hud_ui.top, hud_ui.bottom, hud_ui.objective_panel,
+		hud_ui.minimap, hud_ui.diagnostics, hud_ui.choice_panel,
+		hud_ui.result_panel, hud_ui.restart_scrim]:
+		if control.is_visible_in_tree() and control.get_global_rect().has_point(point):
+			return true
+	return false
 
 func _select_drag(rect: Rect2, additive: bool) -> void:
 	var ids: Array[int] = []
@@ -2164,7 +2178,8 @@ func _update_hud() -> void:
 			ui.set_group([])
 	if selected_id == -1:
 		var setup_post_id := "building_cdmx_roma_command_post" if sim.map_id == "la_roma" else "building_command_post_%s" % _faction_color(Skirmish.HUMAN)
-		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0, "Select a unit or post", "")
+		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0,
+			"Select a unit" if visible_view.y < 720.0 else "Select a unit or post", "")
 	else:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
