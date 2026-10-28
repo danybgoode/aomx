@@ -69,6 +69,7 @@ var setup_map: OptionButton
 var setup_map_details: Label
 var setup_opponent: OptionButton
 var setup_resume: Button
+var setup_import: Button
 var setup_note: Label
 var setup_save_error: Label
 var setup_online_code: LineEdit
@@ -76,6 +77,12 @@ var setup_online_button: Button
 var setup_replay_button: Button
 var setup_ui_scale: OptionButton
 var replay_file_dialog: FileDialog
+var save_import_dialog: FileDialog
+var save_export_dialog: FileDialog
+var web_import_input
+var web_import_reader
+var web_import_change_callback
+var web_import_load_callback
 var online_client: Node
 var online := false
 var online_side := -1
@@ -101,6 +108,12 @@ var marker := Vector2i(-1, -1)
 var board_zoom := 1.1
 var zoom_adjustment := 0.0
 var board_pan := Vector2.ZERO
+var touch_points: Dictionary = {}
+var touch_start := Vector2.ZERO
+var touch_moved := false
+var touch_multifinger := false
+var touch_pinch_distance := 0.0
+var touch_group_mode := false
 var hud_ui: Control
 var paused := false
 var last_ui_signature := ""
@@ -221,6 +234,18 @@ func _ready() -> void:
 	replay_file_dialog.add_filter("*.json", "Battle for La Roma replay")
 	replay_file_dialog.file_selected.connect(_open_replay_file)
 	add_child(replay_file_dialog)
+	save_import_dialog = FileDialog.new()
+	save_import_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	save_import_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	save_import_dialog.add_filter("*.json", "Battle for La Roma save")
+	save_import_dialog.file_selected.connect(_import_save_file)
+	add_child(save_import_dialog)
+	save_export_dialog = FileDialog.new()
+	save_export_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	save_export_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	save_export_dialog.add_filter("*.json", "Battle for La Roma save")
+	save_export_dialog.file_selected.connect(_export_save_file)
+	add_child(save_export_dialog)
 	replay_button = Button.new()
 	replay_button.text = "Watch replay"
 	replay_button.visible = false
@@ -246,6 +271,8 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.restart_requested.connect(_restart_match)
 	hud_ui.save_requested.connect(_save_match)
 	hud_ui.resume_requested.connect(_resume_match)
+	hud_ui.export_save_requested.connect(_export_save)
+	hud_ui.import_save_requested.connect(_choose_save_import)
 	hud_ui.ui_scale_changed.connect(_set_ui_scale)
 	hud_ui.reduced_motion_changed.connect(_set_reduced_motion)
 	hud_ui.reduced_effects_changed.connect(_set_reduced_effects)
@@ -587,6 +614,12 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	recovery_label.add_theme_font_size_override("font_size", 18)
 	column.add_child(recovery_label)
 	column.add_child(setup_resume)
+	setup_import = Button.new()
+	setup_import.text = "Import saved solo match"
+	setup_import.custom_minimum_size.y = 50
+	setup_import.pressed.connect(_choose_save_import)
+	preload("res://ui/hud_skin.gd").apply_button(setup_import)
+	column.add_child(setup_import)
 	setup_online_code = LineEdit.new()
 	setup_online_code.placeholder_text = "Private match invite code"
 	setup_online_code.secret = true
@@ -647,7 +680,7 @@ func _layout_setup() -> void:
 	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
 	setup_veracruzanos.text = "VERACRUZANOS  •  move faster; lighter buildings" if mobile else "Veracruzanos — faster movement and trade income; lighter buildings"
 	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
-	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_online_button, setup_replay_button]:
+	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_import, setup_online_button, setup_replay_button]:
 		b.custom_minimum_size.y = 48 if mobile else 52
 		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
 	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
@@ -678,6 +711,9 @@ func _layout_setup() -> void:
 
 func _show_setup() -> void:
 	choosing_faction = true
+	touch_points.clear()
+	touch_multifinger = false
+	touch_group_mode = false
 	sim = Skirmish.new()
 	outbox.faction = "neutral"
 	match_id = ""
@@ -850,6 +886,85 @@ func _save_match() -> void:
 		hud_ui.show_notice("Match saved. Resume it from the faction screen or menu.")
 	else:
 		hud_ui.show_notice("Save failed: %s. Current match is still playable." % saved.reason.replace("_", " "), true)
+
+func _export_save() -> void:
+	if online or offline_replay:
+		hud_ui.show_notice("Only solo matches can be exported.", true)
+		return
+	if not choosing_faction:
+		var saved: Dictionary = MatchSave.write(sim, match_id, completion_queued, save_path)
+		if not saved.ok:
+			hud_ui.show_notice("Export failed: %s." % saved.reason.replace("_", " "), true)
+			return
+	var exported: Dictionary = MatchSave.export_bytes(save_path)
+	if not exported.ok:
+		hud_ui.show_notice("No compatible solo save to export: %s." % exported.reason.replace("_", " "), true)
+		return
+	if OS.has_feature("web"):
+		JavaScriptBridge.download_buffer(exported.bytes, exported.name, "application/json")
+		hud_ui.show_notice("Save download started. Keep the file for later import.")
+	else:
+		save_export_dialog.current_file = exported.name
+		save_export_dialog.popup_centered_ratio(0.7)
+
+func _export_save_file(path: String) -> void:
+	var result: Dictionary = MatchSave.export_file(path, save_path)
+	hud_ui.show_notice("Save exported." if result.ok else "Export failed: %s." % result.reason.replace("_", " "), not result.ok)
+
+func _choose_save_import() -> void:
+	if not choosing_faction:
+		hud_ui.show_notice("Return to the faction screen before importing a save.", true)
+		return
+	if not OS.has_feature("web"):
+		save_import_dialog.popup_centered_ratio(0.7)
+		return
+	if web_import_input == null:
+		var document = JavaScriptBridge.get_interface("document")
+		web_import_input = document.createElement("input")
+		web_import_input.type = "file"
+		web_import_input.accept = ".json,application/json"
+		web_import_input.style.display = "none"
+		web_import_change_callback = JavaScriptBridge.create_callback(_on_web_import_change)
+		web_import_load_callback = JavaScriptBridge.create_callback(_on_web_import_load)
+		web_import_input.onchange = web_import_change_callback
+		document.body.appendChild(web_import_input)
+	web_import_input.value = ""
+	web_import_input.click()
+
+func _on_web_import_change(_args: Array) -> void:
+	if web_import_input.files.length < 1:
+		return
+	var source = web_import_input.files[0]
+	if int(source.size) > MatchSave.MAX_SAVE_BYTES:
+		_report_import_error("save_too_large")
+		return
+	web_import_reader = JavaScriptBridge.create_object("FileReader")
+	web_import_reader.onload = web_import_load_callback
+	web_import_reader.readAsArrayBuffer(source)
+
+func _on_web_import_load(_args: Array) -> void:
+	if web_import_reader == null or not JavaScriptBridge.is_js_buffer(web_import_reader.result):
+		_report_import_error("save_corrupt")
+		return
+	var bytes: PackedByteArray = JavaScriptBridge.js_buffer_to_packed_byte_array(web_import_reader.result)
+	_handle_import_result(MatchSave.import_bytes(bytes, save_path))
+
+func _import_save_file(path: String) -> void:
+	_handle_import_result(MatchSave.import_file(path, save_path))
+
+func _handle_import_result(result: Dictionary) -> void:
+	if not result.ok:
+		_report_import_error(str(result.reason))
+		return
+	setup_save_error.text = ""
+	_resume_match()
+
+func _report_import_error(reason: String) -> void:
+	var message := "Save could not import: %s. Existing save kept." % reason.replace("_", " ")
+	if choosing_faction:
+		setup_save_error.text = message
+	else:
+		hud_ui.show_notice(message, true)
 
 func _resume_match() -> void:
 	var restored: Dictionary = MatchSave.read(save_path)
@@ -1366,6 +1481,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event.keycode == KEY_4:
 				_choose_faction(Skirmish.VERACRUZANOS)
 		return
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_handle_board_touch(event)
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
 			KEY_EQUAL, KEY_PLUS, KEY_KP_ADD:
@@ -1390,6 +1508,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_ESCAPE:
 				placing = false
 				target_mode = ""
+				touch_group_mode = false
 				hud_ui.choice_panel.hide()
 				sim.feedback = "Order canceled."
 			KEY_1:
@@ -1442,7 +1561,7 @@ func _unhandled_input(event: InputEvent) -> void:
 							selected_ids.append(id)
 					else:
 						selected_ids = [id]
-				else:
+				elif not event.shift_pressed:
 					selected_ids.clear()
 				selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
 				target_mode = ""
@@ -1474,6 +1593,59 @@ func _unhandled_input(event: InputEvent) -> void:
 	_update_hud()
 	_refresh_hover()
 	queue_redraw()
+
+func _handle_board_touch(event: InputEvent) -> void:
+	# GUI controls consume their own touches. Only unhandled battlefield touches arrive here.
+	if event is InputEventScreenTouch:
+		var touch: InputEventScreenTouch = event
+		if touch.pressed:
+			touch_points[touch.index] = touch.position
+			if touch_points.size() == 1:
+				touch_start = touch.position
+				touch_moved = false
+				touch_multifinger = false
+			elif touch_points.size() == 2:
+				touch_multifinger = true
+				touch_pinch_distance = _touch_distance()
+		else:
+			var tap := touch_points.has(touch.index) and touch_points.size() == 1 and not touch_moved and not touch_multifinger and touch_start.distance_to(touch.position) < 12.0
+			touch_points.erase(touch.index)
+			if tap:
+				var click := InputEventMouseButton.new()
+				click.button_index = MOUSE_BUTTON_LEFT
+				click.position = touch.position
+				click.shift_pressed = touch_group_mode
+				click.pressed = true
+				_unhandled_input(click)
+				click.pressed = false
+				_unhandled_input(click)
+			elif touch_points.is_empty():
+				touch_multifinger = false
+		return
+	var drag: InputEventScreenDrag = event
+	if not touch_points.has(drag.index):
+		return
+	var previous: Vector2 = touch_points[drag.index]
+	touch_points[drag.index] = drag.position
+	if touch_points.size() == 1:
+		if touch_start.distance_to(drag.position) >= 12.0:
+			touch_moved = true
+		if touch_moved:
+			board_pan += drag.position - previous
+			queue_redraw()
+	elif touch_points.size() == 2:
+		touch_multifinger = true
+		board_pan += (drag.position - previous) * 0.5
+		var distance := _touch_distance()
+		if touch_pinch_distance > 1.0:
+			board_zoom = clampf(board_zoom * distance / touch_pinch_distance, ZOOM_MIN, ZOOM_MAX)
+			zoom_adjustment = board_zoom - _default_board_zoom(get_viewport().get_visible_rect().size)
+		touch_pinch_distance = distance
+		queue_redraw()
+
+func _touch_distance() -> float:
+	var points := touch_points.values()
+	return (points[0] as Vector2).distance_to(points[1] as Vector2)
 
 func _select_drag(rect: Rect2, additive: bool) -> void:
 	var ids: Array[int] = []
@@ -1678,6 +1850,9 @@ func _command_state(action: String) -> Dictionary:
 	var label := action.replace("_", " ").capitalize()
 	var reason := ""
 	match action:
+		"group_select":
+			visible = mobile_group
+			label = "Finish group" if touch_group_mode else "Add to group"
 		"move", "stop", "hold": visible = mobile_group
 		"attack_move": visible = fighter_group
 		"gather":
@@ -1716,8 +1891,8 @@ func _command_state(action: String) -> Dictionary:
 					reason = _missing_costs(sim._costs(Skirmish.HUMAN, role))
 		"cancel":
 			var construction_id := _cancelable_construction_id()
-			visible = target_mode != "" or construction_id != -1 or (kind in ["command_post", "barracks", "registry"] and sim.entities.has(selected_id) and not sim.entities[selected_id].queue.is_empty())
-			label = "Leave target mode" if target_mode != "" else "Cancel paid order"
+			visible = target_mode != "" or touch_group_mode or construction_id != -1 or (kind in ["command_post", "barracks", "registry"] and sim.entities.has(selected_id) and not sim.entities[selected_id].queue.is_empty())
+			label = "Leave target mode" if target_mode != "" or touch_group_mode else "Cancel paid order"
 			if target_mode == "" and construction_id != -1 and _cancel_worker_id() == -1:
 				reason = "A worker is needed to cancel construction"
 	if visible and sim.result != "" and (action != "cancel" or target_mode == ""):
@@ -1728,6 +1903,15 @@ func _activate_command(action: String) -> void:
 	if paused:
 		hud_ui.show_notice("Resume to issue orders")
 		return
+	if action == "group_select":
+		if _command_state(action).visible:
+			touch_group_mode = not touch_group_mode
+			target_mode = ""
+			sim.feedback = "Tap units to add or remove; tap Finish group when done." if touch_group_mode else "Group ready for a command."
+			_update_hud()
+		return
+	if action != "cancel":
+		touch_group_mode = false
 	if action.begins_with("build_"):
 		build_kind = action.trim_prefix("build_")
 		if sim.result != "" or _selected_kind() != "worker" or selected_ids.size() != 1 or build_kind not in BUILD_CHOICES + (["wonder"] if sim.objective_id == "wonder" else []):
@@ -1774,8 +1958,9 @@ func _activate_command(action: String) -> void:
 		_update_hud()
 		return
 	if action == "cancel":
-		if target_mode != "":
+		if target_mode != "" or touch_group_mode:
 			target_mode = ""
+			touch_group_mode = false
 			placing = false
 			hud_ui.choice_panel.hide()
 			sim.feedback = "Order canceled."

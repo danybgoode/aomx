@@ -8,6 +8,8 @@ signal pause_requested
 signal restart_requested
 signal save_requested
 signal resume_requested
+signal export_save_requested
+signal import_save_requested
 signal ui_scale_changed(value: float)
 signal reduced_motion_changed(value: bool)
 signal reduced_effects_changed(value: bool)
@@ -17,6 +19,7 @@ const HudSkin = preload("res://ui/hud_skin.gd")
 const CommandButton = preload("res://ui/command_button.gd")
 const MinimapPanel = preload("res://ui/minimap_panel.gd")
 const ACTIONS := {
+	"group_select": {"name": "GROUP +", "key": "", "description": "Tap more units to add or remove them, then finish the group."},
 	"move": {"name": "MOVE", "key": "M", "description": "Choose clear ground for this unit."},
 	"attack_move": {"name": "ADVANCE", "key": "", "description": "Move and engage visible enemies in range."},
 	"stop": {"name": "STOP", "key": "", "description": "Cancel this unit's current order."},
@@ -58,6 +61,8 @@ var invite_save: Button
 var support_copy: Button
 var save_button: Button
 var resume_button: Button
+var export_save_button: Button
+var import_save_button: Button
 var close_diagnostics: Button
 var gold_label: Label
 var resource_row: HBoxContainer
@@ -398,6 +403,12 @@ func _build() -> void:
 	save_button.pressed.connect(func() -> void: save_requested.emit())
 	resume_button = _button(diag_col, "Resume saved match")
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
+	var transfer_row := HBoxContainer.new()
+	diag_col.add_child(transfer_row)
+	export_save_button = _button(transfer_row, "Export save")
+	export_save_button.pressed.connect(func() -> void: export_save_requested.emit())
+	import_save_button = _button(transfer_row, "Import save")
+	import_save_button.pressed.connect(func() -> void: import_save_requested.emit())
 	event_log_label = _label(diag_col, "EVENTS", 16, HudSkin.MUTED)
 	event_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	invite_input = LineEdit.new()

@@ -28,7 +28,8 @@ const evaluateAdmission = playerId => Boolean(provider?.resolveBooleanEvaluation
 const session = new MatchSession({ store, evaluateAdmission,
   workerFactory: () => new GodotMatchWorker({ godotBin, gamePath }).start() });
 const server = serveMatch(session, { host: '0.0.0.0', port: Number(process.env.AOMX_MATCH_PORT ?? 8790),
-  trustProxyClientIp: process.env.AOMX_TRUST_PROXY_CLIENT_IP === '1' });
+  trustProxyClientIp: process.env.AOMX_TRUST_PROXY_CLIENT_IP === '1',
+  allowedWebOrigin: process.env.AOMX_MATCH_WEB_ORIGIN ?? '' });
 server.on('listening', () => process.stdout.write(`aomx match listening on ${server.address().port}\n`));
 async function stop() { server.close(); session.close(); provider?.shutdown(); await store.close(); }
 process.once('SIGINT', stop);
