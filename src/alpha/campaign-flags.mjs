@@ -9,7 +9,8 @@ export function campaignDecision({ provider, growthForPlayer, environment }) {
     const growth = growthForPlayer?.(playerId);
     const resolution = provider?.resolveBooleanEvaluation(CAMPAIGN_FLAG, false, { targetingKey: playerId });
     const snapshotVersion = provider?.getStatus().snapshotVersion;
-    if (!resolution?.flagVersion || !resolution?.variant || !snapshotVersion || !growth) {
+    if (!Number.isInteger(resolution?.flagVersion) || resolution.flagVersion < 0 || resolution.flagVersion > 2_147_483_647 ||
+      !resolution?.variant || !Number.isInteger(snapshotVersion) || snapshotVersion < 0 || snapshotVersion > 2_147_483_647 || !growth) {
       return { enabled: false, flag_version: null, snapshot_version: null, environment };
     }
     const tracked = await growth.trackFlagEvaluation({

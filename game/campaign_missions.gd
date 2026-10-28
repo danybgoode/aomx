@@ -28,13 +28,15 @@ static func find_mission(id: String) -> Dictionary:
 static func validate(value: Variant) -> Dictionary:
 	if not value is Dictionary or value.get("schema_version") != 1 or value.get("chapter_id") != "arrival-to-la-roma" or not value.get("missions") is Array:
 		return _bad("campaign_schema_invalid")
+	if not _keys(value, ["schema_version", "chapter_id", "missions"]):
+		return _bad("campaign_schema_invalid")
 	var missions: Array = value.missions
 	if missions.size() != 3:
 		return _bad("mission_count_invalid")
 	var seen := {}
 	for i in missions.size():
 		var mission: Variant = missions[i]
-		if not mission is Dictionary or mission.get("id") != MISSION_IDS[i] or mission.get("map_id") not in RulesContent.MAP_IDS or not mission.get("title") is String or str(mission.title).is_empty() or not mission.get("description") is String or not mission.get("tutorial") is bool or not mission.get("steps") is Array:
+		if not mission is Dictionary or not _keys(mission, ["id", "title", "map_id", "prerequisite", "tutorial", "description", "steps"]) or mission.get("id") != MISSION_IDS[i] or mission.get("map_id") != ["copilco", "narvarte", "la_roma_large"][i] or not mission.get("title") is String or str(mission.title).is_empty() or not mission.get("description") is String or not mission.get("tutorial") is bool or not mission.get("steps") is Array:
 			return _bad("mission_invalid")
 		if mission.get("prerequisite") != ("" if i == 0 else MISSION_IDS[i - 1]) or seen.has(mission.id):
 			return _bad("mission_prerequisite_invalid")

@@ -43,4 +43,4 @@ static func write(player_id: String, environment: String, decision: Dictionary, 
 	return DirAccess.rename_absolute(ProjectSettings.globalize_path(temporary), ProjectSettings.globalize_path(path)) == OK
 
 static func _version(value: Variant) -> bool:
-	return value is String and not value.is_empty() and value.length() <= 128
+	return (value is int or value is float) and float(value) == float(int(value)) and int(value) >= 0 and int(value) <= 2147483647

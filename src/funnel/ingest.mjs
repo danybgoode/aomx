@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from 'node:crypto';
+import { gameVersion as campaignGameVersion, currentContentVersion as campaignContentVersion } from '../alpha/versions.mjs';
 
 const TYPES = new Set(['game_opened', 'match_started', 'match_completed', 'campaign_mission_completed']);
 const MODES = new Set(['solo', 'multiplayer', 'tutorial', 'campaign']);
@@ -45,6 +46,7 @@ export function validate(event) {
   if (typeof event.content_version !== 'string' || !event.content_version.trim() || event.content_version.length > 80) return 'invalid_content_version';
   if (!MODES.has(event.mode) || typeof event.faction !== 'string' || !event.faction.trim() || event.faction.length > 80) return 'invalid_context';
   if (event.mode === 'campaign') {
+    if (event.game_version !== campaignGameVersion || event.content_version !== campaignContentVersion) return 'unsupported_campaign_version';
     if (!MISSIONS.has(event.mission_id) || event.type === 'game_opened') return 'invalid_campaign_context';
     if (event.type !== 'campaign_mission_completed' && event.mission_id !== 'battle_la_roma') return 'tutorial_match_ineligible';
   } else if (event.mission_id != null || event.type === 'campaign_mission_completed') return 'invalid_campaign_context';
@@ -106,7 +108,10 @@ export class Ingest {
       else if (duplicate) reason = 'duplicate_match_event';
       else if (event.type === 'match_started' && !firstOpen) reason = 'missing_first_open';
       else if (event.type === 'campaign_mission_completed' && !firstOpen) reason = 'missing_first_open';
-      else if (priorMission && !player.some(e => e.type === 'campaign_mission_completed' && e.mission_id === priorMission)) reason = 'missing_mission_prerequisite';
+      else if (event.type === 'campaign_mission_completed' &&
+        (event.test_account !== firstOpen.test_account || event.bot !== firstOpen.bot)) reason = 'open_context_mismatch';
+      else if (priorMission && !eligibleRows.some(r => r.event.player_id === event.player_id &&
+        r.event.type === 'campaign_mission_completed' && r.event.mission_id === priorMission)) reason = 'missing_mission_prerequisite';
       else if (event.type === 'match_completed' && !start) reason = 'missing_match_start';
       else if (event.type === 'campaign_mission_completed' && event.mission_id === 'battle_la_roma' && !finish) reason = 'missing_match_finish';
       else if (event.type === 'campaign_mission_completed' && event.mission_id === 'battle_la_roma' && finish.result !== 'win') reason = 'mission_result_mismatch';
@@ -135,7 +140,7 @@ export class Ingest {
       } else if (this.forceExcludeReason) {
         status = 'excluded'; reason = this.forceExcludeReason;
       } else if (event.type === 'campaign_mission_completed') {
-        if (!eligibleOpen || event.mission_id === 'battle_la_roma' && (!eligibleStart || !eligibleFinish)) {
+        if (event.mission_id === 'battle_la_roma' && (!eligibleStart || !eligibleFinish)) {
           status = 'excluded'; reason = 'prior_event_excluded';
         }
       } else {

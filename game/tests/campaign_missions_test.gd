@@ -21,6 +21,15 @@ func _initialize() -> void:
 	invalid = loaded.data.duplicate(true)
 	invalid.missions[0].steps[1].kind = "execute_script"
 	check(CampaignMissions.validate(invalid).reason == "mission_step_invalid", "arbitrary action rejected")
+	invalid = loaded.data.duplicate(true)
+	invalid["custom_action"] = "spawn"
+	check(CampaignMissions.validate(invalid).reason == "campaign_schema_invalid", "unknown chapter action rejected")
+	invalid = loaded.data.duplicate(true)
+	invalid.missions[0]["script"] = "spawn"
+	check(CampaignMissions.validate(invalid).reason == "mission_invalid", "unknown mission action rejected")
+	invalid = loaded.data.duplicate(true)
+	invalid.missions[2].map_id = "copilco"
+	check(CampaignMissions.validate(invalid).reason == "mission_invalid", "finale map cannot change silently")
 	var ordinary = Skirmish.new()
 	check(not ordinary.snapshot().has("mission_id"), "ordinary skirmish snapshot unchanged")
 	var game = Skirmish.new(Skirmish.REGIOS, {}, 1, "learner", "copilco", "", "arrival_copilco")

@@ -216,6 +216,25 @@ publisher refuses to silently replace it. Run
 `npm run alpha:publish` to inspect pending mature readings and conflicts.
 `--send` also requires an independently verified aomx key fingerprint.
 
+For the campaign, verify that the growth key belongs to `aomx` in a separate
+operator step, then derive its scrypt attestation into
+`AOMX_VERIFIED_CAMPAIGN_KEY_SCRYPT` in both `ingest.env` and `operator.env`.
+Use the same `AOMX_GROWTH_ENGINE_API_KEY` in both files; keep both mode 600.
+With the key already loaded in the operator shell, this prints only the derived
+attestation:
+
+```sh
+node -e "const {scryptSync}=require('node:crypto'); process.stdout.write(scryptSync(process.env.AOMX_GROWTH_ENGINE_API_KEY,'aomx-growth-project-attestation-v1',32).toString('hex')+'\n')"
+```
+
+Run `npm run alpha:campaign-publish` to preview at most 100 mission completion
+rows, then `npm run alpha:campaign-publish -- --send` with
+`AOMX_CAMPAIGN_CURSOR_PATH=/opt/aomx/campaign-publish-cursor.json` to send them.
+The cursor advances only after the batch succeeds. Repeat while
+`more_may_remain` is true. This publisher runs outside the ingest transaction
+lock and uses the event ID for retry-safe Golden Frijoles writes. The server
+serves campaign off if the key attestation or exposure report is unavailable.
+
 ## Restricted itch.io distribution
 
 The creator project is `danybgoode/battle-for-la-roma`. It is **Restricted**;

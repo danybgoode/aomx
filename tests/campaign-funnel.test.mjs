@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { Ingest } from '../src/funnel/ingest.mjs';
 import { makeReport } from '../src/funnel/report.mjs';
 import { adoptionPlan, publishAdoptions } from '../src/alpha/campaign-adoption.mjs';
+import { gameVersion, currentContentVersion } from '../src/alpha/versions.mjs';
 
 const at = n => `2026-10-${String(n).padStart(2, '0')}T12:00:00.000Z`;
-const base = { schema_version: 1, player_id: 'player_alpha_01', game_version: 'test-1',
-  content_version: 'test-1', faction: 'regios', test_account: false, bot: false };
+const base = { schema_version: 1, player_id: 'player_alpha_01', game_version: gameVersion,
+  content_version: currentContentVersion, faction: 'regios', test_account: false, bot: false };
 function event(type, id, sequence, day, matchId, missionId, result) {
   return { ...base, type, event_id: id, local_sequence: sequence, claimed_at: at(day),
     mode: missionId ? 'campaign' : 'solo', ...(matchId ? { match_id: matchId } : {}),
@@ -16,7 +17,7 @@ function harness(campaignOn = true) {
   const store = { rows: [], append(row) { this.rows.push(row); } };
   const ingest = new Ingest(store, { now: () => new Date(at(20)),
     resolveFlag: () => ({ value: true }), resolveCampaignFlag: () => ({ value: campaignOn }),
-    supportedVersions: [{ game: 'test-1', content: 'test-1' }] });
+    supportedVersions: [{ game: gameVersion, content: currentContentVersion }] });
   return { store, ingest };
 }
 
@@ -48,12 +49,41 @@ test('tutorial matches, skipped unlocks, losses, test accounts and flag-off star
   assert.equal(ingest.accept(loss).reason, 'invalid_result');
   const invalid = event('campaign_mission_completed', 'event_unknown_01', 2, 1, 'mission_arrival_01', 'unknown', 'win');
   assert.equal(ingest.accept(invalid).reason, 'invalid_campaign_context');
+  const old = { ...event('campaign_mission_completed', 'event_old_01', 2, 1, 'mission_arrival_01', 'arrival_copilco', 'win'), game_version: 'godot-4.7.2-skirmish-1' };
+  assert.equal(ingest.accept(old).reason, 'unsupported_campaign_version');
   const testWin = { ...event('campaign_mission_completed', 'event_test_01', 2, 1, 'mission_arrival_01', 'arrival_copilco', 'win'), test_account: true };
-  assert.equal(ingest.accept(testWin).status, 'excluded');
-  assert.equal(ingest.accept(testWin).reason, 'test_account');
+  assert.equal(ingest.accept(testWin).reason, 'open_context_mismatch');
+  const testTraffic = harness();
+  testTraffic.ingest.accept({ ...event('game_opened', 'event_test_open_01', 1, 1), test_account: true });
+  assert.equal(testTraffic.ingest.accept(testWin).reason, 'test_account');
   const off = harness(false);
   off.ingest.accept(event('game_opened', 'event_open_02', 1, 1));
   assert.equal(off.ingest.accept(event('campaign_mission_completed', 'event_arrival_01', 2, 1, 'mission_arrival_01', 'arrival_copilco', 'win')).reason, 'campaign_flag_off');
+});
+
+test('excluded tutorial events cannot unlock later missions, while adoption survives a separate funnel flag being off', () => {
+  const { ingest } = harness();
+  assert.equal(ingest.accept(event('game_opened', 'event_open_01', 1, 1)).status, 'accepted');
+  const excludedArrival = { ...event('campaign_mission_completed', 'event_arrival_01', 2, 1, 'mission_arrival_01', 'arrival_copilco', 'win'), test_account: true };
+  assert.equal(ingest.accept(excludedArrival).status, 'rejected');
+  assert.equal(ingest.accept(excludedArrival).reason, 'open_context_mismatch');
+  const foothold = event('campaign_mission_completed', 'event_foothold_01', 3, 1, 'mission_foothold_01', 'foothold_narvarte', 'win');
+  assert.equal(ingest.accept(foothold).reason, 'missing_mission_prerequisite');
+  let campaignOn = false;
+  const changing = { rows: [], append(row) { this.rows.push(row); } };
+  const switched = new Ingest(changing, { now: () => new Date(at(20)),
+    resolveFlag: () => ({ value: true }), resolveCampaignFlag: () => ({ value: campaignOn }),
+    supportedVersions: [{ game: gameVersion, content: currentContentVersion }] });
+  switched.accept(event('game_opened', 'event_switch_open_01', 1, 1));
+  assert.equal(switched.accept(event('campaign_mission_completed', 'event_switch_arrival_01', 2, 1, 'mission_arrival_01', 'arrival_copilco', 'win')).reason, 'campaign_flag_off');
+  campaignOn = true;
+  assert.equal(switched.accept(event('campaign_mission_completed', 'event_switch_foothold_01', 3, 1, 'mission_foothold_01', 'foothold_narvarte', 'win')).reason, 'missing_mission_prerequisite');
+  const stored = { rows: [], append(row) { this.rows.push(row); } };
+  const flags = new Ingest(stored, { now: () => new Date(at(20)), resolveFlag: () => ({ value: false }),
+    resolveCampaignFlag: () => ({ value: true }), supportedVersions: [{ game: gameVersion, content: currentContentVersion }] });
+  assert.equal(flags.accept(event('game_opened', 'event_open_02', 1, 1)).reason, 'flag_off');
+  assert.equal(flags.accept(event('campaign_mission_completed', 'event_arrival_02', 2, 1, 'mission_arrival_02', 'arrival_copilco', 'win')).status, 'accepted');
+  assert.deepEqual(makeReport(stored.rows, at(20)).stages, []);
 });
 
 test('adoption publishing uses the event ID for retry safe identity', async () => {

@@ -7,13 +7,26 @@ receive an individual download key and in-game invite code. Please do not
 redistribute either one.
 
 The game saves a random installation ID and a queue of play events on your
-Mac. When online, it sends first open, match start, and match result events to
+Mac. When online, it sends first open, match start, match result, and completed
+campaign mission events to
 the aomx service. Each event includes a random event and match ID, UTC time,
-local order number, game/content version, play mode, and result. The service
+local order number, game/content version, play mode, and result. A campaign
+completion also names the mission. The game separately stores chapter unlocks
+and the last served campaign flag choice on your Mac; those files do not
+contain your invite code. The service
 records receipt time, validation outcome and the flag decision. Results are
 reported by the client and are not replay verified. We do not ask for your
 name or email in the game; itch.io may process account and download information
 under its own terms when you access the restricted page.
+
+When an invited player checks campaign availability online, the aomx service
+uses the same random installation ID to evaluate `campaign.chapter_enabled`
+with Golden Frijoles. Golden Frijoles receives that pseudonymous ID and the
+flag evaluation. Accepted, non-test campaign completions may also be sent
+there with the mission ID to measure chapter adoption and return play. The
+game receives only the enabled choice and its version; no Golden Frijoles key
+is placed in the app. An offline session can use the last served choice until
+the next successful online check.
 
 For a private match, each player enters a separate invite code. The match host
 binds that code to the installation ID, receives your orders, and sends each
@@ -44,5 +57,7 @@ and include the support ID copied from the game's private alpha button.
 Deleting the app alone stops new events but does not remove those
 already uploaded. The operator verifies deletion requests, removes the live
 audit and match records associated with that support ID, and removes its invite
-binding. An active session or replay stops after withdrawal. The owner approves the first invitation before the restricted page is
+binding. Golden Frijoles flag and adoption records are outside this 30-day
+local audit job; ask the operator to review their separate deletion status.
+An active session or replay stops after withdrawal. The owner approves the first invitation before the restricted page is
 shared with people outside the owner account.

@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto';
 import { createGrowthEngineClient } from '@golden-frijoles/sdk';
 import { PostgresFunnel } from '../src/funnel/postgres.mjs';
 import { publishPlan } from '../src/funnel/publisher.mjs';
-import { adoptionPlan, publishAdoptions } from '../src/alpha/campaign-adoption.mjs';
 
 if (!process.env.AOMX_DATABASE_URL) throw new Error('AOMX_DATABASE_URL is required');
 const send = process.argv.includes('--send');
@@ -13,8 +12,6 @@ try {
   // through the remote append-only write so the reading cannot change mid-push.
   await lock.query('select pg_advisory_lock(601103, 1)');
   const report = await funnel.report();
-  const auditRows = await funnel.rows();
-  const adoptions = adoptionPlan(auditRows);
   const reportHash = createHash('sha256').update(JSON.stringify(report)).digest('hex');
   const plan = publishPlan(report, { requireCoverage: true });
   const readings = new Map(report.readings.map(r => [`${r.key}:${r.day}`, r]));
@@ -38,7 +35,7 @@ try {
     }
   }
   process.stdout.write(`${JSON.stringify({ project: 'aomx', dry_run: !send, report_hash: reportHash,
-    pending, conflicts, campaign_adoptions: adoptions.length, observed_days: report.observed_days }, null, 2)}\n`);
+    pending, conflicts, observed_days: report.observed_days }, null, 2)}\n`);
   if (conflicts.length) throw new Error('Published values changed; stop and review a backfill');
   if (!send) process.exitCode = 0;
   else {
@@ -62,10 +59,6 @@ try {
         values ($1,$2,$3,$4,$5,$6,$7)`, [item.key, item.occurredOn, item.value, reportHash,
         item.numerator, item.denominator, item.reading_hash]);
     }
-    const growthForPlayer = playerId => createGrowthEngineClient({ apiKey: key, userId: playerId,
-      baseUrl: process.env.GOLDEN_FRIJOLES_URL,
-      fetchImpl: (url, options) => fetch(url, { ...options, signal: deadline }) });
-    await publishAdoptions(adoptions, growthForPlayer);
     await funnel.pool.query(`insert into alpha_private.report_history(report,report_hash) values ($1,$2)
       on conflict do nothing`, [report, reportHash]);
   }

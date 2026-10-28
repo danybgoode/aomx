@@ -3,7 +3,7 @@ import { PostgresFunnel } from '../src/funnel/postgres.mjs';
 import { serve } from '../src/funnel/http.mjs';
 import { supportedVersions } from '../src/alpha/versions.mjs';
 import { campaignDecision } from '../src/alpha/campaign-flags.mjs';
-import { createHash } from 'node:crypto';
+import { verifiedCampaignGrowthKey } from '../src/alpha/key-attestation.mjs';
 
 if (!process.env.AOMX_DATABASE_URL) throw new Error('AOMX_DATABASE_URL is required');
 if (!['preview', 'production'].includes(process.env.GOLDEN_FRIJOLES_ENVIRONMENT)) {
@@ -33,11 +33,12 @@ const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL, { resolveFlag, 
   supportedVersions });
 await funnel.health();
 const growthKey = process.env.AOMX_GROWTH_ENGINE_API_KEY;
-const growthKeyVerified = growthKey && process.env.AOMX_VERIFIED_PROJECT === 'aomx' &&
-  createHash('sha256').update(growthKey).digest('hex') === process.env.AOMX_VERIFIED_KEY_SHA256;
+const growthKeyVerified = verifiedCampaignGrowthKey(growthKey,
+  process.env.AOMX_VERIFIED_CAMPAIGN_KEY_SCRYPT, process.env.AOMX_VERIFIED_PROJECT);
 const growthForPlayer = growthKeyVerified ? playerId => createGrowthEngineClient({
   apiKey: process.env.AOMX_GROWTH_ENGINE_API_KEY, userId: playerId,
-  ...(process.env.GOLDEN_FRIJOLES_URL ? { baseUrl: process.env.GOLDEN_FRIJOLES_URL } : {})
+  ...(process.env.GOLDEN_FRIJOLES_URL ? { baseUrl: process.env.GOLDEN_FRIJOLES_URL } : {}),
+  fetchImpl: (url, options) => fetch(url, { ...options, signal: AbortSignal.timeout(2000) })
 }) : null;
 const server = serve(funnel, { host: '0.0.0.0', port: Number(process.env.AOMX_PORT ?? 8787), publicMode: true,
   campaignDecision: campaignDecision({ provider, growthForPlayer, environment }) });

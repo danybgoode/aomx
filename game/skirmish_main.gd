@@ -47,6 +47,8 @@ var campaign_flag_path := CampaignFlagCache.PATH
 var campaign_flag: Dictionary = {"enabled": false, "served": false}
 var campaign_flag_request: HTTPRequest
 var campaign_check_pending := false
+var campaign_check_after_open := false
+var campaign_online_blocked := false
 var setup_mode: OptionButton
 var setup_mission: OptionButton
 var setup_campaign_note: Label
@@ -107,6 +109,7 @@ var order_flash_ok := true
 var order_flash_pending := false
 var accumulator := 0.0
 var syncing := false
+var syncing_event: Dictionary = {}
 var sync_note := ""
 var hud: Label
 var selection_title: Label
@@ -2050,6 +2053,7 @@ func _send_next() -> void:
 		_update_hud()
 		return
 	syncing = true
+	syncing_event = event
 	var headers := ["Content-Type: application/json"]
 	if AlphaConfig.CHANNEL != "development":
 		headers.append("X-Aomx-Invite-Code: " + invite_code)
@@ -2057,11 +2061,14 @@ func _send_next() -> void:
 		HTTPClient.METHOD_POST, JSON.stringify(event))
 	if error != OK:
 		syncing = false
+		syncing_event = {}
 		sync_note = "Service unavailable. Events remain saved on this device."
 		_update_hud()
 
 func _on_request_completed(result_code: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	syncing = false
+	var sent_event := syncing_event
+	syncing_event = {}
 	if response_code == 401:
 		sync_note = "Invite code was not accepted. Re-enter it; saved play is still pending."
 		_update_hud()
@@ -2077,6 +2084,9 @@ func _on_request_completed(result_code: int, response_code: int, _headers: Packe
 		return
 	if receipt.status in ["accepted", "excluded"]:
 		sync_note = "Event synced to the audit."
+		if sent_event.get("type") == "game_opened":
+			campaign_check_after_open = true
+			_check_campaign_flag()
 		_send_next()
 	else:
 		sync_note = "Needs attention: %s. Local copy retained." % receipt.get("reason", "rejected")
@@ -2104,11 +2114,12 @@ func _save_invite_code() -> void:
 	_send_next()
 
 func _campaign_allowed() -> bool:
-	return AlphaConfig.CHANNEL == "development" or bool(campaign_flag.get("enabled", false))
+	return AlphaConfig.CHANNEL == "development" or (bool(campaign_flag.get("enabled", false)) and not campaign_online_blocked)
 
 func _check_campaign_flag() -> void:
 	if AlphaConfig.CHANNEL == "development" or campaign_check_pending or invite_code.is_empty() or not outbox.state.has("player_id"):
 		return
+	campaign_check_after_open = false
 	var headers := ["Content-Type: application/json", "X-Aomx-Invite-Code: " + invite_code]
 	var endpoint := AlphaConfig.ENDPOINT.replace("/v1/events", "/v1/campaign/flag")
 	campaign_check_pending = campaign_flag_request.request(endpoint, headers,
@@ -2116,17 +2127,28 @@ func _check_campaign_flag() -> void:
 
 func _on_campaign_flag_completed(result_code: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	campaign_check_pending = false
-	if result_code != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not outbox.state.has("player_id"):
+	if campaign_check_after_open:
+		_check_campaign_flag()
 		return
-	var decision = JSON.parse_string(body.get_string_from_utf8())
-	if not decision is Dictionary:
+	if result_code != HTTPRequest.RESULT_SUCCESS:
 		return
-	if CampaignFlagCache.write(str(outbox.state.player_id), AlphaConfig.CHANNEL, decision, campaign_flag_path):
-		campaign_flag = CampaignFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, campaign_flag_path)
+	if response_code in [401, 403]:
+		campaign_online_blocked = true
 		if choosing_faction:
 			_refresh_campaign_setup()
-			if not _campaign_allowed():
-				setup_save_error.text = "Campaign is currently unavailable."
+			setup_save_error.text = "Invite code was not accepted for this campaign. Saved progress is kept."
+		return
+	if response_code != 200 or not outbox.state.has("player_id"):
+		return
+	var decision = JSON.parse_string(body.get_string_from_utf8())
+	var served := decision is Dictionary and CampaignFlagCache.write(str(outbox.state.player_id), AlphaConfig.CHANNEL, decision, campaign_flag_path)
+	campaign_online_blocked = not served
+	if served:
+		campaign_flag = CampaignFlagCache.read(str(outbox.state.player_id), AlphaConfig.CHANNEL, campaign_flag_path)
+	if choosing_faction:
+		_refresh_campaign_setup()
+		if not _campaign_allowed():
+			setup_save_error.text = "Campaign is currently unavailable. Saved progress is kept."
 
 func _copy_support_id() -> void:
 	if outbox.state.has("player_id"):
