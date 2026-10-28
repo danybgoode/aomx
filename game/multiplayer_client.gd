@@ -106,7 +106,7 @@ func _on_join(result: int, response_code: int, _headers: PackedStringArray, body
 			return
 		status = "error"
 		reconnecting = false
-		problem.emit("Private match: " + reason.replace("_", " "))
+		problem.emit("This pilot build needs an updated private-match host. Solo play is available." if reason == "version_mismatch" else "Private match: " + reason.replace("_", " "))
 		return
 	match_id = str(response.match_id)
 	side = int(response.side)

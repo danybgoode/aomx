@@ -24,7 +24,7 @@ stories:
 
 # Add more ways to play — Sprint 2: Build and measure Wonder
 
-**Status:** 🟨 Builder verified — independent review and signed Restricted owner walkthrough owed.
+**Status:** 🟨 Merged to `master` — signed Restricted owner walkthrough owed.
 
 ### Story 2.1 — Build and contest a Wonder ✅
 
@@ -59,3 +59,5 @@ Environment: local Godot 4.7.2 and project alpha backend in test mode; record so
 5. Complete one Wonder match, then replay or retry its result. → One accepted test-tagged completion and one adoption record exist; no duplicate or public cohort count appears.
 
 **Builder checkpoint · 2026-10-27:** Godot 4.7.2 with `la-roma-wonder-1` content. `wonder_mode_test.gd` passed four-faction cost, one-project, exact 180-tick construction despite helpers/research, destruction/rebuild, 900-tick terminal, simultaneous finish, post precedence, AI legal orders, save/replay and outbox. `wonder_ai_match_test.gd` finished a standard AI match by Wonder at tick 2688. The four-faction normal-match hash fixture passed on macOS; Linux CI parity is pending. `npm test` passed 50 with three PostgreSQL integration cases skipped; `npm run skirmish:contract` passed. Native 1024×700 and 1280×800 setup/progress/result captures were inspected, including remaining time and completed status for both sides without revealing an unfinished enemy project. Golden Frijoles `modes.wonder_enabled` serves off v1 in development, preview and production. A fresh verifier found that a version alone could be guessed, so the backend now issues a signed same-user/environment/version exposure proof only after a recorded evaluation and checks it at start admission; forged and missing proofs are covered by Node tests. Offline clients can still start from a cached on decision until they refresh; the backend excludes those starts if the served flag is then off. This is test-only evidence, not an observed public cohort.
+
+**Review and merge · 2026-10-28:** [PR #96](https://github.com/danybgoode/aomx/pull/96) merged as `2e1b3a56d0a7fcbac04d35d8f0283cefb6c3fa9c` after Linux `verify`, CodeQL, a fresh independent verifier and a different-family general review passed on the final head. An earlier different-family security pass had no findings on an earlier head; the attempted final-head security rerun stalled, and automatic approval review rejected a focused rerun because it would send private source to the external reviewer. The advisory security check therefore remains pending, not a clean final-head verdict. The fresh verifier specifically checked the subsequent signed-proof and exact-timing fixes. No game build was deployed by this merge.

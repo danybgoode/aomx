@@ -3,7 +3,7 @@ epic: add-more-ways-to-play
 sprint: 3
 title: "Prove whole matches"
 risk: high
-phase: Shaping
+phase: Building
 stories_total: 1
 stories:
   - id: S3.1
@@ -12,12 +12,12 @@ stories:
     i_want: "three readable, finishable objectives"
     so_that: "I can choose a fresh battle without breaking existing play"
     risk: high
-    status: planned
+    status: in-progress
 ---
 
 # Add more ways to play — Sprint 3: Prove whole matches
 
-**Status:** ⬜ Not started
+**Status:** 🟨 Building — full-match automation passed; Restricted owner walkthrough owed.
 
 ### Story 3.1 — Finish every solo objective on a Restricted build
 
@@ -32,6 +32,8 @@ stories:
 - **Headless:** content, terminal, AI scenario, save/replay/hash, cross-platform, outbox/ingest and full `npm run skirmish:contract`.
 - **Rendered:** native setup, Wonder progress, contest, disabled choice and results at both target windows.
 - **Restricted download:** owner walkthrough with exact source commit, archive hash, itch build ID, expected/actual observations and open limitations. Independent high-risk review before merge.
+
+**Builder checkpoint · 2026-10-28:** Godot 4.7.2 finished all four faction starts in La Roma and Conquest in normal AI matches and replay-verified each terminal state. La Roma ended by district at ticks 1673–1772. Conquest ended once by command-post loss at tick 3114 and three times by the existing 9000-tick draw limit; center control never ended Conquest. These draws reveal a pacing/pathing limit, so this matrix proves termination and objective isolation, not that AI can consistently win Conquest. The Wonder client integration test passed a legal build, 120 held ticks, save, served-off decision, resume with the same match ID and state hash, and exactly one completion/adoption pair. The new pilot client explains a private-host version mismatch explicitly. Signed export and downloaded owner play remain open.
 
 ## Sprint 3 — Smoke walkthrough
 
