@@ -54,7 +54,7 @@ destination: accessible-cross-platform-release
 
 ## Why
 
-Players who choose another computer or browser cannot yet rely on finishing and resuming the same RTS battle. This epic proves the current game on named desktop targets first, then designed touch play on physical phones, and finally Restricted Web multiplayer. Each support claim follows a full match and a recorded device result. The owner approved the plan, option B matrix, proof budget and one orchestrated build on 2026-10-28, including merges and releases. Exact device models and OS versions remain to be recorded at QA.
+Players who choose another computer or browser cannot yet rely on finishing and resuming the same RTS battle. The owner now prioritizes Web for easy distribution: desktop Web solo is the first support and Restricted release decision; mobile Web and online Web receive separate evidence and claims. Native desktop and phone exports remain traceable follow-on candidates and do not block a passing Web-only decision. Each support claim follows a full match and a recorded device result. The owner approved the L plan, option B matrix, proof budget and one orchestrated build on 2026-10-28, including merges and releases, then set this Web-first priority the same day.
 
 The owner can provide an iPhone 15 Pro alongside the current Mac; one Windows PC and one Android phone are remote. No physical Linux PC was named. iOS development signing is unavailable. Native Linux and native iOS therefore remain **unverified** support rows unless those dependencies change; Linux headless checks and iPhone Safari can still run as separate checks. Exact OS/browser versions and remote test access are collected at QA.
 
@@ -95,13 +95,13 @@ The Godot simulation owns rules/content/state, the match service owns online res
 
 ## Deploy order
 
-Build and verify locally first. Serve desktop Web on a Restricted preview origin, then enable only its exact origin on the isolated match host. Use scoped, revocable test codes and turn preview admission off after each online smoke. A native/mobile test install and a Restricted upload are releases with source/build identity, not a result of merging to `master`. Keep every new target test-tagged until the owner explicitly opens an eligible cohort.
+Build and verify locally first. Serve desktop Web on a Restricted preview origin and finish its solo proof before a Web-only support decision. Enable only that exact origin on the isolated match host for the separate online claim; use scoped, revocable test codes and turn preview admission off after each online smoke. Native test installs can follow the Web release and cannot expand its support statement without their own full matches. A Restricted upload is a release with source/build identity, not a result of merging to `master`. Keep every new target test-tagged until the owner explicitly opens an eligible cohort.
 
 ## Definition of Done (epic)
 
-- [ ] Seven story checks pass, with headless contracts plus real installed/served full matches for each claimed target.
+- [ ] Seven story decisions are recorded, with headless contracts plus real served full matches for each **claimed Web** target; native rows may be explicitly unverified and deferred.
 - [ ] Desktop and mobile support statements identify exact passing OS/browser/device/build combinations; unsupported and unverified rows remain explicit.
-- [ ] Same-version native/Web saves, audio/input, long-session frame/memory and result parity pass on those claimed targets.
-- [ ] Restricted Web/native online match, reconnect, replay, exact-origin denial and excluded receipt pass; independent review covers auth/player data.
+- [ ] Web save export/import/resume, audio/input, long-session frame/memory and terminal result pass on claimed browsers; native/Web transfer stays an explicit follow-on gate for any native claim.
+- [ ] Restricted Web/native online match, reconnect, replay, exact-origin denial and excluded receipt are checked for a **separate online claim**; an unverified online row cannot block a passing Web solo claim. Independent review covers auth/player data before any online release.
 - [ ] Each sprint's numbered owner walkthrough records actual build URLs/IDs and results; merge reachability on `origin/master` and real Restricted releases are verified separately.
 - [ ] `Roadmap/README.md`, `Roadmap/LEARNINGS.md`, generated board and retrospective reflect actual evidence. Mark `status: shipped` only after the real-build gates pass.

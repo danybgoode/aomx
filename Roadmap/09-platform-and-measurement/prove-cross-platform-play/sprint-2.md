@@ -25,7 +25,7 @@ stories:
 
 **Status:** 🔄 touch dispatch implemented and headless tested; physical phone QA open
 
-The owner approved continuous execution across the waves. The Android phone and iPhone are available in principle; exact models, OS versions and connection to this Mac are owed at QA. Android Chrome and iPhone Safari are mobile Web candidates, and Android native depends on local SDK setup. iOS native signing is unavailable, so that row is unverified and cannot become a support claim in this run. Retain the same rules/content and declared match scenario.
+The owner approved continuous execution across the waves. The iPhone is an iPhone 15 Pro; the Android phone is remote. Exact OS versions and device access are owed at QA. Android Chrome and iPhone Safari are mobile Web candidates and take priority over native mobile installs. Android native depends on local SDK setup. iOS native signing is unavailable, so that row is unverified and cannot become a support claim in this run. Retain the same rules/content and declared match scenario.
 
 ## Stories
 

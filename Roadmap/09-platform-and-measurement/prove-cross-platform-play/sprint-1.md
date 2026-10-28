@@ -34,6 +34,8 @@ stories:
 
 This is the first end-to-end slice. The owner approved the 28×28 La Roma Standard / 24 population-per-side proof scenario and a p95 frame target of 33.3 ms or less. Device-specific memory ceilings are recorded with each actual machine before a support claim. The owner Mac and one Windows PC form the available desktop candidates; the Windows model and OS are still owed. There is no physical Linux PC. Chrome/Firefox on Windows and Safari on Mac are desktop Web browser candidates. Missing hardware yields an unverified row.
 
+**Web-first priority:** A real full match and portable save in named desktop browsers set the first Restricted Web solo decision. Native builds are traceable candidates and their physical QA can follow; an unverified native row does not block the Web-only decision. The Windows PC is remote.
+
 ## Stories
 
 ### Story 1.1 — Name the matrix and produce traceable builds

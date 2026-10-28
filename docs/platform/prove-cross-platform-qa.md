@@ -2,6 +2,8 @@
 
 This ledger belongs to the funded [epic](../../Roadmap/09-platform-and-measurement/prove-cross-platform-play/README.md). A support row passes only after an installed or served **full** 28×28 La Roma Standard match at up to 24 population per side, with deliberate commands, save/resume, audio, frame p95 ≤33.3 ms and a device-specific peak-memory budget recorded before the run. Browser solo and browser online are separate rows. All platform pilot builds use the `preview` channel, `test_account=true`, and an isolated `BattleForLaRomaPlatformPilot` user directory. No public cohort or support claim exists yet.
 
+The owner prioritizes easy Web distribution. The first release decision is for desktop Web solo on exact passing browser/OS combinations; mobile Web and online Web have separate claims. Native exports are follow-on candidates and do not hold a passing Web-only decision.
+
 ## Local component evidence
 
 | Check | Result | Limit |

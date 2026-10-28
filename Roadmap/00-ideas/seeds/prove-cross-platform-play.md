@@ -60,6 +60,8 @@ The Restricted owner build proves macOS play, and the repo can export a local We
 
 **Approval, 2026-10-28:** The owner approved this plan, option B's candidate device matrix, the proposed 28×28 / 24-population / 30 FPS proof budget, and placing #22 ahead of release candidate #23. The owner authorized one orchestrated build through completion, including its merges and releases. One Windows PC, one Android phone and one iPhone are available in principle; exact models and OS versions are owed. iOS development signing is unavailable, so native iOS remains unverified.
 
+**Web-first priority amendment, 2026-10-28:** The owner now prioritizes a working Web build for easy distribution; native targets can follow. Keep the native export evidence, but do not hold the first Web-only support or Restricted release decision for Windows/Linux/Android/iOS native installs. Desktop Web solo is the first claim; mobile Web and online Web remain separate claims that need their own real-device or hosted-match evidence. The iPhone is an iPhone 15 Pro; Windows and Android devices are remote.
+
 quote: $50–300 (L, n=0, wide)
 
 ## Outcome & signal
