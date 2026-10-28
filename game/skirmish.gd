@@ -1306,7 +1306,7 @@ func _ai_step() -> void:
 	for enemy in observed:
 		if enemy.kind == "command_post":
 			human_post = enemy.id
-		if enemy.kind in COMBAT_KINDS and _in_district(enemy.pos):
+		if objective_id == "la_roma" and enemy.kind in COMBAT_KINDS and _in_district(enemy.pos):
 			human_district = enemy.id
 	var own_post := _find(side, "command_post")
 	var nearby_threat := -1
@@ -1315,7 +1315,7 @@ func _ai_step() -> void:
 			if enemy.kind in COMBAT_KINDS and _distance(enemy.pos, entities[own_post].pos) <= 6:
 				nearby_threat = enemy.id
 				break
-	if tick_number < int(profile.district_tick) or age_index[side] < 3:
+	if tick_number < int(profile.attack_tick if objective_id == "conquest" else profile.district_tick) or age_index[side] < (2 if objective_id == "conquest" else 3):
 		var early_target := human_district if human_district != -1 else nearby_threat
 		if early_target != -1:
 			for id in ids:
@@ -1332,7 +1332,7 @@ func _ai_step() -> void:
 			if unit.job != "attack" or unit.target_id != defense_target:
 				if issue(side, "attack", id, defense_target).ok:
 					ai_plan = "defend"
-		elif tick_number >= int(profile.attack_tick) and (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
+		elif tick_number >= int(profile.attack_tick) and (objective_id == "conquest" or not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
 			if human_post != -1:
 				if unit.job != "attack" or unit.target_id != human_post:
 					if issue(side, "attack", id, human_post).ok:
@@ -1345,7 +1345,7 @@ func _ai_step() -> void:
 				var approach := search_pos + Vector2i(2, 2)
 				if _ai_issue_waypoint(id, approach):
 					ai_plan = "search"
-		elif unit.job == "idle" and not _in_district(unit.pos):
+		elif objective_id == "la_roma" and unit.job == "idle" and not _in_district(unit.pos):
 			if issue(side, "move", id, _point(content.map.ai_district_target)).ok:
 				ai_plan = "district"
 

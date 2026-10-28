@@ -517,8 +517,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	column.add_child(setup_campaign_note)
 	column.move_child(mode_label, 2)
 	column.move_child(setup_mode, 3)
-	column.move_child(setup_mission, 4)
-	column.move_child(setup_campaign_note, 5)
+	column.move_child(setup_objective_label, 4)
+	column.move_child(setup_objective, 5)
+	column.move_child(setup_mission, 6)
+	column.move_child(setup_campaign_note, 7)
 	_refresh_campaign_setup()
 	var opponent_label := Label.new()
 	opponent_label.text = "Opponent faction"
@@ -727,9 +729,9 @@ func _choose_mode(index: int) -> void:
 	_layout_setup()
 
 func _choose_objective(index: int) -> void:
-	if index < 0 or index > 1:
+	if index < 0 or index >= Skirmish.OBJECTIVE_IDS.size() or setup_objective.is_item_disabled(index):
 		return
-	selected_objective = ["la_roma", "conquest"][index]
+	selected_objective = Skirmish.OBJECTIVE_IDS[index]
 	setup_objective.select(index)
 	_layout_setup()
 
@@ -1984,6 +1986,8 @@ func _update_hud() -> void:
 		ui.show_result(sim.mission_result, "Mission complete" if sim.mission_result == "win" else "Mission failed")
 	elif sim.result != "":
 		ui.show_result(sim.result, sim.result_reason)
+		if sim.objective_id == "conquest":
+			ui.result_reason.text = "Conquest • " + ui.result_reason.text
 		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
 	else:
 		ui.show_result("", "")

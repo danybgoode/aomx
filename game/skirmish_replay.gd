@@ -37,7 +37,10 @@ static func verify(recording: Dictionary) -> Dictionary:
 	var loaded: Dictionary = RulesContent.load_map(recording.map_id)
 	if not loaded.ok or recording.get("content_version") != loaded.data.content_id or recording.get("content_hash") != loaded.hash:
 		return _bad("content_version_mismatch", 0)
-	if recording.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS or recording.get("objective_id", "la_roma") == "la_roma" and recording.has("objective_id"):
+	if recording.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS:
+		return _bad("replay_objective_invalid", 0)
+	# An explicit legacy default would replay to a different canonical hash.
+	if recording.has("objective_id") and recording.objective_id == "la_roma":
 		return _bad("replay_objective_invalid", 0)
 	var selected_mission := str(recording.get("mission_id", ""))
 	if not selected_mission.is_empty():

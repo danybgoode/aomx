@@ -180,7 +180,10 @@ static func restore_network(state: Dictionary, match_id: String) -> Dictionary:
 static func _validate_state(s: Dictionary, content: Dictionary, hash: String) -> Dictionary:
 	if s.get("state_schema_version") != Skirmish.STATE_SCHEMA_VERSION or s.get("content_version") != content.content_id or s.get("content_hash") != hash or s.get("map_id") != content.map_id:
 		return _bad("state_version_mismatch")
-	if s.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS or s.get("objective_id", "la_roma") == "la_roma" and s.has("objective_id"):
+	if s.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS:
+		return _bad("state_objective_invalid")
+	# The old default is encoded by absence so its snapshot and hash stay byte-for-byte stable.
+	if s.has("objective_id") and s.objective_id == "la_roma":
 		return _bad("state_objective_invalid")
 	if s.has("mission_id") and s.get("objective_id", "la_roma") != "la_roma":
 		return _bad("state_objective_invalid")

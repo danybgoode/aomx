@@ -29,8 +29,18 @@ func _initialize() -> void:
 	conquest.entities[conquest._find(Skirmish.COMPUTER, "command_post")].hp = 0
 	conquest.tick()
 	check(conquest.result == "win" and conquest.result_reason == "command_post", "post remains Conquest finish")
+	var opponent = Skirmish.new(Skirmish.REGIOS, {}, 1, "standard", "la_roma", "", "", "conquest")
+	var fighter := opponent._add_entity(Skirmish.COMPUTER, "melee", Vector2i(11, 10))
+	opponent.age_index[Skirmish.COMPUTER] = 2
+	opponent.tick_number = Skirmish.AI_ATTACK_TICK - 1
+	opponent.tick()
+	check(opponent.ai_plan != "district" and opponent.entities[fighter].job != "idle",
+		"Conquest AI leaves the disabled center for a post assault")
 	var legacy = Skirmish.new()
 	check(not legacy.snapshot().has("objective_id"), "legacy snapshot has no new field")
+	var noncanonical := Save.capture(legacy, match_id)
+	noncanonical.state.objective_id = "la_roma"
+	check(Save.restore(noncanonical).reason == "state_objective_invalid", "explicit legacy default is rejected to preserve canonical hash")
 	if failed:
 		quit(1)
 	else:
