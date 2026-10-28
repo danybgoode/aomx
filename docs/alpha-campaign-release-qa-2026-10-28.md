@@ -1,0 +1,20 @@
+# Campaign chapter · Restricted preview QA · 2026-10-28
+
+This is an owner-only preview check. The epic remains **in progress** while owner play and the large-map acceptance decision are open. There is no public release or observed player cohort.
+
+| Gate | Evidence |
+|---|---|
+| Source and review | Campaign PRs [#90](https://github.com/danybgoode/aomx/pull/90), [#91](https://github.com/danybgoode/aomx/pull/91), and [#93](https://github.com/danybgoode/aomx/pull/93) merged in order to `master` at `ec4c89782466`. Each required CI and CodeQL check passed. An independent high-risk review cleared flag, invite, progression, and North Star paths after fixes. |
+| Local export | `preview-ec4c89782466`; macOS ZIP `dist/alpha/battle-for-la-roma-preview-ec4c89782466-macos.zip`; SHA-256 `b0666ddf2daa619b64a488876f17d64396ef00cd9a02d791a39d7a89aca43fc6`. The export ran Node, native Godot, save/replay, cross-platform hash, multiplayer integration, and contract checks. Strict code-signature verification and a bounded headless launch passed. The packed PCK contains all three mission IDs. |
+| Backend | `aomx-ingest:ec4c897` is healthy on the alpha VM. A predeploy backup restored to the dedicated disposable database with matching counts (116 audit events, 17 reports, zero observation or publication rows before this smoke). Postdeploy health found no issues and database usage at 2% of its quota. |
+| Ingress | The operator `/32` was refreshed through reviewed [justread PR #34](https://github.com/danybgoode/justread/pull/34). Caddy validation passed. Its single-file bind mount held the old inode after `update.sh`, so Caddy alone was recreated to mount the merged config. From the operator Mac, alpha `/healthz` returned 200, unauthenticated campaign flag returned 401, private audit returned 404, and both panfleto sites returned 200. |
+| Golden Frijoles | `campaign.chapter_enabled` serves **off v1** in development, preview, and production. A disposable invite-bound, test-tagged player received HTTP 200 with `enabled=false`, `flag_version=1`, and `snapshot_version=26` through live HTTPS; the test invite was revoked and its plaintext removed. The existing ingest smoke returned stable excluded receipts and zero accepted public events. The campaign adoption publisher's live dry run found zero rows to send. Roadmap artifact v77 contains the campaign in QA while its authoritative status remains in progress. |
+| Restricted distribution | The itch page returned anonymous 404 before and after upload. Butler build `#2230407` is ready on `mac-private-alpha` as `preview-ec4c89782466`. An authenticated independent Butler fetch extracted the app; `diff -qr` matched a fresh source-ZIP extraction byte for byte. Strict code-signature verification and bounded headless startup passed on the fetched app. A GUI launch showed the faction setup and only solo skirmish while the preview flag served off. No download key or external invitation was issued. |
+
+The first candidate ingest key was revoked before use after its value appeared in a tool result. The replacement was verified as an active `aomx` ingest key, installed only in mode-600 server and operator files, and never placed in the app. No credential values are recorded here.
+
+## Open acceptance
+
+- The owner must accept or request revision on the La Roma Large map in [#24's epic](../Roadmap/01-core-play/build-large-la-roma-battlefield/README.md), then finish this chapter and a separate skirmish on the fetched Restricted build. The campaign flag is off for all users today; a bounded owner test needs a deliberate preview enablement decision before that walkthrough.
+- The owner must authorize any familiar and unfamiliar player invitations for uncoached comprehension reads. None have been sent. Record their actual goal explanations and stalls before closing S3.3.
+- No production adoption, retention, first-match completion, or 15% later-day target result can be inferred from this test-tagged preview. The first real cohort and seven-day windows do not exist yet.
