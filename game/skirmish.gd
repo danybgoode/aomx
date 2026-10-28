@@ -38,6 +38,7 @@ const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
 const AI_LEVELS := ["learner", "standard", "challenger"]
+const OBJECTIVE_IDS := ["la_roma", "conquest"]
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
@@ -48,6 +49,7 @@ var mission_definition: Dictionary = {}
 var mission_steps: Array = []
 var mission_result := ""
 var map_id := "la_roma"
+var objective_id := "la_roma"
 var map_width := WIDTH
 var map_height := HEIGHT
 var blocked_tiles: Dictionary = {}
@@ -95,9 +97,12 @@ var ai_rejections := 0
 var ai_last_rejection := ""
 var pending_footprint := Vector2i(-1, -1)
 
-func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "", selected_mission: String = "") -> void:
+func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "", selected_mission: String = "", selected_objective: String = "la_roma") -> void:
 	assert(human_faction in FACTION_IDS, "Choose a supported faction.")
 	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
+	assert(selected_objective in OBJECTIVE_IDS, "Choose a supported objective.")
+	assert(selected_mission.is_empty() or selected_objective == "la_roma", "Missions pin their own objective.")
+	objective_id = selected_objective
 	if opponent_faction.is_empty():
 		opponent_faction = POBLANOS if human_faction == REGIOS else REGIOS
 	assert(opponent_faction in FACTION_IDS, "Choose a supported opponent.")
@@ -557,7 +562,8 @@ func tick() -> void:
 	elif human_dead:
 		_finish("loss", "command_post")
 	else:
-		_tick_district()
+		if objective_id == "la_roma":
+			_tick_district()
 		if result == "" and tick_number >= int(content.objectives.draw_tick):
 			_finish("draw", "time_limit")
 	_refresh_visibility()
@@ -770,6 +776,8 @@ func snapshot() -> Dictionary:
 		state["mission_hash"] = mission_hash
 		state["mission_steps"] = mission_steps.duplicate()
 		state["mission_result"] = mission_result
+	if objective_id != "la_roma":
+		state["objective_id"] = objective_id
 	return state
 
 func state_hash() -> String:

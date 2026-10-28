@@ -84,7 +84,7 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 		if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
 			return _bad("save_history_invalid")
 	var selected_mission := str(state.get("mission_id", ""))
-	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1], selected_mission)
+	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1], selected_mission, str(state.get("objective_id", "la_roma")))
 	if not selected_mission.is_empty():
 		game.mission_steps = state.mission_steps.duplicate()
 		game.mission_result = state.mission_result
@@ -180,6 +180,10 @@ static func restore_network(state: Dictionary, match_id: String) -> Dictionary:
 static func _validate_state(s: Dictionary, content: Dictionary, hash: String) -> Dictionary:
 	if s.get("state_schema_version") != Skirmish.STATE_SCHEMA_VERSION or s.get("content_version") != content.content_id or s.get("content_hash") != hash or s.get("map_id") != content.map_id:
 		return _bad("state_version_mismatch")
+	if s.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS or s.get("objective_id", "la_roma") == "la_roma" and s.has("objective_id"):
+		return _bad("state_objective_invalid")
+	if s.has("mission_id") and s.get("objective_id", "la_roma") != "la_roma":
+		return _bad("state_objective_invalid")
 	if s.has("mission_id"):
 		if not s.get("mission_id") is String or not s.get("mission_hash") is String or not s.get("mission_steps") is Array or s.get("mission_result") not in ["", "win", "loss"]:
 			return _bad("state_mission_invalid")
