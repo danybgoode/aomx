@@ -7,4 +7,4 @@ const MATCH_ENDPOINT := "http://127.0.0.1:8790"
 const TEST_ACCOUNT := true
 const CHANNEL := "development"
 const BUILD_ID := "local-debug"
-const SIMULATION_HASH := "bb10c4fba688ee58124f370e5a8d15139e881658eecbef22b8691638bc63311f"
+const SIMULATION_HASH := "1c36f8538337a3c5dcd5859d0c451b7eb589415b3c478d1f0709c630888724b7"

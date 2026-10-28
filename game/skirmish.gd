@@ -51,6 +51,7 @@ var mission_result := ""
 var map_id := "la_roma"
 var objective_id := "la_roma"
 var wonder_progress := [0, 0]
+var wonder_built_this_tick: Dictionary = {}
 var map_width := WIDTH
 var map_height := HEIGHT
 var blocked_tiles: Dictionary = {}
@@ -439,6 +440,7 @@ func tick() -> void:
 		return
 	move_route_cache.clear()
 	tick_number += 1
+	wonder_built_this_tick.clear()
 	_tick_sources()
 	if ai_enabled and tick_number % int(_ai_profile().step_ticks) == 0:
 		_refresh_visibility()
@@ -731,7 +733,7 @@ func _tick_district() -> void:
 func _tick_wonder() -> void:
 	for side in [HUMAN, COMPUTER]:
 		var id := _find(side, "wonder")
-		wonder_progress[side] = wonder_progress[side] + 1 if id != -1 and entities[id].hp > 0 and entities[id].complete else 0
+		wonder_progress[side] = wonder_progress[side] + 1 if id != -1 and entities[id].hp > 0 and entities[id].complete and not wonder_built_this_tick.has(id) else 0
 	var goal := int(content.objectives.wonder_hold_ticks)
 	if wonder_progress[HUMAN] >= goal and wonder_progress[COMPUTER] >= goal:
 		_finish("draw", "simultaneous_wonders")
@@ -968,7 +970,13 @@ func _tick_build(e: Dictionary) -> void:
 	if _distance_to_entity(e.pos, building) != 1:
 		e.job = "idle"
 		return
-	building.progress += _construction_rate(e.side)
+	if building.kind == "wonder":
+		if wonder_built_this_tick.has(building.id):
+			return
+		wonder_built_this_tick[building.id] = true
+		building.progress += 1
+	else:
+		building.progress += _construction_rate(e.side)
 	if building.progress >= int(content.buildings[building.kind].build_ticks):
 		building.complete = true
 		building.progress = int(content.buildings[building.kind].build_ticks)

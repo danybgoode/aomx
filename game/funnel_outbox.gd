@@ -2,6 +2,7 @@ extends RefCounted
 
 const AlphaConfig = preload("res://alpha_config.gd")
 const CampaignMissions = preload("res://campaign_missions.gd")
+const WonderFlagCache = preload("res://wonder_flag_cache.gd")
 const SCHEMA_VERSION := 1
 const GAME_VERSION := "godot-4.7.2-skirmish-1"
 const CONTENT_VERSION := "la-roma-prototype-1"
@@ -40,7 +41,7 @@ func queue_open_for_launch() -> Dictionary:
 		return {"ok": true, "event": last_open, "existing": true}
 	return queue("game_opened", "", "", not last_open.is_empty())
 
-func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo", mission_id: String = "", objective_id: String = "la_roma", wonder_flag_version: int = -1) -> Dictionary:
+func queue(type: String, match_id: String = "", result: String = "", new_session: bool = false, mode: String = "solo", mission_id: String = "", objective_id: String = "la_roma", wonder_flag_version: int = -1, wonder_exposure_proof: String = "") -> Dictionary:
 	if state.is_empty() or type not in ["game_opened", "match_started", "match_completed", "campaign_mission_completed", "wonder_match_completed"]:
 		return {"ok": false, "reason": "outbox_unavailable"}
 	if mode not in ["solo", "multiplayer", "campaign"]:
@@ -70,14 +71,15 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 		return item.event.type == "match_completed" and item.event.get("match_id", "") == match_id and item.event.get("objective_id", "") == "wonder"):
 		return {"ok": false, "reason": "missing_wonder_finish"}
 	if objective_id == "wonder":
-		if type == "match_started" and wonder_flag_version < 0:
+		if type == "match_started" and (wonder_flag_version < 0 or not WonderFlagCache._proof(wonder_exposure_proof)):
 			return {"ok": false, "reason": "wonder_flag_version_missing"}
 		if type != "match_started":
 			for item in state.events:
 				if item.event.type == "match_started" and item.event.get("match_id", "") == match_id:
 					wonder_flag_version = int(item.event.get("wonder_flag_version", -1))
+					wonder_exposure_proof = str(item.event.get("wonder_exposure_proof", ""))
 					break
-			if wonder_flag_version < 0:
+			if wonder_flag_version < 0 or not WonderFlagCache._proof(wonder_exposure_proof):
 				return {"ok": false, "reason": "wonder_flag_version_missing"}
 	var utc := Time.get_datetime_string_from_system(true) + ".000Z"
 	var event := {"schema_version": SCHEMA_VERSION, "type": type, "event_id": _id(),
@@ -96,6 +98,7 @@ func queue(type: String, match_id: String = "", result: String = "", new_session
 		event.objective_id = objective_id
 	if objective_id == "wonder" and type != "game_opened":
 		event.wonder_flag_version = wonder_flag_version
+		event.wonder_exposure_proof = wonder_exposure_proof
 	var next: Dictionary = state.duplicate(true)
 	next.events.append({"event": event, "status": "pending", "receipt": null})
 	next.next_sequence += 1

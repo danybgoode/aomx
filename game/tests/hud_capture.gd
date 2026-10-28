@@ -20,7 +20,7 @@ func _capture() -> void:
 	if objective == "conquest":
 		client._choose_objective(1)
 	elif objective == "wonder":
-		client.wonder_flag = {"enabled": true, "served": true, "flag_version": 1}
+		client.wonder_flag = {"enabled": true, "served": true, "flag_version": 1, "exposure_proof": "a".repeat(64)}
 		client._refresh_wonder_setup()
 		client._choose_objective(2)
 	var ui_scale := OS.get_environment("HUD_CAPTURE_SCALE")

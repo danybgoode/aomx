@@ -1204,7 +1204,8 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 		else:
 			sync_note = "Chapter mission started. Progress saves after a verified win."
 	else:
-		var saved: Dictionary = outbox.queue("match_started", match_id, "", false, "solo", "", sim.objective_id, int(wonder_flag.get("flag_version", -1)))
+		var saved: Dictionary = outbox.queue("match_started", match_id, "", false, "solo", "", sim.objective_id,
+			int(wonder_flag.get("flag_version", -1)), str(wonder_flag.get("exposure_proof", "")))
 		sync_note = "Match start saved." if saved.ok else "Match start could not be saved; check device storage."
 	if OS.is_debug_build():
 		match OS.get_environment("SKIRMISH_SMOKE_SCENARIO"):
@@ -1923,6 +1924,8 @@ func _update_hud() -> void:
 		source_notes[resource_id] = "%d at source; %d refreshes left" % [int(source.get("amount", 0)), int(source.get("refreshes_left", 0))]
 	ui.set_economy(stockpiles, _age_display(_age_id()), sim._population_used(Skirmish.HUMAN), sim._population_cap(Skirmish.HUMAN), source_notes)
 	ui.objective_title.text = _district_note()
+	if not campaign_mode and sim.objective_id == "wonder":
+		ui.objective_button.text = "WONDER " + ("v" if ui.objective_body.visible else ">")
 	if campaign_mode:
 		var mission := CampaignMissions.find_mission(sim.mission_id)
 		if mission.ok:
@@ -1940,7 +1943,7 @@ func _update_hud() -> void:
 	if not campaign_mode and sim.objective_id == "wonder":
 		ui.objective_progress.max_value = int(sim.content.objectives.wonder_hold_ticks)
 		ui.objective_progress.value = sim.wonder_progress[Skirmish.HUMAN]
-		ui.objective_alternative.text = "or destroy enemy command post"
+		ui.objective_alternative.text = "or destroy enemy post"
 	if campaign_mode:
 		var chapter_goal := CampaignMissions.find_mission(sim.mission_id)
 		if chapter_goal.ok and chapter_goal.data.tutorial:
@@ -1962,7 +1965,7 @@ func _update_hud() -> void:
 	if not campaign_mode and sim.objective_id == "conquest":
 		ui.secondary_status.text = "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s" % [own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	if not campaign_mode and sim.objective_id == "wonder":
-		ui.secondary_status.text = "Wonder: build at Godín age\nHold: yours %ds / enemy %ds of 90s\nPosts: %d HP / %s" % [int(sim.wonder_progress[Skirmish.HUMAN] / 10), int(sim.wonder_progress[Skirmish.COMPUTER] / 10), own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+		ui.secondary_status.text = "You: %s\nAI: %s\nPosts: %d HP / %s" % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER), own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	var group_signature := str(selected_ids)
 	if group_signature != last_group_signature:
 		last_group_signature = group_signature
@@ -2130,7 +2133,7 @@ func _district_note() -> String:
 	if sim.objective_id == "conquest":
 		return "Conquest — destroy enemy command post"
 	if sim.objective_id == "wonder":
-		return "Wonder: You %ds · AI %ds" % [int(sim.wonder_progress[Skirmish.HUMAN] / 10), int(sim.wonder_progress[Skirmish.COMPUTER] / 10)]
+		return "You: %s\nAI: %s" % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER)]
 	match sim.district_state:
 		"human_hold": return "Your hold %d / %d seconds" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
 		"computer_hold": return "Enemy hold %d / %d seconds — contest it" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
@@ -2138,6 +2141,14 @@ func _district_note() -> String:
 		"reset": return "Empty — hold reset"
 		"terminal": return "Complete: %s (%s)." % [sim.result, sim.result_reason.replace("_", " ")]
 	return "Neutral — bring a fighter to center"
+
+func _wonder_status(side: int) -> String:
+	var id := sim._find(side, "wonder")
+	if id == -1:
+		return "none" if side == Skirmish.HUMAN else "not holding"
+	if not sim.entities[id].complete:
+		return "building %d%%" % int(100.0 * float(sim.entities[id].progress) / float(sim.content.buildings.wonder.build_ticks)) if side == Skirmish.HUMAN else "not holding"
+	return "built · %ds left" % ceili(float(maxi(0, int(sim.content.objectives.wonder_hold_ticks) - sim.wonder_progress[side])) / 10.0)
 
 func _send_next() -> void:
 	if syncing:

@@ -28,8 +28,20 @@ func _initialize() -> void:
 		check(game.balance(Skirmish.HUMAN, "materiales") == before - 20, faction + " pays material cost")
 		check(game.issue(Skirmish.HUMAN, "build", worker, {"kind": "wonder", "pos": Vector2i(7, 7)}).reason == "wonder_already_active", "one active Wonder per side")
 		var wonder := game._find(Skirmish.HUMAN, "wonder")
-		game.entities[wonder].complete = true
-		game.entities[wonder].progress = 180
+		game.entities[worker].pos = Vector2i(5, 7)
+		game.entities[worker].path.clear()
+		var helper := game._add_entity(Skirmish.HUMAN, "worker", Vector2i(6, 7))
+		check(game.issue(Skirmish.HUMAN, "assist", helper, wonder).ok, "second worker assists through a legal order")
+		game.researched[Skirmish.HUMAN].append("construction_rate_i")
+		if faction == Skirmish.OAXAQUENOS:
+			game.researched[Skirmish.HUMAN].append("cooperative_build_i")
+		for i in 179:
+			game.tick()
+		check(not game.entities[wonder].complete and game.entities[wonder].progress == 179,
+			"Wonder needs 180 active ticks despite helpers and research")
+		game.tick()
+		check(game.entities[wonder].complete and game.entities[wonder].progress == 180,
+			"Wonder completes on its 180th active tick")
 		for i in 120:
 			game.tick()
 		check(game.wonder_progress[Skirmish.HUMAN] == 120 and game.result == "", "Wonder counts completed living ticks")
@@ -100,10 +112,10 @@ func _initialize() -> void:
 	check(outbox.queue("game_opened").ok, "Wonder session opens")
 	outbox.content_version = "la-roma-wonder-1"
 	check(not outbox.queue("match_started", match_id, "", false, "solo", "", "wonder").ok, "unversioned Wonder start is blocked")
-	check(outbox.queue("match_started", match_id, "", false, "solo", "", "wonder", 1).ok, "served version is attached to Wonder start")
+	check(outbox.queue("match_started", match_id, "", false, "solo", "", "wonder", 1, "a".repeat(64)).ok, "served exposure proof is attached to Wonder start")
 	check(outbox.queue("match_completed", match_id, "win", false, "solo", "", "wonder").ok, "Wonder result follows start")
 	check(outbox.queue("wonder_match_completed", match_id, "win", false, "solo", "", "wonder").ok, "Wonder adoption follows result")
-	check(outbox.state.events.size() == 4 and outbox.state.events[3].event.wonder_flag_version == 1, "Wonder version survives local event chain")
+	check(outbox.state.events.size() == 4 and outbox.state.events[3].event.wonder_flag_version == 1 and outbox.state.events[3].event.wonder_exposure_proof == "a".repeat(64), "Wonder proof survives local event chain")
 	if failed: quit(1)
 	else:
 		print("Wonder mode checks passed")

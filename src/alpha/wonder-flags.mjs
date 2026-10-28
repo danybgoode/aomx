@@ -1,8 +1,9 @@
 import { experimentForResolution } from '@golden-frijoles/sdk';
+import { signWonderExposure } from './wonder-exposure.mjs';
 
 export const WONDER_FLAG = 'modes.wonder_enabled';
 
-export function wonderDecision({ provider, growthForPlayer, environment }) {
+export function wonderDecision({ provider, growthForPlayer, environment, signingKey }) {
   return async playerId => {
     const growth = growthForPlayer?.(playerId);
     const resolution = provider?.resolveBooleanEvaluation(WONDER_FLAG, false, { targetingKey: playerId });
@@ -19,7 +20,9 @@ export function wonderDecision({ provider, growthForPlayer, environment }) {
       experiment: experimentForResolution(resolution)
     });
     if (!tracked.ok) return { enabled: false, flag_version: null, snapshot_version: null, environment };
+    const exposureProof = signWonderExposure(signingKey, { playerId, environment, flagVersion: resolution.flagVersion });
+    if (!exposureProof) return { enabled: false, flag_version: null, snapshot_version: null, environment };
     return { enabled: resolution.value === true, flag_version: resolution.flagVersion,
-      snapshot_version: snapshotVersion, environment };
+      snapshot_version: snapshotVersion, environment, exposure_proof: exposureProof };
   };
 }

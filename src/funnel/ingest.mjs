@@ -9,7 +9,7 @@ const OBJECTIVES = new Set(['conquest', 'wonder']);
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{7,127}$/;
 const UTC = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?Z$/;
 const FIELDS = new Set(['schema_version', 'type', 'event_id', 'player_id', 'match_id', 'claimed_at',
-  'local_sequence', 'game_version', 'content_version', 'mode', 'faction', 'test_account', 'bot', 'result', 'mission_id', 'objective_id', 'wonder_flag_version']);
+  'local_sequence', 'game_version', 'content_version', 'mode', 'faction', 'test_account', 'bot', 'result', 'mission_id', 'objective_id', 'wonder_flag_version', 'wonder_exposure_proof']);
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).sort().map(k => [k, canonical(value[k])]));
@@ -49,8 +49,9 @@ export function validate(event) {
   if (event.objective_id != null && (!OBJECTIVES.has(event.objective_id) || event.mode !== 'solo' || event.type === 'game_opened')) return 'invalid_objective';
   if (event.objective_id != null && event.game_version !== campaignGameVersion) return 'unsupported_objective_version';
   if (event.objective_id === 'wonder') {
-    if (event.content_version !== 'la-roma-wonder-1' || !Number.isInteger(event.wonder_flag_version) || event.wonder_flag_version < 0) return 'invalid_wonder_context';
-  } else if (event.wonder_flag_version != null || event.content_version === 'la-roma-wonder-1' || event.type === 'wonder_match_completed') return 'invalid_wonder_context';
+    if (event.content_version !== 'la-roma-wonder-1' || !Number.isInteger(event.wonder_flag_version) || event.wonder_flag_version < 0 ||
+      typeof event.wonder_exposure_proof !== 'string' || !/^[a-f0-9]{64}$/.test(event.wonder_exposure_proof)) return 'invalid_wonder_context';
+  } else if (event.wonder_flag_version != null || event.wonder_exposure_proof != null || event.content_version === 'la-roma-wonder-1' || event.type === 'wonder_match_completed') return 'invalid_wonder_context';
   if (event.type === 'wonder_match_completed' && event.objective_id !== 'wonder') return 'invalid_wonder_context';
   if (event.mode === 'campaign') {
     if (event.game_version !== campaignGameVersion || event.content_version !== campaignContentVersion) return 'unsupported_campaign_version';
@@ -72,6 +73,7 @@ export class Ingest {
     resolveFlag = () => ({ value: false, reason: 'provider_not_ready' }),
     resolveCampaignFlag = () => ({ value: false, reason: 'provider_not_ready' }),
     resolveWonderFlag = () => ({ value: false, reason: 'provider_not_ready' }), supportedVersions = null,
+    verifyWonderExposure = () => false,
     forceExcludeReason = null } = {}) {
     this.store = store;
     this.now = now;
@@ -79,6 +81,7 @@ export class Ingest {
     this.resolveFlag = resolveFlag;
     this.resolveCampaignFlag = resolveCampaignFlag;
     this.resolveWonderFlag = resolveWonderFlag;
+    this.verifyWonderExposure = verifyWonderExposure;
     this.supportedVersions = supportedVersions;
     this.forceExcludeReason = forceExcludeReason;
   }
@@ -138,7 +141,7 @@ export class Ingest {
       else if (event.type === 'wonder_match_completed' && Date.parse(event.claimed_at) < Date.parse(finish.claimed_at)) reason = 'invalid_transition_time';
       else if (player.some(e => e.local_sequence === event.local_sequence)) reason = 'sequence_collision';
       else if (event.local_sequence < latestSequence) reason = 'out_of_order_sequence';
-      else if (event.type !== 'game_opened' && start && (event.mode !== start.mode || event.faction !== start.faction || event.test_account !== start.test_account || event.bot !== start.bot || event.mission_id !== start.mission_id || event.objective_id !== start.objective_id || event.wonder_flag_version !== start.wonder_flag_version)) reason = 'match_context_mismatch';
+      else if (event.type !== 'game_opened' && start && (event.mode !== start.mode || event.faction !== start.faction || event.test_account !== start.test_account || event.bot !== start.bot || event.mission_id !== start.mission_id || event.objective_id !== start.objective_id || event.wonder_flag_version !== start.wonder_flag_version || event.wonder_exposure_proof !== start.wonder_exposure_proof)) reason = 'match_context_mismatch';
       if (reason) status = 'rejected';
       else if (Date.parse(event.claimed_at) > Date.parse(receivedAt) + this.maxFutureMs) {
         status = 'quarantined'; reason = 'clock_ahead';
@@ -155,6 +158,9 @@ export class Ingest {
       } else if (event.type === 'match_started' && event.objective_id === 'wonder' &&
         (!wonderResolution?.value || wonderResolution.flagVersion !== event.wonder_flag_version)) {
         status = 'excluded'; reason = 'wonder_flag_off';
+      } else if (event.type === 'match_started' && event.objective_id === 'wonder' &&
+        !this.verifyWonderExposure(event, wonderResolution?.environment)) {
+        status = 'excluded'; reason = 'wonder_exposure_missing';
       } else if (this.forceExcludeReason) {
         status = 'excluded'; reason = this.forceExcludeReason;
       } else if (event.type === 'campaign_mission_completed') {
