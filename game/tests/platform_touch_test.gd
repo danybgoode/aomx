@@ -12,6 +12,16 @@ func _run() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new("user://platform-touch-%d.json" % Time.get_ticks_usec())
 	root.add_child(client)
+	var setup_zoom: float = client.board_zoom
+	var setup_touch := InputEventScreenTouch.new()
+	setup_touch.pressed = true
+	setup_touch.position = Vector2(400, 250)
+	client._unhandled_input(setup_touch)
+	var setup_drag := InputEventScreenDrag.new()
+	setup_drag.position = Vector2(500, 250)
+	client._unhandled_input(setup_drag)
+	check(client.choosing_faction and client.touch_points.is_empty() and client.board_pan == Vector2.ZERO and client.board_zoom == setup_zoom,
+		"faction setup ignores board touch gestures")
 	client._choose_faction(Skirmish.REGIOS)
 	var worker: int = client.sim._find(Skirmish.HUMAN, "worker")
 	var pos: Vector2i = client.sim.entities[worker].pos
