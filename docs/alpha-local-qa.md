@@ -1,5 +1,9 @@
 # Private alpha: local macOS download QA
 
+## Ways to play owner pilot — 2026-10-28
+
+The merged [ways-to-play stack](https://github.com/danybgoode/aomx/pull/97) has signed Restricted pilot `preview-f49a1ce1b62c` on the separate `mac-ways-to-play-pilot` channel, Butler build **#2234135**. The independently fetched app matched the source ZIP, passed strict signature verification and started headlessly. The compatible ingest image is healthy; the old private-match host is unchanged. Wonder remains served off in all Golden Frijoles environments. The [exact release record and numbered owner walkthrough](ways-to-play-qa-2026-10-28.md) keep downloaded gameplay, a bounded Wonder evaluation and receipts open. This is an owner-only preview, with no public play or retention claim.
+
 ## La Roma Large solo pilot — 2026-10-24
 
 The merged [large-map PR #87](https://github.com/danybgoode/aomx/pull/87) and [profile-isolation PR #89](https://github.com/danybgoode/aomx/pull/89) have a signed, owner-only pilot on the separate Restricted `mac-large-map-pilot` channel: `preview-48708a90fc4b` (`godot-4.7.2-skirmish-7` / `la-roma-world-5`), Butler build **#2200970**. The reviewed source commit `48708a90fc4b` is reachable from `master`; source ZIP SHA-256 is `a639c0bc8576140aecf003f97383fd4542633ef9326dba50e75222cf81fc621c`. The full export gate, Linux CI, authenticated fresh fetch, byte comparison, strict signature and bounded fetched-app startup passed. The pilot uses `BattleForLaRomaLargePilot` for saves, outbox and invite data; startup left the standard alpha profile untouched. The itch page returned 404 anonymously. [Large-map QA](world/large-la-roma-qa-2026-10-23.md) has the release frame/memory measurements, captures and numbered owner walkthrough.

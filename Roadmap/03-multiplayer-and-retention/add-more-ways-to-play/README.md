@@ -1,6 +1,6 @@
 ---
 status: in-progress   # AUTHORITATIVE epic status (SSOT) — scaffolded | in-progress | shipped | archived. Set shipped at epic close.
-phase: Building       # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
+phase: Verifying      # the executive ladder — Shaping | Locking architecture | Building | Verifying | In review | Shipped.
                      # WRITTEN at each cadence event, never inferred. Shipped = merged AND deployed.
 slug: add-more-ways-to-play
 title: "Add more ways to play"
@@ -84,6 +84,8 @@ Solo mode selection must be pinned in save/replay and cannot change the Restrict
 ## Deploy order
 
 Land versioned rules, compatibility and ingest allowlist with test traffic before a new client sync. Keep `modes.wonder_enabled` served off in development, preview and production until the signed Restricted build passes owner QA. The campaign and online match remain on their pinned rules. Merging to `master` does not deploy a game; export, upload, fetch, verify and owner play are separate evidence.
+
+The [Restricted pilot QA record](../../../docs/ways-to-play-qa-2026-10-28.md) identifies the merged source, signed Butler build, authenticated fetch, healthy ingest rollout, flag state and owner checks still owed. The code is merged and the pilot is downloadable; the epic stays in progress until the downloaded-build walkthrough and measurement checks finish.
 
 ## Definition of Done (epic)
 - [ ] All five stories meet the [pitch's acceptance checks](../../00-ideas/seeds/add-more-ways-to-play.md#acceptance-criteria), with independent high-risk review of simulation, save/replay, flag and funnel integrity.
