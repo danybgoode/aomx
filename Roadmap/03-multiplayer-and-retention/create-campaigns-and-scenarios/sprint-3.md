@@ -31,7 +31,7 @@ stories:
 
 # Create the first campaign chapter — Sprint 3: Play and measure
 
-**Status:** 🟡 Verifying — local chapter, flag and funnel contracts pass; independent review and owner download remain open.
+**Status:** 🟡 Verifying — local chapter, flag and funnel contracts pass; owner download and full-match play remain open.
 
 ### Story 3.1 — Finish the three-map chapter
 
@@ -79,7 +79,8 @@ Record every failure by step, build ID and receipt. Only actual owner and reader
 
 ## Local verification · 2026-10-27
 
-- Node funnel, flag, invite-bound route and adoption publisher contracts pass. The full `npm test` run passes 41 tests; three database integration tests are skipped without the CI database.
+- Node funnel, flag, invite-bound route and adoption publisher contracts pass. The full `npm test` run passes 44 tests; three database integration tests are skipped without the local CI database. The hosted `verify` job runs those database cases.
 - Godot mission, progress, flag cache, native client, save, replay and cross-platform hash checks pass on macOS. The final battle client check queues a start, terminal event and adoption in order; tutorial completion queues adoption only. These are test-tagged local events.
 - Native captures at [1024×700 and 1280×800](../../../docs/screenshots/campaign/README.md) show the chapter entry and first goal. The first compact goal clipped; the revised copy fits in the final capture.
-- This does not close the signed Restricted download, independent high-risk review, #24 large-map owner decision, owner full-match play or separately authorized comprehension reads.
+- Independent high-risk review found and verified fixes for invite-first flag retry, numeric served versions, accepted-only prerequisites, bounded adoption publishing and the publisher's optional SDK URL. The signed local preview `preview-07cfecdf30df` passed the export suite and strict code-signature check; its archive SHA-256 is `b3764a05cf60905b9b2979f91e0f68d885100a312d5381e0eee4af281fe12291`. A final artifact from the merged source and an independently fetched Restricted download are still owed.
+- This does not close #24 large-map owner decision, owner full-match play or separately authorized comprehension reads.
