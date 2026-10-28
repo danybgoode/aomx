@@ -40,6 +40,9 @@ var setup_difficulty: OptionButton
 var setup_difficulty_details: Label
 var selected_difficulty := "standard"
 var selected_map := "la_roma"
+var selected_objective := "la_roma"
+var setup_objective: OptionButton
+var setup_objective_label: Label
 var campaign_mode := false
 var selected_mission := "arrival_copilco"
 var campaign_progress_path := CampaignProgress.PATH
@@ -490,6 +493,17 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_mode.item_selected.connect(_choose_mode)
 	setup_mode.custom_minimum_size.y = 42
 	column.add_child(setup_mode)
+	setup_objective_label = Label.new()
+	setup_objective_label.text = "Solo objective"
+	setup_objective_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(setup_objective_label)
+	setup_objective = OptionButton.new()
+	for label in ["La Roma — post or center", "Conquest — post only", "Wonder — build and defend"]:
+		setup_objective.add_item(label)
+	setup_objective.set_item_disabled(2, true)
+	setup_objective.item_selected.connect(_choose_objective)
+	setup_objective.custom_minimum_size.y = 42
+	column.add_child(setup_objective)
 	setup_mission = OptionButton.new()
 	var chapter := CampaignMissions.load_manifest()
 	if chapter.ok:
@@ -503,8 +517,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	column.add_child(setup_campaign_note)
 	column.move_child(mode_label, 2)
 	column.move_child(setup_mode, 3)
-	column.move_child(setup_mission, 4)
-	column.move_child(setup_campaign_note, 5)
+	column.move_child(setup_objective_label, 4)
+	column.move_child(setup_objective, 5)
+	column.move_child(setup_mission, 6)
+	column.move_child(setup_campaign_note, 7)
 	_refresh_campaign_setup()
 	var opponent_label := Label.new()
 	opponent_label.text = "Opponent faction"
@@ -608,6 +624,10 @@ func _layout_setup() -> void:
 		var selected := CampaignMissions.find_mission(selected_mission)
 		if selected.ok:
 			setup_goal.text = selected.data.description
+	elif selected_objective == "conquest":
+		setup_goal.text = "Conquest: destroy the opposing command post. Holding the center does not win."
+	elif selected_objective == "wonder":
+		setup_goal.text = "Wonder: build and defend a project, or destroy the opposing command post."
 	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
@@ -628,6 +648,7 @@ func _layout_setup() -> void:
 	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
 	setup_difficulty.custom_minimum_size.y = 32 if mobile else 38
 	setup_map.custom_minimum_size.y = 32 if mobile else 38
+	setup_objective.custom_minimum_size.y = 32 if mobile else 38
 	setup_opponent.custom_minimum_size.y = 32 if mobile else 38
 	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	setup_panel.scale = Vector2.ONE * setup_factor
@@ -707,6 +728,13 @@ func _choose_mode(index: int) -> void:
 	_refresh_campaign_setup()
 	_layout_setup()
 
+func _choose_objective(index: int) -> void:
+	if index < 0 or index >= Skirmish.OBJECTIVE_IDS.size() or setup_objective.is_item_disabled(index):
+		return
+	selected_objective = Skirmish.OBJECTIVE_IDS[index]
+	setup_objective.select(index)
+	_layout_setup()
+
 func _choose_mission(index: int) -> void:
 	if index < 0 or index >= CampaignMissions.MISSION_IDS.size():
 		return
@@ -721,6 +749,8 @@ func _refresh_campaign_setup() -> void:
 		campaign_mode = false
 		setup_mode.select(0)
 	setup_map.disabled = campaign_mode
+	setup_objective_label.visible = not campaign_mode
+	setup_objective.visible = not campaign_mode
 	setup_mission.visible = campaign_mode
 	setup_campaign_note.visible = campaign_mode
 	if not campaign_mode:
@@ -761,6 +791,8 @@ func _choose_map(index: int) -> void:
 		else:
 			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
 			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
+		if setup_objective != null:
+			_layout_setup()
 
 func _choose_opponent(index: int) -> void:
 	selected_opponent = "" if index == 0 else Skirmish.FACTION_IDS[index - 1]
@@ -813,6 +845,8 @@ func _resume_match() -> void:
 		return
 	sim = restored.game as Skirmish
 	campaign_mode = not sim.mission_id.is_empty()
+	selected_objective = sim.objective_id
+	setup_objective.select(Skirmish.OBJECTIVE_IDS.find(selected_objective))
 	selected_mission = sim.mission_id if campaign_mode else "arrival_copilco"
 	setup_mode.select(1 if campaign_mode else 0)
 	selected_map = sim.map_id
@@ -1096,7 +1130,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	replay_frame_count = 0
 	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
-	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent, selected_mission if campaign_mode else "")
+	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective)
 	paused = false
 	hud_ui.pause_button.text = "II"
 	hud_ui.diagnostics.hide()
@@ -1861,6 +1895,10 @@ func _update_hud() -> void:
 	ui.objective_progress.tooltip_text = _district_note()
 	ui.objective_progress.max_value = int(sim.content.objectives.district_hold_ticks)
 	ui.objective_alternative.text = "or destroy enemy command post"
+	if not campaign_mode and sim.objective_id == "conquest":
+		ui.objective_progress.value = 0
+		ui.objective_progress.max_value = 1
+		ui.objective_alternative.text = "Center hold is disabled."
 	if campaign_mode:
 		var chapter_goal := CampaignMissions.find_mission(sim.mission_id)
 		if chapter_goal.ok and chapter_goal.data.tutorial:
@@ -1879,6 +1917,8 @@ func _update_hud() -> void:
 	var hold_seconds: int = int(sim.content.objectives.district_hold_ticks) / 10
 	ui.secondary_status.text = "%s %s\nHold %02d:%02d / %02d:%02d\nPosts: %d HP / %s" % ["Cibeles" if sim.map_id == "la_roma" else "Center", sim.district_state.replace("_", " ").capitalize(),
 		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+	if not campaign_mode and sim.objective_id == "conquest":
+		ui.secondary_status.text = "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s" % [own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	var group_signature := str(selected_ids)
 	if group_signature != last_group_signature:
 		last_group_signature = group_signature
@@ -1946,6 +1986,8 @@ func _update_hud() -> void:
 		ui.show_result(sim.mission_result, "Mission complete" if sim.mission_result == "win" else "Mission failed")
 	elif sim.result != "":
 		ui.show_result(sim.result, sim.result_reason)
+		if sim.objective_id == "conquest":
+			ui.result_reason.text = "Conquest • " + ui.result_reason.text
 		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
 	else:
 		ui.show_result("", "")
@@ -2032,6 +2074,8 @@ func _sync_brief() -> String:
 	return "%d pending · %d synced · %d excluded · %d need attention." % [pending, synced, excluded, attention]
 
 func _district_note() -> String:
+	if sim.objective_id == "conquest":
+		return "Conquest — destroy enemy command post"
 	match sim.district_state:
 		"human_hold": return "Your hold %d / %d seconds" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
 		"computer_hold": return "Enemy hold %d / %d seconds — contest it" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]

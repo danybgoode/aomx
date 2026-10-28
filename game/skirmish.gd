@@ -38,6 +38,7 @@ const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
 const AI_LEVELS := ["learner", "standard", "challenger"]
+const OBJECTIVE_IDS := ["la_roma", "conquest"]
 
 var factions: Dictionary = {HUMAN: REGIOS, COMPUTER: POBLANOS}
 var content: Dictionary = {}
@@ -48,6 +49,7 @@ var mission_definition: Dictionary = {}
 var mission_steps: Array = []
 var mission_result := ""
 var map_id := "la_roma"
+var objective_id := "la_roma"
 var map_width := WIDTH
 var map_height := HEIGHT
 var blocked_tiles: Dictionary = {}
@@ -95,9 +97,12 @@ var ai_rejections := 0
 var ai_last_rejection := ""
 var pending_footprint := Vector2i(-1, -1)
 
-func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "", selected_mission: String = "") -> void:
+func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed: int = 1, difficulty: String = "standard", selected_map: String = "la_roma", opponent_faction: String = "", selected_mission: String = "", selected_objective: String = "la_roma") -> void:
 	assert(human_faction in FACTION_IDS, "Choose a supported faction.")
 	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
+	assert(selected_objective in OBJECTIVE_IDS, "Choose a supported objective.")
+	assert(selected_mission.is_empty() or selected_objective == "la_roma", "Missions pin their own objective.")
+	objective_id = selected_objective
 	if opponent_faction.is_empty():
 		opponent_faction = POBLANOS if human_faction == REGIOS else REGIOS
 	assert(opponent_faction in FACTION_IDS, "Choose a supported opponent.")
@@ -557,7 +562,8 @@ func tick() -> void:
 	elif human_dead:
 		_finish("loss", "command_post")
 	else:
-		_tick_district()
+		if objective_id == "la_roma":
+			_tick_district()
 		if result == "" and tick_number >= int(content.objectives.draw_tick):
 			_finish("draw", "time_limit")
 	_refresh_visibility()
@@ -770,6 +776,8 @@ func snapshot() -> Dictionary:
 		state["mission_hash"] = mission_hash
 		state["mission_steps"] = mission_steps.duplicate()
 		state["mission_result"] = mission_result
+	if objective_id != "la_roma":
+		state["objective_id"] = objective_id
 	return state
 
 func state_hash() -> String:
@@ -1298,7 +1306,7 @@ func _ai_step() -> void:
 	for enemy in observed:
 		if enemy.kind == "command_post":
 			human_post = enemy.id
-		if enemy.kind in COMBAT_KINDS and _in_district(enemy.pos):
+		if objective_id == "la_roma" and enemy.kind in COMBAT_KINDS and _in_district(enemy.pos):
 			human_district = enemy.id
 	var own_post := _find(side, "command_post")
 	var nearby_threat := -1
@@ -1307,7 +1315,7 @@ func _ai_step() -> void:
 			if enemy.kind in COMBAT_KINDS and _distance(enemy.pos, entities[own_post].pos) <= 6:
 				nearby_threat = enemy.id
 				break
-	if tick_number < int(profile.district_tick) or age_index[side] < 3:
+	if tick_number < int(profile.attack_tick if objective_id == "conquest" else profile.district_tick) or age_index[side] < (2 if objective_id == "conquest" else 3):
 		var early_target := human_district if human_district != -1 else nearby_threat
 		if early_target != -1:
 			for id in ids:
@@ -1324,7 +1332,7 @@ func _ai_step() -> void:
 			if unit.job != "attack" or unit.target_id != defense_target:
 				if issue(side, "attack", id, defense_target).ok:
 					ai_plan = "defend"
-		elif tick_number >= int(profile.attack_tick) and (not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
+		elif tick_number >= int(profile.attack_tick) and (objective_id == "conquest" or not _in_district(unit.pos) or _other_computer_fighter_in_district(id)):
 			if human_post != -1:
 				if unit.job != "attack" or unit.target_id != human_post:
 					if issue(side, "attack", id, human_post).ok:
@@ -1337,7 +1345,7 @@ func _ai_step() -> void:
 				var approach := search_pos + Vector2i(2, 2)
 				if _ai_issue_waypoint(id, approach):
 					ai_plan = "search"
-		elif unit.job == "idle" and not _in_district(unit.pos):
+		elif objective_id == "la_roma" and unit.job == "idle" and not _in_district(unit.pos):
 			if issue(side, "move", id, _point(content.map.ai_district_target)).ok:
 				ai_plan = "district"
 

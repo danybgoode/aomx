@@ -42,9 +42,13 @@ func _run() -> void:
 		"migrated interface preference is saved in v2 format")
 	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
 		"La Roma setup gives sourced place context and both win routes")
+	client._choose_objective(1)
+	check(client.selected_objective == "conquest" and "Holding the center does not win" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
+		"Conquest setup explains its distinct rule and Wonder stays unavailable")
 	client._choose_map(1)
-	check(client.selected_map == "narvarte" and "center" in client.setup_goal.text, "other map choice keeps generic objective copy")
+	check(client.selected_map == "narvarte" and "center" in client.setup_goal.text, "map change preserves Conquest objective copy")
 	client._choose_map(0)
+	client._choose_objective(0)
 	check(client.outbox.state.events.size() == 1 and client.choosing_faction, "client opens setup without starting a match")
 	client._process(0.1)
 	check(client.sim.tick_number == 0 and client.match_id.is_empty(), "setup does not advance a match")

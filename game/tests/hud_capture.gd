@@ -16,6 +16,9 @@ func _capture() -> void:
 	var client = Scene.instantiate()
 	client.outbox = Outbox.new("user://hud-capture-%d.json" % Time.get_ticks_usec())
 	root.add_child(client)
+	var objective := OS.get_environment("HUD_CAPTURE_OBJECTIVE")
+	if objective == "conquest":
+		client._choose_objective(1)
 	var ui_scale := OS.get_environment("HUD_CAPTURE_SCALE")
 	if ui_scale.is_valid_float():
 		client._set_ui_scale(float(ui_scale), false)

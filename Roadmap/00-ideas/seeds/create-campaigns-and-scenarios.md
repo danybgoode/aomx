@@ -8,7 +8,7 @@ appetite: M
 underwritten_by: wave-2026-10
 risk: high
 epic: "03-multiplayer-and-retention/create-campaigns-and-scenarios"
-build_order: 24
+build_order: 21
 updated: 2026-10-27
 intent_ask: verbatim
 hypothesis: "Today classic RTS players face standalone battles with no path into La Roma. A short chapter lets them learn the rules and unlock a final battle on the same maps. We'll know when an uncoached player finishes that battle and the accepted first-match funnel can be read."
