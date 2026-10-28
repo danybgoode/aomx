@@ -446,6 +446,11 @@ func _starting_camera_tile() -> Vector2i:
 	if sim.map_id == "la_roma_large":
 		var worker: Array = sim.content.map.workers[Skirmish.HUMAN]
 		return Vector2i(int(worker[0]), int(worker[1]))
+	var view := get_viewport().get_visible_rect().size
+	if view.x >= 620.0 and view.x < 1000.0 and view.y < 500.0:
+		var home_post: int = sim._find(Skirmish.HUMAN, "command_post")
+		if home_post != -1:
+			return sim.entities[home_post].pos
 	return Vector2i(7, 7)
 
 func _build_faction_setup(layer: CanvasLayer) -> void:
@@ -2179,7 +2184,7 @@ func _update_hud() -> void:
 	if selected_id == -1:
 		var setup_post_id := "building_cdmx_roma_command_post" if sim.map_id == "la_roma" else "building_command_post_%s" % _faction_color(Skirmish.HUMAN)
 		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0,
-			"Select a unit" if visible_view.y < 720.0 else "Select a unit or post", "")
+			"" if visible_view.x < 620.0 else ("Select a unit" if visible_view.y < 720.0 else "Select a unit or post"), "")
 	else:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)

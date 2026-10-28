@@ -59,6 +59,24 @@ func _run() -> void:
 	client._activate_command("cancel")
 	check(client.target_mode.is_empty() and client.sim.command_log.size() == original_count,
 		"Cancel leaves target mode without a paid command")
+	var original_size := root.size
+	root.size = Vector2i(844, 390)
+	await process_frame
+	var ui = client.hud_ui
+	var home_post: int = client.sim._find(Skirmish.HUMAN, "command_post")
+	check(client._starting_camera_tile() == client.sim.entities[home_post].pos,
+		"phone landscape starts the camera at the player's command post")
+	check(ui.bottom.position.y - (ui.top.position.y + ui.top.size.y) >= 120.0,
+		"phone landscape keeps a pickable board band between top and commands")
+	check(ui.command_scroll.size.y >= 44.0 and ui.secondary_toggle.get_global_rect().end.y <= ui.command_panel.get_global_rect().position.y,
+		"phone landscape keeps a complete command row and context toggle")
+	check(ui.command_buttons["move"].size.y <= 44.0 and ui.command_buttons["move"].get_global_rect().end.y <= ui.command_panel.get_global_rect().end.y,
+		"phone landscape command labels stay inside their tap targets")
+	root.size = Vector2i(390, 844)
+	await process_frame
+	check(ui.bottom.position.y - (ui.top.position.y + ui.top.size.y) >= 300.0,
+		"phone portrait keeps the battlefield available")
+	root.size = original_size
 	client.queue_free()
 	if not failed:
 		print("Platform touch checks passed")
