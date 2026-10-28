@@ -31,7 +31,7 @@ try {
     if (!verifiedCampaignGrowthKey(key, process.env.AOMX_VERIFIED_CAMPAIGN_KEY_SCRYPT,
       process.env.AOMX_VERIFIED_PROJECT)) throw new Error('A verified aomx campaign growth key is required');
     const growthForPlayer = playerId => createGrowthEngineClient({ apiKey: key, userId: playerId,
-      baseUrl: process.env.GOLDEN_FRIJOLES_URL,
+      ...(process.env.GOLDEN_FRIJOLES_URL ? { baseUrl: process.env.GOLDEN_FRIJOLES_URL } : {}),
       fetchImpl: (url, options) => fetch(url, { ...options, signal: AbortSignal.timeout(5000) }) });
     await publishAdoptions(pending, growthForPlayer);
     const temporary = cursorPath + '.tmp';
