@@ -34,7 +34,9 @@ static func verify(recording: Dictionary) -> Dictionary:
 		return _bad("game_version_mismatch", 0)
 	if recording.get("map_id") not in RulesContent.MAP_IDS:
 		return _bad("replay_map_invalid", 0)
-	var loaded: Dictionary = RulesContent.load_map(recording.map_id)
+	if recording.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS:
+		return _bad("replay_objective_invalid", 0)
+	var loaded: Dictionary = RulesContent.load_wonder(recording.map_id) if recording.get("objective_id", "la_roma") == "wonder" else RulesContent.load_map(recording.map_id)
 	if not loaded.ok or recording.get("content_version") != loaded.data.content_id or recording.get("content_hash") != loaded.hash:
 		return _bad("content_version_mismatch", 0)
 	if recording.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS:

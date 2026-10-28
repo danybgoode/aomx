@@ -65,6 +65,16 @@ and flag read key to expose an enabled chapter; otherwise it serves off.
 The Godot client keeps the last served choice for offline starts, and a served
 off version stops new starts after the next online check. Do not put either
 server key in a game export.
+`POST /v1/modes/flag` uses the same bound invite and returns the served
+`modes.wonder_enabled` decision/version and a signed exposure proof after
+recording the user-level evaluation. The client caches these by player and
+environment, and Wonder starts carry the version and proof. The ingest accepts a Wonder
+adoption only after a matched, accepted Wonder finish. Run
+`npm run alpha:wonder-publish` to preview eligible adoption rows, then use
+`AOMX_WONDER_CURSOR_PATH=/opt/aomx/wonder-publish-cursor.json npm run
+alpha:wonder-publish -- --send` from the operator environment after verifying
+the aomx growth key. This publisher uses an independent cursor and a stable
+event ID. Keep the flag served off until the Restricted pilot walkthrough.
 The current restricted preview site is live at
 `alpha-api.159.54.158.4.sslip.io`; access is limited to the operator's
 current `/32`. The Caddyfile and `aomx_proxy` attachment are tracked in

@@ -3,6 +3,8 @@ import { PostgresFunnel } from '../src/funnel/postgres.mjs';
 import { serve } from '../src/funnel/http.mjs';
 import { supportedVersions } from '../src/alpha/versions.mjs';
 import { campaignDecision } from '../src/alpha/campaign-flags.mjs';
+import { wonderDecision } from '../src/alpha/wonder-flags.mjs';
+import { verifyWonderExposure } from '../src/alpha/wonder-exposure.mjs';
 import { verifiedCampaignGrowthKey } from '../src/alpha/key-attestation.mjs';
 
 if (!process.env.AOMX_DATABASE_URL) throw new Error('AOMX_DATABASE_URL is required');
@@ -27,7 +29,13 @@ const resolveCampaignFlag = playerId => provider ? {
   ...provider.resolveBooleanEvaluation('campaign.chapter_enabled', false, { targetingKey: playerId }),
   snapshotVersion: provider.getStatus().snapshotVersion, environment
 } : { value: false, reason: 'provider_not_configured', environment };
-const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL, { resolveFlag, resolveCampaignFlag,
+const resolveWonderFlag = playerId => provider ? {
+  ...provider.resolveBooleanEvaluation('modes.wonder_enabled', false, { targetingKey: playerId }),
+  snapshotVersion: provider.getStatus().snapshotVersion, environment
+} : { value: false, reason: 'provider_not_configured', environment };
+const funnel = new PostgresFunnel(process.env.AOMX_DATABASE_URL, { resolveFlag, resolveCampaignFlag, resolveWonderFlag,
+  verifyWonderExposure: (event, servedEnvironment) => growthKeyVerified &&
+    verifyWonderExposure(growthKey, event, servedEnvironment),
   requireInvite: true,
   forceExcludeReason: environment === 'preview' ? 'preview_environment' : null,
   supportedVersions });
@@ -41,7 +49,9 @@ const growthForPlayer = growthKeyVerified ? playerId => createGrowthEngineClient
   fetchImpl: (url, options) => fetch(url, { ...options, signal: AbortSignal.timeout(2000) })
 }) : null;
 const server = serve(funnel, { host: '0.0.0.0', port: Number(process.env.AOMX_PORT ?? 8787), publicMode: true,
-  campaignDecision: campaignDecision({ provider, growthForPlayer, environment }) });
+  campaignDecision: campaignDecision({ provider, growthForPlayer, environment }),
+  wonderDecision: wonderDecision({ provider, growthForPlayer, environment,
+    signingKey: growthKeyVerified ? growthKey : null }) });
 server.on('listening', () => process.stdout.write(`aomx ingest listening on ${server.address().port}\n`));
 async function stop() { server.close(); provider?.shutdown(); await funnel.close(); }
 process.once('SIGINT', stop);

@@ -3,7 +3,7 @@ epic: add-more-ways-to-play
 sprint: 2
 title: "Build and measure Wonder"
 risk: high
-phase: Shaping
+phase: Verifying
 stories_total: 2
 stories:
   - id: S2.1
@@ -12,21 +12,21 @@ stories:
     i_want: "a build-and-defend victory against fair AI"
     so_that: "my next match demands a different plan"
     risk: high
-    status: planned
+    status: done
   - id: S2.2
     title: "Control and measure Wonder access"
     as_a: "alpha operator"
     i_want: "a served rollout decision and accepted mode result"
     so_that: "I can verify usage without inflating retention"
     risk: high
-    status: planned
+    status: done
 ---
 
 # Add more ways to play — Sprint 2: Build and measure Wonder
 
-**Status:** ⬜ Not started
+**Status:** 🟨 Builder verified — independent review and signed Restricted owner walkthrough owed.
 
-### Story 2.1 — Build and contest a Wonder
+### Story 2.1 — Build and contest a Wonder ✅
 
 **As a** solo skirmish player, **I want** to build and defend a Wonder or destroy my opponent's, **so that** another match rewards an economic and tactical plan.
 
@@ -34,11 +34,11 @@ stories:
 
 **Risk:** high — deterministic rules, AI, persistence and online isolation.
 
-### Story 2.2 — Control and measure Wonder access
+### Story 2.2 — Control and measure Wonder access ✅
 
 **As an** alpha operator, **I want** Wonder to stay off until a served decision and to count only accepted full matches, **so that** a rollout can be checked without distorting the agreed funnel.
 
-**Acceptance:** `modes.wonder_enabled` is created off with a served version in development, preview and production. The existing alpha backend resolves it for the pseudonymous player ID and reports a user-level evaluation; the client caches decision/version without a provider key. First use defaults off; a later served off blocks new starts without altering a pinned running match. Accepted Wonder start/completion events carry mode and objective with versioned allowlists; `wonder_match_completed` is recorded only after a real eligible accepted completion. Test accounts, abandoned games, replay and duplicate results do not count.
+**Acceptance:** `modes.wonder_enabled` is created off with a served version in development, preview and production. The existing alpha backend resolves it for the pseudonymous player ID and reports a user-level evaluation; the client caches decision/version and a signed exposure proof without a provider key. First use defaults off; a later served off blocks new online starts after refresh without altering a pinned running match. Accepted Wonder start/completion events carry mode and objective with versioned allowlists; `wonder_match_completed` is recorded only after a real eligible accepted completion. Test accounts, abandoned games, replay and duplicate results do not count.
 
 **Risk:** high — flag, identity and North Star integrity.
 
@@ -57,3 +57,5 @@ Environment: local Godot 4.7.2 and project alpha backend in test mode; record so
 3. Start Wonder, reach `godin`, pay the four-resource cost and complete construction. → The HUD shows both sides' public objective timing without revealing fogged units.
 4. Destroy a counting Wonder and rebuild it. → Its old countdown is gone; the new project must complete before a fresh 900-tick hold.
 5. Complete one Wonder match, then replay or retry its result. → One accepted test-tagged completion and one adoption record exist; no duplicate or public cohort count appears.
+
+**Builder checkpoint · 2026-10-27:** Godot 4.7.2 with `la-roma-wonder-1` content. `wonder_mode_test.gd` passed four-faction cost, one-project, exact 180-tick construction despite helpers/research, destruction/rebuild, 900-tick terminal, simultaneous finish, post precedence, AI legal orders, save/replay and outbox. `wonder_ai_match_test.gd` finished a standard AI match by Wonder at tick 2688. The four-faction normal-match hash fixture passed on macOS; Linux CI parity is pending. `npm test` passed 50 with three PostgreSQL integration cases skipped; `npm run skirmish:contract` passed. Native 1024×700 and 1280×800 setup/progress/result captures were inspected, including remaining time and completed status for both sides without revealing an unfinished enemy project. Golden Frijoles `modes.wonder_enabled` serves off v1 in development, preview and production. A fresh verifier found that a version alone could be guessed, so the backend now issues a signed same-user/environment/version exposure proof only after a recorded evaluation and checks it at start admission; forged and missing proofs are covered by Node tests. Offline clients can still start from a cached on decision until they refresh; the backend excludes those starts if the served flag is then off. This is test-only evidence, not an observed public cohort.

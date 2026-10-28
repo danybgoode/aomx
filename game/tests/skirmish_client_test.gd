@@ -45,8 +45,16 @@ func _run() -> void:
 	client._choose_objective(1)
 	check(client.selected_objective == "conquest" and "Holding the center does not win" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
 		"Conquest setup explains its distinct rule and Wonder stays unavailable")
+	client.wonder_flag = {"enabled": true, "served": true, "flag_version": 1}
+	client._refresh_wonder_setup()
+	client._choose_objective(2)
+	check(client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2) and "90 seconds" in client.setup_goal.text,
+		"served Wonder decision enables readable La Roma setup")
 	client._choose_map(1)
-	check(client.selected_map == "narvarte" and "center" in client.setup_goal.text, "map change preserves Conquest objective copy")
+	check(client.selected_map == "narvarte" and client.selected_objective == "la_roma" and client.setup_objective.is_item_disabled(2),
+		"Wonder is unavailable on other maps")
+	client._choose_objective(1)
+	check("center" in client.setup_goal.text, "map change preserves Conquest objective copy")
 	client._choose_map(0)
 	client._choose_objective(0)
 	check(client.outbox.state.events.size() == 1 and client.choosing_faction, "client opens setup without starting a match")
