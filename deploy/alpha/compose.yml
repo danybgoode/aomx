@@ -22,7 +22,9 @@ services:
       timeout: 5s
       retries: 10
   ingest:
-    image: aomx-ingest:${AOMX_IMAGE_TAG:?pin an image built from a reviewed commit}
+    # AOMX_IMAGE_REGISTRY=ghcr.io/danybgoode/ (set by deploy.sh in /opt/aomx/compose.env) runs the image CI built;
+    # empty keeps the old locally built `aomx-ingest:<sha>` tags working.
+    image: ${AOMX_IMAGE_REGISTRY:-}aomx-ingest:${AOMX_IMAGE_TAG:?pin an image built from a reviewed commit}
     restart: unless-stopped
     env_file:
       - /opt/aomx/ingest.env
@@ -50,7 +52,8 @@ services:
       timeout: 5s
       retries: 3
   match:
-    image: aomx-match:${AOMX_IMAGE_TAG:?pin an image built from a reviewed commit}
+    # Its own tag, because ingest and match are reviewed and shipped on separate commits.
+    image: ${AOMX_IMAGE_REGISTRY:-}aomx-match:${AOMX_MATCH_IMAGE_TAG:-${AOMX_IMAGE_TAG:?pin an image built from a reviewed commit}}
     restart: unless-stopped
     env_file:
       - /opt/aomx/match.env
