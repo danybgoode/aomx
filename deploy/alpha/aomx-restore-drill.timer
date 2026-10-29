@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly aomx restore drill (Sunday, after the 03:15 backup)
+
+[Timer]
+OnCalendar=Sun *-*-* 03:45:00 UTC
+Persistent=true
+Unit=aomx-restore-drill.service
+
+[Install]
+WantedBy=timers.target
