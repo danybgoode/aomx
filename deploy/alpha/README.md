@@ -30,9 +30,11 @@ directory, and Compose needs the image tag even when starting only Postgres.
 Install the locked production Node dependencies in **each new release directory**
 before moving the `/opt/aomx/repo` symlink. The backup, health, report and
 retention timers resolve their scripts through that symlink; copying source alone
-leaves them unable to import `pg`. After switching the symlink, run a backup with
-`--restore-test` against a cleared, dedicated disposable restore database and
-check the health timer. Never clear the live database for this test.
+leaves them unable to import `pg`. After switching the symlink, run
+`sudo systemctl start aomx-restore-drill.service` and check the health timer. The drill
+(`deploy/alpha/restore-drill.sh`, also weekly via `aomx-restore-drill.timer`, Sunday 03:45 UTC) recreates
+the disposable restore database, restores the fresh backup into it, compares counts, and drops it again. It
+refuses any database that is the live one or is not named as a restore database.
 
 ```sh
 sudo install -d -m 700 -o ubuntu -g ubuntu /opt/aomx
