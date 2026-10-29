@@ -27,10 +27,42 @@ async function readJson(req) {
 }
 
 export function serveMatch(session, { host = '127.0.0.1', port = 8790,
-  trustProxyClientIp = false } = {}) {
+  trustProxyClientIp = false, allowedWebOrigin = '' } = {}) {
+  if (allowedWebOrigin && (new URL(allowedWebOrigin).origin !== allowedWebOrigin ||
+    !['http:', 'https:'].includes(new URL(allowedWebOrigin).protocol))) {
+    throw new Error('allowedWebOrigin must be one exact HTTP(S) origin');
+  }
   const hits = new Map();
   const server = http.createServer(async (req, res) => {
     const path = new URL(req.url ?? '/', 'http://local').pathname;
+    const origin = req.headers.origin;
+    res.setHeader('vary', 'Origin');
+    if (origin !== undefined) {
+      if (origin !== allowedWebOrigin || !allowedWebOrigin) {
+        return send(res, 403, { ok: false, reason: 'origin_denied' });
+      }
+      res.setHeader('access-control-allow-origin', allowedWebOrigin);
+      if (req.method === 'OPTIONS') {
+        const requestedMethod = req.headers['access-control-request-method'];
+        const allowedMethods = {
+          '/v1/match/join': 'POST', '/v1/match/state': 'GET',
+          '/v1/match/order': 'POST', '/v1/match/replay': 'POST',
+          '/v1/match/replay/frame': 'POST',
+        };
+        const requestedHeaders = (req.headers['access-control-request-headers'] ?? '').toLowerCase()
+          .split(',').map(header => header.trim()).filter(Boolean);
+        if (requestedMethod !== allowedMethods[path] || requestedHeaders.some(header =>
+          !['content-type', 'x-aomx-match-token', 'x-aomx-replay-token'].includes(header))) {
+          return send(res, 403, { ok: false, reason: 'preflight_denied' });
+        }
+        res.writeHead(204, {
+          'access-control-allow-methods': requestedMethod,
+          'access-control-allow-headers': requestedHeaders.join(', '),
+          'access-control-max-age': '600', 'cache-control': 'no-store',
+        });
+        return res.end();
+      }
+    }
     const now = Date.now();
     const minute = Math.floor(now / 60000);
     const bump = key => {

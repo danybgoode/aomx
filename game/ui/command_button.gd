@@ -26,6 +26,10 @@ func _ready() -> void:
 
 func _draw() -> void:
 	var c: Color = HudSkin.GOLD if glyph == "gold" else (HudSkin.MUTED if disabled else (HudSkin.GOLD if active or is_hovered() else HudSkin.TEXT))
+	if size.y < 60.0:
+		if not caption.is_empty():
+			draw_string(ThemeDB.fallback_font, Vector2(2, size.y * 0.5 + 6), caption.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, roundi(16.0 * caption_scale), c)
+		return
 	var o := Vector2(size.x * 0.5, 24)
 	if active:
 		draw_rect(Rect2(Vector2(3, 3), size - Vector2(6, 6)), HudSkin.GOLD, false, 2)

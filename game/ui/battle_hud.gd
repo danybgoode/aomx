@@ -8,6 +8,8 @@ signal pause_requested
 signal restart_requested
 signal save_requested
 signal resume_requested
+signal export_save_requested
+signal import_save_requested
 signal ui_scale_changed(value: float)
 signal reduced_motion_changed(value: bool)
 signal reduced_effects_changed(value: bool)
@@ -17,6 +19,7 @@ const HudSkin = preload("res://ui/hud_skin.gd")
 const CommandButton = preload("res://ui/command_button.gd")
 const MinimapPanel = preload("res://ui/minimap_panel.gd")
 const ACTIONS := {
+	"group_select": {"name": "GROUP +", "key": "", "description": "Tap more units to add or remove them, then finish the group."},
 	"move": {"name": "MOVE", "key": "M", "description": "Choose clear ground for this unit."},
 	"attack_move": {"name": "ADVANCE", "key": "", "description": "Move and engage visible enemies in range."},
 	"stop": {"name": "STOP", "key": "", "description": "Cancel this unit's current order."},
@@ -58,6 +61,8 @@ var invite_save: Button
 var support_copy: Button
 var save_button: Button
 var resume_button: Button
+var export_save_button: Button
+var import_save_button: Button
 var close_diagnostics: Button
 var gold_label: Label
 var resource_row: HBoxContainer
@@ -398,6 +403,12 @@ func _build() -> void:
 	save_button.pressed.connect(func() -> void: save_requested.emit())
 	resume_button = _button(diag_col, "Resume saved match")
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
+	var transfer_row := HBoxContainer.new()
+	diag_col.add_child(transfer_row)
+	export_save_button = _button(transfer_row, "Export save")
+	export_save_button.pressed.connect(func() -> void: export_save_requested.emit())
+	import_save_button = _button(transfer_row, "Import save")
+	import_save_button.pressed.connect(func() -> void: import_save_requested.emit())
 	event_log_label = _label(diag_col, "EVENTS", 16, HudSkin.MUTED)
 	event_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	invite_input = LineEdit.new()
@@ -454,8 +465,11 @@ func _layout() -> void:
 	var stacked := w < 1200 or h < 720 or (text_scale > 2.2 and w < 1750)
 	var narrow_top := w < 620
 	var compact_top := w < 1750 or text_scale > 1.6
+	var tight_landscape := w >= 620 and w < 1000 and h < 500
 	var margin := 8.0 if stacked else 12.0
 	var top_h := 136.0 if narrow_top else (maxf(100.0, 38.0 * text_scale + 24.0) if compact_top else 72.0)
+	if tight_landscape:
+		top_h = 82.0
 	top.position = Vector2(margin, margin)
 	top.size = Vector2(w - margin * 2.0, top_h)
 	var top_row: HBoxContainer = top.get_node("TopRow")
@@ -492,6 +506,9 @@ func _layout() -> void:
 	timer_label.custom_minimum_size.x = 58
 	var selection_h := maxf(88.0, 53.0 * text_scale)
 	var bottom_h := selection_h + 170.0 if stacked else clampf(135.0 * text_scale, 235.0, minf(390.0, h * 0.4))
+	if tight_landscape:
+		selection_h = 48.0
+		bottom_h = 150.0
 	if narrow_top:
 		bottom_h = maxf(220.0, selection_h + 132.0)
 	var bottom_w := w - 2.0 * margin
@@ -514,6 +531,9 @@ func _layout() -> void:
 		var toggle_w := maxf(134.0, 90.0 * text_scale)
 		secondary_toggle.position = Vector2(available - toggle_w - 8.0, 19)
 		secondary_toggle.size = Vector2(toggle_w, maxf(50.0, 24.0 * text_scale))
+		if tight_landscape:
+			secondary_toggle.position.y = 4.0
+			secondary_toggle.size.y = 40.0
 		secondary_toggle.show()
 	else:
 		selection_panel.position = Vector2(8, 8)
@@ -643,6 +663,7 @@ func _layout_selection(stacked: bool) -> void:
 	selection_details.position = Vector2(8, selection_hp_label.position.y + selection_hp_label.size.y + 6.0) if not stacked else Vector2(x, title_h + 8.0)
 	selection_details.size = Vector2(s.x - 16, maxf(38.0, 19.0 * text_scale)) if not stacked else Vector2(maxf(0, selection_hp_label.position.x - x - 8.0), maxf(32.0, 19.0 * text_scale))
 	selection_details.clip_text = stacked
+	selection_details.visible = not (size.x >= 620 and size.x < 1000 and size.y < 500)
 	selection_stats.position = Vector2(8, selection_details.position.y + selection_details.size.y + 6.0)
 	selection_stats.size = Vector2(s.x - 16, maxf(68.0, 24.0 * text_scale))
 	selection_stats.visible = not stacked
@@ -652,6 +673,8 @@ func _layout_commands(stacked: bool) -> void:
 	var s := command_panel.size
 	var text_scale := _desired_scale(size)
 	var heading_h := maxf(38.0, 20.0 * text_scale)
+	if size.x >= 620 and size.x < 1000 and size.y < 500:
+		heading_h = 28.0
 	var heading: Label = command_panel.get_node("Heading")
 	heading.position = Vector2(6, 4)
 	heading.size = Vector2(s.x - 12, heading_h)
@@ -719,12 +742,13 @@ func _choose_entry(id: String) -> void:
 func reflow_commands() -> void:
 	var stacked := size.x < 1200 or size.y < 720 or (_desired_scale(size) > 2.2 and size.x < 1750)
 	var item_w := 112.0 if stacked else minf(128.0, (command_scroll.size.x - 20.0) / 4.0)
-	var item_h := (72.0 if size.x < 620 else 82.0) if stacked else 94.0
+	var item_h := (72.0 if size.x < 620 else (44.0 if size.x < 1000 and size.y < 500 else 82.0)) if stacked else 94.0
 	var i := 0
 	for action in ACTIONS:
 		var b: Button = command_buttons[action]
 		if not b.visible:
 			continue
+		b.custom_minimum_size.y = item_h
 		b.position = Vector2(float(i if stacked else i % 4) * (item_w + 6), 0 if stacked else float(i / 4) * (item_h + 6))
 		b.size = Vector2(item_w, item_h)
 		i += 1

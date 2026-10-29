@@ -57,6 +57,63 @@ static func read(path: String = SAVE_PATH) -> Dictionary:
 		return _bad("save_corrupt")
 	return restore(parsed)
 
+static func export_bytes(path: String = SAVE_PATH) -> Dictionary:
+	var checked := read(path)
+	if not checked.ok:
+		return checked
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	var bytes := file.get_buffer(file.get_length())
+	file.close()
+	return {"ok": true, "bytes": bytes,
+		"name": "battle-for-la-roma-%s.json" % str(checked.match_id)}
+
+static func import_bytes(bytes: PackedByteArray, path: String = SAVE_PATH) -> Dictionary:
+	if bytes.is_empty() or bytes.size() > MAX_SAVE_BYTES:
+		return _bad("save_too_large" if bytes.size() > MAX_SAVE_BYTES else "save_corrupt")
+	var parser := JSON.new()
+	if parser.parse(bytes.get_string_from_utf8()) != OK or not parser.data is Dictionary:
+		return _bad("save_corrupt")
+	var checked := restore(parser.data)
+	if not checked.ok:
+		return checked
+	var temporary := path + ".import.tmp"
+	var file := FileAccess.open(temporary, FileAccess.WRITE)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	file.store_buffer(bytes)
+	file.flush()
+	file.close()
+	if FileAccess.get_file_as_bytes(temporary) != bytes:
+		return _bad("save_write_failed")
+	if DirAccess.rename_absolute(ProjectSettings.globalize_path(temporary), ProjectSettings.globalize_path(path)) != OK:
+		return _bad("save_replace_failed")
+	return {"ok": true, "match_id": checked.match_id, "state_hash": checked.state_hash}
+
+static func import_file(source: String, path: String = SAVE_PATH) -> Dictionary:
+	var file := FileAccess.open(source, FileAccess.READ)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	if file.get_length() > MAX_SAVE_BYTES:
+		file.close()
+		return _bad("save_too_large")
+	var bytes := file.get_buffer(file.get_length())
+	file.close()
+	return import_bytes(bytes, path)
+
+static func export_file(destination: String, path: String = SAVE_PATH) -> Dictionary:
+	var exported := export_bytes(path)
+	if not exported.ok:
+		return exported
+	var file := FileAccess.open(destination, FileAccess.WRITE)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	file.store_buffer(exported.bytes)
+	file.flush()
+	file.close()
+	return {"ok": true, "path": destination}
+
 static func restore(payload: Dictionary, validate_history: bool = true, validate_hash: bool = true) -> Dictionary:
 	if payload.get("format") != "battle-for-la-roma-save":
 		return _bad("save_format_unknown")
