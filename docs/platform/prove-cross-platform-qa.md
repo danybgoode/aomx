@@ -43,7 +43,7 @@ The nine-file Web pilot ZIP is `dist/platform/platform-99bed69ff59e/battle-for-l
 | Native macOS, owner Mac | Export succeeded; fresh install and full match owed | Model/OS, frame, memory and owner walkthrough owed | Unverified |
 | Native Windows, one remote PC | Export succeeded; physical PC model/OS and install owed | Full match and save transfer owed | Unverified |
 | Native Linux | Export succeeded; no physical Linux PC named | No installed-device match | Unverified |
-| Desktop Web, owner Mac Firefox | Restricted HTTPS build `platform-99bed69ff59e` served by itch.io; setup and solo match entry observed | Firefox/macOS versions, deliberate full match, audio, frame and memory profile owed | Unverified |
+| Desktop Web, owner Mac Firefox | MacBook Pro `Mac14,5` (Apple M2 Max, 64 GB), macOS 27.2 (26B123), Firefox 159.0; Restricted HTTPS build `platform-99bed69ff59e` served by itch.io; setup and solo match entry observed | Deliberate full match, audio, frame and memory profile owed | Unverified |
 | Desktop Web, Mac Safari | Compatibility export succeeded | Full match, audio and storage matrix owed | Unverified |
 | Desktop Web, Windows Chrome/Firefox | Compatibility export succeeded | Remote PC/browser versions and full matches owed | Unverified |
 | Native Android | Godot Android template installed; export needs Google Android SDK, platform-tools and build-tools | APK and remote Android phone model/OS/full match owed | Unverified |
