@@ -1,6 +1,7 @@
 # aomx alpha deployment
 
-This deployment runs on the existing Oracle VM. The VM's panfleto stack owns Caddy; aomx gets a
+This deployment runs on the shared Oracle VM. The VM's proxy (`edge-caddy`) and its site file for aomx live in
+`danybgoode/oracle-edge` (private) since 2026-10-29; aomx gets a
 separate compose project, database, networks, secrets and resource limits.
 Never join aomx to the panfleto default network, which contains its database.
 `aomx_db` keeps ingest traffic internal; `aomx_ops` lets the database publish
@@ -38,9 +39,10 @@ sudo install -d -m 700 -o ubuntu -g ubuntu /opt/aomx
 sudo install -d -m 700 -o ubuntu -g ubuntu /data/aomx/postgres
 docker network inspect aomx_proxy >/dev/null 2>&1 || docker network create aomx_proxy
 cd /opt/aomx/repo
-export AOMX_IMAGE_TAG=REVIEWED_COMMIT_SHORT_SHA
-docker build -f deploy/alpha/Dockerfile -t "aomx-ingest:$AOMX_IMAGE_TAG" .
-docker compose -p aomx -f deploy/alpha/compose.yml up -d postgres
+# Images are built by CI (.github/workflows/alpha-images.yml) and pulled, never built here. deploy.sh records the
+# tags in /opt/aomx/compose.env; pass that file to every compose command.
+C="docker compose -p aomx --env-file /opt/aomx/compose.env -f deploy/alpha/compose.yml"
+$C up -d postgres
 # Apply the migration with the administrator, then start the service.
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/001_alpha_audit.sql
@@ -48,13 +50,12 @@ docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/002_ingest_grants.sql
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/003_publication_reading_hash.sql
-docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build
+deploy/alpha/deploy.sh REVIEWED_COMMIT_SHORT_SHA      # pulls both images, starts them, waits for healthy
 ```
 
-The Caddy service must join `aomx_proxy` *in its own compose file* while
-retaining its existing default network. Add the reviewed site from
-`Caddyfile.example` with the real hostname, reload Caddy, and confirm its
-certificate before pointing a game build at the route. Do not edit panfleto's
+The shared proxy joins `aomx_proxy` in its own compose file (oracle-edge `edge/compose.yml`). The reviewed
+site from `Caddyfile.example`, with the real hostname, is oracle-edge `sites/aomx.caddy`; after changing it,
+run `ops/deploy-edge.sh` and confirm the certificate before pointing a game build at the route. Do not edit panfleto's
 Postgres, backup retention, or other site blocks. `GET /healthz` is the only
 public read route; `/v1/audit` and `/v1/report` return 404 in public mode.
 `POST /v1/campaign/flag` uses the same operator allowlist and rate limit as
@@ -77,15 +78,15 @@ the aomx growth key. This publisher uses an independent cursor and a stable
 event ID. Keep the flag served off until the Restricted pilot walkthrough.
 The current restricted preview site is live at
 `alpha-api.159.54.158.4.sslip.io`; access is limited to the operator's
-current `/32`. The Caddyfile and `aomx_proxy` attachment are tracked in
-`danybgoode/justread#29`, merged and deployed through panfleto's `update.sh`
-on 2026-10-15. The operator must update the `/32` when the residential IP
-rotates. After the deploy, both panfleto sites returned 200, alpha `/healthz`
+current `/32`. The site file (`sites/aomx.caddy`) lives in `danybgoode/oracle-edge`
+since 2026-10-29 (first added through `danybgoode/justread#29` on 2026-10-15). When the residential IP rotates,
+run `ops/allow-my-ip.sh` from oracle-edge: it updates SSH access and the operator allowlist together. After the deploy, both panfleto sites returned 200, alpha `/healthz`
 returned `{"ok":true}` from the allowlisted Mac, a missing invite returned
 401, and public audit/report routes returned 404.
 
-The running image tag is the reviewed commit. To roll back, set
-`AOMX_IMAGE_TAG` to a previously built tag and run the same `compose up` command.
+The running image tag is the reviewed commit, recorded in `/opt/aomx/compose.env`. To roll back, run
+`deploy/alpha/deploy.sh <previous-sha> [<previous-match-sha>]`; any commit CI built can be pulled again, and
+the workflow can build an older reviewed commit on demand.
 The database migration is additive, so older images remain compatible with it.
 
 ## Restricted private-match host
@@ -122,9 +123,7 @@ docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/005_retention.sql
 docker compose -p aomx -f deploy/alpha/compose.yml exec -T postgres \
   psql -v ON_ERROR_STOP=1 -U aomx_admin -d aomx < db/006_invite_rotation.sql
-docker build --platform linux/arm64 -f deploy/alpha/match.Dockerfile -t "aomx-match:$AOMX_IMAGE_TAG" .
-docker compose -p aomx -f deploy/alpha/compose.yml up -d --no-build match
-docker compose -p aomx -f deploy/alpha/compose.yml ps match
+deploy/alpha/deploy.sh REVIEWED_INGEST_SHA REVIEWED_MATCH_SHA
 ```
 
 Migration 006 replaces the original one-code-ever player constraint with a
@@ -133,9 +132,8 @@ player binding for audit, while that same installation can claim one fresh
 active code. Apply it before inviting a returning owner or tester; an active
 code still blocks a second code for the same installation.
 
-Copy the `/v1/match/*` route from `Caddyfile.example` into panfleto's alpha
-site, keeping the existing operator allowlist for every other path. Reload
-Caddy, verify HTTPS and confirm anonymous access to `/v1/events` is still
+The `/v1/match/*` route from `Caddyfile.example` is in oracle-edge's `sites/aomx.caddy`, with the operator
+allowlist on every other path. After changing it there, run `ops/deploy-edge.sh` on the VM, verify HTTPS and confirm anonymous access to `/v1/events` is still
 forbidden. The match route is address-reachable, but disabled admissions,
 individual codes, slot binding and server-side validation gate play. Rotate
 or revoke codes with the existing `alpha:invite` operator tool. A code
