@@ -1,0 +1,66 @@
+name: Alpha images
+# Builds the two server images for the Oracle VM (linux/arm64) and pushes them to GHCR, tagged with the short
+# commit ID, so the VM pulls a reviewed commit instead of compiling it next to production. Until 2026-10-29 both were
+# built ON the VM, which competed with every tenant for its 2 CPUs and helped fill its boot disk to 97%.
+#
+# Pushing an image is not a deploy: the operator still picks the reviewed commit and runs deploy/alpha/deploy.sh.
+# To build an older reviewed commit (a rollback target): Actions → Alpha images → Run workflow → ref.
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/funnel/**'
+      - 'src/alpha/**'
+      - 'src/multiplayer/**'
+      - 'scripts/alpha-server.mjs'
+      - 'scripts/multiplayer-server.mjs'
+      - 'game/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'deploy/alpha/Dockerfile'
+      - 'deploy/alpha/match.Dockerfile'
+      - '.github/workflows/alpha-images.yml'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit to build (defaults to the branch you run it from)
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    # Native arm64 runner: the VM is Ampere, and emulating arm64 under QEMU makes the Godot image take far longer.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - name: aomx-ingest
+            dockerfile: deploy/alpha/Dockerfile
+          - name: aomx-match
+            dockerfile: deploy/alpha/match.Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Tag
+        id: tag
+        run: echo "short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/danybgoode/${{ matrix.name }}:${{ steps.tag.outputs.short }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/danybgoode/aomx
+            org.opencontainers.image.revision=${{ steps.tag.outputs.short }}

@@ -1,0 +1,13 @@
+[Unit]
+Description=aomx weekly restore drill: back up, restore into a disposable database, compare counts, drop it
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/aomx/repo
+Environment=PATH=/opt/aomx/node/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/opt/aomx/operator.env
+ExecStart=/opt/aomx/repo/deploy/alpha/restore-drill.sh
+TimeoutStartSec=600
