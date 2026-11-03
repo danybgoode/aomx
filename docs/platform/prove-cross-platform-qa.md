@@ -4,6 +4,17 @@ This ledger belongs to the funded [epic](../../Roadmap/09-platform-and-measureme
 
 The owner prioritizes easy Web distribution. The first release decision is for desktop Web solo on exact passing browser/OS combinations; mobile Web and online Web have separate claims. Native exports are follow-on candidates and do not hold a passing Web-only decision.
 
+## Owner QA source follow-up — 2026-11-03
+
+The source fixes and art in [PR #99](https://github.com/danybgoode/aomx/pull/99) have a new clean local QA export `platform-6dcbf166d5b1`, commit `6dcbf166d5b1bdaa61b8a3d8e5d6e72d8b4f38d4`, Godot 4.7.2, game/content `godot-4.7.2-skirmish-7` / `la-roma-world-5`. All four desktop export commands succeeded from the same commit with `test_account=true` and the current Restricted `sslip.io` endpoint. The macOS ZIP passed strict signature verification and a bounded packaged-app start. Native Godot desktop and narrow renders show the new setup, resource art and selected actor state; targeted client, movement and art checks passed. The [owner QA record](../qa/2026-11-03-owner-review.md) names remaining gameplay. **No hosted Web or macOS tester channel has been replaced with this build**, and no physical full-match or support claim follows from these exports.
+
+| QA target | New local artifact and SHA-256 |
+| --- | --- |
+| Web | `dist/platform/platform-6dcbf166d5b1/web/index.pck` — `10446edeedd3e7d8755e8335363ca60f7b6358667c3f7c2c0bfce58e462394e0`; `index.wasm` — `fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0` |
+| macOS | `dist/platform/platform-6dcbf166d5b1/macos/battle-for-la-roma-macos.zip` — `4e6e355cee03c48e8b585d9b8d2ec3ba4a9e75e4b8a5fb0a4ae441321b6e6e9a` |
+| Windows | `dist/platform/platform-6dcbf166d5b1/windows/battle-for-la-roma.exe` — `320efea23961495769786349ab6d97d5151a42273f3de8fc27e8f7ad0a1fcdb9`; `.pck` — `01f2a14742b864ca39b313980cf594113458a06244cf40dc3a33d33cda6fd75e` |
+| Linux | `dist/platform/platform-6dcbf166d5b1/linux/battle-for-la-roma.x86_64` — `d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63`; `.pck` — `6f3f68eb26d5d068fc43c57633fbee9f7cf3d3e6b0f0c26ff24eadc7f08c7a9ff38d4` |
+
 ## Local component evidence
 
 | Check | Result | Limit |
