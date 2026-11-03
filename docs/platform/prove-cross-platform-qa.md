@@ -6,6 +6,8 @@ The owner prioritizes easy Web distribution. The first release decision is for d
 
 ## Owner QA source follow-up — 2026-11-03
 
+The branch subsequently added a simulation-side occupied-destination and congestion fix, versioned as `godot-4.7.2-skirmish-8`. The table below remains an exact receipt for the prior version 7 commit; it does not represent the new rule version. Godot warfare/client checks, cross-platform and Wonder deterministic hash fixtures, and the Node suite (51 passed, 3 database skips) passed for version 8. A clean new export is required before testing or uploading that version.
+
 The source fixes and art in [PR #99](https://github.com/danybgoode/aomx/pull/99) produced clean local QA export `platform-78b89fd9bd4d` from commit `78b89fd9bd4dc4b281a0f843544a1017775b5318`, Godot 4.7.2, game/content `godot-4.7.2-skirmish-7` / `la-roma-world-5`. All four desktop export commands succeeded from the same commit with `test_account=true` and the current Restricted `sslip.io` endpoint. The macOS ZIP passed strict signature verification. Native Godot desktop and narrow renders show the new setup, resource art and selected actor state; targeted client, movement and art checks passed. A local Chrome run exposed a high-DPI Web size issue; Godot window content scaling corrected both setup and battlefield UI, and the browser visibly started a solo match and returned home through **MENU** on the code-equivalent temporary probe. The [owner QA record](../qa/2026-11-03-owner-review.md) names remaining gameplay. **No hosted Web or macOS tester channel has been replaced with this build**, and no physical full-match or support claim follows from these exports.
 
 | QA target | New local artifact and SHA-256 |

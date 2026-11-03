@@ -33,7 +33,7 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-7"
+const GAME_VERSION := "godot-4.7.2-skirmish-8"
 const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 5
@@ -230,13 +230,16 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			if actor.kind in content.buildings or not target is Vector2i or not _walkable(target):
 				rejected.reason = "blocked_or_invalid_tile"
 			else:
-				var route := _route_to(actor.pos, target)
-				if route.is_empty() and actor.pos != target:
+				var destination: Vector2i = _free_move_destination(actor, target)
+				var route: Array[Vector2i] = []
+				if destination.x >= 0:
+					route = _route_until(actor.pos, func(tile: Vector2i) -> bool: return tile == destination, true)
+				if destination.x < 0 or route.is_empty() and actor.pos != destination:
 					rejected.reason = "unreachable_tile"
 				else:
 					actor.path = route
 					actor.job = "move" if not route.is_empty() else "idle"
-					actor.order_pos = target
+					actor.order_pos = destination
 					rejected = {"ok": true, "reason": "moving"}
 		"gather":
 			var resource_id := _resource_at(side, target) if target is Vector2i else ""
@@ -594,38 +597,9 @@ func _advance_mission() -> void:
 
 func _reroute_blocked(entity: Dictionary) -> void:
 	entity.path.clear()
-	match entity.job:
-		"move", "attack_move":
-			entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
-			if not entity.path.is_empty() or entity.pos == entity.order_pos:
-				entity.blocked_ticks = 0
-				return
-		"gather":
-			if entity.source_resource in RESOURCE_IDS:
-				var source: Dictionary = _ordered_source(entity)
-				if source.amount > 0:
-					entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1)
-					if not entity.path.is_empty() or _distance(entity.pos, source.pos) == 1:
-						entity.blocked_ticks = 0
-						return
-		"deliver":
-			_begin_delivery(entity)
-			return
-		"build", "repair":
-			if entities.has(entity.target_id):
-				var building: Dictionary = entities[entity.target_id]
-				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, building) == 1)
-				if not entity.path.is_empty() or _distance_to_entity(entity.pos, building) == 1:
-					entity.blocked_ticks = 0
-					return
-		"attack":
-			if entities.has(entity.target_id):
-				var target: Dictionary = entities[entity.target_id]
-				var reach := int(content.units[entity.kind].range)
-				entity.path = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance_to_entity(tile, target) <= reach)
-				if not entity.path.is_empty() or _distance_to_entity(entity.pos, target) <= reach:
-					entity.blocked_ticks = 0
-					return
+	_reroute_occupied(entity)
+	if not entity.path.is_empty() or entity.blocked_ticks == 0:
+		return
 	entity.blocked_ticks = 90
 	if entity.side == HUMAN:
 		feedback = "Route blocked; unit will retry or accept a new order."
@@ -655,6 +629,28 @@ func _reroute_occupied(entity: Dictionary) -> void:
 		entity.blocked_ticks = 0
 	elif entity.side == HUMAN and entity.blocked_ticks == 30:
 		feedback = "Crowded route; unit looking for a free tile."
+
+func _free_move_destination(actor: Dictionary, requested: Vector2i) -> Vector2i:
+	var occupant := _unit_at(requested)
+	if occupant == -1 or occupant == actor.id or entities[occupant].side != actor.side:
+		return requested
+	# A parked friendly unit can hold this tile forever. Complete the order at
+	# the nearest reachable free tile instead of waiting on that exact tile.
+	for radius in range(1, 4):
+		var candidates: Array[Vector2i] = []
+		for x in range(requested.x - radius, requested.x + radius + 1):
+			for y in range(requested.y - radius, requested.y + radius + 1):
+				var tile := Vector2i(x, y)
+				if _distance(tile, requested) == radius and _walkable(tile) and (_unit_at(tile) == -1 or tile == actor.pos):
+					candidates.append(tile)
+		candidates.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			var da := _distance(a, actor.pos)
+			var db := _distance(b, actor.pos)
+			return da < db or da == db and (a.x < b.x or a.x == b.x and a.y < b.y))
+		for tile in candidates:
+			if tile == actor.pos or not _route_until(actor.pos, func(at: Vector2i) -> bool: return at == tile, true).is_empty():
+				return tile
+	return Vector2i(-1, -1)
 
 func _retry_waiting_job(entity: Dictionary) -> void:
 	# Jobs can change while a unit waits: a source empties, a drop-off falls,
