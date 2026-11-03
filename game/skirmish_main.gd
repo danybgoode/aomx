@@ -2939,9 +2939,6 @@ func _draw() -> void:
 			if resource_id == hovered_source_id and side == Skirmish.HUMAN:
 				_draw_sprite_outline(art_id, art_rect, Color("ffe391"))
 			draw_texture(art.texture(art_id), art_rect.position, Color.WHITE if active else Color(0.48, 0.5, 0.53, 0.8))
-			if resource_id == hovered_source_id and side == Skirmish.HUMAN:
-				draw_string(ThemeDB.fallback_font, ground + Vector2(-42, -50), "%s · %d" % [resource_id.capitalize(), int(source.amount)],
-					HORIZONTAL_ALIGNMENT_CENTER, 84, 13, Color("ffe391"))
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
