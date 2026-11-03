@@ -815,6 +815,130 @@
       "source_sha256": "2e9a8061b6bfc1737b095c14868b074e6698f83cf0463143a24adb6ba03e9cb3",
       "export_sha256": "eff82e78f26054928eb7062df5d18129df08d6a818dc17eef3f843fad42cf1dc",
       "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_cibeles"
+    },
+    {
+      "id": "prop_cdmx_resource_comida",
+      "category": "prop",
+      "path": "res://assets/render/cdmx/prop_cdmx_resource_comida.png",
+      "source": "res://assets/source/cdmx/resource_comida.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        47
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "02788250571b5fbe997caa493ab16fc0b2e46396e30b14803aae966a49ca3261",
+      "export_sha256": "96224b92b86799cac045998d7b5260f9a4ed1015fb4652d7df3211e3ba1fcc1a",
+      "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_resource_comida"
+    },
+    {
+      "id": "prop_cdmx_resource_materiales",
+      "category": "prop",
+      "path": "res://assets/render/cdmx/prop_cdmx_resource_materiales.png",
+      "source": "res://assets/source/cdmx/resource_materiales.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        47
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "4530d8985f5fd2e84a77b9400f46fce72a146d6c09e467b8c2f424c4da8ae934",
+      "export_sha256": "47b6d43f810eb4f53de7997cb7cfaaa701d8556522a5ba1a72217b9a4b1343a7",
+      "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_resource_materiales"
+    },
+    {
+      "id": "prop_cdmx_resource_varos",
+      "category": "prop",
+      "path": "res://assets/render/cdmx/prop_cdmx_resource_varos.png",
+      "source": "res://assets/source/cdmx/resource_varos.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        47
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "450234f178f5dd39be909730cc15c800176c1b9949ffa85626e39cf07564dcd5",
+      "export_sha256": "394340a2febfd58e81eefc51895a94dece7740cccafc39f7488eccc8912bc0e1",
+      "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_resource_varos"
+    },
+    {
+      "id": "prop_cdmx_resource_terrenos",
+      "category": "prop",
+      "path": "res://assets/render/cdmx/prop_cdmx_resource_terrenos.png",
+      "source": "res://assets/source/cdmx/resource_terrenos.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        47
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "c7910b126d4577ff112db43fa6fc51380d3e0599a58f64321f1436b6d6acccf8",
+      "export_sha256": "4443b31787fa66e348801dd9189a0d7457e300e43eb35e07589bad3c3458390c",
+      "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_resource_terrenos"
     }
   ]
 }

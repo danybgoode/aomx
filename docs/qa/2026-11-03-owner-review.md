@@ -1,0 +1,28 @@
+# Owner QA follow-up — 2026-11-03
+
+This record separates the fixes in the current source branch from match-rule work that needs a new content version and a matching host build. It records observations from the owner's `references/qa/` captures and the local Godot renders; it is not a downloaded-build acceptance receipt.
+
+## Source changes ready for review
+
+- Selection: the duplicated cyan square/rings, overhead faction mark, top-of-board “worker selected” message and tiny hover instruction are removed. A selected actor has one warm sprite outline. The existing health and command panel remain contextual.
+- Movement input: a group move assigns distinct reachable nearby tiles. Desktop pointer panning works at all four battlefield edges, keeps minimap and zoom behavior, and pauses over controls, modal panels, touch and drag.
+- Presentation: four individually illustrated resource sites replace the generic circles; the pedal bicitaxi matches the current unit palette; the new live-control setup screen follows `references/homescreenart/homescreen.jpg`. The in-match **MENU** action ends the match and returns to setup.
+- These are shared Godot client changes. A source export must still be produced and tested per platform; this record does not claim that the previously uploaded macOS or Web builds contain them.
+
+## Gameplay gaps and next rules slice
+
+The current two-side simulation has one authored starter site per resource per side. The 96×96 La Roma Large map adds one expansion site per resource per side. All sites have finite stock plus four timed, capped refreshes. Workers carry physical resources and use legal drop-offs. This explains the owner's crowded starting economy and eventual shortage; the timed refresh is not a plantable field. Starter layouts and resource coordinates do not vary across repeat matches. The group order change addresses units sharing one destination, but the exact stuck match cannot be replayed because no save is available.
+
+The next economy slice should add a **worker-built food field** as a versioned economic entity: legal placement with clearance and resource cost, construction time, assignable gather capacity, finite harvest and a renewable replant cost or queue. AI must pay the same cost, build and assign workers. A save/replay needs to keep field state and produce the same hash after resume. A controlled crowd scenario should measure worker progress and income with several workers, multiple sites and blocked lanes. The current fixed sources should be distributed farther apart, with additional scouted sites on larger maps and a deterministic map seed if repeat starts vary. Avoid changing the live 1v1 server content until a matching host and client build are ready.
+
+Map selection should offer explicit **small, medium and large** sizes on match setup, with recommended size based on player slots but still player-selectable. Each size needs fair spawn and resource checks, reachable objectives, scouting distance and AI/performance acceptance. Current named maps include three 28×28 boards and one 96×96 large board; there is no middle size. The official [Age of Empires II update on map settings](https://www.ageofempires.com/news/age-of-empires-ii-definitive-edition-update-111772/) describes selectable map size for lobbies, while the [tournament handbook](https://www.ageofempires.com/news/tournament_handbook_ageiide/) recommends sizes for player counts. That supports a size choice with a recommended default rather than forcing it from player count.
+
+Solo **2v2** is a separate team-rules slice: one human and one AI ally versus two AI opponents, four independent stockpiles/spawns/command streams, allied vision and target policy, team victory/defeat and saved team identity. The existing simulation, AI and host assume two sides; adding a “2v2” button without these rules would give a false mode. Online team matches need later protocol, admission and server-capacity work after solo team rules are proven.
+
+Other important RTS economy gaps relative to the owner's reference are a renewable player-placed food loop, more distant discoverable resource sites, a clear exhausted-site recovery path, multiple valid worker assignments without congestion, and tradeoffs between army, expansion and research over a longer match. The official [Age of Empires II resource guide](https://www.ageofempires.com/learn-to-play/control-resources-aoe2/) is the comparison point for food methods, gathering and drop-off roles. Numerical parity is not a goal; the proposed field and site values need balance play.
+
+## Hosting and release boundary
+
+`oracle-edge` now owns the shared VM Caddy entrypoint and the aomx site file, while aomx builds its own services in CI. Its current game/API origin is `alpha-api.159.54.158.4.sslip.io`. A proxied Cloudflare DNS name can replace that only with a named Caddy site, working origin TLS and a precise Web CORS origin, matching client and host versions, and Restricted online QA. Retiring sslip and limiting 80/443 to Cloudflare follow updated tester builds and a verified certificate/health path; the current HTTP-01 provisioning path matters. A promotional `battleforlaroma.com` page should be a separate frontend entrypoint that launches the approved Web build and explains the Restricted access state. Neither a DNS record nor a Git merge publishes that page.
+
+Platforms at this review: Restricted macOS download and Restricted desktop Web pilot; Windows/Linux exports are source-buildable but lack physical install/full-match receipts; native mobile has no accepted build. The new source changes above are pending new exports and QA.

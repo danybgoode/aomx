@@ -142,6 +142,14 @@ func _run() -> void:
 	client._navigate_minimap(Vector2i(10, 10))
 	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 10) and client.board_pan != Vector2.ZERO,
 		"minimap navigation moves the existing battlefield camera")
+	var play_top := 120.0
+	var play_bottom := 600.0
+	var edge_view := Vector2(1280, 800)
+	check(client._edge_pan_direction(Vector2(1, 300), edge_view, play_top, play_bottom).x > 0.0 and
+		client._edge_pan_direction(Vector2(edge_view.x - 1, 300), edge_view, play_top, play_bottom).x < 0.0 and
+		client._edge_pan_direction(Vector2(edge_view.x * 0.5, play_top + 1), edge_view, play_top, play_bottom).y > 0.0 and
+		client._edge_pan_direction(Vector2(edge_view.x * 0.5, play_bottom - 1), edge_view, play_top, play_bottom).y < 0.0,
+		"desktop pointer pans toward all four battlefield edges")
 	var map_click := InputEventMouseButton.new()
 	map_click.button_index = MOUSE_BUTTON_LEFT
 	map_click.position = Vector2(7, 7) + (client.hud_ui.minimap.size - Vector2(14, 14)) * Vector2(0.375, 0.325)
@@ -163,6 +171,11 @@ func _run() -> void:
 	var siege_screen: Vector2 = Vector2(640, 305) + (client._actor_ground(client.sim.entities[siege_id]) - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
 	client._select_drag(Rect2(armored_screen, siege_screen - armored_screen).grow(2), false)
 	check(armored_id in client.selected_ids and siege_id in client.selected_ids, "drag selection includes armored and siege roles")
+	var group_destination := Vector2i(8, 12)
+	check(client._issue_order("move", group_destination, group_destination).ok,
+		"group move is accepted")
+	check(client.sim.entities[armored_id].order_pos != client.sim.entities[siege_id].order_pos,
+		"group members receive distinct reachable destination tiles")
 	client.sim.entities.erase(armored_id)
 	client.sim.entities.erase(siege_id)
 	client.selected_ids.clear()

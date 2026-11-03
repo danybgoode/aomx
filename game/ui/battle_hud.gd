@@ -221,8 +221,8 @@ func _build() -> void:
 	restart_button = _button(top_row, "RESET")
 	restart_button.tooltip_text = "Start a fresh match as the same faction • R opens faction choice"
 	restart_button.pressed.connect(func() -> void: restart_scrim.show())
-	menu_button = _button(top_row, "...")
-	menu_button.tooltip_text = "Settings, alpha support and diagnostics"
+	menu_button = _button(top_row, "MENU")
+	menu_button.tooltip_text = "Settings and return to the main menu"
 	menu_button.pressed.connect(func() -> void: menu_requested.emit())
 
 	choice_panel = _panel(self, 12, true)
@@ -402,6 +402,8 @@ func _build() -> void:
 	save_button = _button(diag_col, "Save current match")
 	save_button.pressed.connect(func() -> void: save_requested.emit())
 	resume_button = _button(diag_col, "Resume saved match")
+	var return_home := _button(diag_col, "End current match and return to main menu")
+	return_home.pressed.connect(func() -> void: new_match_requested.emit())
 	resume_button.pressed.connect(func() -> void: resume_requested.emit())
 	var transfer_row := HBoxContainer.new()
 	diag_col.add_child(transfer_row)
