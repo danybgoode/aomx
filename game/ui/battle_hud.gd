@@ -25,6 +25,7 @@ const ACTIONS := {
 	"stop": {"name": "STOP", "key": "", "description": "Cancel this unit's current order."},
 	"hold": {"name": "HOLD", "key": "", "description": "Stay here and attack enemies in range."},
 	"gather": {"name": "GATHER", "key": "H", "description": "Choose a resource source for this worker."},
+	"plant": {"name": "PLANT FIELD", "key": "P", "description": "Place a renewable food field for this worker."},
 	"build": {"name": "BUILD", "key": "B", "description": "Choose a building and place it on clear ground."},
 	"repair": {"name": "REPAIR", "key": "", "description": "Choose a damaged friendly building."},
 	"assist": {"name": "ASSIST", "key": "", "description": "Choose an unfinished friendly building."},

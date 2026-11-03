@@ -201,7 +201,7 @@ func _run() -> void:
 	check(client.selected_id == worker_id, "clicking the worker body selects it")
 	check(client.selection_title.text.contains("Worker") and client.selection_portrait.texture != null and client.hud_ui.selection_hp_label.text.contains("HP"),
 		"selection panel follows the active board actor")
-	check(client.command_buttons["gather"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
+	check(client.command_buttons["gather"].visible and client.command_buttons["plant"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
 		"worker sees only relevant commands")
 	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "FORÁNEA" and client.hud_ui.population_label.text == "1/4",
 		"HUD shows four resource counters, age and population")

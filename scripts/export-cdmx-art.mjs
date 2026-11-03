@@ -58,6 +58,9 @@ for (const resource of ["comida", "materiales", "varos", "terrenos"]) {
     ["-trim", "+repage", "-filter", "Lanczos", "-resize", "44x44", "-background", "none",
       "-gravity", "south", "-extent", "48x48", "-strip"]);
 }
+add("prop_cdmx_food_field", "prop", "source/cdmx/food_field.png", [48, 48], [24, 47], [1, 1], "source/cdmx/food_field.png",
+  ["-crop", "1160x869+188+91", "+repage", "-filter", "Lanczos", "-resize", "44x44", "-background", "none",
+    "-gravity", "south", "-extent", "48x48", "-strip"]);
 
 const manifest = {
   schema_version: 1,

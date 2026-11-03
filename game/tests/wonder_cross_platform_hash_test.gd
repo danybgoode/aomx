@@ -2,13 +2,13 @@ extends SceneTree
 
 const Skirmish = preload("res://skirmish.gd")
 const Replay = preload("res://skirmish_replay.gd")
-const FIXTURE_PATH := "res://tests/fixtures/wonder-cross-platform-hashes.v1.json"
+const FIXTURE_PATH := "res://tests/fixtures/wonder-cross-platform-hashes.v2.json"
 var failed := false
 
 func _initialize() -> void:
 	var generating := OS.get_environment("GENERATE_WONDER_HASHES") == "1"
 	var fixture: Dictionary = {} if generating else JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
-	if not generating and (fixture.get("schema_version") != 1 or fixture.get("content_version") != "la-roma-wonder-1"):
+	if not generating and (fixture.get("schema_version") != 2 or fixture.get("content_version") != "la-roma-wonder-1"):
 		push_error("Wonder cross-platform fixture version mismatch")
 		quit(1)
 		return
@@ -34,7 +34,7 @@ func _initialize() -> void:
 			failed = true
 			push_error("Wonder normal-match replay failed: " + key)
 	if generating:
-		print("WONDER_HASH_JSON=", JSON.stringify({"schema_version": 1, "game_version": Skirmish.GAME_VERSION,
+		print("WONDER_HASH_JSON=", JSON.stringify({"schema_version": 2, "game_version": Skirmish.GAME_VERSION,
 			"content_version": "la-roma-wonder-1", "cases": cases}))
 	else:
 		print("Wonder cross-platform hashes passed on ", OS.get_name())

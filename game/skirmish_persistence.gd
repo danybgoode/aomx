@@ -5,7 +5,7 @@ const CampaignMissions = preload("res://campaign_missions.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
 const SAVE_SCHEMA_VERSION := 5
 const MAX_SAVE_BYTES := 16777216
-const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
+const JOBS := ["idle", "move", "gather", "plant", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const QUEUE_KINDS := ["unit", "tech", "age"]
 const RESULTS := ["", "win", "loss", "draw"]
@@ -177,6 +177,10 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 				expansion.refresh_remaining = int(saved_expansion.refresh_remaining)
 				expansion.refreshes_left = int(saved_expansion.refreshes_left)
 		game.sources[side] = game.resource_sources[side].varos
+		for saved_field in state.food_fields[side]:
+			var at := Vector2i(int(saved_field.pos[0]), int(saved_field.pos[1]))
+			game.food_fields[side].append({"pos": at, "amount": int(saved_field.amount), "progress": int(saved_field.progress)})
+			game.source_tiles[at] = true
 		game.age_index[side] = int(state.age_index[side])
 		game.researched[side] = state.researched[side].duplicate()
 	game.next_id = int(state.next_id)
@@ -288,12 +292,16 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_balances_invalid")
 	if not s.get("resource_sources") is Array or s.resource_sources.size() != 2:
 		return _bad("state_resource_sources_invalid")
+	if not s.get("food_fields") is Array or s.food_fields.size() != 2:
+		return _bad("state_food_fields_invalid")
 	if content.map_id == "la_roma_large" and (not s.get("expansion_sources") is Array or s.expansion_sources.size() != 2):
 		return _bad("state_expansion_sources_invalid")
 	if not s.get("age_index") is Array or s.age_index.size() != 2:
 		return _bad("state_age_index_invalid")
 	if not s.get("researched") is Array or s.researched.size() != 2:
 		return _bad("state_researched_invalid")
+	var field_layout = Skirmish.new(Skirmish.REGIOS, {}, 1, "standard", content.map_id, "", "", str(s.get("objective_id", "la_roma")))
+	var used_field_tiles := {}
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		var balance: Variant = s.balances[side]
 		if not _keys_exact(balance, RESOURCE_IDS):
@@ -326,6 +334,19 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 						return _bad("state_expansion_sources_invalid")
 				if int(expansion.refreshes_left) > int(content.resources[resource_id].refresh_count):
 					return _bad("state_expansion_sources_invalid")
+		if not s.food_fields[side] is Array or s.food_fields[side].size() > Skirmish.FIELD_LIMIT:
+			return _bad("state_food_fields_invalid")
+		for field in s.food_fields[side]:
+			if not _keys_exact(field, ["pos", "amount", "progress"]) or not _point(field.pos, int(content.map.width), int(content.map.height)):
+				return _bad("state_food_fields_invalid")
+			if not _integer(field.amount, 0) or int(field.amount) > Skirmish.FIELD_YIELD or not _integer(field.progress, 0) or int(field.progress) > Skirmish.FIELD_BUILD_TICKS:
+				return _bad("state_food_fields_invalid")
+			var at := Vector2i(int(field.pos[0]), int(field.pos[1]))
+			if int(field.amount) > 0 and int(field.progress) != Skirmish.FIELD_BUILD_TICKS or used_field_tiles.has(at):
+				return _bad("state_food_fields_invalid")
+			if not field_layout._walkable(at) or field_layout._in_district(at):
+				return _bad("state_food_fields_invalid")
+			used_field_tiles[at] = true
 		if not _integer(s.age_index[side], 0) or int(s.age_index[side]) >= content.ages.order.size():
 			return _bad("state_age_index_invalid")
 		if not s.researched[side] is Array or s.researched[side].size() > content.techs.size():
@@ -429,7 +450,7 @@ static func _command_target(kind: Variant, target: Variant, content: Dictionary)
 	var width := int(content.map.width)
 	var height := int(content.map.height)
 	match kind:
-		"move", "gather", "attack_move":
+		"move", "gather", "attack_move", "plant":
 			return _point(target, width, height)
 		"build":
 			if _point(target, width, height):

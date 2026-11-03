@@ -28,15 +28,19 @@ const RANGE := {"melee": 1, "ranged": 3}
 const COOLDOWN := {"melee": 10, "ranged": 14}
 const BUILD_TICKS := 40
 const CARRY_LIMIT := 4
+const FIELD_COST := {"materiales": 4, "varos": 2}
+const FIELD_BUILD_TICKS := 24
+const FIELD_YIELD := 80
+const FIELD_LIMIT := 40
 const AI_ATTACK_TICK := 2600
 const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-8"
+const GAME_VERSION := "godot-4.7.2-skirmish-9"
 const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
-const STATE_SCHEMA_VERSION := 5
+const STATE_SCHEMA_VERSION := 6
 const AI_LEVELS := ["learner", "standard", "challenger"]
 const OBJECTIVE_IDS := ["la_roma", "conquest", "wonder"]
 
@@ -74,6 +78,7 @@ var sources: Dictionary = {}
 var stockpile: Dictionary = {HUMAN: 0, COMPUTER: 0}
 var resource_sources: Dictionary = {}
 var expansion_sources: Dictionary = {}
+var food_fields: Dictionary = {HUMAN: [], COMPUTER: []}
 var source_tiles: Dictionary = {}
 var other_stockpiles: Dictionary = {}
 var age_index: Dictionary = {HUMAN: 0, COMPUTER: 0}
@@ -174,7 +179,7 @@ func issue_command(command: Dictionary) -> Dictionary:
 	if not _whole_number(command.side) or not _whole_number(command.actor_id) or not command.kind is String:
 		return {"ok": false, "reason": "command_type_invalid"}
 	var target: Variant = command.target
-	if command.kind in ["move", "gather", "attack_move"]:
+	if command.kind in ["move", "gather", "attack_move", "plant"]:
 		if not target is Array or target.size() != 2 or not _whole_number(target[0]) or not _whole_number(target[1]):
 			return {"ok": false, "reason": "command_target_invalid"}
 		target = Vector2i(int(target[0]), int(target[1]))
@@ -258,10 +263,46 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 					else:
 						actor.path = route
 						actor.source_resource = resource_id
-						if map_id == "la_roma_large":
-							actor.order_pos = target
+						actor.order_pos = target
 						actor.job = "gather"
 						rejected = {"ok": true, "reason": "gathering"}
+		"plant":
+			var existing := _field_at(side, target) if target is Vector2i else {}
+			if actor.kind != "worker" or not target is Vector2i:
+				rejected.reason = "worker_and_tile_required"
+			elif not existing.is_empty() and existing.amount > 0:
+				rejected.reason = "field_already_active"
+			elif existing.is_empty() and (food_fields[side].size() >= FIELD_LIMIT or not _walkable(target) or _unit_at(target) != -1 or _in_district(target)):
+				rejected.reason = "field_site_unavailable"
+			else:
+				var needs_seed: bool = existing.is_empty() or existing.progress == FIELD_BUILD_TICKS
+				if needs_seed and not _can_pay(side, FIELD_COST):
+					rejected.reason = "insufficient_stockpile"
+				else:
+					var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance(tile, target) == 1, true)
+					if route.is_empty() and _distance(actor.pos, target) != 1:
+						rejected.reason = "field_unreachable"
+					else:
+						var routes_open := true
+						if existing.is_empty():
+							source_tiles[target] = true
+							routes_open = _build_preserves_worker_routes(side)
+							source_tiles.erase(target)
+						if not routes_open:
+							rejected.reason = "blocked_worker_route"
+						else:
+							if needs_seed:
+								_pay(side, FIELD_COST)
+							if existing.is_empty():
+								food_fields[side].append({"pos": target, "amount": 0, "progress": 0})
+								source_tiles[target] = true
+							elif needs_seed:
+								existing.progress = 0
+							actor.path = route
+							actor.order_pos = target
+							actor.source_resource = "comida"
+							actor.job = "plant"
+							rejected = {"ok": true, "reason": "planting"}
 		"build":
 			var building_kind := "barracks"
 			var at := Vector2i(-1, -1)
@@ -545,6 +586,7 @@ func tick() -> void:
 			_begin_delivery(entity)
 		match entity.job:
 			"gather": _tick_gather(entity)
+			"plant": _tick_plant(entity)
 			"deliver": _tick_deliver(entity)
 			"build": _tick_build(entity)
 			"repair": _tick_repair(entity)
@@ -613,10 +655,10 @@ func _reroute_occupied(entity: Dictionary) -> void:
 		"move", "attack_move":
 			if _unit_at(entity.order_pos) == -1 and _walkable(entity.order_pos):
 				route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return tile == entity.order_pos, true)
-		"gather":
+		"gather", "plant":
 			if entity.source_resource in RESOURCE_IDS:
 				var source: Dictionary = _ordered_source(entity)
-				if source.amount > 0 and _has_free_approach(source.pos, false):
+				if not source.is_empty() and (source.amount > 0 or entity.job == "plant") and _has_free_approach(source.pos, false):
 					route = _route_until(entity.pos, func(tile: Vector2i) -> bool: return _distance(tile, source.pos) == 1, true)
 		"deliver", "build", "repair", "attack":
 			if entities.has(entity.target_id):
@@ -665,8 +707,9 @@ func _retry_waiting_job(entity: Dictionary) -> void:
 			if entities.has(entity.target_id) and _distance_to_entity(entity.pos, entities[entity.target_id]) == 1:
 				entity.blocked_ticks = 0
 				return
-		"gather":
-			if entity.source_resource not in RESOURCE_IDS or _ordered_source(entity).amount <= 0:
+		"gather", "plant":
+			var ordered: Dictionary = _ordered_source(entity) if entity.source_resource in RESOURCE_IDS else {}
+			if ordered.is_empty() or (entity.job == "gather" and ordered.amount <= 0):
 				if entity.carry > 0:
 					_begin_delivery(entity)
 				else:
@@ -674,7 +717,7 @@ func _retry_waiting_job(entity: Dictionary) -> void:
 					entity.path.clear()
 				entity.blocked_ticks = 0
 				return
-			if _distance(entity.pos, _ordered_source(entity).pos) == 1:
+			if _distance(entity.pos, ordered.pos) == 1:
 				entity.blocked_ticks = 0
 				return
 		"build", "repair", "attack":
@@ -752,6 +795,7 @@ func snapshot() -> Dictionary:
 			"path": e.path.map(func(p: Vector2i) -> Array: return [p.x, p.y]), "queue": e.queue.duplicate(true)})
 	var balances: Array = []
 	var source_states: Array = []
+	var field_states: Array = []
 	for side in [HUMAN, COMPUTER]:
 		var side_balances := {}
 		var side_sources := {}
@@ -762,13 +806,17 @@ func snapshot() -> Dictionary:
 				"refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left}
 		balances.append(side_balances)
 		source_states.append(side_sources)
+		var side_fields: Array = []
+		for field in food_fields[side]:
+			side_fields.append({"pos": [field.pos.x, field.pos.y], "amount": field.amount, "progress": field.progress})
+		field_states.append(side_fields)
 	var state := {"tick": tick_number, "result": result, "terminal_tick": terminal_tick,
 		"result_reason": result_reason, "district_side": district_side,
 		"district_progress": district_progress, "district_state": district_state,
 		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id, "map_id": map_id,
 		"content_hash": content_hash, "rng_state": rng_state, "initial_seed": initial_seed,
 		"factions": [factions[HUMAN], factions[COMPUTER]],
-		"balances": balances, "resource_sources": source_states,
+		"balances": balances, "resource_sources": source_states, "food_fields": field_states,
 		"age_index": [age_index[HUMAN], age_index[COMPUTER]],
 		"researched": [researched[HUMAN].duplicate(), researched[COMPUTER].duplicate()],
 		"entities": list, "projectiles": projectiles.map(func(p: Dictionary) -> Dictionary: return {"target_id": p.target_id, "tile": [p.tile.x, p.tile.y], "origin": [p.origin.x, p.origin.y], "damage": p.damage, "launch": p.launch, "arrival": p.arrival}),
@@ -868,15 +916,28 @@ func _tick_sources() -> void:
 					source.refreshes_left -= 1
 
 func _resource_at(side: int, tile: Vector2i) -> String:
+	var field := _field_at(side, tile)
+	if not field.is_empty() and field.amount > 0:
+		return "comida"
 	for resource_id in RESOURCE_IDS:
 		if resource_sources[side][resource_id].pos == tile or expansion_sources[side].has(resource_id) and expansion_sources[side][resource_id].pos == tile:
 			return resource_id
 	return ""
 
 func _source_for_tile(side: int, resource_id: String, tile: Vector2i) -> Dictionary:
+	if resource_id == "comida":
+		var field := _field_at(side, tile)
+		if not field.is_empty():
+			return field
 	if expansion_sources[side].has(resource_id) and expansion_sources[side][resource_id].pos == tile:
 		return expansion_sources[side][resource_id]
 	return resource_sources[side][resource_id]
+
+func _field_at(side: int, tile: Vector2i) -> Dictionary:
+	for field in food_fields[side]:
+		if field.pos == tile:
+			return field
+	return {}
 
 func _ordered_source(entity: Dictionary) -> Dictionary:
 	return _source_for_tile(entity.side, entity.source_resource, entity.order_pos)
@@ -931,6 +992,22 @@ func _tick_gather(e: Dictionary) -> void:
 		_begin_delivery(e)
 	else:
 		e.job = "idle"
+
+func _tick_plant(e: Dictionary) -> void:
+	var field := _field_at(e.side, e.order_pos)
+	if field.is_empty() or field.amount > 0:
+		e.job = "idle"
+		return
+	if _distance(e.pos, field.pos) != 1:
+		e.job = "idle"
+		return
+	field.progress += 1
+	if field.progress >= FIELD_BUILD_TICKS:
+		field.progress = FIELD_BUILD_TICKS
+		field.amount = FIELD_YIELD
+		e.job = "gather"
+		if e.side == HUMAN:
+			feedback = "Food field ready."
 
 func _tick_deliver(e: Dictionary) -> void:
 	var destination := _dropoff_for(e.side, e.carry_resource, e.pos)
@@ -1246,11 +1323,53 @@ func _ai_source(side: int, resource_id: String) -> Dictionary:
 	var starter: Dictionary = resource_sources[side][resource_id]
 	if starter.amount > 0:
 		return starter
+	if resource_id == "comida":
+		for field in food_fields[side]:
+			if field.amount > 0:
+				return field
 	if map_id == "la_roma_large" and expansion_sources[side].has(resource_id):
 		var expansion: Dictionary = expansion_sources[side][resource_id]
 		if expansion.amount > 0 and is_explored(side, expansion.pos):
 			return expansion
 	return {}
+
+func _ai_plant_field(side: int) -> bool:
+	# Spend on a field only after authored food has exhausted its refreshes.
+	# Preserve a reserve for the current age, army and drop-off plan.
+	if resource_sources[side].comida.refreshes_left > 0 or balance(side, "comida") >= 16:
+		return false
+	if balance(side, "materiales") < 16 or balance(side, "varos") < 10:
+		return false
+	for worker in entities.values():
+		if worker.side == side and worker.kind == "worker" and worker.job == "plant":
+			return false
+	var workers: Array = entities.keys()
+	workers.sort()
+	var post_id := _find(side, "command_post")
+	if post_id == -1:
+		return false
+	var home: Vector2i = entities[post_id].pos
+	for id in workers:
+		var worker: Dictionary = entities[id]
+		if worker.side != side or worker.kind != "worker" or worker.hp <= 0 or worker.carry > 0 or worker.job not in ["idle", "gather"]:
+			continue
+		for field in food_fields[side]:
+			if field.amount == 0 and (not _route_until(worker.pos, func(tile: Vector2i) -> bool: return _distance(tile, field.pos) == 1, true).is_empty() or _distance(worker.pos, field.pos) == 1) and issue(side, "plant", id, field.pos).ok:
+				return true
+		for radius in range(3, 9):
+			for x in range(home.x - radius, home.x + radius + 1):
+				for y in range(home.y - radius, home.y + radius + 1):
+					var at := Vector2i(x, y)
+					if _distance(at, home) == radius and _walkable(at) and _unit_at(at) == -1 and not _in_district(at):
+						var route := _route_until(worker.pos, func(tile: Vector2i) -> bool: return _distance(tile, at) == 1, true)
+						if route.is_empty() and _distance(worker.pos, at) != 1:
+							continue
+						source_tiles[at] = true
+						var routes_open := _build_preserves_worker_routes(side)
+						source_tiles.erase(at)
+						if routes_open and issue(side, "plant", id, at).ok:
+							return true
+	return false
 
 func _ai_step() -> void:
 	var side := COMPUTER
@@ -1260,6 +1379,8 @@ func _ai_step() -> void:
 	ai_stall_reason = ""
 	ai_plan = str(goal.get("kind", "hold"))
 	_ai_scout_large()
+	if _ai_source(side, "comida").is_empty() and _ai_plant_field(side):
+		ai_plan = "plant_food"
 	if not goal.is_empty() and _can_pay(side, goal.costs):
 		var actor_id := -1
 		match goal.kind:

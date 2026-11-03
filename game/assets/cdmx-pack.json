@@ -939,6 +939,37 @@
       "source_sha256": "c7910b126d4577ff112db43fa6fc51380d3e0599a58f64321f1436b6d6acccf8",
       "export_sha256": "4443b31787fa66e348801dd9189a0d7457e300e43eb35e07589bad3c3458390c",
       "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_resource_terrenos"
+    },
+    {
+      "id": "prop_cdmx_food_field",
+      "category": "prop",
+      "path": "res://assets/render/cdmx/prop_cdmx_food_field.png",
+      "source": "res://assets/source/cdmx/food_field.png",
+      "canvas": [
+        48,
+        48
+      ],
+      "pivot": [
+        24,
+        47
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "anchor": "ground_center",
+      "states": [
+        "static"
+      ],
+      "directions": [
+        "se"
+      ],
+      "frame_ms": 0,
+      "rights": "project-original-ai-assisted",
+      "runtime_use": "match",
+      "source_sha256": "cd0a40199fd048b9c7dc16e3f4402bf5c7b5eebab3b18dcb221f3de170f3b14c",
+      "export_sha256": "01e3628c57da01cc00bb9b3a5508e75f31dc7501c0542897b8935cb872d963bd",
+      "export_recipe": "scripts/export-cdmx-art.mjs:prop_cdmx_food_field"
     }
   ]
 }

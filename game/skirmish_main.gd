@@ -1644,6 +1644,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_activate_command("move")
 			KEY_H:
 				_activate_command("gather")
+			KEY_P:
+				_activate_command("plant")
 			KEY_A:
 				_activate_command("attack")
 			KEY_SPACE:
@@ -1886,6 +1888,7 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 		match kind:
 			"move": return "Moving here."
 			"gather": return "Gathering resource."
+			"plant": return "Planting a food field."
 			"build": return "Building %s." % str(target.kind).replace("_", " ")
 			"repair": return "Repairing building."
 			"assist": return "Assisting construction."
@@ -1900,6 +1903,9 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 	match str(result.get("reason", "invalid_order")):
 		"insufficient_stockpile": return "Missing required resources; inspect the cost."
 		"blocked_footprint": return "This 2x2 site is blocked."
+		"field_site_unavailable": return "Choose clear ground outside the center."
+		"field_already_active": return "This field is still growing or has food."
+		"field_unreachable": return "The worker cannot reach this field."
 		"blocked_or_invalid_tile": return "Cannot move onto this tile."
 		"unreachable_tile", "building_unreachable", "target_unreachable", "resource_unreachable": return "No route to target."
 		"building_incomplete": return "Wait for construction to finish."
@@ -2041,8 +2047,13 @@ func _command_state(action: String) -> Dictionary:
 		"attack_move": visible = fighter_group
 		"gather":
 			visible = worker_group
-			if visible and RESOURCE_IDS.all(func(id: String) -> bool: return int(_source(id).get("amount", 0)) <= 0):
+			if visible and _source_sites(Skirmish.HUMAN).all(func(site: Dictionary) -> bool: return int(site.source.get("amount", 0)) <= 0):
 				reason = "Sources depleted; wait for renewal"
+		"plant":
+			visible = kind == "worker" and selected_ids.size() == 1
+			label = "Plant food field · %s" % _cost_text(Skirmish.FIELD_COST)
+			if visible:
+				reason = _missing_costs(Skirmish.FIELD_COST)
 		"build":
 			visible = kind == "worker" and selected_ids.size() <= 1
 			label = "Choose building"
@@ -2229,6 +2240,7 @@ func _target_prompt() -> String:
 		"move": return "Move: click a clear ground tile. Esc cancels."
 		"attack_move": return "Advance: click clear ground; fighters engage visible enemies."
 		"gather": return "Gather: click a Comida, Materiales, Varos or Terrenos source. Esc cancels."
+		"plant": return "Plant field: click clear ground or a depleted field. Costs 4 Materiales and 2 Varos."
 		"build": return "Build %s: click a clear 2×2 site. Esc cancels." % build_kind.capitalize()
 		"repair": return "Repair: click a damaged friendly building. Esc cancels."
 		"assist": return "Assist: click an unfinished friendly building. Esc cancels."
@@ -2243,6 +2255,7 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 			if result.ok:
 				marker = tile
 		"build": result = _issue_order("build", {"kind": build_kind, "pos": tile}, tile)
+		"plant": result = _issue_order("plant", tile, tile)
 		"gather":
 			var source_site := _source_site_at(screen, tile)
 			if not source_site.is_empty():
@@ -2762,6 +2775,8 @@ func _source_sites(side: int) -> Array[Dictionary]:
 		sites.append({"id": id, "source": sim.resource_sources[side][id]})
 		if sim.expansion_sources[side].has(id):
 			sites.append({"id": id, "source": sim.expansion_sources[side][id]})
+	for field in sim.food_fields[side]:
+		sites.append({"id": "comida", "source": field, "field": true})
 	return sites
 
 func _pick_visual_site(screen: Vector2) -> Dictionary:
@@ -2770,7 +2785,7 @@ func _pick_visual_site(screen: Vector2) -> Dictionary:
 		var source: Dictionary = site.source
 		if int(source.get("amount", 0)) <= 0 or not sim.is_visible(Skirmish.HUMAN, source.pos):
 			continue
-		var art_id := "prop_cdmx_resource_" + str(site.id)
+		var art_id := "prop_cdmx_food_field" if site.get("field", false) else "prop_cdmx_resource_" + str(site.id)
 		var rect := Rect2(_tile_to_screen(source.pos) - art.pivot(art_id), art.texture(art_id).get_size())
 		if rect.grow(2).has_point(board) and art.hit_test(art_id, board - rect.position, 2):
 			return site
@@ -2934,14 +2949,11 @@ func _draw() -> void:
 			if not visible_board.grow(48).has_point(ground):
 				continue
 			var active := int(source.get("amount", 0)) > 0
-			var art_id := "prop_cdmx_resource_" + resource_id
+			var art_id := "prop_cdmx_food_field" if site.get("field", false) else "prop_cdmx_resource_" + resource_id
 			var art_rect := Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size())
 			if resource_id == hovered_source_id and side == Skirmish.HUMAN:
 				_draw_sprite_outline(art_id, art_rect, Color("ffe391"))
 			draw_texture(art.texture(art_id), art_rect.position, Color.WHITE if active else Color(0.48, 0.5, 0.53, 0.8))
-			if resource_id == hovered_source_id and side == Skirmish.HUMAN:
-				draw_string(ThemeDB.fallback_font, ground + Vector2(-42, -50), "%s · %d" % [resource_id.capitalize(), int(source.amount)],
-					HORIZONTAL_ALIGNMENT_CENTER, 84, 13, Color("ffe391"))
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
