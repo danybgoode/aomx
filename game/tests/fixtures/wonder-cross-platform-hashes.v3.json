@@ -1,0 +1,11 @@
+{
+  "cases": {
+    "oaxaquenos_normal_match": "8b96258133448b0714fe8a41b50c4e03ce2e5b35caf66bf541f267799d4f60fb",
+    "poblanos_normal_match": "4428a467af966037b79a0221bc7088c8af301e0b88e402e565b3af59228df8b8",
+    "regios_normal_match": "91564b01ea1b71815888c1510aa044d6dec910b839d1fd74ff5fe5e4d2c95b23",
+    "veracruzanos_normal_match": "d649b7acbac11b4f46182251ebb25ed676b11f12ef181d52df24161c43a31afc"
+  },
+  "content_version": "la-roma-wonder-1",
+  "game_version": "godot-4.7.2-skirmish-10",
+  "schema_version": 3
+}

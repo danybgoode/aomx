@@ -10,10 +10,10 @@ const contentHash = createHash('sha256')
 
 export const SkirmishVersions = {
   protocol: 1,
-  game: 'godot-4.7.2-skirmish-9',
+  game: 'godot-4.7.2-skirmish-10',
   content: 'la-roma-world-5',
   commandSchema: 3,
-  stateSchema: 6,
+  stateSchema: 7,
   simulationHash,
   contentHash,
   public() { return { protocol_version: this.protocol, game_version: this.game,

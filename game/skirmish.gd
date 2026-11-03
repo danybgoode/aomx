@@ -37,10 +37,10 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-9"
+const GAME_VERSION := "godot-4.7.2-skirmish-10"
 const CONTENT_VERSION := "la-roma-world-5"
 const COMMAND_SCHEMA_VERSION := 3
-const STATE_SCHEMA_VERSION := 6
+const STATE_SCHEMA_VERSION := 7
 const AI_LEVELS := ["learner", "standard", "challenger"]
 const OBJECTIVE_IDS := ["la_roma", "conquest", "wonder"]
 
@@ -78,6 +78,7 @@ var sources: Dictionary = {}
 var stockpile: Dictionary = {HUMAN: 0, COMPUTER: 0}
 var resource_sources: Dictionary = {}
 var expansion_sources: Dictionary = {}
+var map_sites: Array[Dictionary] = []
 var food_fields: Dictionary = {HUMAN: [], COMPUTER: []}
 var source_tiles: Dictionary = {}
 var other_stockpiles: Dictionary = {}
@@ -155,18 +156,45 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 			source_tiles[source_pos] = true
 			resource_sources[side][resource_id] = {"pos": source_pos,
 				"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
-			if map_id == "la_roma_large":
+			if map_id in RulesContent.EXPANSION_MAP_IDS:
 				var expansion_pos := _point(rule.expansion_positions[side])
 				source_tiles[expansion_pos] = true
 				expansion_sources[side][resource_id] = {"pos": expansion_pos,
 					"amount": int(rule.amount), "refresh_remaining": 0, "refreshes_left": int(rule.refresh_count)}
 		sources[side] = resource_sources[side].varos
+	_init_discovery_sources()
 	for side in [HUMAN, COMPUTER]:
 		_add_entity(side, "command_post", _point(content.map.command_posts[side]))
 		_add_entity(side, "worker", _point(content.map.workers[side]))
-		if map_id == "la_roma_large":
+		if map_id in RulesContent.EXPANSION_MAP_IDS:
 			_add_entity(side, "bicitaxi", _point(content.map.scouts[side]))
 	_refresh_visibility()
+
+func _init_discovery_sources() -> void:
+	if map_id not in RulesContent.EXPANSION_MAP_IDS:
+		return
+	for resource_index in RESOURCE_IDS.size():
+		var resource_id: String = RESOURCE_IDS[resource_index]
+		for pair_index in 2:
+			var authored := _point(content.map.discovery_sources[resource_id][pair_index])
+			var offsets := [Vector2i.ZERO, Vector2i.RIGHT, Vector2i.UP, Vector2i.LEFT, Vector2i.DOWN]
+			var start := posmod(initial_seed + resource_index * 3, offsets.size())
+			var chosen := authored
+			for attempt in offsets.size():
+				var offset: Vector2i = offsets[(start + attempt) % offsets.size()]
+				var candidate: Vector2i = authored + (offset if pair_index == 0 else -offset)
+				if _walkable(candidate) and not _in_district(candidate) and _discovery_clear_of_starts(candidate):
+					chosen = candidate
+					break
+			source_tiles[chosen] = true
+			map_sites.append({"pos": chosen, "resource_id": resource_id, "amount": int(content.resources[resource_id].amount),
+				"refresh_remaining": 0, "refreshes_left": 2})
+
+func _discovery_clear_of_starts(tile: Vector2i) -> bool:
+	for point in content.map.command_posts + content.map.barracks_positions + content.map.workers:
+		if _distance(tile, _point(point)) <= 4:
+			return false
+	return true
 
 func issue_command(command: Dictionary) -> Dictionary:
 	if command.get("schema_version") != COMMAND_SCHEMA_VERSION:
@@ -250,6 +278,8 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 			var resource_id := _resource_at(side, target) if target is Vector2i else ""
 			if actor.kind != "worker" or resource_id.is_empty():
 				rejected.reason = "resource_unavailable"
+			elif _is_map_site(target) and not is_explored(side, target):
+				rejected.reason = "resource_not_discovered"
 			else:
 				var source: Dictionary = _source_for_tile(side, resource_id, target)
 				if source.amount <= 0:
@@ -796,6 +826,10 @@ func snapshot() -> Dictionary:
 	var balances: Array = []
 	var source_states: Array = []
 	var field_states: Array = []
+	var discovered_source_states: Array = []
+	for source in map_sites:
+		discovered_source_states.append({"pos": [source.pos.x, source.pos.y], "resource_id": source.resource_id,
+			"amount": source.amount, "refresh_remaining": source.refresh_remaining, "refreshes_left": source.refreshes_left})
 	for side in [HUMAN, COMPUTER]:
 		var side_balances := {}
 		var side_sources := {}
@@ -816,7 +850,7 @@ func snapshot() -> Dictionary:
 		"state_schema_version": STATE_SCHEMA_VERSION, "content_version": content.content_id, "map_id": map_id,
 		"content_hash": content_hash, "rng_state": rng_state, "initial_seed": initial_seed,
 		"factions": [factions[HUMAN], factions[COMPUTER]],
-		"balances": balances, "resource_sources": source_states, "food_fields": field_states,
+		"balances": balances, "resource_sources": source_states, "food_fields": field_states, "map_sites": discovered_source_states,
 		"age_index": [age_index[HUMAN], age_index[COMPUTER]],
 		"researched": [researched[HUMAN].duplicate(), researched[COMPUTER].duplicate()],
 		"entities": list, "projectiles": projectiles.map(func(p: Dictionary) -> Dictionary: return {"target_id": p.target_id, "tile": [p.tile.x, p.tile.y], "origin": [p.origin.x, p.origin.y], "damage": p.damage, "launch": p.launch, "arrival": p.arrival}),
@@ -826,7 +860,7 @@ func snapshot() -> Dictionary:
 		"ai_enabled": ai_enabled, "ai_difficulty": ai_difficulty, "ai_opening": ai_opening,
 		"ai_plan": ai_plan, "ai_stall_reason": ai_stall_reason,
 		"ai_rejections": ai_rejections, "ai_last_rejection": ai_last_rejection}
-	if map_id == "la_roma_large":
+	if map_id in RulesContent.EXPANSION_MAP_IDS:
 		var expansion_states: Array = []
 		for side in [HUMAN, COMPUTER]:
 			var side_expansion := {}
@@ -914,8 +948,20 @@ func _tick_sources() -> void:
 				if source.refresh_remaining <= 0:
 					source.amount = int(content.resources[resource_id].refresh_amount)
 					source.refreshes_left -= 1
+	for source in map_sites:
+		if source.amount > 0 or source.refreshes_left <= 0:
+			continue
+		if source.refresh_remaining <= 0:
+			source.refresh_remaining = int(content.resources[source.resource_id].refresh_ticks)
+		source.refresh_remaining -= 1
+		if source.refresh_remaining <= 0:
+			source.amount = int(content.resources[source.resource_id].refresh_amount)
+			source.refreshes_left -= 1
 
 func _resource_at(side: int, tile: Vector2i) -> String:
+	for source in map_sites:
+		if source.pos == tile:
+			return source.resource_id
 	var field := _field_at(side, tile)
 	if not field.is_empty() and field.amount > 0:
 		return "comida"
@@ -924,7 +970,16 @@ func _resource_at(side: int, tile: Vector2i) -> String:
 			return resource_id
 	return ""
 
+func _is_map_site(tile: Vector2i) -> bool:
+	for source in map_sites:
+		if source.pos == tile:
+			return true
+	return false
+
 func _source_for_tile(side: int, resource_id: String, tile: Vector2i) -> Dictionary:
+	for source in map_sites:
+		if source.resource_id == resource_id and source.pos == tile:
+			return source
 	if resource_id == "comida":
 		var field := _field_at(side, tile)
 		if not field.is_empty():
@@ -1302,15 +1357,16 @@ func _ai_issue_waypoint(actor_id: int, preferred: Vector2i) -> bool:
 			return true
 	return false
 
-func _ai_scout_large() -> void:
-	if map_id != "la_roma_large":
+func _ai_scout_expansion() -> void:
+	if map_id not in RulesContent.EXPANSION_MAP_IDS:
 		return
 	var scout_id := _find(COMPUTER, "bicitaxi")
 	if scout_id == -1 or entities[scout_id].job != "idle":
 		return
 	# These geometric waypoints are map knowledge, not hidden enemy or source
 	# state. Workers may use an expansion only after normal sight explores it.
-	for waypoint in [Vector2i(62, 68), Vector2i(69, 55), Vector2i(47, 47)]:
+	var waypoints: Array = [Vector2i(38, 30), Vector2i(35, 18), Vector2i(27, 27)] if map_id == "la_roma_medium" else [Vector2i(62, 68), Vector2i(69, 55), Vector2i(47, 47)]
+	for waypoint in waypoints:
 		if not is_explored(COMPUTER, waypoint):
 			for offset in [Vector2i.ZERO, Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]:
 				var at: Vector2i = waypoint + offset
@@ -1323,14 +1379,17 @@ func _ai_source(side: int, resource_id: String) -> Dictionary:
 	var starter: Dictionary = resource_sources[side][resource_id]
 	if starter.amount > 0:
 		return starter
+	if map_id in RulesContent.EXPANSION_MAP_IDS and expansion_sources[side].has(resource_id):
+		var expansion: Dictionary = expansion_sources[side][resource_id]
+		if expansion.amount > 0 and is_explored(side, expansion.pos):
+			return expansion
+	for source in map_sites:
+		if source.resource_id == resource_id and source.amount > 0 and is_explored(side, source.pos):
+			return source
 	if resource_id == "comida":
 		for field in food_fields[side]:
 			if field.amount > 0:
 				return field
-	if map_id == "la_roma_large" and expansion_sources[side].has(resource_id):
-		var expansion: Dictionary = expansion_sources[side][resource_id]
-		if expansion.amount > 0 and is_explored(side, expansion.pos):
-			return expansion
 	return {}
 
 func _ai_plant_field(side: int) -> bool:
@@ -1378,7 +1437,7 @@ func _ai_step() -> void:
 	var goal := _ai_goal(observed)
 	ai_stall_reason = ""
 	ai_plan = str(goal.get("kind", "hold"))
-	_ai_scout_large()
+	_ai_scout_expansion()
 	if _ai_source(side, "comida").is_empty() and _ai_plant_field(side):
 		ai_plan = "plant_food"
 	if not goal.is_empty() and _can_pay(side, goal.costs):
@@ -1427,7 +1486,7 @@ func _ai_step() -> void:
 	var assigned_to_needed := false
 	for id in ids:
 		var assigned_source: Dictionary = _ai_source(side, resource_id)
-		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"] and (map_id != "la_roma_large" or not assigned_source.is_empty() and entities[id].order_pos == assigned_source.pos):
+		if entities[id].side == side and entities[id].kind == "worker" and entities[id].hp > 0 and entities[id].source_resource == resource_id and entities[id].job in ["gather", "deliver"] and (map_id not in RulesContent.EXPANSION_MAP_IDS or not assigned_source.is_empty() and entities[id].order_pos == assigned_source.pos):
 			assigned_to_needed = true
 			break
 	var reassigned := false
@@ -1440,7 +1499,7 @@ func _ai_step() -> void:
 		if worker.carry > 0:
 			continue
 		var source: Dictionary = _ai_source(side, resource_id)
-		var may_reassign: bool = worker.job == "gather" and (worker.source_resource != resource_id or map_id == "la_roma_large" and not source.is_empty() and worker.order_pos != source.pos) and not assigned_to_needed and not reassigned and tick_number % 80 == 0
+		var may_reassign: bool = worker.job == "gather" and (worker.source_resource != resource_id or map_id in RulesContent.EXPANSION_MAP_IDS and not source.is_empty() and worker.order_pos != source.pos) and not assigned_to_needed and not reassigned and tick_number % 80 == 0
 		if worker.job == "idle" or may_reassign:
 			if not source.is_empty():
 				if issue(side, "gather", id, source.pos).ok:

@@ -31,7 +31,7 @@ const BUILD_CHOICES := ["depot", "housing", "registry", "barracks"]
 const RESOURCE_COLORS := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
 const AGE_NAMES := {"foranea": "Foránea", "universitaria": "Universitaria", "godin": "Godín", "gentrificacion": "Gentrificación"}
 const FACTION_NAMES := {"regios": "Regios", "poblanos": "Poblanos", "oaxaquenos": "Oaxaqueños", "veracruzanos": "Veracruzanos"}
-const MAP_NAMES := {"la_roma": "La Roma", "narvarte": "Narvarte", "copilco": "Copilco", "la_roma_large": "La Roma Large"}
+const MAP_NAMES := {"la_roma": "La Roma Small", "narvarte": "Narvarte Small", "copilco": "Copilco Small", "la_roma_medium": "La Roma Medium", "la_roma_large": "La Roma Large"}
 
 var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
@@ -49,6 +49,7 @@ var setup_difficulty: OptionButton
 var setup_difficulty_details: Label
 var selected_difficulty := "standard"
 var selected_map := "la_roma"
+var next_map_seed := 1
 var selected_objective := "la_roma"
 var setup_objective: OptionButton
 var setup_objective_label: Label
@@ -489,7 +490,7 @@ func _edge_pan_direction(mouse: Vector2, view: Vector2, play_top: float, play_bo
 	return direction.normalized()
 
 func _starting_camera_tile() -> Vector2i:
-	if sim.map_id == "la_roma_large":
+	if sim.map_id in ["la_roma_medium", "la_roma_large"]:
 		var worker: Array = sim.content.map.workers[Skirmish.HUMAN]
 		return Vector2i(int(worker[0]), int(worker[1]))
 	var view := get_viewport().get_visible_rect().size
@@ -569,13 +570,13 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(setup_difficulty_details)
 	var map_label := Label.new()
-	map_label.text = "Battlefield"
+	map_label.text = "Battlefield / map size"
 	map_label.add_theme_font_size_override("font_size", 18)
 	column.add_child(map_label)
 	setup_map = OptionButton.new()
 	var roma_copy: Dictionary = MapGeography.map_copy("la_roma")
 	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
-	for entry in [roma_label, "Narvarte — open street grid", "Copilco — two chokepoints", "La Roma Large — scout and expand"]:
+	for entry in [roma_label + " · Small 28×28", "Narvarte · Small 28×28", "Copilco · Small 28×28", "La Roma · Medium 56×56", "La Roma · Large 96×96"]:
 		setup_map.add_item(entry)
 	setup_map.item_selected.connect(_choose_map)
 	setup_map.custom_minimum_size.y = 42
@@ -791,7 +792,7 @@ func _layout_setup() -> void:
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
 		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
-	elif selected_map == "la_roma_large":
+	elif selected_map in ["la_roma_medium", "la_roma_large"]:
 		setup_goal.text = ("Scout, expand, hold center for %ds." % hold_seconds) if mobile else ("Explore the larger district; destroy the opposing post or hold the center for %d seconds." % hold_seconds)
 	else:
 		setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
@@ -847,6 +848,7 @@ func _layout_setup() -> void:
 
 func _show_setup() -> void:
 	choosing_faction = true
+	next_map_seed = randi_range(1, 2147483647)
 	touch_points.clear()
 	touch_multifinger = false
 	touch_group_mode = false
@@ -972,8 +974,9 @@ func _choose_map(index: int) -> void:
 			var roma_copy: Dictionary = MapGeography.map_copy(selected_map)
 			setup_map_details.text = str(roma_copy.get("description", "A stylized Roma Norte battlefield. Any faction can play here."))
 			setup_goal.text = str(roma_copy.get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
-		elif selected_map == "la_roma_large":
-			setup_map_details.text = "A 96×96 La Roma battlefield with a starting bicitaxi scout, separate starter resources and distant expansions."
+		elif selected_map in ["la_roma_medium", "la_roma_large"]:
+			var board_size := 56 if selected_map == "la_roma_medium" else 96
+			setup_map_details.text = "A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match." % [board_size, board_size]
 			setup_goal.text = "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
 		else:
 			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
@@ -1416,7 +1419,8 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	replay_frame_count = 0
 	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
-	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective)
+	var map_seed := next_map_seed if selected_map in ["la_roma_medium", "la_roma_large"] and not campaign_mode else 1
+	sim = Skirmish.new(faction, {}, map_seed, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective)
 	outbox.content_version = sim.content.content_id
 	paused = false
 	hud_ui.pause_button.text = "II"
@@ -1906,6 +1910,7 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 		"field_site_unavailable": return "Choose clear ground outside the center."
 		"field_already_active": return "This field is still growing or has food."
 		"field_unreachable": return "The worker cannot reach this field."
+		"resource_not_discovered": return "Explore this resource site before gathering."
 		"blocked_or_invalid_tile": return "Cannot move onto this tile."
 		"unreachable_tile", "building_unreachable", "target_unreachable", "resource_unreachable": return "No route to target."
 		"building_incomplete": return "Wait for construction to finish."
@@ -2777,6 +2782,9 @@ func _source_sites(side: int) -> Array[Dictionary]:
 			sites.append({"id": id, "source": sim.expansion_sources[side][id]})
 	for field in sim.food_fields[side]:
 		sites.append({"id": "comida", "source": field, "field": true})
+	if side == Skirmish.HUMAN:
+		for source in sim.map_sites:
+			sites.append({"id": source.resource_id, "source": source})
 	return sites
 
 func _pick_visual_site(screen: Vector2) -> Dictionary:
@@ -2865,19 +2873,20 @@ func _terrain_id(tile: Vector2i) -> String:
 	var kind := "grass"
 	if sim._in_district(tile):
 		kind = "plaza"
-	elif sim.map_id == "la_roma_large":
-		var avenue_x := posmod(tile.x - 16, 24)
-		var avenue_y := posmod(tile.y - 16, 24)
+	elif sim.map_id in ["la_roma_medium", "la_roma_large"]:
+		var block_size := 16 if sim.map_id == "la_roma_medium" else 24
+		var avenue_x := posmod(tile.x - 16, block_size)
+		var avenue_y := posmod(tile.y - 16, block_size)
 		if sim._wall(tile) or avenue_x in [0, 1] or avenue_y in [0, 1]:
 			kind = "asphalt"
-		elif avenue_x in [2, 23] or avenue_y in [2, 23]:
+		elif avenue_x in [2, block_size - 1] or avenue_y in [2, block_size - 1]:
 			kind = "sidewalk"
 	elif sim._wall(tile) or sim.map_id == "la_roma" and (tile.y in [4, 15] or tile.x in [5, 14]) or sim.map_id == "narvarte" and (tile.y in [4, 11, 18] or tile.x in [5, 12, 19]) or sim.map_id == "copilco" and (tile.y in [5, 12, 19] or tile.x in [4, 9, 15]):
 		kind = "asphalt"
 	elif sim.map_id == "la_roma" and (tile.x in [4, 6, 13, 15] or tile.y in [3, 5, 14, 16]) or sim.map_id == "narvarte" and (tile.x in [4, 6, 11, 13, 18, 20] or tile.y in [3, 5, 10, 12, 17, 19]) or sim.map_id == "copilco" and (tile.x in [3, 5, 8, 10, 14, 16] or tile.y in [4, 6, 11, 13, 18, 20]):
 		kind = "sidewalk"
 	var prefix := "terrain_cdmx_" if sim.map_id == "la_roma" else "terrain_"
-	return "%s%s_%d" % [prefix, kind, 0 if sim.map_id == "la_roma_large" else posmod(tile.x * 13 + tile.y * 7, 4)]
+	return "%s%s_%d" % [prefix, kind, 0 if sim.map_id in ["la_roma_medium", "la_roma_large"] else posmod(tile.x * 13 + tile.y * 7, 4)]
 
 func _faction_color(side: int) -> String:
 	return "blue" if side == Skirmish.HUMAN else "red"

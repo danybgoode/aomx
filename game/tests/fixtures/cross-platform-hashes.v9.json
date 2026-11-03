@@ -1,0 +1,28 @@
+{
+  "cases": {
+    "copilco_oaxaquenos_700": "363397d0774ae192002461b078cf43727cdfbcb7630f380c1a2f96067b5bfbc0",
+    "copilco_poblanos_700": "b6f16e1e6caae8833de2944af568ba5c20ed198bf18264147718362c7fe3193f",
+    "copilco_regios_700": "607b6c94013d885c26b9e20e545352698809e7e3a8c98ebbfd1bc472fe5f351c",
+    "copilco_veracruzanos_700": "a8edf775944b94380f4bdf769104fc3c0dedfed4cddcdb8f5b42c4d5d4dc82e1",
+    "la_roma_large_oaxaquenos_700": "da912e3673e0e30eb3724204aefd1cedb636672f43ff639f41e37ebd37fb1393",
+    "la_roma_large_poblanos_700": "5a0885074381e0fbadbbac9a24be2e49f3b23812425e6fd5e426c374b2195be4",
+    "la_roma_large_regios_700": "47dbfb60561ecd5ad6d21375b46405edb937d5b8cffd100b36678839c35abfff",
+    "la_roma_large_veracruzanos_700": "fc1eecae486aaeec6066f396624619a37f61036712f401e6929aeb17d1f33b3a",
+    "la_roma_medium_oaxaquenos_700": "47682d803d3af3a115f4f3fa6746eba175ccc4cdfa328d226a2f87da688e9a87",
+    "la_roma_medium_poblanos_700": "de830fa7ec1db2a19e4ad5d5b769d3ea71d7ebcbfee60f015d94cf48eeb1b28e",
+    "la_roma_medium_regios_700": "9e11c64e983c0fb540bbd7cf36bbd884e4546a8ff50105b9ef50c96314a2ddca",
+    "la_roma_medium_veracruzanos_700": "bebaef017efe9106a8a895172be06d76a056c4b41310ac81d9cfa7cb48e5d8e4",
+    "la_roma_oaxaquenos_700": "db81787fea4baf49f1456bb286ce3144f25bb560c1f6cdb4eebce88a5edf8fac",
+    "la_roma_poblanos_700": "cd17c9b57055524264403e577a42b3f779701f4424f20f5716431569366b3342",
+    "la_roma_regios_700": "095570e237af2fcd5f15c5e0a738a761c0b4564700308aadeb45f8b8a9493df7",
+    "la_roma_veracruzanos_700": "a1783ee45054311ff249a5afe2fa5bed753d577c7f056528846949280a071b21",
+    "narvarte_oaxaquenos_700": "6d76693d40d366a16fc00487ef22bf1584e05eb1c9874288476796e4efe0187e",
+    "narvarte_poblanos_700": "3cc2735443fe76b9999ff0e7c0d072c355ce2ff34088372b49d71b756e660389",
+    "narvarte_regios_700": "11b34a5db1c6f552bdf853afaaf6384a096f2b6dda3a65e9961ab61a940bea1c",
+    "narvarte_veracruzanos_700": "b59765d4895ad0463b1b52b647ac57c0ef78de7bd30349d4bb129f144ada26ef"
+  },
+  "content_version": "la-roma-world-5",
+  "game_version": "godot-4.7.2-skirmish-10",
+  "godot": "4.7.2",
+  "schema_version": 9
+}

@@ -42,6 +42,8 @@ func _run() -> void:
 		"migrated interface preference is saved in v2 format")
 	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
 		"La Roma setup gives sourced place context and both win routes")
+	check(client.setup_map.get_item_text(0).contains("Small") and client.setup_map.get_item_text(3).contains("Medium") and client.setup_map.get_item_text(4).contains("Large"),
+		"match setup offers small, medium and large battlegrounds")
 	client._choose_objective(1)
 	check(client.selected_objective == "conquest" and "Holding the center does not win" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
 		"Conquest setup explains its distinct rule and Wonder stays unavailable")

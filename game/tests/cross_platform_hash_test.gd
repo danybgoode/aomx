@@ -2,14 +2,14 @@ extends SceneTree
 
 const Skirmish = preload("res://skirmish.gd")
 const Replay = preload("res://skirmish_replay.gd")
-const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v8.json"
+const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v9.json"
 var failed := false
 
 func _initialize() -> void:
 	var generating := OS.get_environment("GENERATE_WORLD_HASHES") == "1"
 	var fixture: Dictionary = {} if generating else JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
 	if not generating:
-		check(fixture.schema_version == 8 and fixture.game_version == Skirmish.GAME_VERSION and fixture.content_version == Skirmish.CONTENT_VERSION,
+		check(fixture.schema_version == 9 and fixture.game_version == Skirmish.GAME_VERSION and fixture.content_version == Skirmish.CONTENT_VERSION,
 			"hash fixture is pinned to world content version")
 	var cases := {}
 	for map_id in Skirmish.MAP_IDS:
@@ -36,7 +36,7 @@ func _initialize() -> void:
 				check(fixture.cases.get(key) == hash, "cross-platform hash matches pinned fixture for " + key)
 			check(Replay.verify(Replay.record(game)).ok, "long command and AI replay for " + map_id + "/" + faction)
 	if generating:
-		print("WORLD_HASH_JSON=", JSON.stringify({"schema_version": 8, "godot": "4.7.2", "game_version": Skirmish.GAME_VERSION, "content_version": Skirmish.CONTENT_VERSION, "cases": cases}))
+		print("WORLD_HASH_JSON=", JSON.stringify({"schema_version": 9, "godot": "4.7.2", "game_version": Skirmish.GAME_VERSION, "content_version": Skirmish.CONTENT_VERSION, "cases": cases}))
 	if not failed:
 		print("Cross-platform hash fixtures passed on " + OS.get_name())
 	quit(1 if failed else 0)

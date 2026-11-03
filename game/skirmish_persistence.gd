@@ -2,6 +2,7 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const CampaignMissions = preload("res://campaign_missions.gd")
+const RulesContent = preload("res://rules_content.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
 const SAVE_SCHEMA_VERSION := 5
 const MAX_SAVE_BYTES := 16777216
@@ -170,7 +171,7 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 			source.amount = int(saved_source.amount)
 			source.refresh_remaining = int(saved_source.refresh_remaining)
 			source.refreshes_left = int(saved_source.refreshes_left)
-			if map_id == "la_roma_large":
+			if map_id in RulesContent.EXPANSION_MAP_IDS:
 				var saved_expansion: Dictionary = state.expansion_sources[side][resource_id]
 				var expansion: Dictionary = game.expansion_sources[side][resource_id]
 				expansion.amount = int(saved_expansion.amount)
@@ -183,6 +184,10 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 			game.source_tiles[at] = true
 		game.age_index[side] = int(state.age_index[side])
 		game.researched[side] = state.researched[side].duplicate()
+	for index in game.map_sites.size():
+		game.map_sites[index].amount = int(state.map_sites[index].amount)
+		game.map_sites[index].refresh_remaining = int(state.map_sites[index].refresh_remaining)
+		game.map_sites[index].refreshes_left = int(state.map_sites[index].refreshes_left)
 	game.next_id = int(state.next_id)
 	game.next_command = int(state.next_command)
 	game.ai_next_role = state.ai_next_role
@@ -294,13 +299,29 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_resource_sources_invalid")
 	if not s.get("food_fields") is Array or s.food_fields.size() != 2:
 		return _bad("state_food_fields_invalid")
-	if content.map_id == "la_roma_large" and (not s.get("expansion_sources") is Array or s.expansion_sources.size() != 2):
+	if not s.get("map_sites") is Array:
+		return _bad("state_map_sites_invalid")
+	if content.map_id in RulesContent.EXPANSION_MAP_IDS and (not s.get("expansion_sources") is Array or s.expansion_sources.size() != 2):
 		return _bad("state_expansion_sources_invalid")
 	if not s.get("age_index") is Array or s.age_index.size() != 2:
 		return _bad("state_age_index_invalid")
 	if not s.get("researched") is Array or s.researched.size() != 2:
 		return _bad("state_researched_invalid")
-	var field_layout = Skirmish.new(Skirmish.REGIOS, {}, 1, "standard", content.map_id, "", "", str(s.get("objective_id", "la_roma")))
+	var field_layout = Skirmish.new(Skirmish.REGIOS, {}, int(s.initial_seed), "standard", content.map_id, "", "", str(s.get("objective_id", "la_roma")))
+	if s.map_sites.size() != field_layout.map_sites.size():
+		return _bad("state_map_sites_invalid")
+	for index in s.map_sites.size():
+		var site: Variant = s.map_sites[index]
+		var expected: Dictionary = field_layout.map_sites[index]
+		if not _keys_exact(site, ["pos", "resource_id", "amount", "refresh_remaining", "refreshes_left"]):
+			return _bad("state_map_sites_invalid")
+		if site.resource_id != expected.resource_id or site.pos != [expected.pos.x, expected.pos.y]:
+			return _bad("state_map_sites_invalid")
+		for key in ["amount", "refresh_remaining", "refreshes_left"]:
+			if not _integer(site[key], 0):
+				return _bad("state_map_sites_invalid")
+		if int(site.refreshes_left) > 2 or int(site.amount) > int(content.resources[site.resource_id].amount):
+			return _bad("state_map_sites_invalid")
 	var used_field_tiles := {}
 	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
 		var balance: Variant = s.balances[side]
@@ -321,7 +342,7 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 					return _bad("state_resource_sources_invalid")
 			if int(source.refreshes_left) > int(content.resources[resource_id].refresh_count):
 				return _bad("state_resource_sources_invalid")
-		if content.map_id == "la_roma_large":
+		if content.map_id in RulesContent.EXPANSION_MAP_IDS:
 			var expansion_set: Variant = s.expansion_sources[side]
 			if not _keys_exact(expansion_set, RESOURCE_IDS):
 				return _bad("state_expansion_sources_invalid")
