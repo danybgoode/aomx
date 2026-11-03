@@ -1832,9 +1832,10 @@ func _train(role: String) -> void:
 	_issue_order("train", role, sim.entities[selected_id].pos)
 
 func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
-	var group_move := kind in ["move", "attack_move"] and target is Vector2i and selected_ids.size() > 1
+	var move_order := kind in ["move", "attack_move"] and target is Vector2i
+	var group_move := move_order and selected_ids.size() > 1
 	var assigned: Dictionary = {}
-	var first_target: Variant = _group_move_target(selected_id, target, assigned) if group_move else target
+	var first_target: Variant = _group_move_target(selected_id, target, assigned) if move_order else target
 	var result: Dictionary = _send_game_order(kind, selected_id, first_target)
 	var accepted := 1 if result.ok else 0
 	if group_move and result.ok:
@@ -1869,6 +1870,8 @@ func _group_move_target(actor_id: int, requested: Vector2i, assigned: Dictionary
 					continue
 				var candidate := requested + Vector2i(dx, dy)
 				if assigned.has(candidate) or not sim._walkable(candidate):
+					continue
+				if candidate == actor.pos and candidate != requested:
 					continue
 				var occupant: int = sim._unit_at(candidate)
 				if occupant != -1 and occupant != actor_id:

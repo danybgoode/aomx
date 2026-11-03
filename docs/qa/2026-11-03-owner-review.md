@@ -5,7 +5,7 @@ This record separates the fixes in the current source branch from match-rule wor
 ## Source changes ready for review
 
 - Selection: the duplicated cyan square/rings, overhead faction mark, top-of-board “worker selected” message and tiny hover instruction are removed. A selected actor has one warm sprite outline. The existing health and command panel remain contextual.
-- Movement input: a group move assigns distinct reachable nearby tiles. Desktop pointer panning works at all four battlefield edges, keeps minimap and zoom behavior, and pauses over controls, modal panels, touch and drag.
+- Movement input: a group move assigns distinct reachable nearby tiles; a single move onto a stationary friendly unit settles on a free nearby tile. Desktop pointer panning works at all four battlefield edges, keeps minimap and zoom behavior, and pauses over controls, modal panels, touch and drag.
 - Presentation: four individually illustrated resource sites replace the generic circles; the pedal bicitaxi matches the current unit palette; the new live-control setup screen follows `references/homescreenart/homescreen.jpg`. The in-match **MENU** action ends the match and returns to setup.
 - These are shared Godot client changes. A source export must still be produced and tested per platform; this record does not claim that the previously uploaded macOS or Web builds contain them.
 

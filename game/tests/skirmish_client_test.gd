@@ -176,6 +176,13 @@ func _run() -> void:
 		"group move is accepted")
 	check(client.sim.entities[armored_id].order_pos != client.sim.entities[siege_id].order_pos,
 		"group members receive distinct reachable destination tiles")
+	client.selected_ids.clear()
+	client.selected_ids.append(armored_id)
+	client.selected_id = armored_id
+	var occupied_destination: Vector2i = client.sim.entities[siege_id].pos
+	check(client._issue_order("move", occupied_destination, occupied_destination).ok and
+		client.sim.entities[armored_id].order_pos != occupied_destination,
+		"single move settles near a stationary friendly unit")
 	client.sim.entities.erase(armored_id)
 	client.sim.entities.erase(siege_id)
 	client.selected_ids.clear()
