@@ -180,6 +180,8 @@ func _exit_tree() -> void:
 	cue_streams.clear()
 
 func _ready() -> void:
+	if OS.has_feature("web"):
+		get_tree().root.content_scale_factor = clampf(DisplayServer.screen_get_scale(), 1.0, 4.0)
 	art.load_manifest()
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	outbox.game_version = Skirmish.GAME_VERSION
@@ -777,21 +779,15 @@ func _layout_setup() -> void:
 	if setup_panel == null or get_viewport() == null:
 		return
 	var view := get_viewport().get_visible_rect().size
-	var pixel_ratio := 1.0
-	if OS.has_feature("web"):
-		var browser_ratio: Variant = JavaScriptBridge.eval("window.devicePixelRatio")
-		if browser_ratio is float or browser_ratio is int:
-			pixel_ratio = clampf(float(browser_ratio), 1.0, 4.0)
-	var logical_view := view / pixel_ratio
 	setup_background.size = view
-	var setup_factor := clampf(logical_view.x / 1280.0, 0.78, 1.2) * ui_scale * pixel_ratio
+	var setup_factor := clampf(view.x / 1280.0, 0.78, 1.2) * ui_scale
 	var layout_view := view / setup_factor
-	var mobile := logical_view.x < 1000.0 or logical_view.y < 650.0
+	var mobile := view.x < 1000.0 or view.y < 650.0
 	var landscape := layout_view.x > layout_view.y
 	setup_choice_grid.columns = 1 if mobile else 2
-	setup_logo.position = Vector2(24, 22) * pixel_ratio
-	setup_logo.size = Vector2(270 if not mobile else logical_view.x - 36, 126) * pixel_ratio
-	setup_logo.add_theme_font_size_override("font_size", roundi((45 if not mobile else 32) * pixel_ratio))
+	setup_logo.position = Vector2(24, 22)
+	setup_logo.size = Vector2(270 if not mobile else view.x - 36, 126)
+	setup_logo.add_theme_font_size_override("font_size", 45 if not mobile else 32)
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
 		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
@@ -832,8 +828,8 @@ func _layout_setup() -> void:
 	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	setup_panel.scale = Vector2.ONE * setup_factor
 	if mobile:
-		setup_panel.size = Vector2(layout_view.x - 24, minf(layout_view.y - 24, (view.y - 142.0 * pixel_ratio) / setup_factor))
-		setup_panel.position = Vector2((view.x - setup_panel.size.x * setup_factor) * 0.5, 130 * pixel_ratio)
+		setup_panel.size = Vector2(layout_view.x - 24, minf(layout_view.y - 24, (view.y - 142.0) / setup_factor))
+		setup_panel.position = Vector2((view.x - setup_panel.size.x * setup_factor) * 0.5, 130)
 	else:
 		var left_space := view.x * 0.23 / setup_factor
 		setup_panel.size = Vector2(minf(1080.0, layout_view.x - left_space - 24), minf(700.0, layout_view.y - 40))
