@@ -734,7 +734,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	column.move_child(setup_goal, 2)
 	column.move_child(setup_choice_grid, 3)
 	setup_start = Button.new()
-	setup_start.text = "⚔  ¡INICIAR BATALLA!"
+	setup_start.text = "¡INICIAR BATALLA!"
 	setup_start.custom_minimum_size.y = 64
 	setup_start.pressed.connect(func() -> void: _choose_faction(selected_faction))
 	preload("res://ui/hud_skin.gd").apply_button(setup_start)
