@@ -4,15 +4,23 @@ This ledger belongs to the funded [epic](../../Roadmap/09-platform-and-measureme
 
 The owner prioritizes easy Web distribution. The first release decision is for desktop Web solo on exact passing browser/OS combinations; mobile Web and online Web have separate claims. Native exports are follow-on candidates and do not hold a passing Web-only decision.
 
+## Restricted version 12 rollout — 2026-11-04
+
+The owner approved replacing the Restricted QA pilot. The shared Oracle VM now runs both `ghcr.io/danybgoode/aomx-ingest:2a6c071` and `ghcr.io/danybgoode/aomx-match:2a6c071` from pinned release `/opt/aomx/releases/2a6c071-v12`. Both containers and Postgres are healthy. The post-switch disposable restore drill succeeded; backup, health, restore and retention timers remain active. The current operator IP was updated through `oracle-edge/ops/allow-my-ip.sh`, which validated and reloaded shared Caddy. HTTPS `/healthz` returned 200, a version 12 join with an invalid invite returned `403 match_disabled`, the exact `https://html-classic.itch.zone` Web-origin preflight returned 204, and a foreign origin returned `403 origin_denied`. Admission was left off; no online two-player match was attempted.
+
+All existing Restricted itch.io channels processed build `platform-f5e4c06c8f8b`: Web `web-platform-pilot` build `#2297213`; macOS `mac-private-alpha` `#2297216`, `mac-ways-to-play-pilot` `#2297220`, and `mac-large-map-pilot` `#2297222`. Anonymous GETs to both project pages returned 404 immediately before upload. Butler fetched the processed Web build; all nine served files matched the local manifest's SHA-256 values. Butler fetched the macOS build from `mac-private-alpha`; its app passed strict code-signature verification and bounded headless startup exited 0. The restricted runner could not write Godot's local log path, so that run is not a normal GUI installation check.
+
+In signed-in Safari on the owner Mac, the hosted Web iframe at itch build `#2297213` rendered the new home screen, started a solo match, and returned home through **MENU → End current match and return to main menu**. The visible build label was `platform-f5e4c06c8f8b`. This is a hosted entry and navigation check, not a full-match support result. Without an alpha invite, the client shows a sync prompt and queues test events; no measurement or progress-sync claim follows. Browser performance, audio, save transfer, a completed match, and Web/native online pairing remain owed. Older saves and replays are incompatible with game version 12.
+
 ## Owner QA source follow-up — 2026-11-03
 
-Later draft source branches add worker-planted food fields (game version 9, [PR #102](https://github.com/danybgoode/aomx/pull/102)) and selectable Medium/Large maps with seeded neutral sites (game version 10, [map QA](../world/explorable-map-sizes.md)). The version 7 artifact hashes below remain receipts for their exact source commit. Those rule versions are superseded by the version 12 source and local export recorded next; the hosted channels still serve the older pilot.
+Later draft source branches add worker-planted food fields (game version 9, [PR #102](https://github.com/danybgoode/aomx/pull/102)) and selectable Medium/Large maps with seeded neutral sites (game version 10, [map QA](../world/explorable-map-sizes.md)). The version 7 artifact hashes below remain receipts for their exact source commit. Those rule versions were superseded by the version 12 source and local export recorded next; the hosted channels served the older pilot until the rollout above.
 
 The branch subsequently added a simulation-side occupied-destination and congestion fix, versioned as `godot-4.7.2-skirmish-8`. The table below remains an exact receipt for the prior version 7 commit; it does not represent the new rule version. Godot warfare/client checks, cross-platform and Wonder deterministic hash fixtures, and the Node suite (51 passed, 3 database skips) passed for version 8. Version 8 is superseded by the later version 12 export below.
 
 The source fixes and art in [PR #99](https://github.com/danybgoode/aomx/pull/99) produced clean local QA export `platform-78b89fd9bd4d` from commit `78b89fd9bd4dc4b281a0f843544a1017775b5318`, Godot 4.7.2, game/content `godot-4.7.2-skirmish-7` / `la-roma-world-5`. All four desktop export commands succeeded from the same commit with `test_account=true` and the current Restricted `sslip.io` endpoint. The macOS ZIP passed strict signature verification. Native Godot desktop and narrow renders show the new setup, resource art and selected actor state; targeted client, movement and art checks passed. A local Chrome run exposed a high-DPI Web size issue; Godot window content scaling corrected both setup and battlefield UI, and the browser visibly started a solo match and returned home through **MENU** on the code-equivalent temporary probe. The [owner QA record](../qa/2026-11-03-owner-review.md) names remaining gameplay. **No hosted Web or macOS tester channel has been replaced with this build**, and no physical full-match or support claim follows from these exports.
 
-The stacked draft branches now reach game version `godot-4.7.2-skirmish-12`, world content `la-roma-world-6`, and state schema 8. Clean local Web, macOS, Windows and Linux QA exports were made from commit `5c03ab34bdcf50ece8bfa8d9d16e75a181f212b5` (`dirty:false`) with Godot 4.7.2, `test_account=true`, preview channel and the current Restricted `sslip.io` endpoint. This is source and packaging evidence, not a served/installed full-match acceptance. The hosted pilots still serve the older build described below. Online play needs a matching version 12 private-match host before testers receive this client.
+The stacked branches now reach game version `godot-4.7.2-skirmish-12`, world content `la-roma-world-6`, and state schema 8. Clean local Web, macOS, Windows and Linux QA exports were made from commit `5c03ab34bdcf50ece8bfa8d9d16e75a181f212b5` (`dirty:false`) with Godot 4.7.2, `test_account=true`, preview channel and the current Restricted `sslip.io` endpoint. This is source and packaging evidence, not a served/installed full-match acceptance. The hosted pilot now uses the later home-screen export and matching host recorded above.
 
 | QA target | New local artifact and SHA-256 |
 | --- | --- |
@@ -34,7 +42,7 @@ The newly built [owner-private entry page](https://battle-for-la-roma-private-pi
 
 ### Home-screen candidate on the same version 12 rules
 
-The follow-up [in-game home screen](../interface-review/home-screen-followup.md) has a later clean client export from source commit `f5e4c06c8f8b0041d438f3dc9efbe78ce40e25d1`: build `platform-f5e4c06c8f8b`, game/content 12/6, all four desktop targets. Its Web ZIP SHA-256 is `4ac4397ef28496e9a19af84046f07eb8731c219366f13984b78647d4747a0880`; the macOS ZIP is `de1d713f43d580f2fc276ffc544355a8e8abeb268853cba157bf86906ebbdbab` and passed strict signature verification plus bounded startup after extraction. This replaces the earlier **local candidate**, not the hosted Web or macOS pilots. Online QA still needs a matching version 12 host.
+The follow-up [in-game home screen](../interface-review/home-screen-followup.md) has a later clean client export from source commit `f5e4c06c8f8b0041d438f3dc9efbe78ce40e25d1`: build `platform-f5e4c06c8f8b`, game/content 12/6, all four desktop targets. Its Web ZIP SHA-256 is `4ac4397ef28496e9a19af84046f07eb8731c219366f13984b78647d4747a0880`; the macOS ZIP is `de1d713f43d580f2fc276ffc544355a8e8abeb268853cba157bf86906ebbdbab` and passed strict signature verification plus bounded startup after extraction. This is the client exported for the Restricted rollout above. Online QA still needs a paired Web/native walkthrough.
 
 ## Local component evidence
 
@@ -72,17 +80,17 @@ The nine-file Web pilot ZIP is `dist/platform/platform-99bed69ff59e/battle-for-l
 
 | Target | Artifact build | Real-device result | Support status |
 | --- | --- | --- | --- |
-| Native macOS, owner Mac | Export succeeded; fresh install and full match owed | Model/OS, frame, memory and owner walkthrough owed | Unverified |
+| Native macOS, owner Mac | Restricted channel fetched; signature and bounded headless startup passed for version 12 | Normal GUI install, full match, frame, memory and owner walkthrough owed | Unverified |
 | Native Windows, one remote PC | Export succeeded; physical PC model/OS and install owed | Full match and save transfer owed | Unverified |
 | Native Linux | Export succeeded; no physical Linux PC named | No installed-device match | Unverified |
 | Desktop Web, owner Mac Firefox | MacBook Pro `Mac14,5` (Apple M2 Max, 64 GB), macOS 27.2 (26B123), Firefox 159.0; Restricted HTTPS build `platform-99bed69ff59e` served by itch.io; setup and solo match entry observed | Deliberate full match, audio, frame and memory profile owed | Unverified |
-| Desktop Web, Mac Safari | Compatibility export succeeded | Full match, audio and storage matrix owed | Unverified |
+| Desktop Web, Mac Safari | Restricted version 12 iframe launched, entered solo match and returned home | Full match, audio, frame, memory and storage matrix owed | Unverified |
 | Desktop Web, Windows Chrome/Firefox | Compatibility export succeeded | Remote PC/browser versions and full matches owed | Unverified |
 | Native Android | Godot Android template installed; export needs Google Android SDK, platform-tools and build-tools | APK and remote Android phone model/OS/full match owed | Unverified |
 | Android Chrome Web | Web export exists | Remote phone model/OS/browser, touch and full match owed | Unverified |
 | iPhone 15 Pro Safari Web | Web export exists | iOS/Safari versions, touch and full match owed | Unverified |
 | Native iOS | No Apple development signing setup | Cannot install a native test build | Unverified |
-| Desktop Web online with native peer | Exact-origin local contract passed | Restricted TLS host, two scoped codes, real Web/native terminal/reconnect/replay and excluded receipt owed | Unverified |
+| Desktop Web online with native peer | Restricted TLS host version 12, exact-origin preflight and admission-off checks passed | Two scoped codes, real Web/native terminal/reconnect/replay and excluded receipt owed | Unverified |
 
 ## Physical-device walkthrough owed
 
