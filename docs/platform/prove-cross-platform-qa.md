@@ -32,6 +32,10 @@ The stacked draft branches now reach game version `godot-4.7.2-skirmish-12`, wor
 
 The newly built [owner-private entry page](https://battle-for-la-roma-private-pilot.jokeyquail1.chatgpt.site) links to the existing Restricted itch.io Web and macOS pilots. It is a separate static Site, version 2, with owner-only access and no external viewers or groups. It is not the requested public `battleforlaroma.com` domain or a game-build deployment.
 
+### Home-screen candidate on the same version 12 rules
+
+The follow-up [in-game home screen](../interface-review/home-screen-followup.md) has a later clean client export from source commit `f5e4c06c8f8b0041d438f3dc9efbe78ce40e25d1`: build `platform-f5e4c06c8f8b`, game/content 12/6, all four desktop targets. Its Web ZIP SHA-256 is `4ac4397ef28496e9a19af84046f07eb8731c219366f13984b78647d4747a0880`; the macOS ZIP is `de1d713f43d580f2fc276ffc544355a8e8abeb268853cba157bf86906ebbdbab` and passed strict signature verification plus bounded startup after extraction. This replaces the earlier **local candidate**, not the hosted Web or macOS pilots. Online QA still needs a matching version 12 host.
+
 ## Local component evidence
 
 | Check | Result | Limit |
