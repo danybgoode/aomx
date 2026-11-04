@@ -6,13 +6,13 @@ The owner prioritizes easy Web distribution. The first release decision is for d
 
 ## Owner QA source follow-up — 2026-11-03
 
-Later draft source branches add worker-planted food fields (game version 9, [PR #102](https://github.com/danybgoode/aomx/pull/102)) and selectable Medium/Large maps with seeded neutral sites (game version 10, [map QA](../world/explorable-map-sizes.md)). The version 7 artifact hashes below remain receipts for their exact source commit. Neither later rule version has a clean platform export or hosted tester upload recorded here.
+Later draft source branches add worker-planted food fields (game version 9, [PR #102](https://github.com/danybgoode/aomx/pull/102)) and selectable Medium/Large maps with seeded neutral sites (game version 10, [map QA](../world/explorable-map-sizes.md)). The version 7 artifact hashes below remain receipts for their exact source commit. Those rule versions are superseded by the version 12 source and local export recorded next; the hosted channels still serve the older pilot.
 
-The branch subsequently added a simulation-side occupied-destination and congestion fix, versioned as `godot-4.7.2-skirmish-8`. The table below remains an exact receipt for the prior version 7 commit; it does not represent the new rule version. Godot warfare/client checks, cross-platform and Wonder deterministic hash fixtures, and the Node suite (51 passed, 3 database skips) passed for version 8. A clean new export is required before testing or uploading that version.
+The branch subsequently added a simulation-side occupied-destination and congestion fix, versioned as `godot-4.7.2-skirmish-8`. The table below remains an exact receipt for the prior version 7 commit; it does not represent the new rule version. Godot warfare/client checks, cross-platform and Wonder deterministic hash fixtures, and the Node suite (51 passed, 3 database skips) passed for version 8. Version 8 is superseded by the later version 12 export below.
 
 The source fixes and art in [PR #99](https://github.com/danybgoode/aomx/pull/99) produced clean local QA export `platform-78b89fd9bd4d` from commit `78b89fd9bd4dc4b281a0f843544a1017775b5318`, Godot 4.7.2, game/content `godot-4.7.2-skirmish-7` / `la-roma-world-5`. All four desktop export commands succeeded from the same commit with `test_account=true` and the current Restricted `sslip.io` endpoint. The macOS ZIP passed strict signature verification. Native Godot desktop and narrow renders show the new setup, resource art and selected actor state; targeted client, movement and art checks passed. A local Chrome run exposed a high-DPI Web size issue; Godot window content scaling corrected both setup and battlefield UI, and the browser visibly started a solo match and returned home through **MENU** on the code-equivalent temporary probe. The [owner QA record](../qa/2026-11-03-owner-review.md) names remaining gameplay. **No hosted Web or macOS tester channel has been replaced with this build**, and no physical full-match or support claim follows from these exports.
 
-Later source-only gameplay work now reaches game version 12 and world content 6 in the stacked draft branches. The hosted pilot is still the older build described below. Any new tester upload must export the reviewed head and update the matching private-match host; the prior export receipts do not verify version 12.
+The stacked draft branches now reach game version `godot-4.7.2-skirmish-12`, world content `la-roma-world-6`, and state schema 8. Clean local Web, macOS, Windows and Linux QA exports were made from commit `5c03ab34bdcf50ece8bfa8d9d16e75a181f212b5` (`dirty:false`) with Godot 4.7.2, `test_account=true`, preview channel and the current Restricted `sslip.io` endpoint. This is source and packaging evidence, not a served/installed full-match acceptance. The hosted pilots still serve the older build described below. Online play needs a matching version 12 private-match host before testers receive this client.
 
 | QA target | New local artifact and SHA-256 |
 | --- | --- |
@@ -20,6 +20,17 @@ Later source-only gameplay work now reaches game version 12 and world content 6 
 | macOS | `dist/platform/platform-78b89fd9bd4d/macos/battle-for-la-roma-macos.zip` — `da406458d3b84003dd482a76faca1cfbccfb396a24dd25d41b47ef1ba6df60d8` |
 | Windows | `dist/platform/platform-78b89fd9bd4d/windows/battle-for-la-roma.exe` — `320efea23961495769786349ab6d97d5151a42273f3de8fc27e8f7ad0a1fcdb9`; `.pck` — `d6f06e8db831c5b8072f9fda48c5bedeb6ae09c67f938ae9344f0fb5a919effd` |
 | Linux | `dist/platform/platform-78b89fd9bd4d/linux/battle-for-la-roma.x86_64` — `d9f79ab89b5ae369aeed11c6052d402e8218cd503bf85b4a235f9c30c46a7c63`; `.pck` — `ae3170ff64dcf39c4a74cf00505cf951a571f02fa47932f06ebb48849a6da923` |
+
+### Version 12 local QA package receipts
+
+| Target | Artifact | SHA-256 / result |
+| --- | --- | --- |
+| Web | `dist/platform/platform-5c03ab34bdcf/battle-for-la-roma-web-platform-5c03ab.zip` | `09ab84e0221ab342eecdb574d3edcdc1b368ee6f73e94bdbc667ffb70c35daeb`; nine root files with `index.html` at root |
+| macOS | `dist/platform/platform-5c03ab34bdcf/macos/battle-for-la-roma-macos.zip` | `75fd538a94f508a9e408eea8bce373d64c93d0bffe188016cb019f8d4f68ef56`; extracted app passed `codesign --verify --deep --strict` |
+| Windows | `dist/platform/platform-5c03ab34bdcf/windows/battle-for-la-roma.exe` and `.pck` | Export succeeded; no physical Windows QA |
+| Linux | `dist/platform/platform-5c03ab34bdcf/linux/battle-for-la-roma.x86_64` and `.pck` | Export succeeded; no physical Linux QA |
+
+The newly built [owner-private entry page](https://battle-for-la-roma-private-pilot.jokeyquail1.chatgpt.site) links to the existing Restricted itch.io Web and macOS pilots. It is a separate static Site, version 1, with owner-only access and no external viewers or groups. It is not the requested public `battleforlaroma.com` domain or a game-build deployment.
 
 ## Local component evidence
 
