@@ -64,7 +64,7 @@ func _initialize() -> void:
 	var worker: int = game._find(Skirmish.HUMAN, "worker")
 	var command := {"schema_version": Skirmish.COMMAND_SCHEMA_VERSION, "sequence": game.next_command,
 		"issued_tick": game.tick_number, "side": Skirmish.HUMAN, "kind": "gather", "actor_id": worker,
-		"target": [6, 4]}
+		"target": [Skirmish.RESOURCE_POS[Skirmish.HUMAN].x, Skirmish.RESOURCE_POS[Skirmish.HUMAN].y]}
 	check(game.issue_command(command).ok, "versioned command reaches existing match")
 	var before: String = game.state_hash()
 	command.sequence = 999

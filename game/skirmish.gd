@@ -20,7 +20,7 @@ const BUILDING_KINDS := ["command_post", "barracks", "depot", "housing", "regist
 const COMBAT_KINDS := ["melee", "ranged", "armored", "siege"]
 const ROUTE_STEPS := [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]
 const DRAW_TICK := 9000
-const RESOURCE_POS := {HUMAN: Vector2i(6, 4), COMPUTER: Vector2i(13, 15)}
+const RESOURCE_POS := {HUMAN: Vector2i(8, 2), COMPUTER: Vector2i(19, 12)}
 const BARRACKS_POS := {HUMAN: Vector2i(5, 6), COMPUTER: Vector2i(13, 11)}
 const COST := {"barracks": 6, "worker": 4, "melee": 3, "ranged": 4}
 const TRAIN_TICKS := {"worker": 40, "melee": 45, "ranged": 55}
@@ -39,8 +39,8 @@ const AI_DISTRICT_TICK := 2400
 const DISTRICT_MIN := Vector2i(8, 8)
 const DISTRICT_MAX := Vector2i(11, 11)
 const HOLD_TICKS := 750
-const GAME_VERSION := "godot-4.7.2-skirmish-11"
-const CONTENT_VERSION := "la-roma-world-5"
+const GAME_VERSION := "godot-4.7.2-skirmish-12"
+const CONTENT_VERSION := "la-roma-world-6"
 const COMMAND_SCHEMA_VERSION := 3
 const STATE_SCHEMA_VERSION := 8
 const AI_LEVELS := ["learner", "standard", "challenger"]
@@ -1411,7 +1411,7 @@ func _ai_build(kind: String, side: int = COMPUTER) -> bool:
 	var preferred := _team_start_point(content.map.barracks_positions, side)
 	if kind == "barracks":
 		for worker_id in worker_ids:
-			if issue(side, "build", worker_id, {"kind": kind, "pos": preferred}).ok:
+			if _ai_try_build(side, kind, worker_id, preferred):
 				return true
 	var post_id := _find(side, "command_post")
 	if post_id == -1:
@@ -1424,9 +1424,23 @@ func _ai_build(kind: String, side: int = COMPUTER) -> bool:
 				if _distance(at, post.pos) != radius or not _clear_footprint(at):
 					continue
 				for worker_id in worker_ids:
-					if issue(side, "build", worker_id, {"kind": kind, "pos": at}).ok:
+					if _ai_try_build(side, kind, worker_id, at):
 						return true
 	return false
+
+func _ai_try_build(side: int, kind: String, worker_id: int, at: Vector2i) -> bool:
+	# Candidate search is speculative. Check the future footprint and worker
+	# approach before issuing a command so failed probes do not interrupt work.
+	if not _clear_footprint(at):
+		return false
+	pending_footprint = at
+	var routes_open := _build_preserves_worker_routes(side)
+	var worker: Dictionary = entities[worker_id]
+	var route := _route_until(worker.pos, func(tile: Vector2i) -> bool: return _distance_to_footprint(tile, at) == 1)
+	pending_footprint = Vector2i(-1, -1)
+	if not routes_open or route.is_empty() and _distance_to_footprint(worker.pos, at) != 1:
+		return false
+	return issue(side, "build", worker_id, {"kind": kind, "pos": at}).ok
 
 func _ai_issue_waypoint(actor_id: int, preferred: Vector2i, side: int = COMPUTER) -> bool:
 	for offset in [Vector2i.ZERO, Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN,
