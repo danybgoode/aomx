@@ -30,7 +30,7 @@ The stacked draft branches now reach game version `godot-4.7.2-skirmish-12`, wor
 | Windows | `dist/platform/platform-5c03ab34bdcf/windows/battle-for-la-roma.exe` and `.pck` | Export succeeded; no physical Windows QA |
 | Linux | `dist/platform/platform-5c03ab34bdcf/linux/battle-for-la-roma.x86_64` and `.pck` | Export succeeded; no physical Linux QA |
 
-The newly built [owner-private entry page](https://battle-for-la-roma-private-pilot.jokeyquail1.chatgpt.site) links to the existing Restricted itch.io Web and macOS pilots. It is a separate static Site, version 1, with owner-only access and no external viewers or groups. It is not the requested public `battleforlaroma.com` domain or a game-build deployment.
+The newly built [owner-private entry page](https://battle-for-la-roma-private-pilot.jokeyquail1.chatgpt.site) links to the existing Restricted itch.io Web and macOS pilots. It is a separate static Site, version 2, with owner-only access and no external viewers or groups. It is not the requested public `battleforlaroma.com` domain or a game-build deployment.
 
 ## Local component evidence
 
