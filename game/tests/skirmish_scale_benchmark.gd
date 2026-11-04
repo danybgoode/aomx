@@ -36,6 +36,10 @@ func _initialize() -> void:
 		var definitions: Dictionary = loaded.data.duplicate(true)
 		definitions.map.width = settings.edge
 		definitions.map.height = settings.edge
+		# The 20x20 synthetic benchmark predates the authored 28x28 resource layout.
+		# Keep its second material site inside its temporary map without changing live content.
+		if settings.edge < 28:
+			definitions.resources.materiales.source_positions[1] = [12, 18]
 		var game = Skirmish.new(Skirmish.REGIOS, definitions)
 		var ids: Array[int] = []
 		for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
