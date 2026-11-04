@@ -103,3 +103,11 @@ Build a local desktop slice, check current Godot client and simulation contracts
 ## Owner finding · 2026-10-23
 
 The owner's `preview-222748c6be7a` screenshot at the currently labeled 200% scale shows clipped and overlapping objectives, settings, selection, command and context content. The owner finds this physical text size appropriate as the new 100% default and also reports competing persistent unit indicators. Treat these as open severe S3.3/DoD findings; the previous local captures do not close them. The [review and proposed interface contract](../../00-ideas/audits/2026-10-23-owner-interface-movement-map.md) records the exact states and acceptance checks. D2's 150% footprint cap needs a revised design before owner acceptance.
+
+## Approved landing and home references · 2026-11-04
+
+The owner approved `battle-for-la-roma-landing-lore-v3.html` and `battle-for-la-roma-match-setup-lore-v2.html` as the visual, UX and writing references for the public landing page and native home screen. The player outcome is a readable match configuration flow that starts the existing solo game without losing save/resume, campaign, private join or replay access. The public page explains the fiction and the currently available play without implying a public release.
+
+This slice uses the existing `skirmish_main.gd` setup and action methods. Faction selection now precedes a fixed Start action; the existing mode, map, objective, difficulty, invite and saved-match state remain the source of truth. Development exposes the implemented campaign chapter for local tests; preview and production obey its served flag. Wonder remains limited to La Roma 28×28 and its served flag. The landing is a static artifact in `landing/` and has no configured public hosting target. The supplied concept images are local assets, with no remote image runtime.
+
+Acceptance checks: render the native setup at 1280×800 and 390×844; confirm readable controls, scroll and touch-sized launch; run solo start, campaign, Wonder save, solo resume, private match and replay regressions; inspect the landing at desktop and phone widths, its faction switch and availability FAQ. The local results are recorded in the implementation branch. Signed downloaded-build QA, uncoached tasks and a public-site deployment decision remain open under this epic's existing DoD.
