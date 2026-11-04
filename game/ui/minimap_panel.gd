@@ -45,7 +45,7 @@ func _draw() -> void:
 	draw_texture_rect(terrain_texture, inner, false)
 	if sim != null:
 		var resource_colors := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
-		for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+		for side in sim._sides():
 			for id in Skirmish.RESOURCE_IDS:
 				var sites: Array = [sim.resource_sources[side][id]]
 				if sim.expansion_sources[side].has(id):
@@ -61,9 +61,9 @@ func _draw() -> void:
 		for field in sim.food_fields[Skirmish.HUMAN]:
 			draw_circle(_point(inner, field.pos), 2.5, resource_colors.comida)
 		for entity in sim.entities.values():
-			if entity.hp <= 0 or (entity.side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
+			if entity.hp <= 0 or (sim._is_enemy(Skirmish.HUMAN, entity.side) and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue
-			var c: Color = Color("70d5e7") if entity.side == Skirmish.HUMAN else Color("ed796a")
+			var c: Color = Color("70d5e7") if sim._team(entity.side) == 0 else Color("ed796a")
 			var p := _point(inner, entity.pos)
 			if entity.kind in sim.content.buildings:
 				draw_rect(Rect2(p - Vector2(4, 4), Vector2(8, 8)), c)

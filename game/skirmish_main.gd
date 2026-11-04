@@ -54,6 +54,7 @@ var selected_objective := "la_roma"
 var setup_objective: OptionButton
 var setup_objective_label: Label
 var campaign_mode := false
+var team_mode := false
 var selected_mission := "arrival_copilco"
 var campaign_progress_path := CampaignProgress.PATH
 var campaign_flag_path := CampaignFlagCache.PATH
@@ -441,6 +442,7 @@ func _restart_match() -> void:
 		return
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
+	team_mode = sim.team_mode
 	_start_match(sim.factions[Skirmish.HUMAN], sim.ai_difficulty)
 	hud_ui.show_notice("New match started")
 
@@ -592,6 +594,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_mode = OptionButton.new()
 	setup_mode.add_item("Solo skirmish")
 	setup_mode.add_item("Campaign chapter")
+	setup_mode.add_item("2 v 2 · You + AI ally vs two AI opponents")
 	setup_mode.set_item_disabled(1, not _campaign_allowed())
 	setup_mode.item_selected.connect(_choose_mode)
 	setup_mode.custom_minimum_size.y = 42
@@ -800,6 +803,8 @@ func _layout_setup() -> void:
 		var selected := CampaignMissions.find_mission(selected_mission)
 		if selected.ok:
 			setup_goal.text = selected.data.description
+	elif team_mode:
+		setup_goal.text = "2 v 2 Conquest: destroy both opposing command posts. Your AI ally has its own economy."
 	elif selected_objective == "conquest":
 		setup_goal.text = "Conquest: destroy the opposing command post. Holding the center does not win."
 	elif selected_objective == "wonder":
@@ -912,11 +917,20 @@ func _choose_faction(faction: String) -> void:
 
 func _choose_mode(index: int) -> void:
 	campaign_mode = index == 1 and _campaign_allowed()
-	setup_mode.select(1 if campaign_mode else 0)
+	team_mode = index == 2
+	setup_mode.select(1 if campaign_mode else 2 if team_mode else 0)
+	if team_mode:
+		selected_map = "la_roma_large"
+		setup_map.select(Skirmish.MAP_IDS.find(selected_map))
+		selected_objective = "conquest"
+		setup_objective.select(Skirmish.OBJECTIVE_IDS.find(selected_objective))
+		_choose_map(Skirmish.MAP_IDS.find(selected_map))
 	_refresh_campaign_setup()
 	_layout_setup()
 
 func _choose_objective(index: int) -> void:
+	if team_mode:
+		return
 	_refresh_wonder_setup()
 	if index < 0 or index >= Skirmish.OBJECTIVE_IDS.size() or setup_objective.is_item_disabled(index):
 		return
@@ -937,9 +951,9 @@ func _refresh_campaign_setup() -> void:
 	if campaign_mode and not _campaign_allowed():
 		campaign_mode = false
 		setup_mode.select(0)
-	setup_map.disabled = campaign_mode
-	setup_objective_label.visible = not campaign_mode
-	setup_objective.visible = not campaign_mode
+	setup_map.disabled = campaign_mode or team_mode
+	setup_objective_label.visible = not campaign_mode and not team_mode
+	setup_objective.visible = not campaign_mode and not team_mode
 	setup_mission.visible = campaign_mode
 	setup_campaign_note.visible = campaign_mode
 	if not campaign_mode:
@@ -977,7 +991,7 @@ func _choose_map(index: int) -> void:
 		elif selected_map in ["la_roma_medium", "la_roma_large"]:
 			var board_size := 56 if selected_map == "la_roma_medium" else 96
 			setup_map_details.text = "A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match." % [board_size, board_size]
-			setup_goal.text = "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
+			setup_goal.text = "Two teams, four independent economies. Destroy both opposing command posts to win." if team_mode else "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
 		else:
 			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
 			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
@@ -1130,9 +1144,10 @@ func _resume_match() -> void:
 	selected_objective = sim.objective_id
 	setup_objective.select(Skirmish.OBJECTIVE_IDS.find(selected_objective))
 	selected_mission = sim.mission_id if campaign_mode else "arrival_copilco"
-	setup_mode.select(1 if campaign_mode else 0)
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
+	team_mode = sim.team_mode
+	setup_mode.select(2 if team_mode else 1 if campaign_mode else 0)
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
 	# A running saved match keeps its pinned objective even if a newer served flag is off.
@@ -1420,7 +1435,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
 	var map_seed := next_map_seed if selected_map in ["la_roma_medium", "la_roma_large"] and not campaign_mode else 1
-	sim = Skirmish.new(faction, {}, map_seed, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective)
+	sim = Skirmish.new(faction, {}, map_seed, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective, team_mode)
 	outbox.content_version = sim.content.content_id
 	paused = false
 	hud_ui.pause_button.text = "II"
@@ -1719,7 +1734,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					sim.feedback = "Select your unit or building."
 		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_id != -1 and sim.entities.has(selected_id):
 			var selected: Dictionary = sim.entities[selected_id]
-			var target_id: int = _pick_visual_entity(event.position, Skirmish.COMPUTER)
+			var target_id: int = _pick_visual_entity(event.position, -1)
 			if target_id == -1:
 				target_id = sim.entity_at(tile)
 			var source_site := _source_site_at(event.position, tile)
@@ -1727,7 +1742,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_issue_order("gather", source_site.source.pos, source_site.source.pos)
 			elif selected.kind == "worker" and target_id != -1 and sim.entities[target_id].side == Skirmish.HUMAN and sim.entities[target_id].kind in sim.content.buildings:
 				_issue_order("assist" if not sim.entities[target_id].complete else "repair", target_id, sim.entities[target_id].pos)
-			elif _command_state("attack").visible and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[target_id]):
+			elif _command_state("attack").visible and target_id != -1 and sim._is_enemy(Skirmish.HUMAN, sim.entities[target_id].side) and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[target_id]):
 				_issue_order("attack", target_id, sim.entities[target_id].pos)
 			elif _command_state("move").visible:
 				var moved: Dictionary = _issue_order("move", tile, tile)
@@ -2277,10 +2292,10 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 			else:
 				_flash_order(tile, "Click a friendly building.", false)
 		"attack":
-			var enemy_id: int = _pick_visual_entity(screen, Skirmish.COMPUTER)
+			var enemy_id: int = _pick_visual_entity(screen, -1)
 			if enemy_id == -1:
 				enemy_id = sim.entity_at(tile)
-			if enemy_id != -1 and sim.entities[enemy_id].side == Skirmish.COMPUTER and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_id]):
+			if enemy_id != -1 and sim._is_enemy(Skirmish.HUMAN, sim.entities[enemy_id].side) and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_id]):
 				result = _issue_order("attack", enemy_id, sim.entities[enemy_id].pos)
 			else:
 				_flash_order(tile, "Click an enemy unit or post.", false)
@@ -2326,7 +2341,7 @@ func _update_hud() -> void:
 	if not campaign_mode and sim.objective_id == "conquest":
 		ui.objective_progress.value = 0
 		ui.objective_progress.max_value = 1
-		ui.objective_alternative.text = "Center hold is disabled."
+		ui.objective_alternative.text = "Destroy both enemy posts." if sim.team_mode else "Center hold is disabled."
 	if not campaign_mode and sim.objective_id == "wonder":
 		ui.objective_progress.max_value = int(sim.content.objectives.wonder_hold_ticks)
 		ui.objective_progress.value = sim.wonder_progress[Skirmish.HUMAN]
@@ -2351,6 +2366,12 @@ func _update_hud() -> void:
 		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	if not campaign_mode and sim.objective_id == "conquest":
 		ui.secondary_status.text = "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s" % [own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+		if sim.team_mode:
+			var ally_post := sim._find(Skirmish.ALLY, "command_post")
+			var second_post := sim._find(Skirmish.SECOND_OPPONENT, "command_post")
+			var ally_hp: int = maxi(0, sim.entities[ally_post].hp) if ally_post != -1 else 0
+			var second_hp: int = maxi(0, sim.entities[second_post].hp) if second_post != -1 and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[second_post]) else -1
+			ui.secondary_status.text = "2 v 2 Conquest · destroy both enemy posts\nOur posts: %d / %d HP\nEnemy posts: %s / %s" % [own_hp, ally_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen", str(second_hp) + " HP" if second_hp >= 0 else "unseen"]
 	if not campaign_mode and sim.objective_id == "wonder":
 		ui.secondary_status.text = "You: %s\nAI: %s\nPosts: %d HP / %s" % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER), own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	var group_signature := str(selected_ids)
@@ -2760,7 +2781,7 @@ func _pick_visual_entity(screen: Vector2, side: int) -> int:
 		for id in ids:
 			var entity: Dictionary = sim.entities[id]
 			var is_building: bool = entity.kind in sim.content.buildings
-			if entity.side != side or is_building != want_building or (side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
+			if (not sim._is_enemy(Skirmish.HUMAN, entity.side) if side == -1 else entity.side != side) or is_building != want_building or (side == -1 and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue
 			var scale := 1.0 if is_building else UNIT_ART_SCALE
 			var delta := (board - _actor_ground(entity)) / scale
@@ -2787,9 +2808,18 @@ func _source_sites(side: int) -> Array[Dictionary]:
 			sites.append({"id": source.resource_id, "source": source})
 	return sites
 
+func _pickable_source_sites() -> Array[Dictionary]:
+	var sites := _source_sites(Skirmish.HUMAN)
+	if sim.team_mode:
+		for side in [Skirmish.COMPUTER, Skirmish.ALLY, Skirmish.SECOND_OPPONENT]:
+			for site in _source_sites(side):
+				if not site.get("field", false):
+					sites.append(site)
+	return sites
+
 func _pick_visual_site(screen: Vector2) -> Dictionary:
 	var board := _screen_to_board(screen)
-	for site in _source_sites(Skirmish.HUMAN):
+	for site in _pickable_source_sites():
 		var source: Dictionary = site.source
 		if int(source.get("amount", 0)) <= 0 or not sim.is_visible(Skirmish.HUMAN, source.pos):
 			continue
@@ -2806,7 +2836,7 @@ func _source_site_at(screen: Vector2, tile: Vector2i) -> Dictionary:
 	var site := _pick_visual_site(screen)
 	if not site.is_empty():
 		return site
-	for candidate in _source_sites(Skirmish.HUMAN):
+	for candidate in _pickable_source_sites():
 		var source: Dictionary = candidate.source
 		if source.get("pos", Vector2i(-1, -1)) == tile and int(source.get("amount", 0)) > 0 and sim.is_visible(Skirmish.HUMAN, tile):
 			return candidate
@@ -2835,7 +2865,7 @@ func _refresh_hover() -> void:
 		next_site = _pick_visual_site(screen)
 	var next_source: String = str(next_site.get("id", ""))
 	if next_entity == -1 and next_site.is_empty() and _selected_kind() in Skirmish.COMBAT_KINDS:
-		next_entity = _pick_visual_entity(screen, Skirmish.COMPUTER)
+		next_entity = _pick_visual_entity(screen, -1)
 	if next_entity != hovered_entity_id or next_source != hovered_source_id:
 		hovered_entity_id = next_entity
 		hovered_source_id = next_source
@@ -2889,7 +2919,7 @@ func _terrain_id(tile: Vector2i) -> String:
 	return "%s%s_%d" % [prefix, kind, 0 if sim.map_id in ["la_roma_medium", "la_roma_large"] else posmod(tile.x * 13 + tile.y * 7, 4)]
 
 func _faction_color(side: int) -> String:
-	return "blue" if side == Skirmish.HUMAN else "red"
+	return "blue" if sim._team(side) == 0 else "red"
 
 func _district_color() -> Color:
 	match sim.district_state:
@@ -2948,7 +2978,7 @@ func _draw() -> void:
 		draw_texture(art.texture(medallion_id), _tile_to_screen(center_tile) - art.pivot(medallion_id), landmark_tint)
 	if sim.map_id in ["narvarte", "copilco"]:
 		draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), MAP_NAMES[sim.map_id].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
-	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+	for side in sim._sides():
 		for site in _source_sites(side):
 			var resource_id: String = site.id
 			var source: Dictionary = site.source
@@ -2966,7 +2996,7 @@ func _draw() -> void:
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
-		if e.side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, e):
+		if sim._is_enemy(Skirmish.HUMAN, e.side) and not sim.is_entity_visible(Skirmish.HUMAN, e):
 			continue
 		var is_building: bool = e.kind in sim.content.buildings
 		var ground := _actor_ground(e)
@@ -3019,7 +3049,7 @@ func _draw() -> void:
 			var bar_y := -art.pivot(art_id).y * art_scale - 4.0
 			draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))
 			draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
-				Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
+				Color("67d69a") if sim._team(e.side) == 0 else Color("e76b62"))
 		if not is_building and e.job == "attack" and e.cooldown > Skirmish.COOLDOWN.get(e.kind, 1) - 2:
 			draw_circle(ground + Vector2(10 * art_scale * unit_facing.get(id, 1), -22 * art_scale + bob), 3.0, Color("ffe2a1"))
 		if not is_building and e.kind == "worker" and e.carry > 0:
