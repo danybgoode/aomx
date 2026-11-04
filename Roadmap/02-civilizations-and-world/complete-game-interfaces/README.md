@@ -103,3 +103,7 @@ Build a local desktop slice, check current Godot client and simulation contracts
 ## Owner finding · 2026-10-23
 
 The owner's `preview-222748c6be7a` screenshot at the currently labeled 200% scale shows clipped and overlapping objectives, settings, selection, command and context content. The owner finds this physical text size appropriate as the new 100% default and also reports competing persistent unit indicators. Treat these as open severe S3.3/DoD findings; the previous local captures do not close them. The [review and proposed interface contract](../../00-ideas/audits/2026-10-23-owner-interface-movement-map.md) records the exact states and acceptance checks. D2's 150% footprint cap needs a revised design before owner acceptance.
+
+## Owner home-screen follow-up · 2026-11-04
+
+The owner made the entry screen a priority and supplied `references/homescreenart/homescreen.jpg`. The new [local review](../../../docs/interface-review/home-screen-followup.md) records the live logo/tagline/navigation layout, desktop and narrow captures, and focused client checks. The player outcome is a clear route from opening the game to a new solo match, available campaign, private join, controls and settings. This is builder evidence only; the signed downloaded owner acceptance gate above remains open. No public mode or new funnel event was added.

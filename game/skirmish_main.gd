@@ -39,6 +39,12 @@ var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_background: TextureRect
 var setup_logo: Label
+var setup_logo_accent: Label
+var setup_tagline_panel: PanelContainer
+var setup_navigation: VBoxContainer
+var setup_campaign_nav: Button
+var setup_scroll: ScrollContainer
+var setup_help_dialog: AcceptDialog
 var setup_choice_grid: GridContainer
 var setup_start: Button
 var setup_column: VBoxContainer
@@ -510,11 +516,50 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(setup_background)
 	setup_logo = Label.new()
-	setup_logo.text = "BATTLE FOR\nLA ROMA"
-	setup_logo.add_theme_color_override("font_color", Color("f7d47b"))
-	setup_logo.add_theme_color_override("font_outline_color", Color("101d28"))
-	setup_logo.add_theme_constant_override("outline_size", 6)
+	setup_logo.text = "BATTLE FOR"
+	setup_logo.add_theme_color_override("font_color", Color("fff1d5"))
+	setup_logo.add_theme_color_override("font_outline_color", Color("071525"))
+	setup_logo.add_theme_constant_override("outline_size", 9)
 	setup_background.add_child(setup_logo)
+	setup_logo_accent = Label.new()
+	setup_logo_accent.text = "LA ROMA"
+	setup_logo_accent.add_theme_color_override("font_color", Color("ea354f"))
+	setup_logo_accent.add_theme_color_override("font_outline_color", Color("071525"))
+	setup_logo_accent.add_theme_constant_override("outline_size", 11)
+	setup_background.add_child(setup_logo_accent)
+	setup_tagline_panel = PanelContainer.new()
+	setup_tagline_panel.add_theme_stylebox_override("panel", preload("res://ui/hud_skin.gd").panel(8, true))
+	setup_background.add_child(setup_tagline_panel)
+	var tagline := Label.new()
+	tagline.text = "CONQUISTA LA CIUDAD\nSOBREVIVE A LA GENTRIFICACIÓN"
+	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tagline.add_theme_color_override("font_color", Color("f7d47b"))
+	tagline.add_theme_font_size_override("font_size", 15)
+	setup_tagline_panel.add_child(tagline)
+	setup_navigation = VBoxContainer.new()
+	setup_navigation.add_theme_constant_override("separation", 8)
+	setup_background.add_child(setup_navigation)
+	for entry in [["PARTIDA RÁPIDA", "quick"], ["CAMPAÑA", "campaign"], ["MULTIJUGADOR", "multiplayer"], ["CÓMO JUGAR", "help"], ["AJUSTES", "settings"], ["SALIR", "exit"]]:
+		if entry[1] == "exit" and OS.has_feature("web"):
+			continue
+		var nav_button := Button.new()
+		nav_button.text = entry[0]
+		nav_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		nav_button.custom_minimum_size.y = 50
+		nav_button.add_theme_font_size_override("font_size", 19)
+		preload("res://ui/hud_skin.gd").apply_button(nav_button)
+		if entry[1] == "quick":
+			nav_button.add_theme_stylebox_override("normal", preload("res://ui/hud_skin.gd").button(Color("a32542"), Color("ffd78a")))
+		if entry[1] == "campaign":
+			setup_campaign_nav = nav_button
+			nav_button.disabled = not _campaign_allowed()
+			nav_button.tooltip_text = "Campaign opens when its private alpha flag is enabled." if nav_button.disabled else "Open the campaign chapter."
+		nav_button.pressed.connect(_setup_navigation_action.bind(entry[1]))
+		setup_navigation.add_child(nav_button)
+	setup_help_dialog = AcceptDialog.new()
+	setup_help_dialog.title = "CÓMO JUGAR"
+	setup_help_dialog.dialog_text = "Select a worker with left click. Right click a resource to gather it. Build a post to recruit units. Use the minimap or move the pointer to any screen edge to pan the camera. Win by meeting the selected objective."
+	add_child(setup_help_dialog)
 	setup_panel = PanelContainer.new()
 	setup_panel.position = Vector2(235, 105)
 	setup_panel.size = Vector2(810, 420)
@@ -526,6 +571,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 		margin.add_theme_constant_override("margin_" + side, 24)
 	setup_panel.add_child(margin)
 	var scroll := ScrollContainer.new()
+	setup_scroll = scroll
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	margin.add_child(scroll)
@@ -755,6 +801,23 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_root.add_child(setup_start)
 	_select_faction(selected_faction)
 
+func _setup_navigation_action(action: String) -> void:
+	match action:
+		"quick":
+			_choose_mode(0)
+			setup_scroll.scroll_vertical = 0
+		"campaign":
+			_choose_mode(1)
+			setup_scroll.scroll_vertical = 0
+		"multiplayer":
+			setup_online_code.grab_focus()
+		"help":
+			setup_help_dialog.popup_centered(Vector2i(520, 280))
+		"settings":
+			setup_ui_scale.grab_focus()
+		"exit":
+			get_tree().quit()
+
 func _setup_section(grid: GridContainer, heading: String) -> VBoxContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -789,9 +852,22 @@ func _layout_setup() -> void:
 	var mobile := view.x < 1000.0 or view.y < 650.0
 	var landscape := layout_view.x > layout_view.y
 	setup_choice_grid.columns = 1 if mobile else 2
-	setup_logo.position = Vector2(24, 22)
-	setup_logo.size = Vector2(270 if not mobile else view.x - 36, 126)
-	setup_logo.add_theme_font_size_override("font_size", 45 if not mobile else 32)
+	setup_logo.text = "BATTLE FOR LA ROMA" if mobile else "BATTLE FOR"
+	setup_logo.position = Vector2(20, 16)
+	setup_logo.size = Vector2(view.x - 36 if mobile else view.x * 0.22 - 20, 70)
+	setup_logo.add_theme_font_size_override("font_size", 30 if mobile else 37)
+	setup_logo_accent.visible = not mobile
+	setup_tagline_panel.visible = not mobile
+	setup_navigation.visible = not mobile
+	if not mobile:
+		var rail_width := minf(360.0, view.x * 0.23 - 42.0)
+		setup_logo_accent.position = Vector2(18, 75)
+		setup_logo_accent.size = Vector2(rail_width, 90)
+		setup_logo_accent.add_theme_font_size_override("font_size", 68 if view.x > 1450.0 else 52)
+		setup_tagline_panel.position = Vector2(20, 166)
+		setup_tagline_panel.size = Vector2(rail_width, 62)
+		setup_navigation.position = Vector2(20, 270)
+		setup_navigation.size = Vector2(rail_width, 370)
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
 		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
@@ -948,6 +1024,8 @@ func _refresh_campaign_setup() -> void:
 	if setup_mission == null or setup_campaign_note == null:
 		return
 	setup_mode.set_item_disabled(1, not _campaign_allowed())
+	if setup_campaign_nav != null:
+		setup_campaign_nav.disabled = not _campaign_allowed()
 	if campaign_mode and not _campaign_allowed():
 		campaign_mode = false
 		setup_mode.select(0)
