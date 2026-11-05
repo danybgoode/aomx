@@ -59,13 +59,9 @@ func _initialize() -> void:
 	check(waiting.issue(Skirmish.HUMAN, "move", blocked_unit, Vector2i(6, 10)).ok, "occupied destination order accepted")
 	for i in 100:
 		waiting.tick()
-	check(waiting.entities[blocked_unit].job == "move" and waiting.entities[blocked_unit].blocked_ticks >= 90,
-		"fully occupied destination remains an explicit retrying order")
-	waiting.entities[parked_target].pos = Vector2i(8, 10)
-	for i in 45:
-		waiting.tick()
-	check(waiting.entities[blocked_unit].pos == Vector2i(6, 10) and waiting.entities[blocked_unit].job == "idle",
-		"blocked move completes when its occupied destination clears")
+	check(waiting.entities[blocked_unit].job == "idle" and waiting.entities[blocked_unit].pos != waiting.entities[parked_target].pos
+		and waiting._distance(waiting.entities[blocked_unit].pos, Vector2i(6, 10)) <= 3,
+		"occupied friendly destination settles at a nearby free tile")
 	var changed_lane = Skirmish.new()
 	changed_lane.ai_enabled = false
 	var lane_unit := changed_lane._add_entity(Skirmish.HUMAN, "melee", Vector2i(4, 10))

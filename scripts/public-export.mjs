@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { gameVersion, currentContentVersion } from '../src/alpha/versions.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const godot = process.env.GODOT_BIN ?? 'godot';
@@ -23,7 +24,7 @@ try {
   const project = path.join(game, 'project.godot');
   fs.writeFileSync(project, fs.readFileSync(project, 'utf8')
     .replace('config/name="Battle for La Roma — RTS Prototype"', 'config/name="Battle for La Roma"')
-    .replace('config/custom_user_dir_name="BattleForLaRomaPrototype"', 'config/custom_user_dir_name="BattleForLaRomaPublic"'));
+    .replace('config/custom_user_dir_name="BattleForLaRomaPrototype"', 'config/custom_user_dir_name="BattleForLaRomaPublicExportQA"'));
   fs.writeFileSync(path.join(game, 'alpha_config.gd'), `extends RefCounted\nconst ENDPOINT := ""\nconst MATCH_ENDPOINT := ""\nconst TEST_ACCOUNT := true\nconst CHANNEL := "public"\nconst BUILD_ID := ${JSON.stringify(buildId)}\nconst SIMULATION_HASH := ""\n`);
   fs.mkdirSync(output, { recursive: true });
   run(godot, ['--headless', '--path', game, '--import']);
@@ -40,12 +41,23 @@ func verify() -> void:
   assert(not scene.setup_mode.is_item_disabled(1), "Campaign choice must be enabled")
   assert(not scene.setup_objective.is_item_disabled(2), "Wonder choice must be enabled")
   assert(not scene.setup_online_code.visible, "Private invite entry must be hidden")
-  assert(scene.setup_nav.get_child_count() == 4, "Public navigation must omit private matches")
+  assert(scene.setup_map.get_item_count() == 5, "Public setup must include all five solo maps")
+  assert(not scene.setup_mode.is_item_disabled(2), "Public team skirmish must be available")
+  assert(not scene.setup_online_button.visible, "Public private join button must be hidden")
+  for button in scene.setup_navigation.get_children():
+    assert(button.text != "MULTIJUGADOR", "Public navigation must omit private matches")
+  scene._choose_map(3)
+  scene._choose_objective(2)
+  assert(scene.selected_objective == "wonder", "Medium map Wonder must remain available")
+  scene._choose_mode(2)
+  assert(scene.team_mode, "Public team skirmish must start from setup")
   print("Public channel setup checks passed")
   quit()
 `);
   run(godot, ['--headless', '--path', game, '--script', 'res://public_channel_smoke.gd']);
   fs.rmSync(smokePath);
+  fs.writeFileSync(project, fs.readFileSync(project, 'utf8')
+    .replace('config/custom_user_dir_name="BattleForLaRomaPublicExportQA"', 'config/custom_user_dir_name="BattleForLaRomaPublic"'));
   const macZip = path.join(output, `battle-for-la-roma-${buildId}-macos.zip`);
   run(godot, ['--headless', '--path', game, '--export-release', 'macOS', macZip]);
   const web = path.join(work, 'web');
@@ -57,7 +69,9 @@ func verify() -> void:
     build_id: buildId,
     commit: sha,
     channel: 'public',
-    scope: 'offline solo; campaign and Wonder available; private multiplayer excluded',
+    game_version: gameVersion,
+    content_version: currentContentVersion,
+    scope: 'offline solo; five maps, campaign, Wonder and solo 2v2 available; private multiplayer excluded',
     macos: { file: path.basename(macZip), sha256: createHash('sha256').update(fs.readFileSync(macZip)).digest('hex') },
     web: { file: path.basename(webZip), sha256: createHash('sha256').update(fs.readFileSync(webZip)).digest('hex') },
   };

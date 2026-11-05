@@ -7,6 +7,7 @@ const WONDER_CONTENT_IDS := {
 	"la_roma": WONDER_CONTENT_ID,
 	"narvarte": "narvarte-wonder-1",
 	"copilco": "copilco-wonder-1",
+	"la_roma_medium": "la-roma-medium-wonder-1",
 	"la_roma_large": "la-roma-large-wonder-1",
 }
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
@@ -14,7 +15,8 @@ const UNIT_IDS := ["worker", "melee", "ranged", "armored", "siege"]
 const SCOUT_ID := "bicitaxi"
 const BUILDING_IDS := ["command_post", "barracks", "depot", "housing", "registry"]
 const FACTION_IDS := ["regios", "poblanos", "oaxaquenos", "veracruzanos"]
-const MAP_IDS := ["la_roma", "narvarte", "copilco", "la_roma_large"]
+const MAP_IDS := ["la_roma", "narvarte", "copilco", "la_roma_medium", "la_roma_large"]
+const EXPANSION_MAP_IDS := ["la_roma_medium", "la_roma_large"]
 const AGE_IDS := ["foranea", "universitaria", "godin", "gentrificacion"]
 const TECH_IDS := ["carry_capacity_i", "construction_rate_i", "combat_training_i", "cooperative_build_i", "street_exchange_i"]
 const EFFECT_IDS := ["carry_capacity", "construction_rate", "combat_training", "trade_bonus"]
@@ -47,7 +49,7 @@ static func load_map(map_id: String) -> Dictionary:
 	var data: Dictionary = base.data.duplicate(true)
 	data.map_id = map_id
 	data.map = overlay.get("map")
-	if map_id == "la_roma_large":
+	if map_id in EXPANSION_MAP_IDS:
 		if not overlay.get("expansion_sources") is Dictionary or not overlay.get("units") is Dictionary or not overlay.units.get(SCOUT_ID) is Dictionary:
 			return _bad("large_map_content_invalid")
 		data.units[SCOUT_ID] = overlay.units[SCOUT_ID]
@@ -55,7 +57,7 @@ static func load_map(map_id: String) -> Dictionary:
 		if not overlay.sources.get(resource_id) is Array:
 			return _bad("map_sources_invalid")
 		data.resources[resource_id].source_positions = overlay.sources[resource_id]
-		if map_id == "la_roma_large":
+		if map_id in EXPANSION_MAP_IDS:
 			data.resources[resource_id].expansion_positions = overlay.expansion_sources.get(resource_id)
 	var check := validate(data)
 	if not check.ok:
@@ -112,7 +114,7 @@ static func validate(value: Variant) -> Dictionary:
 				return _bad("invalid_%s_positions" % id)
 			if not map_check.reachable.has(Vector2i(int(point[0]), int(point[1]))):
 				return _bad("inaccessible_%s_source" % id)
-		if d.map_id == "la_roma_large":
+		if d.map_id in EXPANSION_MAP_IDS:
 			if not source.get("expansion_positions") is Array or source.expansion_positions.size() != 2:
 				return _bad("invalid_%s_expansion_positions" % id)
 			for point in source.expansion_positions:
@@ -142,7 +144,20 @@ static func validate(value: Variant) -> Dictionary:
 				if tile.x >= int(d.map.width) or tile.y >= int(d.map.height) or not map_check.reachable.has(tile) or source_tiles.has(tile) or occupied_anchors.has(tile):
 					return _bad("map_building_footprint_invalid")
 				occupied_anchors[tile] = true
-	if d.map_id == "la_roma_large":
+	if d.map_id in EXPANSION_MAP_IDS:
+		if not d.map.get("discovery_sources") is Dictionary or d.map.discovery_sources.size() != RESOURCE_IDS.size():
+			return _bad("map_discovery_sources_invalid")
+		for resource_id in RESOURCE_IDS:
+			var sites: Variant = d.map.discovery_sources.get(resource_id)
+			if not sites is Array or sites.size() != 2:
+				return _bad("map_discovery_sources_invalid")
+			for point in sites:
+				if not _point(point, int(d.map.width), int(d.map.height)):
+					return _bad("map_discovery_sources_invalid")
+				var tile := Vector2i(int(point[0]), int(point[1]))
+				if not map_check.reachable.has(tile) or source_tiles.has(tile) or occupied_anchors.has(tile):
+					return _bad("map_discovery_sources_invalid")
+				source_tiles[tile] = true
 		if not d.map.get("scouts") is Array or d.map.scouts.size() != 2:
 			return _bad("map_scouts_invalid")
 		for point in d.map.scouts:
@@ -151,7 +166,7 @@ static func validate(value: Variant) -> Dictionary:
 			var tile := Vector2i(int(point[0]), int(point[1]))
 			if not map_check.reachable.has(tile) or source_tiles.has(tile) or occupied_anchors.has(tile):
 				return _bad("map_scouts_invalid")
-	if not _known_keys(d.units, UNIT_IDS + ([SCOUT_ID] if d.map_id == "la_roma_large" else [])):
+	if not _known_keys(d.units, UNIT_IDS + ([SCOUT_ID] if d.map_id in EXPANSION_MAP_IDS else [])):
 		return _bad("unit_ids_invalid")
 	for id in d.units:
 		var u: Dictionary = d.units[id]

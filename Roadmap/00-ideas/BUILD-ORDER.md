@@ -10,11 +10,10 @@
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
 
-## Backlog (2)
+## Backlog (1)
 
 _seeds with no pitch yet._
 
-- [Prove cross-platform play](seeds/prove-cross-platform-play.md) — #22 · 09 Platform And Measurement · seed · Feature · risk: High · _docs: status raw_
 - [Prepare a release candidate](seeds/prepare-release-candidate.md) — #23 · 09 Platform And Measurement · seed · Feature · risk: Low · _docs: status raw_
 
 ## Refining (0)
@@ -23,7 +22,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (20)
+## Ready (21)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -46,7 +45,8 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Build the audio and effects identity](../02-civilizations-and-world/build-audio-and-effects-identity/README.md) — #19 · 02 Civilizations And World · 4/6 stories · risk: Low · appetite M · _docs: status in-progress_
 - [Build a large La Roma battlefield](../01-core-play/build-large-la-roma-battlefield/README.md) — #20 · 01 Core Play · 0/3 stories · risk: High · appetite L · _docs: status in-progress_
 - [Create the first campaign chapter](../03-multiplayer-and-retention/create-campaigns-and-scenarios/README.md) — #21 · 03 Multiplayer And Retention · 1/7 stories · risk: High · appetite M · _docs: status in-progress_
-- [Add more ways to play](../03-multiplayer-and-retention/add-more-ways-to-play/README.md) — #24 · 03 Multiplayer And Retention · 2/5 stories · risk: High · appetite M · _docs: status in-progress_
+- [Prove cross-platform play](../09-platform-and-measurement/prove-cross-platform-play/README.md) — #22 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status in-progress_
+- [Add more ways to play](../03-multiplayer-and-retention/add-more-ways-to-play/README.md) — #24 · 03 Multiplayer And Retention · 4/5 stories · risk: High · appetite M · _docs: status in-progress_
 
 ## Building — live only
 

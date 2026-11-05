@@ -2,13 +2,16 @@ extends SceneTree
 
 const Skirmish = preload("res://skirmish.gd")
 const Replay = preload("res://skirmish_replay.gd")
-const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v7.json"
+const FIXTURE_PATH := "res://tests/fixtures/cross-platform-hashes.v9.json"
 var failed := false
 
 func _initialize() -> void:
-	var fixture: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
-	check(fixture.schema_version == 7 and fixture.game_version == Skirmish.GAME_VERSION and fixture.content_version == Skirmish.CONTENT_VERSION,
-		"hash fixture is pinned to world content version")
+	var generating := OS.get_environment("GENERATE_WORLD_HASHES") == "1"
+	var fixture: Dictionary = {} if generating else JSON.parse_string(FileAccess.get_file_as_string(FIXTURE_PATH))
+	if not generating:
+		check(fixture.schema_version == 9 and fixture.game_version == Skirmish.GAME_VERSION and fixture.content_version == Skirmish.CONTENT_VERSION,
+			"hash fixture is pinned to world content version")
+	var cases := {}
 	for map_id in Skirmish.MAP_IDS:
 		for faction_index in Skirmish.FACTION_IDS.size():
 			var faction: String = Skirmish.FACTION_IDS[faction_index]
@@ -28,8 +31,12 @@ func _initialize() -> void:
 			var key: String = map_id + "_" + faction + "_700"
 			var hash: String = game.state_hash()
 			print("HASH_FIXTURE=%s:%s" % [key, hash])
-			check(fixture.cases.get(key) == hash, "cross-platform hash matches pinned fixture for " + key)
+			cases[key] = hash
+			if not generating:
+				check(fixture.cases.get(key) == hash, "cross-platform hash matches pinned fixture for " + key)
 			check(Replay.verify(Replay.record(game)).ok, "long command and AI replay for " + map_id + "/" + faction)
+	if generating:
+		print("WORLD_HASH_JSON=", JSON.stringify({"schema_version": 9, "godot": "4.7.2", "game_version": Skirmish.GAME_VERSION, "content_version": Skirmish.CONTENT_VERSION, "cases": cases}))
 	if not failed:
 		print("Cross-platform hash fixtures passed on " + OS.get_name())
 	quit(1 if failed else 0)

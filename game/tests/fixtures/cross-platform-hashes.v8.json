@@ -1,0 +1,24 @@
+{
+  "cases": {
+    "copilco_oaxaquenos_700": "ced120a4876332d863d0451f48792cb30a15bb94bccdc0825d4fe5a8951dc253",
+    "copilco_poblanos_700": "58fda2ff4c961a8eefda2f15136be7fa9073da5d2699d373ec87f8991be246c7",
+    "copilco_regios_700": "5b0fc802bfdde6aff45a27fa100ab33b7d2f5286c94965b2a12773e2826fd1ee",
+    "copilco_veracruzanos_700": "787ff92b8cbca714b32a314c8f59934b19a8c6eccaf7f6aefd95779eb297a395",
+    "la_roma_large_oaxaquenos_700": "73519302d88c65baabc4d5422de1f5dc3f76ed593c826b0ffba260d7691f0371",
+    "la_roma_large_poblanos_700": "235f1d155934414a39eb9f8a1dd2db842d6a6d302d1c192f8e82b504481bb9c4",
+    "la_roma_large_regios_700": "bc7d0c1c603e6c211bef54bfe14abfaef9398bacc9ba4143c027ebd245166b61",
+    "la_roma_large_veracruzanos_700": "29e2b00a77201d21b18d2e3e4bfc5ec2e6059ee32f644252cf1a6503b90b0442",
+    "la_roma_oaxaquenos_700": "cc7670d369f8612d721ac2a47d64d81614d4064ca902a5921c2d8a6190820811",
+    "la_roma_poblanos_700": "1c3c3c3d7cb18396d5f34569311f56e628bf67a4700ba58e651cc5573f27f6a7",
+    "la_roma_regios_700": "3cbf516fd56206c51a0443b7be982b7a9edffad402e78d88c7d53dab672c6ae1",
+    "la_roma_veracruzanos_700": "f60200285647345212d7e904471f3917d33a7b40d85625a9f8fde3edeef10f9f",
+    "narvarte_oaxaquenos_700": "ad0f7e28fd7f88070d8013c0df90d3e455cfb4522ac9470c67beb1bcda1eb169",
+    "narvarte_poblanos_700": "765b8144c875adbbd4d99f2fd2dbffbe193bce06c759615418d4c47bbb1bd695",
+    "narvarte_regios_700": "7daba8670a34f8728de67f412ae8880ea91a4e4d11b7f688799ce854a02ddd47",
+    "narvarte_veracruzanos_700": "a2b228cf42dd3d296275798fca3dbcb2e66003c80e4a4967ca929aa375224200"
+  },
+  "content_version": "la-roma-world-5",
+  "game_version": "godot-4.7.2-skirmish-9",
+  "godot": "4.7.2",
+  "schema_version": 8
+}

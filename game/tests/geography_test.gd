@@ -34,7 +34,7 @@ func _initialize() -> void:
 	invalid.maps[0].objective_anchor = [10, 8]
 	check(Geography.validate(invalid).reason == "geography_objective_blocked", "Cibeles anchor cannot be blocked")
 	var base := RulesContent.load_map("la_roma")
-	check(base.ok and base.data.content_id == Skirmish.CONTENT_VERSION, "existing v5 simulation content unchanged")
+	check(base.ok and base.data.content_id == Skirmish.CONTENT_VERSION, "versioned simulation content loads")
 	var game = Skirmish.new(Skirmish.REGIOS, {}, 41, "standard", "la_roma")
 	for resource_id in Skirmish.RESOURCE_IDS:
 		var distances: Array[int] = []
@@ -51,9 +51,9 @@ func _initialize() -> void:
 		objective_distances.append(objective_route.size())
 	check(absi(objective_distances[0] - objective_distances[1]) <= 2, "both sides have comparable Cibeles access")
 	var payload := Save.capture(game, "solo_0123456789abcdef0123456789abcdef")
-	check(Save.restore(payload).ok and Replay.verify(Replay.record(game)).ok, "v5 save and replay still reproduce")
+	check(Save.restore(payload).ok and Replay.verify(Replay.record(game)).ok, "versioned save and replay reproduce")
 	if not failed:
-		print("Geography checks passed: 16 references, safe authored map roles, fair access and v5 compatibility")
+		print("Geography checks passed: 16 references, safe authored map roles, fair access and current save/replay")
 	quit(1 if failed else 0)
 
 func check(ok: bool, label: String) -> void:

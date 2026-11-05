@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "content_id": "la-roma-world-5",
+  "content_id": "la-roma-world-6",
   "tick_ms": 100,
   "map": {
     "width": 28,
@@ -101,12 +101,12 @@
     ],
     "resource_positions": [
       [
-        6,
-        4
+        8,
+        2
       ],
       [
-        13,
-        15
+        18,
+        18
       ]
     ],
     "resource_amount": 60,
@@ -485,12 +485,12 @@
     "materiales": {
       "source_positions": [
         [
-          5,
-          5
+          2,
+          8
         ],
         [
-          12,
-          18
+          11,
+          21
         ]
       ],
       "amount": 80,
@@ -501,12 +501,12 @@
     "varos": {
       "source_positions": [
         [
-          6,
-          4
+          8,
+          2
         ],
         [
-          13,
-          15
+          18,
+          18
         ]
       ],
       "amount": 80,

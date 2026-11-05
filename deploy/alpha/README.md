@@ -148,6 +148,15 @@ off, restart the one-room process, and verify a current-version join returns
 `403 match_disabled` before leaving the host unattended. A flag switch itself
 does not interrupt an already connected match.
 
+For the cross-platform Web pilot, set `AOMX_MATCH_WEB_ORIGIN` in the server-only
+`match.env` to the exact Restricted Web origin, such as
+`https://pilot.example.test` (no path or trailing slash). Restart `match` and
+verify OPTIONS for the allowed origin and `403 origin_denied` for a different
+origin before enabling admission. Native clients send no Origin header and
+continue to use individual invite codes. Clear the variable and restart
+`match` after the Web smoke; the admission flag must also be off. Never use a
+wildcard origin or put a code, token, or signing key in the Web artifact.
+
 Build the signed Restricted preview with `AOMX_MATCH_URL` set to the HTTPS
 origin and `AOMX_INGEST_URL` set to its `/v1/events` endpoint. Verify the
 manifest commit, checksum, signature, fresh download and both clients'

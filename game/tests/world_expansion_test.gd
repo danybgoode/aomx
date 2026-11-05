@@ -52,7 +52,7 @@ func _initialize() -> void:
 				hold.district_progress = int(hold.content.objectives.district_hold_ticks) - 1
 				hold.tick()
 				check(hold.result == "win" and hold.result_reason == "district", "center-hold terminal: " + label)
-	check(hashes.size() == 4 and hashes.la_roma != hashes.narvarte and hashes.narvarte != hashes.copilco and hashes.copilco != hashes.la_roma_large,
+	check(hashes.size() == RulesContent.MAP_IDS.size() and hashes.la_roma != hashes.narvarte and hashes.narvarte != hashes.copilco and hashes.copilco != hashes.la_roma_medium and hashes.la_roma_medium != hashes.la_roma_large,
 		"map choices pin distinct content hashes")
 	var oax = Skirmish.new(Skirmish.OAXAQUENOS)
 	var ver = Skirmish.new(Skirmish.VERACRUZANOS)
@@ -93,7 +93,7 @@ func _initialize() -> void:
 	invalid.resources.varos.source_positions[0] = invalid.map.blocked_tiles[0]
 	check(RulesContent.validate(invalid).reason == "inaccessible_varos_source", "blocked map resource rejected")
 	if not failed:
-		print("World expansion checks passed: 4 factions x 4 maps x 3 AI levels, both terminals, save and replay")
+		print("World expansion checks passed: %d factions x %d maps x %d AI levels, both terminals, save and replay" % [Skirmish.FACTION_IDS.size(), RulesContent.MAP_IDS.size(), Skirmish.AI_LEVELS.size()])
 	quit(1 if failed else 0)
 
 func check(ok: bool, label: String) -> void:
