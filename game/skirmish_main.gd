@@ -36,6 +36,18 @@ var art = ArtCatalog.new()
 var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_panel: PanelContainer
+var setup_background: TextureRect
+var setup_scroll: ScrollContainer
+var setup_column: VBoxContainer
+var setup_cards: GridContainer
+var setup_nav: HBoxContainer
+var setup_start: Button
+var setup_summary: Label
+var setup_faction_detail: Label
+var setup_faction_grid: GridContainer
+var setup_lead: Label
+var setup_lore_text: Label
+var selected_setup_faction := Skirmish.REGIOS
 var setup_goal: Label
 var setup_difficulty: OptionButton
 var setup_difficulty_details: Label
@@ -421,250 +433,375 @@ func _starting_camera_tile() -> Vector2i:
 		return Vector2i(int(worker[0]), int(worker[1]))
 	return Vector2i(7, 7)
 
+func _setup_box(fill: Color, border: Color, radius: int = 10) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = fill
+	box.border_color = border
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(radius)
+	box.set_content_margin_all(12)
+	return box
+
+func _setup_button(button: Button, fill: Color = Color("1b3446"), border: Color = Color("9d7137")) -> void:
+	button.custom_minimum_size.y = 48
+	button.add_theme_stylebox_override("normal", _setup_box(fill, border, 8))
+	button.add_theme_stylebox_override("hover", _setup_box(Color("235267"), Color("ffe0a0"), 8))
+	button.add_theme_stylebox_override("pressed", _setup_box(Color("087e8c"), Color("ffe0a0"), 8))
+	button.add_theme_stylebox_override("focus", _setup_box(Color("087e8c"), Color("54dfcf"), 8))
+	button.add_theme_stylebox_override("disabled", _setup_box(Color("26313a"), Color("657075"), 8))
+	button.add_theme_color_override("font_color", Color("fff0d1"))
+	button.add_theme_color_override("font_disabled_color", Color("b8c6c9"))
+	button.add_theme_font_size_override("font_size", 16)
+
+func _setup_heading(text_value: String, size: int = 18) -> Label:
+	var label := Label.new()
+	label.text = text_value
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", Color("f4be64"))
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
+
+func _setup_card(title: String) -> VBoxContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _setup_box(Color("102333"), Color("9d7137")))
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	setup_cards.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 9)
+	panel.add_child(box)
+	box.add_child(_setup_heading(title))
+	return box
+
+func _setup_field(box: VBoxContainer, title: String, control: Control) -> void:
+	box.add_child(_setup_heading(title, 14))
+	control.custom_minimum_size.y = 48
+	box.add_child(control)
+
+func _scroll_to_setup(target: Control) -> void:
+	if setup_scroll != null and target != null:
+		setup_scroll.ensure_control_visible(target)
+
+func _show_setup_help() -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = "Cómo jugar"
+	dialog.dialog_text = "Recolecta Comida, Materiales, Varos y Terrenos. Construye, recluta y avanza por cuatro edades.\n\nEn La Roma ganas al destruir el puesto rival o mantener Cibeles durante 75 segundos. Conquista exige destruir el puesto.\n\nSelecciona unidades con clic o toque. Usa los botones de órdenes; en escritorio, clic derecho da órdenes directas. El menú de partida permite guardar, ajustar audio e interfaz."
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.close_requested.connect(dialog.queue_free)
+	add_child(dialog)
+	dialog.popup_centered(Vector2i(560, 350))
+
+func _open_setup_campaign() -> void:
+	if _campaign_allowed():
+		_choose_mode(1)
+		_scroll_to_setup(setup_mode)
+	else:
+		setup_save_error.text = "La campaña de tres misiones está implementada, pero aún no está habilitada en esta versión privada. Tu progreso se conserva."
+
+func _campaign_title(id: String) -> String:
+	return {"arrival_copilco": "Llegada a Copilco", "foothold_narvarte": "Base en Narvarte", "battle_la_roma": "Batalla por La Roma"}.get(id, id)
+
+func _campaign_description(id: String) -> String:
+	return {
+		"arrival_copilco": "Recolecta recursos, construye un puesto de reclutamiento y entrena a un combatiente.",
+		"foothold_narvarte": "Construye un depósito y mantén el centro marcado mientras tu rival puede disputarlo.",
+		"battle_la_roma": "Gana una batalla completa en La Roma Grande: destruye el puesto rival o mantén el centro."
+	}.get(id, "")
+
+func _select_setup_faction(faction: String) -> void:
+	selected_setup_faction = faction
+	var labels := {
+		Skirmish.REGIOS: "Regios · trabajadores cargan más; combatientes cuestan +1 Varo.",
+		Skirmish.POBLANOS: "Poblanos · edificios más resistentes; trabajadores cargan menos.",
+		Skirmish.OAXAQUENOS: "Oaxaqueños · recolección y construcción ágiles; edificios ligeros.",
+		Skirmish.VERACRUZANOS: "Veracruzanos · movimiento y comercio ágiles; edificios ligeros."
+	}
+	setup_faction_detail.text = labels.get(faction, "")
+	for button in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos]:
+		button.button_pressed = button.get_meta("faction") == faction
+	_refresh_setup_summary()
+
+func _refresh_setup_summary() -> void:
+	if setup_summary == null:
+		return
+	var objective_label := "Campaña" if campaign_mode else ("Conquista" if selected_objective == "conquest" else "Maravilla" if selected_objective == "wonder" else "La Roma")
+	setup_summary.text = "%s · %s · %s" % [FACTION_NAMES.get(selected_setup_faction, "Regios"), MAP_NAMES.get(selected_map, "La Roma"), objective_label]
+
 func _build_faction_setup(layer: CanvasLayer) -> void:
+	setup_background = TextureRect.new()
+	setup_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	setup_background.texture = load("res://assets/ui/roma-home.jpg")
+	setup_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	setup_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	setup_background.modulate = Color(0.55, 0.65, 0.7, 0.55)
+	setup_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(setup_background)
 	setup_panel = PanelContainer.new()
-	setup_panel.position = Vector2(235, 105)
-	setup_panel.size = Vector2(810, 420)
-	setup_panel.add_theme_stylebox_override("panel", preload("res://ui/hud_skin.gd").panel(10, true))
+	setup_panel.add_theme_stylebox_override("panel", _setup_box(Color("0d1722"), Color("e9b963"), 14))
 	layer.add_child(setup_panel)
 	var margin := MarginContainer.new()
 	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 24)
+		margin.add_theme_constant_override("margin_" + side, 14)
 	setup_panel.add_child(margin)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	margin.add_child(scroll)
-	var column := VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", 10)
-	scroll.add_child(column)
-	var title := Label.new()
-	title.text = "Choose a faction"
-	title.add_theme_font_size_override("font_size", 30)
-	column.add_child(title)
-	var scale_row := HBoxContainer.new()
-	column.add_child(scale_row)
-	var scale_label := Label.new()
-	scale_label.text = "Interface size"
-	scale_label.add_theme_font_size_override("font_size", 18)
-	scale_row.add_child(scale_label)
-	setup_ui_scale = OptionButton.new()
-	for label in ["100%", "125%", "150%"]:
-		setup_ui_scale.add_item(label)
-	setup_ui_scale.custom_minimum_size = Vector2(130, 44)
-	setup_ui_scale.add_theme_font_size_override("font_size", 16)
-	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5][index]))
-	scale_row.add_child(setup_ui_scale)
-	setup_ui_scale.select([1.0, 1.25, 1.5].find(ui_scale))
-	setup_goal = Label.new()
-	setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
-	setup_goal.add_theme_font_size_override("font_size", 18)
-	column.add_child(setup_goal)
-	var difficulty_label := Label.new()
-	difficulty_label.text = "Opponent difficulty"
-	difficulty_label.add_theme_font_size_override("font_size", 18)
-	column.add_child(difficulty_label)
-	setup_difficulty = OptionButton.new()
-	for level in Skirmish.AI_LEVELS:
-		setup_difficulty.add_item(level.capitalize())
-	setup_difficulty.select(1)
-	setup_difficulty.item_selected.connect(_choose_difficulty)
-	setup_difficulty.custom_minimum_size.y = 42
-	column.add_child(setup_difficulty)
-	setup_difficulty_details = Label.new()
-	setup_difficulty_details.text = "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
-	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(setup_difficulty_details)
-	var map_label := Label.new()
-	map_label.text = "Battlefield"
-	map_label.add_theme_font_size_override("font_size", 18)
-	column.add_child(map_label)
-	setup_map = OptionButton.new()
-	var roma_copy: Dictionary = MapGeography.map_copy("la_roma")
-	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
-	for entry in [roma_label, "Narvarte — open street grid", "Copilco — two chokepoints", "La Roma Large — scout and expand"]:
-		setup_map.add_item(entry)
-	setup_map.item_selected.connect(_choose_map)
-	setup_map.custom_minimum_size.y = 42
-	column.add_child(setup_map)
-	setup_map_details = Label.new()
-	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(setup_map_details)
-	_choose_map(0)
-	var mode_label := Label.new()
-	mode_label.text = "Play mode"
-	mode_label.add_theme_font_size_override("font_size", 18)
-	column.add_child(mode_label)
+	var frame := VBoxContainer.new()
+	frame.add_theme_constant_override("separation", 10)
+	margin.add_child(frame)
+	var nav := HBoxContainer.new()
+	setup_nav = nav
+	nav.add_theme_constant_override("separation", 6)
+	frame.add_child(nav)
+	for entry in ["⚔ Partida", "⚑ Campaña", "♟ Privada", "▤ Guía", "⚙ Ajustes"]:
+		var button := Button.new()
+		button.text = entry
+		button.set_meta("full_label", entry)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_setup_button(button, Color("142a35"))
+		nav.add_child(button)
+		match entry:
+			"⚔ Partida": button.pressed.connect(func() -> void: _choose_mode(0); setup_scroll.scroll_vertical = 0)
+			"⚑ Campaña": button.pressed.connect(_open_setup_campaign)
+			"♟ Privada": button.pressed.connect(func() -> void: _scroll_to_setup(setup_online_code))
+			"▤ Guía": button.pressed.connect(_show_setup_help)
+			"⚙ Ajustes": button.pressed.connect(func() -> void: _scroll_to_setup(setup_ui_scale))
+	setup_scroll = ScrollContainer.new()
+	setup_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	setup_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	frame.add_child(setup_scroll)
+	setup_column = VBoxContainer.new()
+	setup_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	setup_column.add_theme_constant_override("separation", 12)
+	setup_scroll.add_child(setup_column)
+	var title := _setup_heading("⚔ ARMA TU CONQUISTA", 30)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	setup_column.add_child(title)
+	var lead := Label.new()
+	setup_lead = lead
+	lead.text = "Elige tu bando, las reglas y el campo de batalla. Luego disputa Cibeles."
+	lead.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_column.add_child(lead)
+	var lore := PanelContainer.new()
+	lore.add_theme_stylebox_override("panel", _setup_box(Color("2c2430"), Color("a27a45")))
+	setup_column.add_child(lore)
+	var lore_text := Label.new()
+	setup_lore_text = lore_text
+	lore_text.text = "📍 ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea → Universitaria → Godín → Gentrificación. La glorieta sigue en disputa."
+	lore_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lore_text.add_theme_color_override("font_color", Color("fff0d1"))
+	lore.add_child(lore_text)
+	setup_cards = GridContainer.new()
+	setup_cards.columns = 2
+	setup_cards.add_theme_constant_override("h_separation", 12)
+	setup_cards.add_theme_constant_override("v_separation", 12)
+	setup_column.add_child(setup_cards)
+
+	var faction_card := _setup_card("1  ¿DE QUÉ LADO VIENES?")
+	var faction_hint := Label.new()
+	faction_hint.text = "Cuatro estrategias ficticias. Elige una para ver su ventaja."
+	faction_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	faction_card.add_child(faction_hint)
+	var faction_grid := GridContainer.new()
+	setup_faction_grid = faction_grid
+	faction_grid.columns = 2
+	faction_card.add_child(faction_grid)
+	var factions := [
+		[Skirmish.REGIOS, "⛰ REGIOS", Color("294b76")],
+		[Skirmish.POBLANOS, "♜ POBLANOS", Color("853044")],
+		[Skirmish.OAXAQUENOS, "✥ OAXAQUEÑOS", Color("67358b")],
+		[Skirmish.VERACRUZANOS, "⚓ VERACRUZANOS", Color("146e79")]
+	]
+	for item in factions:
+		var button := Button.new()
+		button.text = item[1]
+		button.toggle_mode = true
+		button.set_meta("faction", item[0])
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.custom_minimum_size.y = 66
+		_setup_button(button, item[2], Color("a27a45"))
+		button.pressed.connect(_select_setup_faction.bind(item[0]))
+		faction_grid.add_child(button)
+		match item[0]:
+			Skirmish.REGIOS: setup_regios = button
+			Skirmish.POBLANOS: setup_poblanos = button
+			Skirmish.OAXAQUENOS: setup_oaxaquenos = button
+			Skirmish.VERACRUZANOS: setup_veracruzanos = button
+	setup_faction_detail = Label.new()
+	setup_faction_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_faction_detail.add_theme_color_override("font_color", Color("ffe0a0"))
+	faction_card.add_child(setup_faction_detail)
+	var note := Label.new()
+	note.text = "Bonos de juego; no describen a las personas de cada región."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	faction_card.add_child(note)
+	setup_note = note
+
+	var rules_card := _setup_card("2  ¿QUÉ SE ARMA?")
 	setup_mode = OptionButton.new()
-	setup_mode.add_item("Solo skirmish")
-	setup_mode.add_item("Campaign chapter")
-	setup_mode.set_item_disabled(1, not _campaign_allowed())
+	setup_mode.add_item("Escaramuza en solitario")
+	setup_mode.add_item("Capítulo de campaña")
 	setup_mode.item_selected.connect(_choose_mode)
-	setup_mode.custom_minimum_size.y = 42
-	column.add_child(setup_mode)
-	setup_objective_label = Label.new()
-	setup_objective_label.text = "Solo objective"
-	setup_objective_label.add_theme_font_size_override("font_size", 18)
-	column.add_child(setup_objective_label)
+	_setup_field(rules_card, "Modo de juego", setup_mode)
+	setup_objective_label = _setup_heading("Objetivo", 14)
+	rules_card.add_child(setup_objective_label)
 	setup_objective = OptionButton.new()
-	for label in ["La Roma — post or center", "Conquest — post only", "Wonder — build and defend"]:
+	for label in ["La Roma · puesto rival o Cibeles", "Conquista · puesto rival", "Maravilla · construir y defender"]:
 		setup_objective.add_item(label)
 	setup_objective.set_item_disabled(2, true)
-	setup_objective.set_item_tooltip(2, "Wonder is off until a served alpha decision enables it on La Roma.")
 	setup_objective.item_selected.connect(_choose_objective)
-	setup_objective.custom_minimum_size.y = 42
-	column.add_child(setup_objective)
+	setup_objective.custom_minimum_size.y = 48
+	rules_card.add_child(setup_objective)
 	setup_mission = OptionButton.new()
 	var chapter := CampaignMissions.load_manifest()
 	if chapter.ok:
 		for mission in chapter.data.missions:
 			setup_mission.add_item(mission.title)
 	setup_mission.item_selected.connect(_choose_mission)
-	setup_mission.custom_minimum_size.y = 42
-	column.add_child(setup_mission)
+	setup_mission.custom_minimum_size.y = 48
+	rules_card.add_child(setup_mission)
 	setup_campaign_note = Label.new()
 	setup_campaign_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(setup_campaign_note)
-	column.move_child(mode_label, 2)
-	column.move_child(setup_mode, 3)
-	column.move_child(setup_objective_label, 4)
-	column.move_child(setup_objective, 5)
-	column.move_child(setup_mission, 6)
-	column.move_child(setup_campaign_note, 7)
-	_refresh_campaign_setup()
-	var opponent_label := Label.new()
-	opponent_label.text = "Opponent faction"
-	opponent_label.add_theme_font_size_override("font_size", 18)
-	column.add_child(opponent_label)
+	rules_card.add_child(setup_campaign_note)
+	setup_map = OptionButton.new()
+	for entry in ["Roma Norte · Cibeles (28×28)", "Narvarte (28×28)", "Copilco (28×28)", "La Roma Grande (96×96)"]:
+		setup_map.add_item(entry)
+	setup_map.item_selected.connect(_choose_map)
+	_setup_field(rules_card, "Mapa", setup_map)
+	setup_map_details = Label.new()
+	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rules_card.add_child(setup_map_details)
+	setup_goal = Label.new()
+	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	setup_goal.add_theme_color_override("font_color", Color("ffe0a0"))
+	rules_card.add_child(setup_goal)
+	_choose_map(0)
+
+	var opponent_card := _setup_card("3  ¿QUIÉN TE DISPUTA LA ROMA?")
 	setup_opponent = OptionButton.new()
-	for entry in ["Opponent: Classic rival", "Opponent: Regios", "Opponent: Poblanos", "Opponent: Oaxaqueños", "Opponent: Veracruzanos"]:
+	for entry in ["Rival clásico (según tu facción)", "Regios", "Poblanos", "Oaxaqueños", "Veracruzanos"]:
 		setup_opponent.add_item(entry)
 	setup_opponent.item_selected.connect(_choose_opponent)
-	setup_opponent.custom_minimum_size.y = 42
-	column.add_child(setup_opponent)
-	var regios := Button.new()
-	regios.text = "Regios — workers carry 5; fighters cost +1 Varos"
-	regios.custom_minimum_size.y = 72
-	regios.add_theme_font_size_override("font_size", 20)
-	regios.pressed.connect(_choose_faction.bind(Skirmish.REGIOS))
-	regios.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	preload("res://ui/hud_skin.gd").apply_button(regios)
-	column.add_child(regios)
-	setup_regios = regios
-	var poblanos := Button.new()
-	poblanos.text = "Poblanos — buildings +20% HP; workers carry 4"
-	poblanos.custom_minimum_size.y = 72
-	poblanos.add_theme_font_size_override("font_size", 20)
-	poblanos.pressed.connect(_choose_faction.bind(Skirmish.POBLANOS))
-	poblanos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	preload("res://ui/hud_skin.gd").apply_button(poblanos)
-	column.add_child(poblanos)
-	setup_poblanos = poblanos
-	var oaxaquenos := Button.new()
-	oaxaquenos.text = "Oaxaqueños — gather faster, support construction; lighter buildings"
-	oaxaquenos.custom_minimum_size.y = 60
-	oaxaquenos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	oaxaquenos.pressed.connect(_choose_faction.bind(Skirmish.OAXAQUENOS))
-	preload("res://ui/hud_skin.gd").apply_button(oaxaquenos)
-	column.add_child(oaxaquenos)
-	setup_oaxaquenos = oaxaquenos
-	var veracruzanos := Button.new()
-	veracruzanos.text = "Veracruzanos — move faster, earn from trade; lighter buildings"
-	veracruzanos.custom_minimum_size.y = 60
-	veracruzanos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	veracruzanos.pressed.connect(_choose_faction.bind(Skirmish.VERACRUZANOS))
-	preload("res://ui/hud_skin.gd").apply_button(veracruzanos)
-	column.add_child(veracruzanos)
-	setup_veracruzanos = veracruzanos
+	_setup_field(opponent_card, "Facción rival", setup_opponent)
+	var opponent_note := Label.new()
+	opponent_note.text = "La IA usa las mismas reglas y visión que tú."
+	opponent_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	opponent_card.add_child(opponent_note)
+
+	var difficulty_card := _setup_card("4  ¿QUÉ TAN BRAVO?")
+	setup_difficulty = OptionButton.new()
+	for label in ["Dominguito · práctica", "Con tráfico · normal", "Hora pico · desafío"]:
+		setup_difficulty.add_item(label)
+	setup_difficulty.select(1)
+	setup_difficulty.item_selected.connect(_choose_difficulty)
+	_setup_field(difficulty_card, "Dificultad de la IA", setup_difficulty)
+	setup_difficulty_details = Label.new()
+	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	difficulty_card.add_child(setup_difficulty_details)
+	_choose_difficulty(1)
+
+	var utility_card := _setup_card("CONTINÚA O JUEGA EN PRIVADO")
 	setup_resume = Button.new()
-	setup_resume.text = "Resume saved match"
-	setup_resume.custom_minimum_size.y = 50
 	setup_resume.pressed.connect(_resume_match)
-	preload("res://ui/hud_skin.gd").apply_button(setup_resume)
-	var recovery_label := Label.new()
-	recovery_label.text = "Continue or join privately"
-	recovery_label.add_theme_font_size_override("font_size", 18)
-	column.add_child(recovery_label)
-	column.add_child(setup_resume)
+	_setup_button(setup_resume)
+	utility_card.add_child(setup_resume)
 	setup_online_code = LineEdit.new()
-	setup_online_code.placeholder_text = "Private match invite code"
+	setup_online_code.placeholder_text = "Código de invitación privada"
 	setup_online_code.secret = true
 	setup_online_code.text = invite_code
-	setup_online_code.custom_minimum_size.y = 42
-	column.add_child(setup_online_code)
+	setup_online_code.custom_minimum_size.y = 48
+	utility_card.add_child(setup_online_code)
 	setup_online_button = Button.new()
-	setup_online_button.text = "Join private match · invite and host required"
-	setup_online_button.custom_minimum_size.y = 50
+	setup_online_button.text = "Entrar a partida privada"
 	setup_online_button.pressed.connect(_join_online_match)
-	preload("res://ui/hud_skin.gd").apply_button(setup_online_button)
-	column.add_child(setup_online_button)
+	_setup_button(setup_online_button)
+	utility_card.add_child(setup_online_button)
 	setup_replay_button = Button.new()
-	setup_replay_button.text = "Open saved private replay"
-	setup_replay_button.custom_minimum_size.y = 50
+	setup_replay_button.text = "Abrir repetición privada"
 	setup_replay_button.pressed.connect(_choose_replay_file)
-	preload("res://ui/hud_skin.gd").apply_button(setup_replay_button)
-	column.add_child(setup_replay_button)
-	var note := Label.new()
-	note.text = "These are fictional strategies, not descriptions of regional people."
-	note.add_theme_font_size_override("font_size", 17)
-	column.add_child(note)
-	column.move_child(note, 7)
-	setup_note = note
+	_setup_button(setup_replay_button)
+	utility_card.add_child(setup_replay_button)
+	var private_note := Label.new()
+	private_note.text = "Requiere invitación y servidor compatible."
+	private_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	utility_card.add_child(private_note)
+
+	var settings_card := _setup_card("AJUSTES DE INTERFAZ")
+	setup_ui_scale = OptionButton.new()
+	for label in ["100%", "125%", "150%"]:
+		setup_ui_scale.add_item(label)
+	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5][index]))
+	setup_ui_scale.select([1.0, 1.25, 1.5].find(ui_scale))
+	_setup_field(settings_card, "Tamaño de interfaz", setup_ui_scale)
+	var settings_note := Label.new()
+	settings_note.text = "Durante la partida, Menú ofrece audio, efectos, movimiento y guardado."
+	settings_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	settings_card.add_child(settings_note)
+
+	var footer := HBoxContainer.new()
+	footer.add_theme_constant_override("separation", 12)
+	frame.add_child(footer)
+	setup_summary = Label.new()
+	setup_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	setup_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	footer.add_child(setup_summary)
+	setup_start = Button.new()
+	setup_start.text = "⚔ INICIAR BATALLA"
+	setup_start.custom_minimum_size.x = 240
+	_setup_button(setup_start, Color("087e8c"), Color("ffe0a0"))
+	setup_start.pressed.connect(func() -> void: _choose_faction(selected_setup_faction))
+	footer.add_child(setup_start)
 	setup_save_error = Label.new()
 	setup_save_error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_save_error.add_theme_color_override("font_color", Color("ffb49f"))
-	column.add_child(setup_save_error)
+	frame.add_child(setup_save_error)
+	_select_setup_faction(Skirmish.REGIOS)
+	_refresh_campaign_setup()
 
 func _layout_setup() -> void:
-	if setup_panel == null or get_viewport() == null:
+	if setup_panel == null or setup_start == null or get_viewport() == null:
 		return
 	var view := get_viewport().get_visible_rect().size
-	var setup_factor := clampf(view.x / 760.0, 1.0, 1.65) * ui_scale
+	var setup_factor := clampf(view.x / 1280.0, 1.0, 1.2) * ui_scale
 	var layout_view := view / setup_factor
-	var mobile := layout_view.x < 950.0 or layout_view.y < 560.0
-	var landscape := layout_view.x > layout_view.y
+	var mobile := layout_view.x < 650.0
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
-		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+		setup_goal.text = "Gana al destruir el puesto rival o mantener Cibeles durante %d segundos." % hold_seconds
 	elif selected_map == "la_roma_large":
-		setup_goal.text = ("Scout, expand, hold center for %ds." % hold_seconds) if mobile else ("Explore the larger district; destroy the opposing post or hold the center for %d seconds." % hold_seconds)
+		setup_goal.text = "Explora y expándete. Gana al destruir el puesto rival o mantener el centro %d segundos." % hold_seconds
 	else:
-		setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
+		setup_goal.text = "Gana al destruir el puesto rival o mantener el centro %d segundos." % hold_seconds
 	if campaign_mode:
 		var selected := CampaignMissions.find_mission(selected_mission)
 		if selected.ok:
-			setup_goal.text = selected.data.description
+			setup_goal.text = _campaign_description(selected_mission)
 	elif selected_objective == "conquest":
-		setup_goal.text = "Conquest: destroy the opposing command post. Holding the center does not win."
+		setup_goal.text = "Conquista: destruye el puesto rival. Mantener el centro no basta."
 	elif selected_objective == "wonder":
-		setup_goal.text = "Wonder: build at Godín, defend for 90 seconds, or destroy the enemy post."
-	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
+		setup_goal.text = "Maravilla: constrúyela en la edad Godín y defiéndela 90 segundos; destruir el puesto rival también gana."
+	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 16)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
-	setup_regios.text = ("REGIOS  •  carry 5" if not landscape else "REGIOS  •  carry 5; fighters cost +1 Varos") if mobile else "Regios — workers carry 5; fighters cost +1 Varos"
-	setup_poblanos.text = ("POBLANOS  •  tougher buildings" if not landscape else "POBLANOS  •  tougher buildings; carry 4") if mobile else "Poblanos — buildings +20% HP; workers carry 4"
-	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
-	setup_veracruzanos.text = "VERACRUZANOS  •  move faster; lighter buildings" if mobile else "Veracruzanos — faster movement and trade income; lighter buildings"
-	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
-	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_online_button, setup_replay_button]:
-		b.custom_minimum_size.y = 48 if mobile else 52
-		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
-	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
-	setup_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var column: VBoxContainer = setup_panel.get_child(0).get_child(0).get_child(0)
-	column.add_theme_constant_override("separation", 6 if mobile else 7)
-	var title: Label = column.get_child(0)
-	title.text = ("Campaign chapter · scroll for factions" if mobile and landscape else "Campaign chapter") if campaign_mode else ("Choose a faction · scroll for all 4" if mobile and landscape else "Choose a faction")
-	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
-	setup_difficulty.custom_minimum_size.y = 32 if mobile else 38
-	setup_map.custom_minimum_size.y = 32 if mobile else 38
-	setup_objective.custom_minimum_size.y = 32 if mobile else 38
-	setup_opponent.custom_minimum_size.y = 32 if mobile else 38
-	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
+	setup_cards.columns = 1 if mobile else 2
+	setup_lead.text = "Elige bando y reglas. Disputa Cibeles." if mobile else "Elige tu bando, las reglas y el campo de batalla. Luego disputa Cibeles."
+	setup_lore_text.text = "📍 ROMA NORTE · CUATRO EDADES\nForánea → Universitaria → Godín → Gentrificación." if mobile else "📍 ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea → Universitaria → Godín → Gentrificación. La glorieta sigue en disputa."
+	setup_faction_grid.columns = 1 if layout_view.x < 340.0 else 2
+	setup_summary.visible = not mobile
+	setup_start.custom_minimum_size.x = 0 if mobile else 240
+	setup_start.size_flags_horizontal = Control.SIZE_EXPAND_FILL if mobile else Control.SIZE_FILL
+	for button in setup_nav.get_children():
+		var full_label := str(button.get_meta("full_label"))
+		button.text = full_label.substr(0, 1) if mobile else full_label
+		button.tooltip_text = full_label
+	setup_column.get_child(0).text = "⚑ CAPÍTULO DE CAMPAÑA" if campaign_mode else "⚔ ARMA TU CONQUISTA"
+	setup_column.get_child(0).add_theme_font_size_override("font_size", 23 if mobile else 30)
+	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos]:
+		b.add_theme_font_size_override("font_size", 12 if mobile else 15)
+	setup_note.add_theme_font_size_override("font_size", 12)
+	setup_difficulty_details.add_theme_font_size_override("font_size", 13 if mobile else 15)
 	setup_panel.scale = Vector2.ONE * setup_factor
-	setup_panel.size = Vector2(minf(810, layout_view.x - 24), minf(layout_view.y - 24, 350.0 if mobile and landscape else (700.0 if mobile else 640.0)))
+	setup_panel.size = Vector2(minf(1000, layout_view.x - 24), minf(layout_view.y - 24, 760.0))
 	setup_panel.position = (view - setup_panel.size * setup_factor) * 0.5
+	_refresh_setup_summary()
 	if replay_button != null:
 		var objectives: Panel = hud_ui.objective_panel
 		var replay_x := objectives.position.x + objectives.size.x + 10.0
@@ -700,6 +837,7 @@ func _show_setup() -> void:
 	last_district_state = "neutral"
 	_baseline_presentation()
 	setup_panel.show()
+	setup_background.show()
 	hud_ui.show_result("", "")
 	if online_client != null:
 		online_client.leave()
@@ -713,15 +851,15 @@ func _show_setup() -> void:
 	if replay_button != null:
 		replay_button.hide()
 	setup_resume.disabled = not FileAccess.file_exists(save_path)
-	setup_resume.text = "Resume saved match" if not setup_resume.disabled else "No saved match yet"
-	setup_resume.tooltip_text = "Save an active solo match from Settings to resume it here." if setup_resume.disabled else "Continue the saved solo match."
+	setup_resume.text = "Continuar partida guardada" if not setup_resume.disabled else "Aún no hay partida guardada"
+	setup_resume.tooltip_text = "Guarda una partida desde Menú para continuar aquí." if setup_resume.disabled else "Continúa tu partida local."
 	setup_save_error.text = ""
 	_refresh_campaign_setup()
 	_check_campaign_flag()
 	_check_wonder_flag()
 	_refresh_wonder_setup()
 	hover_hint.text = ""
-	instructions.text = "Choose a map, opponent and faction · Press 1–4, or click a choice"
+	instructions.text = "Elige facción, mapa, objetivo y dificultad. Inicia cuando todo esté listo."
 	_update_hud()
 	queue_redraw()
 
@@ -759,6 +897,7 @@ func _refresh_campaign_setup() -> void:
 	if setup_mission == null or setup_campaign_note == null:
 		return
 	setup_mode.set_item_disabled(1, not _campaign_allowed())
+	setup_mode.set_item_tooltip(1, "Tres misiones implementadas. Requieren acceso habilitado en esta versión privada." if not _campaign_allowed() else "Tres misiones con progreso local.")
 	if campaign_mode and not _campaign_allowed():
 		campaign_mode = false
 		setup_mode.select(0)
@@ -766,8 +905,9 @@ func _refresh_campaign_setup() -> void:
 	setup_objective_label.visible = not campaign_mode
 	setup_objective.visible = not campaign_mode
 	setup_mission.visible = campaign_mode
-	setup_campaign_note.visible = campaign_mode
+	setup_campaign_note.visible = campaign_mode or not _campaign_allowed()
 	if not campaign_mode:
+		setup_campaign_note.text = "Campaña: tres misiones implementadas; acceso privado aún sin habilitar." if not _campaign_allowed() else ""
 		return
 	var progress := CampaignProgress.read(campaign_progress_path)
 	if not progress.ok:
@@ -780,7 +920,7 @@ func _refresh_campaign_setup() -> void:
 	for i in chapter.data.missions.size():
 		var mission: Dictionary = chapter.data.missions[i]
 		var available: bool = CampaignProgress.available(mission.id, progress.completed)
-		setup_mission.set_item_text(i, "%s · %s" % [mission.title, "available" if available else "locked"])
+		setup_mission.set_item_text(i, "%s · %s" % [_campaign_title(mission.id), "disponible" if available else "bloqueada"])
 	setup_mission.select(CampaignMissions.MISSION_IDS.find(selected_mission))
 	var selected := CampaignMissions.find_mission(selected_mission)
 	if not selected.ok:
@@ -789,22 +929,21 @@ func _refresh_campaign_setup() -> void:
 	selected_map = selected.data.map_id
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
-	setup_goal.text = selected.data.description
-	setup_campaign_note.text = "Available now." if CampaignProgress.available(selected_mission, progress.completed) else "Locked: finish %s first." % selected.data.prerequisite.replace("_", " ").capitalize()
+	setup_goal.text = _campaign_description(selected_mission)
+	setup_campaign_note.text = "Disponible." if CampaignProgress.available(selected_mission, progress.completed) else "Bloqueada: termina primero la misión anterior."
 
 func _choose_map(index: int) -> void:
 	if index >= 0 and index < Skirmish.MAP_IDS.size():
 		selected_map = Skirmish.MAP_IDS[index]
 		if selected_map == "la_roma":
-			var roma_copy: Dictionary = MapGeography.map_copy(selected_map)
-			setup_map_details.text = str(roma_copy.get("description", "A stylized Roma Norte battlefield. Any faction can play here."))
-			setup_goal.text = str(roma_copy.get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+			setup_map_details.text = "Roma Norte estilizada, con Cibeles en el centro. Las cuatro facciones pueden jugar aquí."
+			setup_goal.text = "Destruye el puesto rival o mantén Cibeles durante 75 segundos."
 		elif selected_map == "la_roma_large":
-			setup_map_details.text = "A 96×96 La Roma battlefield with a starting bicitaxi scout, separate starter resources and distant expansions."
-			setup_goal.text = "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
+			setup_map_details.text = "La Roma Grande: mapa 96×96 con explorador bicitaxi y zonas de expansión."
+			setup_goal.text = "Explora, expándete y disputa el centro."
 		else:
-			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
-			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
+			setup_map_details.text = "Mapa de escaramuza inspirado en CDMX; disponible para las cuatro facciones."
+			setup_goal.text = "Destruye el puesto rival o mantén el centro."
 		if setup_objective != null:
 			_refresh_wonder_setup()
 			_layout_setup()
@@ -816,7 +955,8 @@ func _refresh_wonder_setup() -> void:
 	if setup_objective == null:
 		return
 	setup_objective.set_item_disabled(2, not _wonder_allowed())
-	setup_objective_label.text = "Solo objective" if _wonder_allowed() else "Solo objective · Wonder unavailable until enabled"
+	setup_objective_label.text = "Objetivo"
+	setup_objective.set_item_tooltip(2, "Maravilla requiere La Roma 28×28 y una habilitación privada activa." if not _wonder_allowed() else "Construye y defiende la Maravilla durante 90 segundos.")
 	if selected_objective == "wonder" and not _wonder_allowed():
 		selected_objective = "la_roma"
 		setup_objective.select(0)
@@ -829,11 +969,11 @@ func _choose_difficulty(index: int) -> void:
 		return
 	selected_difficulty = Skirmish.AI_LEVELS[index]
 	var descriptions := {
-		"learner": "Learner: Builds at a measured pace so you can practice counters.",
-		"standard": "Standard: Scouts and changes plans when you show a threat.",
-		"challenger": "Challenger: Reacts sooner and presses an advantage."
+		"learner": "Dominguito: ritmo pausado para practicar.",
+		"standard": "Con tráfico: explora y responde a tus amenazas.",
+		"challenger": "Hora pico: reacciona antes y presiona tus ventajas."
 	}
-	setup_difficulty_details.text = descriptions[selected_difficulty] + " Same rules and sight."
+	setup_difficulty_details.text = descriptions[selected_difficulty] + " Las reglas y la visión son iguales para ambos."
 
 func _save_match() -> void:
 	if offline_replay:
@@ -892,6 +1032,7 @@ func _resume_match() -> void:
 	outbox.content_version = sim.content.content_id
 	choosing_faction = false
 	setup_panel.hide()
+	setup_background.hide()
 	if campaign_mode or sim.objective_id == "wonder":
 		hud_ui.objective_body.show()
 		hud_ui._layout()
@@ -983,6 +1124,7 @@ func _on_online_state(response: Dictionary) -> void:
 		if choosing_faction:
 			choosing_faction = false
 			setup_panel.hide()
+			setup_background.hide()
 			instructions.text = "Private match · host runs the game · right-click to order · R returns to setup"
 			completion_queued = false
 			selected_id = -1
@@ -1102,6 +1244,7 @@ func _open_replay_file(path: String) -> void:
 	replay_frame_count = replay_recording.frames.size()
 	choosing_faction = false
 	setup_panel.hide()
+	setup_background.hide()
 	paused = false
 	accumulator = 0.0
 	selected_id = -1
@@ -1171,6 +1314,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
+	setup_background.hide()
 	if campaign_mode or sim.objective_id == "wonder":
 		hud_ui.objective_body.show()
 		hud_ui._layout()
@@ -1358,13 +1502,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if choosing_faction:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode == KEY_1:
-				_choose_faction(Skirmish.REGIOS)
+				_select_setup_faction(Skirmish.REGIOS)
 			elif event.keycode == KEY_2:
-				_choose_faction(Skirmish.POBLANOS)
+				_select_setup_faction(Skirmish.POBLANOS)
 			elif event.keycode == KEY_3:
-				_choose_faction(Skirmish.OAXAQUENOS)
+				_select_setup_faction(Skirmish.OAXAQUENOS)
 			elif event.keycode == KEY_4:
-				_choose_faction(Skirmish.VERACRUZANOS)
+				_select_setup_faction(Skirmish.VERACRUZANOS)
+			elif event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
+				_choose_faction(selected_setup_faction)
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:

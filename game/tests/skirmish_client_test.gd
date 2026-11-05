@@ -40,27 +40,30 @@ func _run() -> void:
 	var migrated_settings = JSON.parse_string(FileAccess.get_file_as_string(ui_settings))
 	check(migrated_settings is Dictionary and migrated_settings.get("version") == 2 and migrated_settings.get("scale") == 1.0,
 		"migrated interface preference is saved in v2 format")
-	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
+	check("Roma Norte" in client.setup_map.get_item_text(0) and "estilizada" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
 		"La Roma setup gives sourced place context and both win routes")
 	client._choose_objective(1)
-	check(client.selected_objective == "conquest" and "Holding the center does not win" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
+	check(client.selected_objective == "conquest" and "centro no basta" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
 		"Conquest setup explains its distinct rule and Wonder stays unavailable")
 	client.wonder_flag = {"enabled": true, "served": true, "flag_version": 1}
 	client._refresh_wonder_setup()
 	client._choose_objective(2)
-	check(client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2) and "90 seconds" in client.setup_goal.text,
+	check(client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2) and "90 segundos" in client.setup_goal.text,
 		"served Wonder decision enables readable La Roma setup")
 	client._choose_map(1)
 	check(client.selected_map == "narvarte" and client.selected_objective == "la_roma" and client.setup_objective.is_item_disabled(2),
 		"Wonder is unavailable on other maps")
 	client._choose_objective(1)
-	check("center" in client.setup_goal.text, "map change preserves Conquest objective copy")
+	check("centro" in client.setup_goal.text, "map change preserves Conquest objective copy")
 	client._choose_map(0)
 	client._choose_objective(0)
 	check(client.outbox.state.events.size() == 1 and client.choosing_faction, "client opens setup without starting a match")
 	client._process(0.1)
 	check(client.sim.tick_number == 0 and client.match_id.is_empty(), "setup does not advance a match")
-	client._choose_faction(Skirmish.REGIOS)
+	client._select_setup_faction(Skirmish.REGIOS)
+	check(client.choosing_faction and client.setup_regios.button_pressed and "Regios" in client.setup_summary.text,
+		"faction selection updates setup without starting a match")
+	client.setup_start.pressed.emit()
 	check(client._terrain_id(Vector2i(0, 0)).begins_with("terrain_cdmx_"), "La Roma uses the traced CDMX ground pack")
 	for kind in ["worker", "melee", "ranged", "armored", "siege"]:
 		check(client._actor_art_id({"kind": kind, "side": Skirmish.HUMAN}) == "unit_cdmx_" + kind, "La Roma maps unit role: " + kind)
