@@ -33,6 +33,19 @@ function lookup(data, path) {
   return path.split('.').reduce((v, k) => (v == null ? undefined : v[k]), data);
 }
 
+// Counts the characters a reader sees, skipping inline markup such as <strong>.
+// Used only to compare copy lengths; nothing it returns is written to the page.
+function visibleLength(text) {
+  let count = 0;
+  let inTag = false;
+  for (const ch of text) {
+    if (ch === '<') inTag = true;
+    else if (ch === '>') inTag = false;
+    else if (!inTag) count += 1;
+  }
+  return count;
+}
+
 // 1. Every locale must carry exactly the same keys (arrays must have the same length).
 const flat = locales.map((l) => ({ ...l, flat: flatten(l.data) }));
 const [base, ...others] = flat;
@@ -43,8 +56,8 @@ for (const other of others) {
   for (const [key, a] of Object.entries(base.flat)) {
     const b = other.flat[key];
     if (typeof a !== 'string' || typeof b !== 'string') continue;
-    const la = a.replace(/<[^>]+>/g, '').length;
-    const lb = b.replace(/<[^>]+>/g, '').length;
+    const la = visibleLength(a);
+    const lb = visibleLength(b);
     if (Math.min(la, lb) >= 24 && Math.max(la, lb) / Math.min(la, lb) > 1.4) {
       warnings.push(`length differs >40% at "${key}" (${base.file} ${la}, ${other.file} ${lb})`);
     }
