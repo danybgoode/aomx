@@ -45,7 +45,7 @@ export function serveMatch(session, { host = '127.0.0.1', port = 8790,
       if (req.method === 'OPTIONS') {
         const requestedMethod = req.headers['access-control-request-method'];
         const allowedMethods = {
-          '/v1/match/join': 'POST', '/v1/match/state': 'GET',
+          '/v1/match/create': 'POST', '/v1/match/join': 'POST', '/v1/match/state': 'GET',
           '/v1/match/order': 'POST', '/v1/match/replay': 'POST',
           '/v1/match/replay/frame': 'POST',
         };
@@ -86,6 +86,11 @@ export function serveMatch(session, { host = '127.0.0.1', port = 8790,
     try {
       if (req.method === 'GET' && path === '/healthz') {
         return send(res, 200, { ok: true, service: 'aomx-match', status: session.status });
+      }
+      if (req.method === 'POST' && path === '/v1/match/create' && typeof session.create === 'function') {
+        if (limitedSource(5)) return send(res, 429, { ok: false, reason: 'rate_limited' });
+        const answer = await session.create(await readJson(req));
+        return send(res, answer.statusCode ?? (answer.ok ? 200 : 400), answer);
       }
       if (req.method === 'POST' && path === '/v1/match/join') {
         if (limitedSource(30)) return send(res, 429, { ok: false, reason: 'rate_limited' });

@@ -12,6 +12,7 @@
     "funnel:evaluations": "node scripts/funnel-evaluations.mjs",
     "skirmish:contract": "node scripts/skirmish-contract-check.mjs",
     "multiplayer:integration": "node scripts/multiplayer-integration.mjs",
+    "multiplayer:public-room-integration": "node scripts/public-room-integration.mjs",
     "multiplayer:replay-integration": "node scripts/multiplayer-replay-integration.mjs",
     "multiplayer:benchmark": "node scripts/multiplayer-benchmark.mjs",
     "alpha:export": "node scripts/alpha-export.mjs",
