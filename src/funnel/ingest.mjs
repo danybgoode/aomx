@@ -1,5 +1,5 @@
 import { randomUUID, createHash } from 'node:crypto';
-import { gameVersion as campaignGameVersion, currentContentVersion as campaignContentVersion } from '../alpha/versions.mjs';
+import { objectiveVersions, campaignVersions, wonderContentVersions } from '../alpha/versions.mjs';
 
 const TYPES = new Set(['game_opened', 'match_started', 'match_completed', 'campaign_mission_completed', 'wonder_match_completed']);
 const MODES = new Set(['solo', 'multiplayer', 'tutorial', 'campaign']);
@@ -47,14 +47,14 @@ export function validate(event) {
   if (typeof event.content_version !== 'string' || !event.content_version.trim() || event.content_version.length > 80) return 'invalid_content_version';
   if (!MODES.has(event.mode) || typeof event.faction !== 'string' || !event.faction.trim() || event.faction.length > 80) return 'invalid_context';
   if (event.objective_id != null && (!OBJECTIVES.has(event.objective_id) || event.mode !== 'solo' || event.type === 'game_opened')) return 'invalid_objective';
-  if (event.objective_id != null && event.game_version !== campaignGameVersion) return 'unsupported_objective_version';
+  if (event.objective_id != null && !objectiveVersions.includes(event.game_version)) return 'unsupported_objective_version';
   if (event.objective_id === 'wonder') {
-    if (event.content_version !== 'la-roma-wonder-1' || !Number.isInteger(event.wonder_flag_version) || event.wonder_flag_version < 0 ||
+    if (!wonderContentVersions.includes(event.content_version) || !Number.isInteger(event.wonder_flag_version) || event.wonder_flag_version < 0 ||
       typeof event.wonder_exposure_proof !== 'string' || !/^[a-f0-9]{64}$/.test(event.wonder_exposure_proof)) return 'invalid_wonder_context';
-  } else if (event.wonder_flag_version != null || event.wonder_exposure_proof != null || event.content_version === 'la-roma-wonder-1' || event.type === 'wonder_match_completed') return 'invalid_wonder_context';
+  } else if (event.wonder_flag_version != null || event.wonder_exposure_proof != null || wonderContentVersions.includes(event.content_version) || event.type === 'wonder_match_completed') return 'invalid_wonder_context';
   if (event.type === 'wonder_match_completed' && event.objective_id !== 'wonder') return 'invalid_wonder_context';
   if (event.mode === 'campaign') {
-    if (event.game_version !== campaignGameVersion || event.content_version !== campaignContentVersion) return 'unsupported_campaign_version';
+    if (!campaignVersions.some(v => v.game === event.game_version && v.content === event.content_version)) return 'unsupported_campaign_version';
     if (!MISSIONS.has(event.mission_id) || event.type === 'game_opened') return 'invalid_campaign_context';
     if (event.type !== 'campaign_mission_completed' && event.mission_id !== 'battle_la_roma') return 'tutorial_match_ineligible';
   } else if (event.mission_id != null || event.type === 'campaign_mission_completed') return 'invalid_campaign_context';

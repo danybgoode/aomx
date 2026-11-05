@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Ingest, validate } from '../src/funnel/ingest.mjs';
 import { wonderDecision, WONDER_FLAG } from '../src/alpha/wonder-flags.mjs';
-import { gameVersion, currentContentVersion, supportedVersions } from '../src/alpha/versions.mjs';
+import { gameVersion, currentContentVersion, supportedVersions, wonderContentVersions, pilotGameVersion, pilotContentVersion } from '../src/alpha/versions.mjs';
 import { wonderAdoptionPlan, publishWonderAdoptions } from '../src/alpha/wonder-adoption.mjs';
 import { signWonderExposure, verifyWonderExposure } from '../src/alpha/wonder-exposure.mjs';
 import { serve } from '../src/funnel/http.mjs';
@@ -117,6 +117,24 @@ test('Wonder rejects off starts, malformed context and test traffic', () => {
   const testOpen = { ...opened, test_account: true, event_id: 'event_test_open_wonder_01' };
   assert.equal(testTraffic.ingest.accept(testOpen).status, 'excluded');
   assert.equal(testTraffic.ingest.accept({ ...event('match_started', 'event_test_start_wonder_01', 2), test_account: true }).status, 'excluded');
+});
+
+test('each supported map Wonder version passes ingest validation with the same proof contract', () => {
+  for (const content_version of wonderContentVersions) {
+    const start = { ...event('match_started', 'event_map_wonder_01', 2), content_version };
+    assert.equal(validate(start), null, content_version);
+    const opened = { ...base, type: 'game_opened', event_id: 'event_map_open_01',
+      content_version: currentContentVersion, local_sequence: 1 };
+    delete opened.match_id; delete opened.objective_id; delete opened.wonder_flag_version; delete opened.wonder_exposure_proof;
+    const { ingest } = harness();
+    assert.equal(ingest.accept(opened).status, 'accepted', content_version);
+    assert.equal(ingest.accept(start).status, 'accepted', content_version);
+    assert.equal(ingest.accept({ ...event('match_completed', 'event_map_finish_01', 3, 'win'), content_version }).status, 'accepted', content_version);
+  }
+  assert.equal(validate({ ...event('match_started', 'event_invalid_wonder_01', 2), content_version: 'unknown-wonder-1' }), 'invalid_wonder_context');
+  assert.equal(validate({ ...event('match_started', 'event_pilot_wonder_01', 2), game_version: pilotGameVersion,
+    content_version: 'la-roma-wonder-1' }), null);
+  assert.ok(supportedVersions.some(v => v.game === pilotGameVersion && v.content === pilotContentVersion));
 });
 
 test('Wonder starts require a genuine same-user, same-environment exposure', () => {

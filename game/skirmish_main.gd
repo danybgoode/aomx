@@ -949,14 +949,14 @@ func _choose_map(index: int) -> void:
 			_layout_setup()
 
 func _wonder_allowed() -> bool:
-	return selected_map == "la_roma" and bool(wonder_flag.get("served", false)) and bool(wonder_flag.get("enabled", false))
+	return bool(wonder_flag.get("served", false)) and bool(wonder_flag.get("enabled", false))
 
 func _refresh_wonder_setup() -> void:
 	if setup_objective == null:
 		return
 	setup_objective.set_item_disabled(2, not _wonder_allowed())
 	setup_objective_label.text = "Objetivo"
-	setup_objective.set_item_tooltip(2, "Maravilla requiere La Roma 28×28 y una habilitación privada activa." if not _wonder_allowed() else "Construye y defiende la Maravilla durante 90 segundos.")
+	setup_objective.set_item_tooltip(2, "Maravilla requiere acceso habilitado para esta versión." if not _wonder_allowed() else "Construye y defiende la Maravilla durante 90 segundos.")
 	if selected_objective == "wonder" and not _wonder_allowed():
 		selected_objective = "la_roma"
 		setup_objective.select(0)
@@ -1294,7 +1294,7 @@ func _send_game_order(kind: String, actor_id: int, target: Variant) -> Dictionar
 
 func _start_match(faction: String, difficulty: String = "") -> void:
 	if not campaign_mode and selected_objective == "wonder" and not _wonder_allowed():
-		setup_save_error.text = "Wonder is currently unavailable. Choose La Roma or Conquest."
+		setup_save_error.text = "Maravilla no está habilitada para esta versión. Elige La Roma o Conquista."
 		return
 	if online_client != null:
 		online_client.leave()

@@ -103,7 +103,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	assert(human_faction in FACTION_IDS, "Choose a supported faction.")
 	assert(difficulty in AI_LEVELS, "Choose a supported opponent level.")
 	assert(selected_objective in OBJECTIVE_IDS, "Choose a supported objective.")
-	assert(selected_objective != "wonder" or selected_map == "la_roma", "Wonder is available on the 28x28 La Roma map only.")
+	assert(selected_objective != "wonder" or selected_map in MAP_IDS, "Wonder requires a supported map.")
 	assert(selected_mission.is_empty() or selected_objective == "la_roma", "Missions pin their own objective.")
 	objective_id = selected_objective
 	if opponent_faction.is_empty():
@@ -117,7 +117,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	else:
 		var checked := RulesContent.validate(custom_content)
 		assert(checked.ok, "Invalid skirmish content: " + str(checked.get("reason", "unknown")))
-		assert((selected_objective == "wonder") == (custom_content.get("content_id") == RulesContent.WONDER_CONTENT_ID), "Objective and content must match.")
+		assert((selected_objective == "wonder") == (custom_content.get("content_id") in RulesContent.WONDER_CONTENT_IDS.values()), "Objective and content must match.")
 		content = custom_content.duplicate(true)
 		content_hash = JSON.stringify(content).sha256_text()
 	map_id = str(content.map_id)
@@ -1330,7 +1330,9 @@ func _ai_step() -> void:
 					assigned_to_needed = true
 					reassigned = true
 	var fighters := _count_fighters(side)
-	if fighters > 0 and age_index[side] >= 1 and tick_number >= int(profile.scout_tick) and tick_number < int(profile.district_tick):
+	# Copilco's narrow approach also serves the Terrenos source. Early Wonder
+	# scouting can park fighters there and prevent workers from reaching Godín.
+	if fighters > 0 and age_index[side] >= 1 and tick_number >= int(profile.scout_tick) and tick_number < int(profile.district_tick) and not (objective_id == "wonder" and map_id == "copilco"):
 		for id in ids:
 			if entities.has(id) and entities[id].side == side and entities[id].kind in COMBAT_KINDS and entities[id].job == "idle":
 				if _ai_issue_waypoint(id, Vector2i(12, 12)):
