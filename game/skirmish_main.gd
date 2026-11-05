@@ -90,6 +90,8 @@ var setup_note: Label
 var setup_save_error: Label
 var setup_online_code: LineEdit
 var setup_online_button: Button
+var setup_online_create: Button
+var setup_online_copy: Button
 var setup_replay_button: Button
 var setup_ui_scale: OptionButton
 var replay_file_dialog: FileDialog
@@ -210,6 +212,7 @@ func _ready() -> void:
 	online_client = MultiplayerClient.new()
 	add_child(online_client)
 	online_client.joined.connect(_on_online_joined)
+	online_client.room_created.connect(_on_online_room_created)
 	online_client.state_received.connect(_on_online_state)
 	online_client.order_ack.connect(_on_online_order_ack)
 	online_client.replay_received.connect(_on_online_replay)
@@ -542,8 +545,6 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	for entry in [["PARTIDA RÁPIDA", "quick"], ["CAMPAÑA", "campaign"], ["MULTIJUGADOR", "multiplayer"], ["CÓMO JUGAR", "help"], ["AJUSTES", "settings"], ["SALIR", "exit"]]:
 		if entry[1] == "exit" and OS.has_feature("web"):
 			continue
-		if entry[1] == "multiplayer" and AlphaConfig.CHANNEL == "public":
-			continue
 		var nav_button := Button.new()
 		nav_button.text = entry[0]
 		nav_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -738,19 +739,34 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	preload("res://ui/hud_skin.gd").apply_button(setup_import)
 	column.add_child(setup_import)
 	setup_online_code = LineEdit.new()
-	setup_online_code.placeholder_text = "Private match invite code"
-	setup_online_code.secret = true
+	setup_online_code.placeholder_text = "Room code from a friend" if AlphaConfig.CHANNEL == "public" else "Private match invite code"
+	setup_online_code.secret = AlphaConfig.CHANNEL != "public"
 	setup_online_code.text = invite_code
 	setup_online_code.custom_minimum_size.y = 42
 	column.add_child(setup_online_code)
-	setup_online_code.visible = AlphaConfig.CHANNEL != "public"
+	setup_online_code.visible = true
+	setup_online_create = Button.new()
+	setup_online_create.text = "Create private room"
+	setup_online_create.custom_minimum_size.y = 50
+	setup_online_create.pressed.connect(_create_online_room)
+	preload("res://ui/hud_skin.gd").apply_button(setup_online_create)
+	column.add_child(setup_online_create)
+	setup_online_create.visible = AlphaConfig.CHANNEL == "public"
+	setup_online_copy = Button.new()
+	setup_online_copy.text = "Copy room code"
+	setup_online_copy.custom_minimum_size.y = 50
+	setup_online_copy.pressed.connect(func() -> void: DisplayServer.clipboard_set(setup_online_code.text.strip_edges()))
+	preload("res://ui/hud_skin.gd").apply_button(setup_online_copy)
+	column.add_child(setup_online_copy)
+	setup_online_copy.visible = AlphaConfig.CHANNEL == "public"
+	setup_online_copy.disabled = true
 	setup_online_button = Button.new()
-	setup_online_button.text = "Join private match · invite and host required"
+	setup_online_button.text = "Join room" if AlphaConfig.CHANNEL == "public" else "Join private match · invite and host required"
 	setup_online_button.custom_minimum_size.y = 50
 	setup_online_button.pressed.connect(_join_online_match)
 	preload("res://ui/hud_skin.gd").apply_button(setup_online_button)
 	column.add_child(setup_online_button)
-	setup_online_button.visible = AlphaConfig.CHANNEL != "public"
+	setup_online_button.visible = true
 	setup_replay_button = Button.new()
 	setup_replay_button.text = "Open saved replay" if AlphaConfig.CHANNEL == "public" else "Open saved private replay"
 	setup_replay_button.custom_minimum_size.y = 50
@@ -784,7 +800,8 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 		control.reparent(battle, false)
 	for control in [opponent_label, setup_opponent, difficulty_label, setup_difficulty, setup_difficulty_details]:
 		control.reparent(rival, false)
-	for control in [recovery_label, setup_resume, setup_import, setup_online_code, setup_online_button,
+	for control in [recovery_label, setup_resume, setup_import, setup_online_code, setup_online_create,
+		setup_online_copy, setup_online_button,
 		setup_replay_button, setup_save_error]:
 		control.reparent(continue_section, false)
 	column.move_child(setup_goal, 2)
@@ -1291,12 +1308,13 @@ func _join_online_match() -> void:
 		return
 	var code := setup_online_code.text.strip_edges()
 	if code.is_empty():
-		setup_save_error.text = "Enter your private invite code. Each player needs their own code."
+		setup_save_error.text = "Enter the room code your friend shared." if AlphaConfig.CHANNEL == "public" else "Enter your private invite code. Each player needs their own code."
 		return
-	setup_save_error.text = "Connecting to the private host…"
+	setup_save_error.text = "Joining room…" if AlphaConfig.CHANNEL == "public" else "Connecting to the private host…"
 	invite_code = code
-	invite_input.text = code
-	if AlphaConfig.CHANNEL != "development":
+	if AlphaConfig.CHANNEL != "public":
+		invite_input.text = code
+	if AlphaConfig.CHANNEL not in ["development", "public"]:
 		var invite_file := FileAccess.open("user://alpha-invite-code.txt", FileAccess.WRITE)
 		if invite_file != null:
 			invite_file.store_string(code)
@@ -1304,13 +1322,28 @@ func _join_online_match() -> void:
 	setup_online_button.disabled = true
 	online_client.connect_match(code, str(outbox.state.player_id))
 
+func _create_online_room() -> void:
+	if not choosing_faction or outbox.state.is_empty():
+		setup_save_error.text = "Local player ID is unavailable. Check device storage."
+		return
+	setup_online_create.disabled = true
+	setup_save_error.text = "Creating room…"
+	online_client.create_room(str(outbox.state.player_id))
+
+func _on_online_room_created(code: String) -> void:
+	invite_code = code
+	setup_online_code.text = code
+	setup_online_copy.disabled = false
+	setup_online_create.disabled = false
+
 func _on_online_joined(info: Dictionary) -> void:
 	setup_online_button.disabled = false
+	setup_online_create.disabled = false
 	online = true
 	online_side = int(info.side)
 	match_id = str(info.match_id)
 	if info.status == "waiting":
-		setup_save_error.text = "Waiting for the second invited player. Both players need separate codes."
+		setup_save_error.text = "Share this room code with one friend: " + invite_code if AlphaConfig.CHANNEL == "public" else "Waiting for the second invited player. Both players need separate codes."
 	elif info.status == "playing":
 		setup_save_error.text = "Both players joined. Loading match…"
 	if online_side == 0:
@@ -1324,20 +1357,20 @@ func _on_online_state(response: Dictionary) -> void:
 	if response.status == "no_result":
 		var terminal: Dictionary = response.get("terminal", {})
 		var reason := str(terminal.get("reason", "host_unavailable"))
-		var message := "The 60-second reconnect window expired. No result was recorded." if reason == "reconnect_expired" else "The private host ended this match (%s). No result was recorded." % reason.replace("_", " ")
+		var message := "The 60-second reconnect window expired. No result was recorded." if reason == "reconnect_expired" else "The match host ended this match (%s). No result was recorded." % reason.replace("_", " ")
 		setup_save_error.text = message
 		hud_ui.show_notice(message, true)
 		return
 	if response.get("state") is Dictionary:
 		var loaded: Dictionary = MultiplayerState.restore_for_side(response.state, match_id, online_side)
 		if not loaded.ok:
-			_on_online_problem("Private match state failed validation: " + str(loaded.reason))
+			_on_online_problem("Match state failed validation: " + str(loaded.reason))
 			return
 		sim = loaded.game as Skirmish
 		if choosing_faction:
 			choosing_faction = false
 			setup_panel.hide()
-			instructions.text = "Private match · host runs the game · right-click to order · R returns to setup"
+			instructions.text = "Online match · host runs the game · right-click to order · R returns to setup"
 			completion_queued = false
 			selected_id = -1
 			selected_ids.clear()
@@ -1383,6 +1416,7 @@ func _on_online_order_ack(response: Dictionary) -> void:
 func _on_online_problem(message: String) -> void:
 	if choosing_faction:
 		setup_online_button.disabled = false
+		setup_online_create.disabled = false
 		setup_save_error.text = message
 	else:
 		hud_ui.show_notice(message, true)

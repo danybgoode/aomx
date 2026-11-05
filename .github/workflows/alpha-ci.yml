@@ -63,4 +63,5 @@ jobs:
           LARGE_PERF_TICKS=600 LARGE_PERF_ENFORCE=false "$GODOT_BIN" --headless --path game --script res://large_map_performance_probe.gd
           npm run skirmish:contract
           npm run multiplayer:integration
+          npm run multiplayer:public-room-integration
           npm run multiplayer:replay-integration

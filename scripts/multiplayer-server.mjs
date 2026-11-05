@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { GodotMatchWorker } from '../src/multiplayer/worker.mjs';
 import { PostgresMatchStore } from '../src/multiplayer/store.mjs';
 import { MatchSession } from '../src/multiplayer/session.mjs';
+import { PublicRoomHub } from '../src/multiplayer/rooms.mjs';
 import { serveMatch } from '../src/multiplayer/http.mjs';
 
 const databaseUrl = process.env.AOMX_MATCH_DATABASE_URL;
@@ -25,8 +26,11 @@ if (provider) {
 }
 const evaluateAdmission = playerId => Boolean(provider?.resolveBooleanEvaluation(
   'multiplayer.private_match_enabled', false, { targetingKey: playerId }).value);
-const session = new MatchSession({ store, evaluateAdmission,
-  workerFactory: () => new GodotMatchWorker({ godotBin, gamePath }).start() });
+const workerFactory = () => new GodotMatchWorker({ godotBin, gamePath }).start();
+const privateSession = new MatchSession({ store, evaluateAdmission, workerFactory });
+const session = process.env.AOMX_PUBLIC_ROOMS_ENABLED === '1'
+  ? new PublicRoomHub({ legacySession: privateSession, records: store, workerFactory })
+  : privateSession;
 const server = serveMatch(session, { host: '0.0.0.0', port: Number(process.env.AOMX_MATCH_PORT ?? 8790),
   trustProxyClientIp: process.env.AOMX_TRUST_PROXY_CLIENT_IP === '1',
   allowedWebOrigin: process.env.AOMX_MATCH_WEB_ORIGIN ?? '' });

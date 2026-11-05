@@ -1,6 +1,7 @@
 extends Node
 
 signal joined(info: Dictionary)
+signal room_created(code: String)
 signal state_received(state: Dictionary)
 signal order_ack(response: Dictionary)
 signal replay_received(response: Dictionary)
@@ -23,6 +24,7 @@ var next_sequence := 1
 var latest_tick := 0
 var pending_orders: Array[Dictionary] = []
 var join_request: HTTPRequest
+var create_request: HTTPRequest
 var state_request: HTTPRequest
 var order_request: HTTPRequest
 var replay_request: HTTPRequest
@@ -31,6 +33,7 @@ var replay_token := ""
 var replay_frame_loading := false
 var poll_timer: Timer
 var joining := false
+var creating := false
 var polling := false
 var ordering := false
 var reconnecting := false
@@ -54,11 +57,12 @@ func _request_node() -> HTTPRequest:
 
 func _reset_requests() -> void:
 	request_generation += 1
-	for request_node in [join_request, state_request, order_request, replay_request, replay_frame_request]:
+	for request_node in [join_request, create_request, state_request, order_request, replay_request, replay_frame_request]:
 		if request_node != null:
 			request_node.cancel_request()
 			request_node.queue_free()
 	join_request = _request_node()
+	create_request = _request_node()
 	state_request = _request_node()
 	order_request = _request_node()
 	replay_request = _request_node()
@@ -66,31 +70,63 @@ func _reset_requests() -> void:
 	replay_request.timeout = 120.0
 	replay_frame_request.timeout = 120.0
 	join_request.request_completed.connect(_on_join.bind(request_generation))
+	create_request.request_completed.connect(_on_create.bind(request_generation))
 	state_request.request_completed.connect(_on_state.bind(request_generation))
 	order_request.request_completed.connect(_on_order.bind(request_generation))
 	replay_request.request_completed.connect(_on_replay.bind(request_generation))
 	replay_frame_request.request_completed.connect(_on_replay_frame.bind(request_generation))
 
-func connect_match(code: String, installation_id: String) -> void:
-	if joining or endpoint.is_empty() or code.is_empty() or installation_id.is_empty():
-		problem.emit("Enter an invite code and check your connection.")
-		return
-	invite_code = code.strip_edges()
-	player_id = installation_id
-	joining = true
-	status = "joining"
-	var payload := {"invite_code": invite_code, "player_id": player_id,
+func _versioned_request(installation_id: String) -> Dictionary:
+	return {"player_id": installation_id,
 		"protocol_version": PROTOCOL_VERSION, "game_version": Skirmish.GAME_VERSION,
 		"content_version": Skirmish.CONTENT_VERSION,
 		"command_schema_version": Skirmish.COMMAND_SCHEMA_VERSION,
 		"state_schema_version": Skirmish.STATE_SCHEMA_VERSION,
 		"content_hash": RulesContent.load_default().get("hash", ""),
 		"simulation_hash": AlphaConfig.SIMULATION_HASH}
+
+func create_room(installation_id: String) -> void:
+	if joining or creating or endpoint.is_empty() or installation_id.is_empty():
+		problem.emit("Could not create a room. Check your connection.")
+		return
+	player_id = installation_id
+	creating = true
+	status = "creating"
+	var err := create_request.request(endpoint + "/v1/match/create",
+		["Content-Type: application/json"], HTTPClient.METHOD_POST,
+		JSON.stringify(_versioned_request(installation_id)))
+	if err != OK:
+		creating = false
+		problem.emit("Could not create a room. Check your connection.")
+
+func _on_create(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray, generation: int) -> void:
+	if generation != request_generation or not creating:
+		return
+	creating = false
+	var response := _decode(body)
+	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not response.get("ok", false):
+		status = "error"
+		problem.emit("Room: " + str(response.get("reason", "connection_failed")).replace("_", " "))
+		return
+	invite_code = str(response.room_code)
+	room_created.emit(invite_code)
+	_accept_join(response)
+
+func connect_match(code: String, installation_id: String) -> void:
+	if joining or endpoint.is_empty() or code.is_empty() or installation_id.is_empty():
+		problem.emit("Enter a room code and check your connection." if AlphaConfig.CHANNEL == "public" else "Enter an invite code and check your connection.")
+		return
+	invite_code = code.strip_edges()
+	player_id = installation_id
+	joining = true
+	status = "joining"
+	var payload := _versioned_request(player_id)
+	payload["invite_code"] = invite_code
 	var err := join_request.request(endpoint + "/v1/match/join",
 		["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(payload))
 	if err != OK:
 		joining = false
-		problem.emit("Could not start the private connection.")
+		problem.emit("Could not join the room." if AlphaConfig.CHANNEL == "public" else "Could not start the private connection.")
 		if reconnecting:
 			_schedule_reconnect()
 
@@ -106,8 +142,11 @@ func _on_join(result: int, response_code: int, _headers: PackedStringArray, body
 			return
 		status = "error"
 		reconnecting = false
-		problem.emit("This pilot build needs an updated private-match host. Solo play is available." if reason == "version_mismatch" else "Private match: " + reason.replace("_", " "))
+		problem.emit("This build needs an updated match host. Solo play is available." if reason == "version_mismatch" else ("Room: " if AlphaConfig.CHANNEL == "public" else "Private match: ") + reason.replace("_", " "))
 		return
+	_accept_join(response)
+
+func _accept_join(response: Dictionary) -> void:
 	match_id = str(response.match_id)
 	side = int(response.side)
 	token = str(response.token)

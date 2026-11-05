@@ -74,6 +74,24 @@ export class PostgresMatchStore {
     return hash;
   }
 
+  async savePublicRecord(record) {
+    const hash = createHash('sha256').update(JSON.stringify(record)).digest('hex');
+    const client = await this.pool.connect();
+    try {
+      await client.query('begin');
+      for (const player of record.players) {
+        if (await this.#isDeleted(client, player.player_id)) throw new Error('participant_withdrew');
+      }
+      await client.query(`insert into alpha_private.match_records
+        (match_id, players, terminal, replay, record_hash) values ($1,$2,$3,$4,$5)
+        on conflict (match_id) do nothing`, [record.match_id, JSON.stringify(record.players),
+        JSON.stringify(record.terminal), JSON.stringify(record.replay), hash]);
+      await client.query('commit');
+    } catch (error) { await client.query('rollback'); throw error; }
+    finally { client.release(); }
+    return hash;
+  }
+
   async #isDeleted(client, playerId) {
     const hash = createHash('sha256').update(playerId).digest('hex');
     const { rows } = await client.query('select 1 from alpha_private.player_deletions where player_hash=$1', [hash]);
@@ -118,6 +136,7 @@ export class MemoryMatchStore {
     if (record.players.some(player => this.deletedPlayers.has(player.player_id))) throw new Error('participant_withdrew');
     if (!this.records.has(record.match_id)) this.records.set(record.match_id, record);
   }
+  async savePublicRecord(record) { return this.saveRecord(record); }
   async getRecord(matchId) { return this.records.get(matchId) ?? null; }
   async isDeleted(playerId) { return this.deletedPlayers.has(playerId); }
   deletePlayer(playerId) {
