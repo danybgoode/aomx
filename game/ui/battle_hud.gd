@@ -560,7 +560,7 @@ func _layout() -> void:
 		objective_body.hide()
 		objective_panel.set_meta("initially_collapsed", true)
 	objective_panel.size = Vector2(minf(560.0, w - map_w - 3.0 * margin - 12.0) if not stacked else minf(300.0, w - map_w - 3.0 * margin - 12.0),
-		clampf(180.0 * text_scale - 180.0, 175.0, 365.0) if objective_body.visible else maxf(44.0, 28.0 * text_scale))
+		clampf(120.0 * text_scale + 20.0, 190.0, minf(365.0, h * 0.5)) if objective_body.visible else maxf(44.0, 28.0 * text_scale))
 	objective_panel.clip_contents = false
 	objective_button.text = ("GOALS " if stacked else "OBJECTIVES ") + ("v" if objective_body.visible else ">")
 	var objective_content: VBoxContainer = objective_panel.get_child(0)
