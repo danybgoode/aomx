@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { gameVersion, currentContentVersion } from '../src/alpha/versions.mjs';
+import { gameVersion, currentContentVersion, wonderContentVersions } from '../src/alpha/versions.mjs';
 import { SkirmishVersions } from '../src/multiplayer/versions.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -68,7 +68,7 @@ try {
   const checksum = createHash('sha256').update(fs.readFileSync(archive)).digest('hex');
   const manifest = { build_id: buildId, channel, commit: sha, godot: '4.7.2', user_data_dir: userDataDir,
     game_version: gameVersion, content_version: currentContentVersion,
-    solo_content_versions: [currentContentVersion, 'la-roma-wonder-1'],
+    solo_content_versions: [currentContentVersion, ...wonderContentVersions],
     endpoint, match_endpoint: matchEndpoint, archive: path.basename(archive), sha256: checksum };
   fs.writeFileSync(path.join(out, `${buildId}.json`), JSON.stringify(manifest, null, 2) + '\n');
   process.stdout.write(`${JSON.stringify(manifest, null, 2)}\n`);

@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Ingest } from '../src/funnel/ingest.mjs';
+import { Ingest, validate } from '../src/funnel/ingest.mjs';
 import { makeReport } from '../src/funnel/report.mjs';
 import { adoptionPlan, publishAdoptions } from '../src/alpha/campaign-adoption.mjs';
-import { gameVersion, currentContentVersion } from '../src/alpha/versions.mjs';
+import { gameVersion, currentContentVersion, pilotGameVersion, pilotContentVersion } from '../src/alpha/versions.mjs';
 
 const at = n => `2026-10-${String(n).padStart(2, '0')}T12:00:00.000Z`;
 const base = { schema_version: 1, player_id: 'player_alpha_01', game_version: gameVersion,
@@ -20,6 +20,11 @@ function harness(campaignOn = true) {
     supportedVersions: [{ game: gameVersion, content: currentContentVersion }] });
   return { store, ingest };
 }
+
+test('the running pilot campaign version remains valid during the solo release', () => {
+  const arrival = event('campaign_mission_completed', 'event_pilot_arrival_01', 2, 20, 'mission_pilot_arrival_01', 'arrival_copilco', 'win');
+  assert.equal(validate({ ...arrival, game_version: pilotGameVersion, content_version: pilotContentVersion }), null);
+});
 
 test('guided wins adopt once while only the final full battle enters the match funnel', () => {
   const { store, ingest } = harness();

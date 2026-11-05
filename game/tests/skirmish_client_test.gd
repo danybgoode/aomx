@@ -51,8 +51,8 @@ func _run() -> void:
 	check(client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2) and "90 segundos" in client.setup_goal.text,
 		"served Wonder decision enables readable La Roma setup")
 	client._choose_map(1)
-	check(client.selected_map == "narvarte" and client.selected_objective == "la_roma" and client.setup_objective.is_item_disabled(2),
-		"Wonder is unavailable on other maps")
+	check(client.selected_map == "narvarte" and client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2),
+		"Wonder remains available when switching maps")
 	client._choose_objective(1)
 	check("centro" in client.setup_goal.text, "map change preserves Conquest objective copy")
 	client._choose_map(0)

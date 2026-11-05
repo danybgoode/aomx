@@ -3,6 +3,12 @@ extends RefCounted
 const DEFAULT_PATH := "res://content/skirmish.v1.json"
 const WONDER_PATH := "res://content/wonder.v1.json"
 const WONDER_CONTENT_ID := "la-roma-wonder-1"
+const WONDER_CONTENT_IDS := {
+	"la_roma": WONDER_CONTENT_ID,
+	"narvarte": "narvarte-wonder-1",
+	"copilco": "copilco-wonder-1",
+	"la_roma_large": "la-roma-large-wonder-1",
+}
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const UNIT_IDS := ["worker", "melee", "ranged", "armored", "siege"]
 const SCOUT_ID := "bicitaxi"
@@ -57,19 +63,19 @@ static func load_map(map_id: String) -> Dictionary:
 	return {"ok": true, "data": data, "hash": JSON.stringify(data).sha256_text()}
 
 static func load_wonder(map_id: String) -> Dictionary:
-	if map_id != "la_roma":
+	if not WONDER_CONTENT_IDS.has(map_id):
 		return _bad("wonder_map_invalid")
-	var base := load_default()
+	var base := load_map(map_id)
 	if not base.ok:
 		return base
 	var file := FileAccess.open(WONDER_PATH, FileAccess.READ)
 	if file == null:
 		return _bad("wonder_content_missing")
 	var overlay = JSON.parse_string(file.get_as_text())
-	if not overlay is Dictionary or overlay.get("content_id") != WONDER_CONTENT_ID or overlay.get("map_id") != map_id or not overlay.get("building") is Dictionary or not _whole(overlay.get("hold_ticks"), 1) or int(overlay.hold_ticks) != 900:
+	if not overlay is Dictionary or overlay.get("content_id") != WONDER_CONTENT_ID or overlay.get("map_id") != "la_roma" or not overlay.get("building") is Dictionary or not _whole(overlay.get("hold_ticks"), 1) or int(overlay.hold_ticks) != 900:
 		return _bad("wonder_content_invalid")
 	var data: Dictionary = base.data.duplicate(true)
-	data.content_id = WONDER_CONTENT_ID
+	data.content_id = WONDER_CONTENT_IDS[map_id]
 	data.buildings["wonder"] = overlay.building
 	data.objectives["wonder_hold_ticks"] = overlay.hold_ticks
 	var check := validate(data)
@@ -167,8 +173,9 @@ static func validate(value: Variant) -> Dictionary:
 			for key in ["damage", "range", "cooldown_ticks"]:
 				if not _whole(u.get(key), 1):
 					return _bad("invalid_%s_%s" % [id, key])
-	var building_ids: Array = BUILDING_IDS + (["wonder"] if d.content_id == WONDER_CONTENT_ID else [])
-	if d.content_id == WONDER_CONTENT_ID and (d.map_id != "la_roma" or d.map.width != 28 or d.map.height != 28):
+	var is_wonder: bool = d.content_id in WONDER_CONTENT_IDS.values()
+	var building_ids: Array = BUILDING_IDS + (["wonder"] if is_wonder else [])
+	if is_wonder and d.content_id != WONDER_CONTENT_IDS[d.map_id]:
 		return _bad("wonder_map_invalid")
 	if not _known_keys(d.buildings, building_ids):
 		return _bad("building_ids_invalid")
@@ -203,7 +210,7 @@ static func validate(value: Variant) -> Dictionary:
 	for key in ["draw_tick", "district_hold_ticks"]:
 		if not _whole(d.objectives.get(key), 1):
 			return _bad("invalid_objective_" + key)
-	if d.content_id == WONDER_CONTENT_ID:
+	if is_wonder:
 		if not _whole(d.objectives.get("wonder_hold_ticks"), 1) or int(d.objectives.wonder_hold_ticks) != 900 or d.buildings.wonder.min_age != "godin" or int(d.buildings.wonder.build_ticks) != 180:
 			return _bad("wonder_rules_invalid")
 		for resource_id in RESOURCE_IDS:

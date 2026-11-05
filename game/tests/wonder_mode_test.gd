@@ -10,7 +10,22 @@ var failed := false
 func _initialize() -> void:
 	var content := RulesContent.load_wonder("la_roma")
 	check(content.ok and content.data.content_id == "la-roma-wonder-1", "versioned Wonder overlay loads")
-	check(not RulesContent.load_wonder("narvarte").ok, "Wonder rejects other maps")
+	for map_id in Skirmish.MAP_IDS:
+		var mapped := RulesContent.load_wonder(map_id)
+		check(mapped.ok and mapped.data.map_id == map_id and mapped.data.content_id == RulesContent.WONDER_CONTENT_IDS[map_id],
+			"Wonder has isolated content for " + map_id)
+		var mapped_game = Skirmish.new(Skirmish.REGIOS, {}, 4, "standard", map_id, "", "", "wonder")
+		mapped_game.tick()
+		var mapped_save := Save.restore(Save.capture(mapped_game, "solo_0123456789abcdef0123456789abcdef"))
+		check(mapped_save.ok and mapped_save.game.state_hash() == mapped_game.state_hash(),
+			"Wonder save restores on " + map_id)
+		check(Replay.verify(Replay.record(mapped_game)).ok, "Wonder replay verifies on " + map_id)
+		mapped_game.age_index[Skirmish.COMPUTER] = 2
+		for resource_id in Skirmish.RESOURCE_IDS:
+			mapped_game._add_balance(Skirmish.COMPUTER, resource_id, 50)
+		check(mapped_game._ai_build("wonder") and mapped_game._find(Skirmish.COMPUTER, "wonder") != -1,
+			"AI can place Wonder on " + map_id)
+	check(not RulesContent.load_wonder("unknown").ok, "Wonder rejects unknown maps")
 	var base := RulesContent.load_default()
 	check(base.ok and not base.data.buildings.has("wonder"), "legacy content remains unchanged")
 	for faction in Skirmish.FACTION_IDS:
