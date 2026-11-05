@@ -274,12 +274,12 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.support_copy.pressed.connect(_copy_support_id)
 	hud_ui.sound_mute.toggled.connect(_audio_changed.unbind(1))
 	hud_ui.sound_volume.value_changed.connect(_audio_changed.unbind(1))
-	if AlphaConfig.CHANNEL != "development":
+	if AlphaConfig.CHANNEL not in ["development", "public"]:
 		var invite_path := "user://alpha-invite-code.txt"
 		if FileAccess.file_exists(invite_path):
 			invite_code = FileAccess.get_file_as_string(invite_path).strip_edges()
-	hud_ui.invite_input.visible = AlphaConfig.CHANNEL != "development"
-	hud_ui.invite_save.visible = AlphaConfig.CHANNEL != "development"
+	hud_ui.invite_input.visible = AlphaConfig.CHANNEL not in ["development", "public"]
+	hud_ui.invite_save.visible = AlphaConfig.CHANNEL not in ["development", "public"]
 
 func _toggle_diagnostics() -> void:
 	hud_ui.diagnostics.visible = not hud_ui.diagnostics.visible
@@ -550,7 +550,8 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_nav = nav
 	nav.add_theme_constant_override("separation", 6)
 	frame.add_child(nav)
-	for entry in ["⚔ Partida", "⚑ Campaña", "♟ Privada", "▤ Guía", "⚙ Ajustes"]:
+	var navigation := ["Partida", "Campaña", "Guía", "Ajustes"] if AlphaConfig.CHANNEL == "public" else ["Partida", "Campaña", "Privada", "Guía", "Ajustes"]
+	for entry in navigation:
 		var button := Button.new()
 		button.text = entry
 		button.set_meta("full_label", entry)
@@ -558,11 +559,11 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 		_setup_button(button, Color("142a35"))
 		nav.add_child(button)
 		match entry:
-			"⚔ Partida": button.pressed.connect(func() -> void: _choose_mode(0); setup_scroll.scroll_vertical = 0)
-			"⚑ Campaña": button.pressed.connect(_open_setup_campaign)
-			"♟ Privada": button.pressed.connect(func() -> void: _scroll_to_setup(setup_online_code))
-			"▤ Guía": button.pressed.connect(_show_setup_help)
-			"⚙ Ajustes": button.pressed.connect(func() -> void: _scroll_to_setup(setup_ui_scale))
+			"Partida": button.pressed.connect(func() -> void: _choose_mode(0); setup_scroll.scroll_vertical = 0)
+			"Campaña": button.pressed.connect(_open_setup_campaign)
+			"Privada": button.pressed.connect(func() -> void: _scroll_to_setup(setup_online_code))
+			"Guía": button.pressed.connect(_show_setup_help)
+			"Ajustes": button.pressed.connect(func() -> void: _scroll_to_setup(setup_ui_scale))
 	setup_scroll = ScrollContainer.new()
 	setup_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	setup_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -571,7 +572,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	setup_column.add_theme_constant_override("separation", 12)
 	setup_scroll.add_child(setup_column)
-	var title := _setup_heading("⚔ ARMA TU CONQUISTA", 30)
+	var title := _setup_heading("ARMA TU CONQUISTA", 30)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	setup_column.add_child(title)
 	var lead := Label.new()
@@ -585,7 +586,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_column.add_child(lore)
 	var lore_text := Label.new()
 	setup_lore_text = lore_text
-	lore_text.text = "📍 ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea → Universitaria → Godín → Gentrificación. La glorieta sigue en disputa."
+	lore_text.text = "ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea / Universitaria / Godín / Gentrificación. La glorieta sigue en disputa."
 	lore_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lore_text.add_theme_color_override("font_color", Color("fff0d1"))
 	lore.add_child(lore_text)
@@ -605,10 +606,10 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	faction_grid.columns = 2
 	faction_card.add_child(faction_grid)
 	var factions := [
-		[Skirmish.REGIOS, "⛰ REGIOS", Color("294b76")],
-		[Skirmish.POBLANOS, "♜ POBLANOS", Color("853044")],
-		[Skirmish.OAXAQUENOS, "✥ OAXAQUEÑOS", Color("67358b")],
-		[Skirmish.VERACRUZANOS, "⚓ VERACRUZANOS", Color("146e79")]
+		[Skirmish.REGIOS, "REGIOS", Color("294b76")],
+		[Skirmish.POBLANOS, "POBLANOS", Color("853044")],
+		[Skirmish.OAXAQUENOS, "OAXAQUEÑOS", Color("67358b")],
+		[Skirmish.VERACRUZANOS, "VERACRUZANOS", Color("146e79")]
 	]
 	for item in factions:
 		var button := Button.new()
@@ -698,7 +699,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	difficulty_card.add_child(setup_difficulty_details)
 	_choose_difficulty(1)
 
-	var utility_card := _setup_card("CONTINÚA O JUEGA EN PRIVADO")
+	var utility_card := _setup_card("CONTINÚA TU PARTIDA" if AlphaConfig.CHANNEL == "public" else "CONTINÚA O JUEGA EN PRIVADO")
 	setup_resume = Button.new()
 	setup_resume.pressed.connect(_resume_match)
 	_setup_button(setup_resume)
@@ -709,13 +710,15 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_online_code.text = invite_code
 	setup_online_code.custom_minimum_size.y = 48
 	utility_card.add_child(setup_online_code)
+	setup_online_code.visible = AlphaConfig.CHANNEL != "public"
 	setup_online_button = Button.new()
 	setup_online_button.text = "Entrar a partida privada"
 	setup_online_button.pressed.connect(_join_online_match)
 	_setup_button(setup_online_button)
 	utility_card.add_child(setup_online_button)
+	setup_online_button.visible = AlphaConfig.CHANNEL != "public"
 	setup_replay_button = Button.new()
-	setup_replay_button.text = "Abrir repetición privada"
+	setup_replay_button.text = "Abrir repetición" if AlphaConfig.CHANNEL == "public" else "Abrir repetición privada"
 	setup_replay_button.pressed.connect(_choose_replay_file)
 	_setup_button(setup_replay_button)
 	utility_card.add_child(setup_replay_button)
@@ -744,7 +747,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	footer.add_child(setup_summary)
 	setup_start = Button.new()
-	setup_start.text = "⚔ INICIAR BATALLA"
+	setup_start.text = "INICIAR BATALLA"
 	setup_start.custom_minimum_size.x = 240
 	_setup_button(setup_start, Color("087e8c"), Color("ffe0a0"))
 	setup_start.pressed.connect(func() -> void: _choose_faction(selected_setup_faction))
@@ -783,7 +786,7 @@ func _layout_setup() -> void:
 	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	setup_cards.columns = 1 if mobile else 2
 	setup_lead.text = "Elige bando y reglas. Disputa Cibeles." if mobile else "Elige tu bando, las reglas y el campo de batalla. Luego disputa Cibeles."
-	setup_lore_text.text = "📍 ROMA NORTE · CUATRO EDADES\nForánea → Universitaria → Godín → Gentrificación." if mobile else "📍 ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea → Universitaria → Godín → Gentrificación. La glorieta sigue en disputa."
+	setup_lore_text.text = "ROMA NORTE · CUATRO EDADES\nForánea / Universitaria / Godín / Gentrificación." if mobile else "ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea / Universitaria / Godín / Gentrificación. La glorieta sigue en disputa."
 	setup_faction_grid.columns = 1 if layout_view.x < 340.0 else 2
 	setup_summary.visible = not mobile
 	setup_start.custom_minimum_size.x = 0 if mobile else 240
@@ -792,7 +795,7 @@ func _layout_setup() -> void:
 		var full_label := str(button.get_meta("full_label"))
 		button.text = full_label.substr(0, 1) if mobile else full_label
 		button.tooltip_text = full_label
-	setup_column.get_child(0).text = "⚑ CAPÍTULO DE CAMPAÑA" if campaign_mode else "⚔ ARMA TU CONQUISTA"
+	setup_column.get_child(0).text = "CAPÍTULO DE CAMPAÑA" if campaign_mode else "ARMA TU CONQUISTA"
 	setup_column.get_child(0).add_theme_font_size_override("font_size", 23 if mobile else 30)
 	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos]:
 		b.add_theme_font_size_override("font_size", 12 if mobile else 15)
@@ -949,7 +952,7 @@ func _choose_map(index: int) -> void:
 			_layout_setup()
 
 func _wonder_allowed() -> bool:
-	return bool(wonder_flag.get("served", false)) and bool(wonder_flag.get("enabled", false))
+	return AlphaConfig.CHANNEL == "public" or (bool(wonder_flag.get("served", false)) and bool(wonder_flag.get("enabled", false)))
 
 func _refresh_wonder_setup() -> void:
 	if setup_objective == null:
@@ -2170,7 +2173,7 @@ func _update_hud() -> void:
 		for item in outbox.state.events:
 			if item.status == "needs_attention":
 				attention = true
-	var alert := attention or sync_note.contains("could not") or sync_note.contains("unavailable") or sync_note.contains("not accepted") or (AlphaConfig.CHANNEL != "development" and invite_code.is_empty())
+	var alert := AlphaConfig.CHANNEL != "public" and (attention or sync_note.contains("could not") or sync_note.contains("unavailable") or sync_note.contains("not accepted") or (AlphaConfig.CHANNEL != "development" and invite_code.is_empty()))
 	ui.menu_button.text = "..!" if alert else "..."
 	if alert and last_alert_state != "attention":
 		ui.show_notice("Sync needs attention • open menu", true)
@@ -2258,6 +2261,8 @@ func _update_secondary() -> void:
 		ui.secondary_details.text = ""
 
 func _sync_brief() -> String:
+	if AlphaConfig.CHANNEL == "public":
+		return "Partidas guardadas en este dispositivo."
 	if outbox.state.is_empty():
 		return "Local storage unavailable."
 	var pending := 0
@@ -2297,6 +2302,8 @@ func _wonder_status(side: int) -> String:
 	return "built · %ds left" % ceili(float(maxi(0, int(sim.content.objectives.wonder_hold_ticks) - sim.wonder_progress[side])) / 10.0)
 
 func _send_next() -> void:
+	if AlphaConfig.CHANNEL == "public":
+		return
 	if syncing:
 		return
 	if AlphaConfig.CHANNEL != "development" and invite_code.is_empty():
@@ -2371,6 +2378,8 @@ func _save_invite_code() -> void:
 	_send_next()
 
 func _check_wonder_flag() -> void:
+	if AlphaConfig.CHANNEL == "public":
+		return
 	if wonder_check_pending or invite_code.is_empty() or not outbox.state.has("player_id"):
 		return
 	var headers := ["Content-Type: application/json", "X-Aomx-Invite-Code: " + invite_code]
@@ -2390,10 +2399,10 @@ func _on_wonder_flag_completed(result_code: int, response_code: int, _headers: P
 			_layout_setup()
 
 func _campaign_allowed() -> bool:
-	return AlphaConfig.CHANNEL == "development" or (bool(campaign_flag.get("enabled", false)) and not campaign_online_blocked)
+	return AlphaConfig.CHANNEL in ["development", "public"] or (bool(campaign_flag.get("enabled", false)) and not campaign_online_blocked)
 
 func _check_campaign_flag() -> void:
-	if AlphaConfig.CHANNEL == "development" or campaign_check_pending or invite_code.is_empty() or not outbox.state.has("player_id"):
+	if AlphaConfig.CHANNEL in ["development", "public"] or campaign_check_pending or invite_code.is_empty() or not outbox.state.has("player_id"):
 		return
 	campaign_check_after_open = false
 	var headers := ["Content-Type: application/json", "X-Aomx-Invite-Code: " + invite_code]
