@@ -2,7 +2,7 @@
 
 Battle for La Roma is a real-time strategy game inspired by classic RTS games and set in a fictional, satirical Mexico City. Players build regional civilizations, grow their economies, and compete for control of the city's neighborhoods. La Roma is the ultimate prize.
 
-The project has a local launch-funnel instrumentation prototype and a finishable Godot solo skirmish. An isolated alpha ingest is staged on the Oracle VM, and a Restricted macOS preview exists on itch.io. There is no public game release or real play cohort yet. Cultural references should enrich the game without being required to understand it.
+The public solo game is available [in the browser and for macOS on itch.io](https://danybgoode.itch.io/battle-for-la-roma-play), with a [promotional landing page](https://battle-for-la-roma.pages.dev/). It offers skirmish, three campaign chapters and Wonder on every solo map. This public build saves locally and sends no play events, so there is still no measured real play cohort. The separate Restricted itch.io preview retains private multiplayer testing and its isolated Oracle VM ingest. Cultural references should enrich the game without being required to understand it.
 
 ## Project plan
 
