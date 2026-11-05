@@ -35,6 +35,6 @@ npm run landing:build
 wrangler pages deploy dist/landing --project-name battle-for-la-roma --branch master
 ```
 
-Use `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` from the operator environment. After each upload, check `/`, `/en/` and a few image assets. Do not publish `.env.local` or the root prototype HTML files.
+Use `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` from the operator environment. Locally, the ignored `.env.local` stores them as `ACCOUNT_ID` and `API_TOKEN`, so map them when deploying: `set -a; . ./.env.local; set +a; CLOUDFLARE_ACCOUNT_ID="$ACCOUNT_ID" CLOUDFLARE_API_TOKEN="$API_TOKEN" npx wrangler pages deploy …`. Pass `--commit-hash "$(git rev-parse HEAD)"` so the deployment records its source. After each upload, check `/`, `/en/` and a few image assets. Do not publish `.env.local` or the root prototype HTML files.
 
 The CTAs link to the unified public [itch.io page](https://danybgoode.itch.io/battle-for-la-roma-play) for Web play and its macOS download section. The age cards and the gameplay figure use real Godot captures; the hero, faction portraits, city map and closing poster are concept art, and the footer says so once.
