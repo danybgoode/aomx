@@ -18,7 +18,7 @@ func _run() -> void:
 	root.add_child(client)
 	client.setup_difficulty.select(2)
 	client._choose_difficulty(2)
-	check(client.selected_difficulty == "challenger" and client.setup_difficulty_details.text.contains("reacciona antes"),
+	check(client.selected_difficulty == "challenger" and client.setup_difficulty_details.text.contains("Reacts sooner"),
 		"setup explains selected Challenger level")
 	client._choose_faction(Skirmish.REGIOS)
 	check(client.sim.ai_difficulty == "challenger", "selected level starts with the match")

@@ -2,10 +2,11 @@ extends RefCounted
 
 const Skirmish = preload("res://skirmish.gd")
 const CampaignMissions = preload("res://campaign_missions.gd")
+const RulesContent = preload("res://rules_content.gd")
 const SAVE_PATH := "user://solo-skirmish-save.v1.json"
-const SAVE_SCHEMA_VERSION := 5
+const SAVE_SCHEMA_VERSION := 6
 const MAX_SAVE_BYTES := 16777216
-const JOBS := ["idle", "move", "gather", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
+const JOBS := ["idle", "move", "gather", "plant", "deliver", "build", "attack", "assist", "repair", "attack_move", "hold"]
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const QUEUE_KINDS := ["unit", "tech", "age"]
 const RESULTS := ["", "win", "loss", "draw"]
@@ -57,6 +58,63 @@ static func read(path: String = SAVE_PATH) -> Dictionary:
 		return _bad("save_corrupt")
 	return restore(parsed)
 
+static func export_bytes(path: String = SAVE_PATH) -> Dictionary:
+	var checked := read(path)
+	if not checked.ok:
+		return checked
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	var bytes := file.get_buffer(file.get_length())
+	file.close()
+	return {"ok": true, "bytes": bytes,
+		"name": "battle-for-la-roma-%s.json" % str(checked.match_id)}
+
+static func import_bytes(bytes: PackedByteArray, path: String = SAVE_PATH) -> Dictionary:
+	if bytes.is_empty() or bytes.size() > MAX_SAVE_BYTES:
+		return _bad("save_too_large" if bytes.size() > MAX_SAVE_BYTES else "save_corrupt")
+	var parser := JSON.new()
+	if parser.parse(bytes.get_string_from_utf8()) != OK or not parser.data is Dictionary:
+		return _bad("save_corrupt")
+	var checked := restore(parser.data)
+	if not checked.ok:
+		return checked
+	var temporary := path + ".import.tmp"
+	var file := FileAccess.open(temporary, FileAccess.WRITE)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	file.store_buffer(bytes)
+	file.flush()
+	file.close()
+	if FileAccess.get_file_as_bytes(temporary) != bytes:
+		return _bad("save_write_failed")
+	if DirAccess.rename_absolute(ProjectSettings.globalize_path(temporary), ProjectSettings.globalize_path(path)) != OK:
+		return _bad("save_replace_failed")
+	return {"ok": true, "match_id": checked.match_id, "state_hash": checked.state_hash}
+
+static func import_file(source: String, path: String = SAVE_PATH) -> Dictionary:
+	var file := FileAccess.open(source, FileAccess.READ)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	if file.get_length() > MAX_SAVE_BYTES:
+		file.close()
+		return _bad("save_too_large")
+	var bytes := file.get_buffer(file.get_length())
+	file.close()
+	return import_bytes(bytes, path)
+
+static func export_file(destination: String, path: String = SAVE_PATH) -> Dictionary:
+	var exported := export_bytes(path)
+	if not exported.ok:
+		return exported
+	var file := FileAccess.open(destination, FileAccess.WRITE)
+	if file == null:
+		return _bad("save_storage_unavailable")
+	file.store_buffer(exported.bytes)
+	file.flush()
+	file.close()
+	return {"ok": true, "path": destination}
+
 static func restore(payload: Dictionary, validate_history: bool = true, validate_hash: bool = true) -> Dictionary:
 	if payload.get("format") != "battle-for-la-roma-save":
 		return _bad("save_format_unknown")
@@ -89,7 +147,7 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 		if not _validate_history(payload.command_log, payload.hash_checkpoints, state, loaded.data):
 			return _bad("save_history_invalid")
 	var selected_mission := str(state.get("mission_id", ""))
-	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1], selected_mission, str(state.get("objective_id", "la_roma")))
+	var game = Skirmish.new(state.factions[0], {}, int(state.initial_seed), state.ai_difficulty, map_id, state.factions[1], selected_mission, str(state.get("objective_id", "la_roma")), state.get("team_mode", false))
 	if not selected_mission.is_empty():
 		game.mission_steps = state.mission_steps.duplicate()
 		game.mission_result = state.mission_result
@@ -102,7 +160,7 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 	game.district_state = state.district_state
 	if game.objective_id == "wonder":
 		game.wonder_progress = [int(state.wonder_progress[0]), int(state.wonder_progress[1])]
-	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+	for side in game._sides():
 		var saved_balances: Dictionary = state.balances[side]
 		game.stockpile[side] = int(saved_balances.varos)
 		for resource_id in RESOURCE_IDS:
@@ -113,15 +171,23 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 			source.amount = int(saved_source.amount)
 			source.refresh_remaining = int(saved_source.refresh_remaining)
 			source.refreshes_left = int(saved_source.refreshes_left)
-			if map_id == "la_roma_large":
+			if map_id in RulesContent.EXPANSION_MAP_IDS:
 				var saved_expansion: Dictionary = state.expansion_sources[side][resource_id]
 				var expansion: Dictionary = game.expansion_sources[side][resource_id]
 				expansion.amount = int(saved_expansion.amount)
 				expansion.refresh_remaining = int(saved_expansion.refresh_remaining)
 				expansion.refreshes_left = int(saved_expansion.refreshes_left)
 		game.sources[side] = game.resource_sources[side].varos
+		for saved_field in state.food_fields[side]:
+			var at := Vector2i(int(saved_field.pos[0]), int(saved_field.pos[1]))
+			game.food_fields[side].append({"pos": at, "amount": int(saved_field.amount), "progress": int(saved_field.progress)})
+			game.source_tiles[at] = true
 		game.age_index[side] = int(state.age_index[side])
 		game.researched[side] = state.researched[side].duplicate()
+	for index in game.map_sites.size():
+		game.map_sites[index].amount = int(state.map_sites[index].amount)
+		game.map_sites[index].refresh_remaining = int(state.map_sites[index].refresh_remaining)
+		game.map_sites[index].refreshes_left = int(state.map_sites[index].refreshes_left)
 	game.next_id = int(state.next_id)
 	game.next_command = int(state.next_command)
 	game.ai_next_role = state.ai_next_role
@@ -131,6 +197,12 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 	game.ai_stall_reason = state.ai_stall_reason
 	game.ai_rejections = int(state.ai_rejections)
 	game.ai_last_rejection = state.ai_last_rejection
+	if game.team_mode:
+		for side in [Skirmish.ALLY, Skirmish.SECOND_OPPONENT]:
+			game.team_ai_state[side] = state.team_ai_state[side - 2].duplicate(true)
+		game.team_ai_state[Skirmish.COMPUTER] = {"next_role": game.ai_next_role, "opening": game.ai_opening,
+			"plan": game.ai_plan, "stall_reason": game.ai_stall_reason, "rejections": game.ai_rejections,
+			"last_rejection": game.ai_last_rejection}
 	game.rng_state = int(state.rng_state)
 	game.entities.clear()
 	for raw_entity in state.entities:
@@ -151,7 +223,7 @@ static func restore(payload: Dictionary, validate_history: bool = true, validate
 	game.projectiles.clear()
 	for p in state.projectiles:
 		game.projectiles.append({"target_id": int(p.target_id), "tile": Vector2i(int(p.tile[0]), int(p.tile[1])), "origin": Vector2i(int(p.origin[0]), int(p.origin[1])), "damage": int(p.damage), "launch": int(p.launch), "arrival": int(p.arrival)})
-	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+	for side in game._sides():
 		game.explored_tiles[side].clear()
 		for p in state.explored[side]:
 			game.explored_tiles[side][Vector2i(int(p[0]), int(p[1]))] = true
@@ -189,6 +261,12 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_version_mismatch")
 	if s.get("objective_id", "la_roma") not in Skirmish.OBJECTIVE_IDS:
 		return _bad("state_objective_invalid")
+	var team_mode: bool = s.get("team_mode", false) == true
+	if s.has("team_mode") and s.team_mode != true:
+		return _bad("state_team_invalid")
+	if team_mode and (content.map_id != "la_roma_large" or s.get("objective_id") != "conquest" or s.has("mission_id")):
+		return _bad("state_team_invalid")
+	var side_count := 4 if team_mode else 2
 	# The old default is encoded by absence so its snapshot and hash stay byte-for-byte stable.
 	if s.has("objective_id") and s.objective_id == "la_roma":
 		return _bad("state_objective_invalid")
@@ -225,19 +303,44 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_terminal_invalid")
 	if s.result != "" and int(s.terminal_tick) > int(s.tick):
 		return _bad("state_terminal_invalid")
-	if not s.get("factions") is Array or s.factions.size() != 2 or s.factions[0] not in Skirmish.FACTION_IDS or s.factions[1] not in Skirmish.FACTION_IDS:
+	if not s.get("factions") is Array or s.factions.size() != side_count:
 		return _bad("state_factions_invalid")
-	if not s.get("balances") is Array or s.balances.size() != 2:
+	for faction in s.factions:
+		if faction not in Skirmish.FACTION_IDS:
+			return _bad("state_factions_invalid")
+	if not s.get("balances") is Array or s.balances.size() != side_count:
 		return _bad("state_balances_invalid")
-	if not s.get("resource_sources") is Array or s.resource_sources.size() != 2:
+	if not s.get("resource_sources") is Array or s.resource_sources.size() != side_count:
 		return _bad("state_resource_sources_invalid")
-	if content.map_id == "la_roma_large" and (not s.get("expansion_sources") is Array or s.expansion_sources.size() != 2):
+	if not s.get("food_fields") is Array or s.food_fields.size() != side_count:
+		return _bad("state_food_fields_invalid")
+	if not s.get("map_sites") is Array:
+		return _bad("state_map_sites_invalid")
+	if content.map_id in RulesContent.EXPANSION_MAP_IDS and (not s.get("expansion_sources") is Array or s.expansion_sources.size() != side_count):
 		return _bad("state_expansion_sources_invalid")
-	if not s.get("age_index") is Array or s.age_index.size() != 2:
+	if not s.get("age_index") is Array or s.age_index.size() != side_count:
 		return _bad("state_age_index_invalid")
-	if not s.get("researched") is Array or s.researched.size() != 2:
+	if not s.get("researched") is Array or s.researched.size() != side_count:
 		return _bad("state_researched_invalid")
-	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+	var field_layout = Skirmish.new(s.factions[0], {}, int(s.initial_seed), "standard", content.map_id, s.factions[1], "", str(s.get("objective_id", "la_roma")), team_mode)
+	if team_mode and (s.factions[2] != field_layout.factions[2] or s.factions[3] != field_layout.factions[3]):
+		return _bad("state_factions_invalid")
+	if s.map_sites.size() != field_layout.map_sites.size():
+		return _bad("state_map_sites_invalid")
+	for index in s.map_sites.size():
+		var site: Variant = s.map_sites[index]
+		var expected: Dictionary = field_layout.map_sites[index]
+		if not _keys_exact(site, ["pos", "resource_id", "amount", "refresh_remaining", "refreshes_left"]):
+			return _bad("state_map_sites_invalid")
+		if site.resource_id != expected.resource_id or site.pos != [expected.pos.x, expected.pos.y]:
+			return _bad("state_map_sites_invalid")
+		for key in ["amount", "refresh_remaining", "refreshes_left"]:
+			if not _integer(site[key], 0):
+				return _bad("state_map_sites_invalid")
+		if int(site.refreshes_left) > 2 or int(site.amount) > int(content.resources[site.resource_id].amount):
+			return _bad("state_map_sites_invalid")
+	var used_field_tiles := {}
+	for side in range(side_count):
 		var balance: Variant = s.balances[side]
 		if not _keys_exact(balance, RESOURCE_IDS):
 			return _bad("state_balances_invalid")
@@ -256,7 +359,7 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 					return _bad("state_resource_sources_invalid")
 			if int(source.refreshes_left) > int(content.resources[resource_id].refresh_count):
 				return _bad("state_resource_sources_invalid")
-		if content.map_id == "la_roma_large":
+		if content.map_id in RulesContent.EXPANSION_MAP_IDS:
 			var expansion_set: Variant = s.expansion_sources[side]
 			if not _keys_exact(expansion_set, RESOURCE_IDS):
 				return _bad("state_expansion_sources_invalid")
@@ -269,6 +372,19 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 						return _bad("state_expansion_sources_invalid")
 				if int(expansion.refreshes_left) > int(content.resources[resource_id].refresh_count):
 					return _bad("state_expansion_sources_invalid")
+		if not s.food_fields[side] is Array or s.food_fields[side].size() > Skirmish.FIELD_LIMIT:
+			return _bad("state_food_fields_invalid")
+		for field in s.food_fields[side]:
+			if not _keys_exact(field, ["pos", "amount", "progress"]) or not _point(field.pos, int(content.map.width), int(content.map.height)):
+				return _bad("state_food_fields_invalid")
+			if not _integer(field.amount, 0) or int(field.amount) > Skirmish.FIELD_YIELD or not _integer(field.progress, 0) or int(field.progress) > Skirmish.FIELD_BUILD_TICKS:
+				return _bad("state_food_fields_invalid")
+			var at := Vector2i(int(field.pos[0]), int(field.pos[1]))
+			if int(field.amount) > 0 and int(field.progress) != Skirmish.FIELD_BUILD_TICKS or used_field_tiles.has(at):
+				return _bad("state_food_fields_invalid")
+			if not field_layout._walkable(at) or field_layout._in_district(at):
+				return _bad("state_food_fields_invalid")
+			used_field_tiles[at] = true
 		if not _integer(s.age_index[side], 0) or int(s.age_index[side]) >= content.ages.order.size():
 			return _bad("state_age_index_invalid")
 		if not s.researched[side] is Array or s.researched[side].size() > content.techs.size():
@@ -284,9 +400,17 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		return _bad("state_ai_invalid")
 	if not _integer(s.get("ai_opening"), 0) or int(s.ai_opening) > 1 or not s.get("ai_plan") is String or not s.get("ai_stall_reason") is String or not _integer(s.get("ai_rejections"), 0) or not s.get("ai_last_rejection") is String:
 		return _bad("state_ai_invalid")
-	if not s.get("projectiles") is Array or s.projectiles.size() > 10000 or not s.get("explored") is Array or s.explored.size() != 2 or not s.get("last_seen") is Array or s.last_seen.size() != 2:
+	if team_mode:
+		if not s.get("team_ai_state") is Array or s.team_ai_state.size() != 2:
+			return _bad("state_ai_invalid")
+		for ai in s.team_ai_state:
+			if not _keys_exact(ai, ["next_role", "opening", "plan", "stall_reason", "rejections", "last_rejection"]) or ai.next_role not in ["melee", "ranged"] or not _integer(ai.opening, 0) or int(ai.opening) > 1 or not ai.plan is String or not ai.stall_reason is String or not _integer(ai.rejections, 0) or not ai.last_rejection is String:
+				return _bad("state_ai_invalid")
+	elif s.has("team_ai_state"):
+		return _bad("state_ai_invalid")
+	if not s.get("projectiles") is Array or s.projectiles.size() > 10000 or not s.get("explored") is Array or s.explored.size() != side_count or not s.get("last_seen") is Array or s.last_seen.size() != side_count:
 		return _bad("state_visibility_invalid")
-	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+	for side in range(side_count):
 		for p in s.explored[side]:
 			if not _point(p, int(content.map.width), int(content.map.height)):
 				return _bad("state_visibility_invalid")
@@ -303,7 +427,7 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		if not raw_entity is Dictionary:
 			return _bad("state_entity_invalid")
 		var e: Dictionary = raw_entity
-		if not _integer(e.get("id"), 1) or int(e.id) <= last_id or not _integer(e.get("side"), 0) or int(e.side) > 1:
+		if not _integer(e.get("id"), 1) or int(e.id) <= last_id or not _integer(e.get("side"), 0) or int(e.side) >= side_count:
 			return _bad("state_entity_id_invalid")
 		last_id = int(e.id)
 		if e.get("kind") not in content.units and e.get("kind") not in content.buildings:
@@ -355,7 +479,7 @@ static func _validate_history(commands: Array, checkpoints: Array, state: Dictio
 		sequence += 1
 		if not _integer(raw.get("sequence"), 1) or int(raw.sequence) != sequence or not _integer(raw.get("issued_tick"), 0) or int(raw.issued_tick) > int(state.tick):
 			return false
-		if raw.get("schema_version") != Skirmish.COMMAND_SCHEMA_VERSION or not _integer(raw.get("side"), 0) or int(raw.side) > 1 or not _integer(raw.get("actor_id"), 1):
+		if raw.get("schema_version") != Skirmish.COMMAND_SCHEMA_VERSION or not _integer(raw.get("side"), 0) or int(raw.side) >= state.factions.size() or not _integer(raw.get("actor_id"), 1):
 			return false
 		if not _command_target(raw.get("kind"), raw.get("target"), content):
 			return false
@@ -372,7 +496,7 @@ static func _command_target(kind: Variant, target: Variant, content: Dictionary)
 	var width := int(content.map.width)
 	var height := int(content.map.height)
 	match kind:
-		"move", "gather", "attack_move":
+		"move", "gather", "attack_move", "plant":
 			return _point(target, width, height)
 		"build":
 			if _point(target, width, height):

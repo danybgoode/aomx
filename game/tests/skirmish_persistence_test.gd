@@ -27,7 +27,7 @@ func _initialize() -> void:
 	var saved: Dictionary = Save.write(game, match_id, false, path)
 	check(saved.ok and FileAccess.file_exists(path), "versioned save written")
 	var snapshot: Dictionary = game.snapshot()
-	check(snapshot.state_schema_version == 5 and snapshot.map_id == "la_roma" and snapshot.balances.size() == 2
+	check(snapshot.state_schema_version == 8 and snapshot.map_id == "la_roma" and snapshot.balances.size() == 2
 		and snapshot.resource_sources.size() == 2 and snapshot.age_index.size() == 2
 		and snapshot.researched.size() == 2 and snapshot.balances[0].terrenos == 5
 		and snapshot.resource_sources[0].terrenos.refresh_remaining == 12
@@ -100,9 +100,29 @@ func _initialize() -> void:
 	check(Save.read(bad_path).reason == "save_corrupt", "malformed JSON rejected")
 	check(FileAccess.get_file_as_string(path) == before and FileAccess.file_exists(bad_path),
 		"rejected data preserved without modifying valid save")
+	var exported := Save.export_bytes(path)
+	check(exported.ok and exported.bytes.get_string_from_utf8() == before
+		and str(exported.name).begins_with("battle-for-la-roma-"),
+		"portable export contains the validated save")
+	var imported_path := "user://skirmish-import-check-%d.json" % Time.get_ticks_usec()
+	var imported := Save.import_bytes(exported.bytes, imported_path)
+	check(imported.ok and Save.read(imported_path).ok
+		and FileAccess.get_file_as_string(imported_path) == before,
+		"portable import preserves the same match state")
+	var imported_before := FileAccess.get_file_as_string(imported_path)
+	check(Save.import_bytes("{ broken".to_utf8_buffer(), imported_path).reason == "save_corrupt"
+		and FileAccess.get_file_as_string(imported_path) == imported_before,
+		"corrupt import leaves prior save intact")
+	check(Save.import_file(old_path, imported_path).reason == "unsupported_save_version"
+		and FileAccess.get_file_as_string(imported_path) == imported_before,
+		"old-version import leaves prior save intact")
+	check(Save.import_bytes(PackedByteArray(), imported_path).reason == "save_corrupt"
+		and FileAccess.get_file_as_string(imported_path) == imported_before,
+		"empty import leaves prior save intact")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(old_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(bad_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(imported_path))
 	if not failed:
 		print("Skirmish persistence checks passed: round trip, continuation, version and corruption")
 	quit(1 if failed else 0)

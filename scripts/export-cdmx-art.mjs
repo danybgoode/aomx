@@ -51,6 +51,16 @@ for (const kind of ["worker", "melee", "ranged", "armored", "siege"]) {
 add("prop_cdmx_cibeles", "prop", "source/cdmx/cibeles.png", [96, 80], [48, 79], [2, 2], "source/cdmx/cibeles.png",
   ["-trim", "+repage", "-filter", "Lanczos", "-resize", "92x76", "-background", "none",
     "-gravity", "south", "-extent", "96x80", "-strip"]);
+for (const resource of ["comida", "materiales", "varos", "terrenos"]) {
+  const id = `prop_cdmx_resource_${resource}`;
+  const source = `source/cdmx/resource_${resource}.png`;
+  add(id, "prop", source, [48, 48], [24, 47], [1, 1], source,
+    ["-trim", "+repage", "-filter", "Lanczos", "-resize", "44x44", "-background", "none",
+      "-gravity", "south", "-extent", "48x48", "-strip"]);
+}
+add("prop_cdmx_food_field", "prop", "source/cdmx/food_field.png", [48, 48], [24, 47], [1, 1], "source/cdmx/food_field.png",
+  ["-crop", "1160x869+188+91", "+repage", "-filter", "Lanczos", "-resize", "44x44", "-background", "none",
+    "-gravity", "south", "-extent", "48x48", "-strip"]);
 
 const manifest = {
   schema_version: 1,

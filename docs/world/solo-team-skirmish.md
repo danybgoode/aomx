@@ -1,0 +1,7 @@
+# Solo 2 v 2 skirmish
+
+The match setup offers **2 v 2 · You + AI ally vs two AI opponents**. It uses the 96×96 La Roma map and Conquest rules. Each of the four sides has its own command post, worker, scout, resource sites, stockpile, age, research, production, and AI plan. The human and allied AI share sight; the two opposing AIs also share sight. Allies cannot be given attack targets or hit by automatic attacks. Either team wins only after both opposing command posts are destroyed. A surviving ally can keep the match going if the human post falls.
+
+The human selects a faction and the first opponent faction as before. The ally and second opponent use the next faction in the four-faction roster, producing a deterministic match. The map seed places discoverable neutral resources. The setup locks the map to Large and the objective to Conquest so the team layout and win rule are clear. This mode has one human and three local AIs; private online matches remain 1 v 1.
+
+The rule version is `godot-4.7.2-skirmish-11`, state schema 8, solo save schema 6, and solo replay schema 6. A saved team match validates four side economies and the seed-derived faction assignment before restoration; replays reconstruct all AI orders from the seed and human command log. The existing 1 v 1 rules are covered by their pinned regression fixtures. The version change requires a matching Web/native client and private-match host before anyone can use the updated source build online. No hosted tester channel was updated by this branch.

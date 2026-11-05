@@ -40,28 +40,30 @@ func _run() -> void:
 	var migrated_settings = JSON.parse_string(FileAccess.get_file_as_string(ui_settings))
 	check(migrated_settings is Dictionary and migrated_settings.get("version") == 2 and migrated_settings.get("scale") == 1.0,
 		"migrated interface preference is saved in v2 format")
-	check("Roma Norte" in client.setup_map.get_item_text(0) and "estilizada" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
+	check("Roma Norte" in client.setup_map.get_item_text(0) and "stylized" in client.setup_map_details.text and "Cibeles" in client.setup_goal.text,
 		"La Roma setup gives sourced place context and both win routes")
+	check(client.setup_map.get_item_text(0).contains("Small") and client.setup_map.get_item_text(3).contains("Medium") and client.setup_map.get_item_text(4).contains("Large"),
+		"match setup offers small, medium and large battlegrounds")
 	client._choose_objective(1)
-	check(client.selected_objective == "conquest" and "centro no basta" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
+	check(client.selected_objective == "conquest" and "Holding the center does not win" in client.setup_goal.text and client.setup_objective.is_item_disabled(2),
 		"Conquest setup explains its distinct rule and Wonder stays unavailable")
 	client.wonder_flag = {"enabled": true, "served": true, "flag_version": 1}
 	client._refresh_wonder_setup()
 	client._choose_objective(2)
-	check(client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2) and "90 segundos" in client.setup_goal.text,
+	check(client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2) and "90 seconds" in client.setup_goal.text,
 		"served Wonder decision enables readable La Roma setup")
 	client._choose_map(1)
 	check(client.selected_map == "narvarte" and client.selected_objective == "wonder" and not client.setup_objective.is_item_disabled(2),
 		"Wonder remains available when switching maps")
 	client._choose_objective(1)
-	check("centro" in client.setup_goal.text, "map change preserves Conquest objective copy")
+	check("center does not win" in client.setup_goal.text, "map change preserves Conquest objective copy")
 	client._choose_map(0)
 	client._choose_objective(0)
 	check(client.outbox.state.events.size() == 1 and client.choosing_faction, "client opens setup without starting a match")
 	client._process(0.1)
 	check(client.sim.tick_number == 0 and client.match_id.is_empty(), "setup does not advance a match")
-	client._select_setup_faction(Skirmish.REGIOS)
-	check(client.choosing_faction and client.setup_regios.button_pressed and "Regios" in client.setup_summary.text,
+	client._select_faction(Skirmish.REGIOS)
+	check(client.choosing_faction and client.selected_faction == Skirmish.REGIOS,
 		"faction selection updates setup without starting a match")
 	client.setup_start.pressed.emit()
 	check(client._terrain_id(Vector2i(0, 0)).begins_with("terrain_cdmx_"), "La Roma uses the traced CDMX ground pack")
@@ -145,6 +147,14 @@ func _run() -> void:
 	client._navigate_minimap(Vector2i(10, 10))
 	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 10) and client.board_pan != Vector2.ZERO,
 		"minimap navigation moves the existing battlefield camera")
+	var play_top := 120.0
+	var play_bottom := 600.0
+	var edge_view := Vector2(1280, 800)
+	check(client._edge_pan_direction(Vector2(1, 300), edge_view, play_top, play_bottom).x > 0.0 and
+		client._edge_pan_direction(Vector2(edge_view.x - 1, 300), edge_view, play_top, play_bottom).x < 0.0 and
+		client._edge_pan_direction(Vector2(edge_view.x * 0.5, play_top + 1), edge_view, play_top, play_bottom).y > 0.0 and
+		client._edge_pan_direction(Vector2(edge_view.x * 0.5, play_bottom - 1), edge_view, play_top, play_bottom).y < 0.0,
+		"desktop pointer pans toward all four battlefield edges")
 	var map_click := InputEventMouseButton.new()
 	map_click.button_index = MOUSE_BUTTON_LEFT
 	map_click.position = Vector2(7, 7) + (client.hud_ui.minimap.size - Vector2(14, 14)) * Vector2(0.375, 0.325)
@@ -166,6 +176,18 @@ func _run() -> void:
 	var siege_screen: Vector2 = Vector2(640, 305) + (client._actor_ground(client.sim.entities[siege_id]) - Vector2(640, 305)) * client.board_zoom + client._board_view_offset()
 	client._select_drag(Rect2(armored_screen, siege_screen - armored_screen).grow(2), false)
 	check(armored_id in client.selected_ids and siege_id in client.selected_ids, "drag selection includes armored and siege roles")
+	var group_destination := Vector2i(8, 12)
+	check(client._issue_order("move", group_destination, group_destination).ok,
+		"group move is accepted")
+	check(client.sim.entities[armored_id].order_pos != client.sim.entities[siege_id].order_pos,
+		"group members receive distinct reachable destination tiles")
+	client.selected_ids.clear()
+	client.selected_ids.append(armored_id)
+	client.selected_id = armored_id
+	var occupied_destination: Vector2i = client.sim.entities[siege_id].pos
+	check(client._issue_order("move", occupied_destination, occupied_destination).ok and
+		client.sim.entities[armored_id].order_pos != occupied_destination,
+		"single move settles near a stationary friendly unit")
 	client.sim.entities.erase(armored_id)
 	client.sim.entities.erase(siege_id)
 	client.selected_ids.clear()
@@ -184,7 +206,7 @@ func _run() -> void:
 	check(client.selected_id == worker_id, "clicking the worker body selects it")
 	check(client.selection_title.text.contains("Worker") and client.selection_portrait.texture != null and client.hud_ui.selection_hp_label.text.contains("HP"),
 		"selection panel follows the active board actor")
-	check(client.command_buttons["gather"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
+	check(client.command_buttons["gather"].visible and client.command_buttons["plant"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
 		"worker sees only relevant commands")
 	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "FORÁNEA" and client.hud_ui.population_label.text == "1/4",
 		"HUD shows four resource counters, age and population")

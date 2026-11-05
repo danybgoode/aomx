@@ -4,7 +4,7 @@ const Skirmish = preload("res://skirmish.gd")
 const RulesContent = preload("res://rules_content.gd")
 const CampaignMissions = preload("res://campaign_missions.gd")
 const Save = preload("res://skirmish_persistence.gd")
-const REPLAY_SCHEMA_VERSION := 5
+const REPLAY_SCHEMA_VERSION := 6
 
 static func record(game: RefCounted) -> Dictionary:
 	var human: Array[Dictionary] = []
@@ -25,6 +25,8 @@ static func record(game: RefCounted) -> Dictionary:
 		recording["mission_hash"] = game.mission_hash
 	if game.objective_id != "la_roma":
 		recording["objective_id"] = game.objective_id
+	if game.team_mode:
+		recording["team_mode"] = true
 	return recording
 
 static func verify(recording: Dictionary) -> Dictionary:
@@ -44,6 +46,10 @@ static func verify(recording: Dictionary) -> Dictionary:
 	# An explicit legacy default would replay to a different canonical hash.
 	if recording.has("objective_id") and recording.objective_id == "la_roma":
 		return _bad("replay_objective_invalid", 0)
+	if recording.has("team_mode") and recording.team_mode != true:
+		return _bad("replay_team_invalid", 0)
+	if recording.get("team_mode", false) and (recording.map_id != "la_roma_large" or recording.get("objective_id") != "conquest" or recording.has("mission_id")):
+		return _bad("replay_team_invalid", 0)
 	var selected_mission := str(recording.get("mission_id", ""))
 	if not selected_mission.is_empty():
 		var mission := CampaignMissions.find_mission(selected_mission)
@@ -76,7 +82,7 @@ static func verify(recording: Dictionary) -> Dictionary:
 		last_checkpoint_tick = int(entry.tick)
 	if not selected_mission.is_empty() and recording.get("objective_id", "la_roma") != "la_roma":
 		return _bad("replay_objective_invalid", 0)
-	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed), recording.ai_difficulty, recording.map_id, recording.opponent_faction, selected_mission, str(recording.get("objective_id", "la_roma")))
+	var game = Skirmish.new(recording.human_faction, {}, int(recording.initial_seed), recording.ai_difficulty, recording.map_id, recording.opponent_faction, selected_mission, str(recording.get("objective_id", "la_roma")), recording.get("team_mode", false))
 	var command_index := 0
 	var checkpoint_index := 0
 	for logical_tick in range(end_tick + 1):

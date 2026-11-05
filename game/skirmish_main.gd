@@ -23,40 +23,44 @@ const TICK_SECONDS := 0.1
 const ZOOM_MIN := 0.7
 const ZOOM_MAX := 2.1
 const ZOOM_STEP := 0.1
+const EDGE_PAN_MARGIN := 28.0
+const EDGE_PAN_SPEED := 480.0
 const UNIT_ART_SCALE := 0.75
 const RESOURCE_IDS := ["comida", "materiales", "varos", "terrenos"]
 const BUILD_CHOICES := ["depot", "housing", "registry", "barracks"]
 const RESOURCE_COLORS := {"comida": Color("93d38b"), "materiales": Color("c4c8d2"), "varos": Color("f3c666"), "terrenos": Color("b9a4e8")}
 const AGE_NAMES := {"foranea": "Foránea", "universitaria": "Universitaria", "godin": "Godín", "gentrificacion": "Gentrificación"}
 const FACTION_NAMES := {"regios": "Regios", "poblanos": "Poblanos", "oaxaquenos": "Oaxaqueños", "veracruzanos": "Veracruzanos"}
-const MAP_NAMES := {"la_roma": "La Roma", "narvarte": "Narvarte", "copilco": "Copilco", "la_roma_large": "La Roma Large"}
+const MAP_NAMES := {"la_roma": "La Roma Small", "narvarte": "Narvarte Small", "copilco": "Copilco Small", "la_roma_medium": "La Roma Medium", "la_roma_large": "La Roma Large"}
 
 var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
 var outbox = FunnelOutbox.new()
 var choosing_faction := true
-var setup_panel: PanelContainer
 var setup_background: TextureRect
+var setup_logo: Label
+var setup_logo_accent: Label
+var setup_tagline_panel: PanelContainer
+var setup_navigation: VBoxContainer
+var setup_campaign_nav: Button
 var setup_scroll: ScrollContainer
-var setup_column: VBoxContainer
-var setup_cards: GridContainer
-var setup_nav: HBoxContainer
+var setup_help_dialog: AcceptDialog
+var setup_choice_grid: GridContainer
 var setup_start: Button
-var setup_summary: Label
-var setup_faction_detail: Label
-var setup_faction_grid: GridContainer
-var setup_lead: Label
-var setup_lore_text: Label
-var selected_setup_faction := Skirmish.REGIOS
+var setup_column: VBoxContainer
+var selected_faction := Skirmish.REGIOS
+var setup_panel: PanelContainer
 var setup_goal: Label
 var setup_difficulty: OptionButton
 var setup_difficulty_details: Label
 var selected_difficulty := "standard"
 var selected_map := "la_roma"
+var next_map_seed := 1
 var selected_objective := "la_roma"
 var setup_objective: OptionButton
 var setup_objective_label: Label
 var campaign_mode := false
+var team_mode := false
 var selected_mission := "arrival_copilco"
 var campaign_progress_path := CampaignProgress.PATH
 var campaign_flag_path := CampaignFlagCache.PATH
@@ -81,6 +85,7 @@ var setup_map: OptionButton
 var setup_map_details: Label
 var setup_opponent: OptionButton
 var setup_resume: Button
+var setup_import: Button
 var setup_note: Label
 var setup_save_error: Label
 var setup_online_code: LineEdit
@@ -88,6 +93,12 @@ var setup_online_button: Button
 var setup_replay_button: Button
 var setup_ui_scale: OptionButton
 var replay_file_dialog: FileDialog
+var save_import_dialog: FileDialog
+var save_export_dialog: FileDialog
+var web_import_input
+var web_import_reader
+var web_import_change_callback
+var web_import_load_callback
 var online_client: Node
 var online := false
 var online_side := -1
@@ -113,6 +124,12 @@ var marker := Vector2i(-1, -1)
 var board_zoom := 1.1
 var zoom_adjustment := 0.0
 var board_pan := Vector2.ZERO
+var touch_points: Dictionary = {}
+var touch_start := Vector2.ZERO
+var touch_moved := false
+var touch_multifinger := false
+var touch_pinch_distance := 0.0
+var touch_group_mode := false
 var hud_ui: Control
 var paused := false
 var last_ui_signature := ""
@@ -171,6 +188,8 @@ func _exit_tree() -> void:
 	cue_streams.clear()
 
 func _ready() -> void:
+	if OS.has_feature("web"):
+		get_tree().root.content_scale_factor = clampf(DisplayServer.screen_get_scale(), 1.0, 4.0)
 	art.load_manifest()
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	outbox.game_version = Skirmish.GAME_VERSION
@@ -233,6 +252,18 @@ func _ready() -> void:
 	replay_file_dialog.add_filter("*.json", "Battle for La Roma replay")
 	replay_file_dialog.file_selected.connect(_open_replay_file)
 	add_child(replay_file_dialog)
+	save_import_dialog = FileDialog.new()
+	save_import_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	save_import_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	save_import_dialog.add_filter("*.json", "Battle for La Roma save")
+	save_import_dialog.file_selected.connect(_import_save_file)
+	add_child(save_import_dialog)
+	save_export_dialog = FileDialog.new()
+	save_export_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	save_export_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	save_export_dialog.add_filter("*.json", "Battle for La Roma save")
+	save_export_dialog.file_selected.connect(_export_save_file)
+	add_child(save_export_dialog)
 	replay_button = Button.new()
 	replay_button.text = "Watch replay"
 	replay_button.visible = false
@@ -258,6 +289,8 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.restart_requested.connect(_restart_match)
 	hud_ui.save_requested.connect(_save_match)
 	hud_ui.resume_requested.connect(_resume_match)
+	hud_ui.export_save_requested.connect(_export_save)
+	hud_ui.import_save_requested.connect(_choose_save_import)
 	hud_ui.ui_scale_changed.connect(_set_ui_scale)
 	hud_ui.reduced_motion_changed.connect(_set_reduced_motion)
 	hud_ui.reduced_effects_changed.connect(_set_reduced_effects)
@@ -415,6 +448,7 @@ func _restart_match() -> void:
 		return
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
+	team_mode = sim.team_mode
 	_start_match(sim.factions[Skirmish.HUMAN], sim.ai_difficulty)
 	hud_ui.show_notice("New match started")
 
@@ -427,384 +461,465 @@ func _navigate_minimap(tile: Vector2i) -> void:
 	hud_ui.minimap.queue_redraw()
 	queue_redraw()
 
+func _pan_at_screen_edge(delta: float) -> void:
+	if not touch_points.is_empty() or drag_active or hud_ui.diagnostics.visible or hud_ui.choice_panel.visible or hud_ui.result_panel.visible:
+		return
+	if not get_window().has_focus() or Input.get_mouse_mode() != Input.MOUSE_MODE_VISIBLE:
+		return
+	var view := get_viewport().get_visible_rect().size
+	var mouse := get_viewport().get_mouse_position()
+	if mouse.x < 0.0 or mouse.y < 0.0 or mouse.x >= view.x or mouse.y >= view.y or _touch_hits_ui(mouse):
+		return
+	var play_top: float = hud_ui.top.get_global_rect().end.y
+	var play_bottom: float = hud_ui.bottom.get_global_rect().position.y
+	var direction := _edge_pan_direction(mouse, view, play_top, play_bottom)
+	if direction == Vector2.ZERO:
+		return
+	var old_pan := board_pan
+	board_pan += direction * EDGE_PAN_SPEED * delta
+	var center := _screen_to_tile(Vector2(view.x * 0.5, (play_top + play_bottom) * 0.5))
+	if center.x < 0 or center.y < 0 or center.x >= int(sim.content.map.width) or center.y >= int(sim.content.map.height):
+		board_pan = old_pan
+		return
+	hud_ui.minimap.camera_tile = center
+	hud_ui.minimap.queue_redraw()
+	queue_redraw()
+
+func _edge_pan_direction(mouse: Vector2, view: Vector2, play_top: float, play_bottom: float) -> Vector2:
+	var direction := Vector2.ZERO
+	if mouse.x < EDGE_PAN_MARGIN:
+		direction.x = 1.0
+	elif mouse.x >= view.x - EDGE_PAN_MARGIN:
+		direction.x = -1.0
+	if mouse.y < play_top + EDGE_PAN_MARGIN:
+		direction.y = 1.0
+	elif mouse.y >= play_bottom - EDGE_PAN_MARGIN:
+		direction.y = -1.0
+	return direction.normalized()
+
 func _starting_camera_tile() -> Vector2i:
-	if sim.map_id == "la_roma_large":
+	if sim.map_id in ["la_roma_medium", "la_roma_large"]:
 		var worker: Array = sim.content.map.workers[Skirmish.HUMAN]
 		return Vector2i(int(worker[0]), int(worker[1]))
+	var view := get_viewport().get_visible_rect().size
+	if view.x >= 620.0 and view.x < 1000.0 and view.y < 500.0:
+		var home_post: int = sim._find(Skirmish.HUMAN, "command_post")
+		if home_post != -1:
+			return sim.entities[home_post].pos
 	return Vector2i(7, 7)
-
-func _setup_box(fill: Color, border: Color, radius: int = 10) -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = fill
-	box.border_color = border
-	box.set_border_width_all(2)
-	box.set_corner_radius_all(radius)
-	box.set_content_margin_all(12)
-	return box
-
-func _setup_button(button: Button, fill: Color = Color("1b3446"), border: Color = Color("9d7137")) -> void:
-	button.custom_minimum_size.y = 48
-	button.add_theme_stylebox_override("normal", _setup_box(fill, border, 8))
-	button.add_theme_stylebox_override("hover", _setup_box(Color("235267"), Color("ffe0a0"), 8))
-	button.add_theme_stylebox_override("pressed", _setup_box(Color("087e8c"), Color("ffe0a0"), 8))
-	button.add_theme_stylebox_override("focus", _setup_box(Color("087e8c"), Color("54dfcf"), 8))
-	button.add_theme_stylebox_override("disabled", _setup_box(Color("26313a"), Color("657075"), 8))
-	button.add_theme_color_override("font_color", Color("fff0d1"))
-	button.add_theme_color_override("font_disabled_color", Color("b8c6c9"))
-	button.add_theme_font_size_override("font_size", 16)
-
-func _setup_heading(text_value: String, size: int = 18) -> Label:
-	var label := Label.new()
-	label.text = text_value
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", Color("f4be64"))
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return label
-
-func _setup_card(title: String) -> VBoxContainer:
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _setup_box(Color("102333"), Color("9d7137")))
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	setup_cards.add_child(panel)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 9)
-	panel.add_child(box)
-	box.add_child(_setup_heading(title))
-	return box
-
-func _setup_field(box: VBoxContainer, title: String, control: Control) -> void:
-	box.add_child(_setup_heading(title, 14))
-	control.custom_minimum_size.y = 48
-	box.add_child(control)
-
-func _scroll_to_setup(target: Control) -> void:
-	if setup_scroll != null and target != null:
-		setup_scroll.ensure_control_visible(target)
-
-func _show_setup_help() -> void:
-	var dialog := AcceptDialog.new()
-	dialog.title = "Cómo jugar"
-	dialog.dialog_text = "Recolecta Comida, Materiales, Varos y Terrenos. Construye, recluta y avanza por cuatro edades.\n\nEn La Roma ganas al destruir el puesto rival o mantener Cibeles durante 75 segundos. Conquista exige destruir el puesto.\n\nSelecciona unidades con clic o toque. Usa los botones de órdenes; en escritorio, clic derecho da órdenes directas. El menú de partida permite guardar, ajustar audio e interfaz."
-	dialog.confirmed.connect(dialog.queue_free)
-	dialog.close_requested.connect(dialog.queue_free)
-	add_child(dialog)
-	dialog.popup_centered(Vector2i(560, 350))
-
-func _open_setup_campaign() -> void:
-	if _campaign_allowed():
-		_choose_mode(1)
-		_scroll_to_setup(setup_mode)
-	else:
-		setup_save_error.text = "La campaña de tres misiones está implementada, pero aún no está habilitada en esta versión privada. Tu progreso se conserva."
-
-func _campaign_title(id: String) -> String:
-	return {"arrival_copilco": "Llegada a Copilco", "foothold_narvarte": "Base en Narvarte", "battle_la_roma": "Batalla por La Roma"}.get(id, id)
-
-func _campaign_description(id: String) -> String:
-	return {
-		"arrival_copilco": "Recolecta recursos, construye un puesto de reclutamiento y entrena a un combatiente.",
-		"foothold_narvarte": "Construye un depósito y mantén el centro marcado mientras tu rival puede disputarlo.",
-		"battle_la_roma": "Gana una batalla completa en La Roma Grande: destruye el puesto rival o mantén el centro."
-	}.get(id, "")
-
-func _select_setup_faction(faction: String) -> void:
-	selected_setup_faction = faction
-	var labels := {
-		Skirmish.REGIOS: "Regios · trabajadores cargan más; combatientes cuestan +1 Varo.",
-		Skirmish.POBLANOS: "Poblanos · edificios más resistentes; trabajadores cargan menos.",
-		Skirmish.OAXAQUENOS: "Oaxaqueños · recolección y construcción ágiles; edificios ligeros.",
-		Skirmish.VERACRUZANOS: "Veracruzanos · movimiento y comercio ágiles; edificios ligeros."
-	}
-	setup_faction_detail.text = labels.get(faction, "")
-	for button in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos]:
-		button.button_pressed = button.get_meta("faction") == faction
-	_refresh_setup_summary()
-
-func _refresh_setup_summary() -> void:
-	if setup_summary == null:
-		return
-	var objective_label := "Campaña" if campaign_mode else ("Conquista" if selected_objective == "conquest" else "Maravilla" if selected_objective == "wonder" else "La Roma")
-	setup_summary.text = "%s · %s · %s" % [FACTION_NAMES.get(selected_setup_faction, "Regios"), MAP_NAMES.get(selected_map, "La Roma"), objective_label]
 
 func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_background = TextureRect.new()
-	setup_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	setup_background.texture = load("res://assets/ui/roma-home.jpg")
+	setup_background.texture = preload("res://assets/menu/roma-home-background.png")
 	setup_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	setup_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	setup_background.modulate = Color(0.55, 0.65, 0.7, 0.55)
 	setup_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(setup_background)
+	setup_logo = Label.new()
+	setup_logo.text = "BATTLE FOR"
+	setup_logo.add_theme_color_override("font_color", Color("fff1d5"))
+	setup_logo.add_theme_color_override("font_outline_color", Color("071525"))
+	setup_logo.add_theme_constant_override("outline_size", 9)
+	setup_background.add_child(setup_logo)
+	setup_logo_accent = Label.new()
+	setup_logo_accent.text = "LA ROMA"
+	setup_logo_accent.add_theme_color_override("font_color", Color("ea354f"))
+	setup_logo_accent.add_theme_color_override("font_outline_color", Color("071525"))
+	setup_logo_accent.add_theme_constant_override("outline_size", 11)
+	setup_background.add_child(setup_logo_accent)
+	setup_tagline_panel = PanelContainer.new()
+	setup_tagline_panel.add_theme_stylebox_override("panel", preload("res://ui/hud_skin.gd").panel(8, true))
+	setup_background.add_child(setup_tagline_panel)
+	var tagline := Label.new()
+	tagline.text = "CONQUISTA LA CIUDAD\nSOBREVIVE A LA GENTRIFICACIÓN"
+	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tagline.add_theme_color_override("font_color", Color("f7d47b"))
+	tagline.add_theme_font_size_override("font_size", 15)
+	setup_tagline_panel.add_child(tagline)
+	setup_navigation = VBoxContainer.new()
+	setup_navigation.add_theme_constant_override("separation", 8)
+	setup_background.add_child(setup_navigation)
+	for entry in [["PARTIDA RÁPIDA", "quick"], ["CAMPAÑA", "campaign"], ["MULTIJUGADOR", "multiplayer"], ["CÓMO JUGAR", "help"], ["AJUSTES", "settings"], ["SALIR", "exit"]]:
+		if entry[1] == "exit" and OS.has_feature("web"):
+			continue
+		if entry[1] == "multiplayer" and AlphaConfig.CHANNEL == "public":
+			continue
+		var nav_button := Button.new()
+		nav_button.text = entry[0]
+		nav_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		nav_button.custom_minimum_size.y = 50
+		nav_button.add_theme_font_size_override("font_size", 19)
+		preload("res://ui/hud_skin.gd").apply_button(nav_button)
+		if entry[1] == "quick":
+			nav_button.add_theme_stylebox_override("normal", preload("res://ui/hud_skin.gd").button(Color("a32542"), Color("ffd78a")))
+		if entry[1] == "campaign":
+			setup_campaign_nav = nav_button
+			nav_button.disabled = not _campaign_allowed()
+			nav_button.tooltip_text = "Campaign opens when its private alpha flag is enabled." if nav_button.disabled else "Open the campaign chapter."
+		nav_button.pressed.connect(_setup_navigation_action.bind(entry[1]))
+		setup_navigation.add_child(nav_button)
+	setup_help_dialog = AcceptDialog.new()
+	setup_help_dialog.title = "CÓMO JUGAR"
+	setup_help_dialog.dialog_text = "Select a worker with left click. Right click a resource to gather it. Build a post to recruit units. Use the minimap or move the pointer to any screen edge to pan the camera. Win by meeting the selected objective."
+	add_child(setup_help_dialog)
 	setup_panel = PanelContainer.new()
-	setup_panel.add_theme_stylebox_override("panel", _setup_box(Color("0d1722"), Color("e9b963"), 14))
+	setup_panel.position = Vector2(235, 105)
+	setup_panel.size = Vector2(810, 420)
+	setup_panel.add_theme_stylebox_override("panel", preload("res://ui/hud_skin.gd").panel(10, true))
 	layer.add_child(setup_panel)
+	setup_panel.visibility_changed.connect(func() -> void: setup_background.visible = setup_panel.visible)
 	var margin := MarginContainer.new()
 	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 14)
+		margin.add_theme_constant_override("margin_" + side, 24)
 	setup_panel.add_child(margin)
-	var frame := VBoxContainer.new()
-	frame.add_theme_constant_override("separation", 10)
-	margin.add_child(frame)
-	var nav := HBoxContainer.new()
-	setup_nav = nav
-	nav.add_theme_constant_override("separation", 6)
-	frame.add_child(nav)
-	var navigation := ["Partida", "Campaña", "Guía", "Ajustes"] if AlphaConfig.CHANNEL == "public" else ["Partida", "Campaña", "Privada", "Guía", "Ajustes"]
-	for entry in navigation:
-		var button := Button.new()
-		button.text = entry
-		button.set_meta("full_label", entry)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_setup_button(button, Color("142a35"))
-		nav.add_child(button)
-		match entry:
-			"Partida": button.pressed.connect(func() -> void: _choose_mode(0); setup_scroll.scroll_vertical = 0)
-			"Campaña": button.pressed.connect(_open_setup_campaign)
-			"Privada": button.pressed.connect(func() -> void: _scroll_to_setup(setup_online_code))
-			"Guía": button.pressed.connect(_show_setup_help)
-			"Ajustes": button.pressed.connect(func() -> void: _scroll_to_setup(setup_ui_scale))
-	setup_scroll = ScrollContainer.new()
-	setup_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	setup_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	frame.add_child(setup_scroll)
-	setup_column = VBoxContainer.new()
-	setup_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	setup_column.add_theme_constant_override("separation", 12)
-	setup_scroll.add_child(setup_column)
-	var title := _setup_heading("ARMA TU CONQUISTA", 30)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	setup_column.add_child(title)
-	var lead := Label.new()
-	setup_lead = lead
-	lead.text = "Elige tu bando, las reglas y el campo de batalla. Luego disputa Cibeles."
-	lead.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_column.add_child(lead)
-	var lore := PanelContainer.new()
-	lore.add_theme_stylebox_override("panel", _setup_box(Color("2c2430"), Color("a27a45")))
-	setup_column.add_child(lore)
-	var lore_text := Label.new()
-	setup_lore_text = lore_text
-	lore_text.text = "ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea / Universitaria / Godín / Gentrificación. La glorieta sigue en disputa."
-	lore_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lore_text.add_theme_color_override("font_color", Color("fff0d1"))
-	lore.add_child(lore_text)
-	setup_cards = GridContainer.new()
-	setup_cards.columns = 2
-	setup_cards.add_theme_constant_override("h_separation", 12)
-	setup_cards.add_theme_constant_override("v_separation", 12)
-	setup_column.add_child(setup_cards)
-
-	var faction_card := _setup_card("1  ¿DE QUÉ LADO VIENES?")
-	var faction_hint := Label.new()
-	faction_hint.text = "Cuatro estrategias ficticias. Elige una para ver su ventaja."
-	faction_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	faction_card.add_child(faction_hint)
-	var faction_grid := GridContainer.new()
-	setup_faction_grid = faction_grid
-	faction_grid.columns = 2
-	faction_card.add_child(faction_grid)
-	var factions := [
-		[Skirmish.REGIOS, "REGIOS", Color("294b76")],
-		[Skirmish.POBLANOS, "POBLANOS", Color("853044")],
-		[Skirmish.OAXAQUENOS, "OAXAQUEÑOS", Color("67358b")],
-		[Skirmish.VERACRUZANOS, "VERACRUZANOS", Color("146e79")]
-	]
-	for item in factions:
-		var button := Button.new()
-		button.text = item[1]
-		button.toggle_mode = true
-		button.set_meta("faction", item[0])
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size.y = 66
-		_setup_button(button, item[2], Color("a27a45"))
-		button.pressed.connect(_select_setup_faction.bind(item[0]))
-		faction_grid.add_child(button)
-		match item[0]:
-			Skirmish.REGIOS: setup_regios = button
-			Skirmish.POBLANOS: setup_poblanos = button
-			Skirmish.OAXAQUENOS: setup_oaxaquenos = button
-			Skirmish.VERACRUZANOS: setup_veracruzanos = button
-	setup_faction_detail = Label.new()
-	setup_faction_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_faction_detail.add_theme_color_override("font_color", Color("ffe0a0"))
-	faction_card.add_child(setup_faction_detail)
-	var note := Label.new()
-	note.text = "Bonos de juego; no describen a las personas de cada región."
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	faction_card.add_child(note)
-	setup_note = note
-
-	var rules_card := _setup_card("2  ¿QUÉ SE ARMA?")
+	var scroll := ScrollContainer.new()
+	setup_scroll = scroll
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	margin.add_child(scroll)
+	var column := VBoxContainer.new()
+	setup_column = column
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 10)
+	scroll.add_child(column)
+	var title := Label.new()
+	title.text = "Choose a faction"
+	title.add_theme_font_size_override("font_size", 30)
+	column.add_child(title)
+	var scale_row := HBoxContainer.new()
+	column.add_child(scale_row)
+	var scale_label := Label.new()
+	scale_label.text = "Interface size"
+	scale_label.add_theme_font_size_override("font_size", 18)
+	scale_row.add_child(scale_label)
+	setup_ui_scale = OptionButton.new()
+	for label in ["100%", "125%", "150%"]:
+		setup_ui_scale.add_item(label)
+	setup_ui_scale.custom_minimum_size = Vector2(130, 44)
+	setup_ui_scale.add_theme_font_size_override("font_size", 16)
+	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5][index]))
+	scale_row.add_child(setup_ui_scale)
+	setup_ui_scale.select([1.0, 1.25, 1.5].find(ui_scale))
+	setup_goal = Label.new()
+	setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
+	setup_goal.add_theme_font_size_override("font_size", 18)
+	column.add_child(setup_goal)
+	var difficulty_label := Label.new()
+	difficulty_label.text = "Opponent difficulty"
+	difficulty_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(difficulty_label)
+	setup_difficulty = OptionButton.new()
+	for level in Skirmish.AI_LEVELS:
+		setup_difficulty.add_item(level.capitalize())
+	setup_difficulty.select(1)
+	setup_difficulty.item_selected.connect(_choose_difficulty)
+	setup_difficulty.custom_minimum_size.y = 42
+	column.add_child(setup_difficulty)
+	setup_difficulty_details = Label.new()
+	setup_difficulty_details.text = "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
+	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(setup_difficulty_details)
+	var map_label := Label.new()
+	map_label.text = "Battlefield / map size"
+	map_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(map_label)
+	setup_map = OptionButton.new()
+	var roma_copy: Dictionary = MapGeography.map_copy("la_roma")
+	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
+	for entry in [roma_label + " · Small 28×28", "Narvarte · Small 28×28", "Copilco · Small 28×28", "La Roma · Medium 56×56", "La Roma · Large 96×96"]:
+		setup_map.add_item(entry)
+	setup_map.item_selected.connect(_choose_map)
+	setup_map.custom_minimum_size.y = 42
+	column.add_child(setup_map)
+	setup_map_details = Label.new()
+	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(setup_map_details)
+	_choose_map(0)
+	var mode_label := Label.new()
+	mode_label.text = "Play mode"
+	mode_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(mode_label)
 	setup_mode = OptionButton.new()
-	setup_mode.add_item("Escaramuza en solitario")
-	setup_mode.add_item("Capítulo de campaña")
+	setup_mode.add_item("Solo skirmish")
+	setup_mode.add_item("Campaign chapter")
+	setup_mode.add_item("2 v 2 · You + AI ally vs two AI opponents")
+	setup_mode.set_item_disabled(1, not _campaign_allowed())
 	setup_mode.item_selected.connect(_choose_mode)
-	_setup_field(rules_card, "Modo de juego", setup_mode)
-	setup_objective_label = _setup_heading("Objetivo", 14)
-	rules_card.add_child(setup_objective_label)
+	setup_mode.custom_minimum_size.y = 42
+	column.add_child(setup_mode)
+	setup_objective_label = Label.new()
+	setup_objective_label.text = "Solo objective"
+	setup_objective_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(setup_objective_label)
 	setup_objective = OptionButton.new()
-	for label in ["La Roma · puesto rival o Cibeles", "Conquista · puesto rival", "Maravilla · construir y defender"]:
+	for label in ["La Roma — post or center", "Conquest — post only", "Wonder — build and defend"]:
 		setup_objective.add_item(label)
 	setup_objective.set_item_disabled(2, true)
+	setup_objective.set_item_tooltip(2, "Wonder is off until a served alpha decision enables it on La Roma.")
 	setup_objective.item_selected.connect(_choose_objective)
-	setup_objective.custom_minimum_size.y = 48
-	rules_card.add_child(setup_objective)
+	setup_objective.custom_minimum_size.y = 42
+	column.add_child(setup_objective)
 	setup_mission = OptionButton.new()
 	var chapter := CampaignMissions.load_manifest()
 	if chapter.ok:
 		for mission in chapter.data.missions:
 			setup_mission.add_item(mission.title)
 	setup_mission.item_selected.connect(_choose_mission)
-	setup_mission.custom_minimum_size.y = 48
-	rules_card.add_child(setup_mission)
+	setup_mission.custom_minimum_size.y = 42
+	column.add_child(setup_mission)
 	setup_campaign_note = Label.new()
 	setup_campaign_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rules_card.add_child(setup_campaign_note)
-	setup_map = OptionButton.new()
-	for entry in ["Roma Norte · Cibeles (28×28)", "Narvarte (28×28)", "Copilco (28×28)", "La Roma Grande (96×96)"]:
-		setup_map.add_item(entry)
-	setup_map.item_selected.connect(_choose_map)
-	_setup_field(rules_card, "Mapa", setup_map)
-	setup_map_details = Label.new()
-	setup_map_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rules_card.add_child(setup_map_details)
-	setup_goal = Label.new()
-	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	setup_goal.add_theme_color_override("font_color", Color("ffe0a0"))
-	rules_card.add_child(setup_goal)
-	_choose_map(0)
-
-	var opponent_card := _setup_card("3  ¿QUIÉN TE DISPUTA LA ROMA?")
+	column.add_child(setup_campaign_note)
+	column.move_child(mode_label, 2)
+	column.move_child(setup_mode, 3)
+	column.move_child(setup_objective_label, 4)
+	column.move_child(setup_objective, 5)
+	column.move_child(setup_mission, 6)
+	column.move_child(setup_campaign_note, 7)
+	_refresh_campaign_setup()
+	var opponent_label := Label.new()
+	opponent_label.text = "Opponent faction"
+	opponent_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(opponent_label)
 	setup_opponent = OptionButton.new()
-	for entry in ["Rival clásico (según tu facción)", "Regios", "Poblanos", "Oaxaqueños", "Veracruzanos"]:
+	for entry in ["Opponent: Classic rival", "Opponent: Regios", "Opponent: Poblanos", "Opponent: Oaxaqueños", "Opponent: Veracruzanos"]:
 		setup_opponent.add_item(entry)
 	setup_opponent.item_selected.connect(_choose_opponent)
-	_setup_field(opponent_card, "Facción rival", setup_opponent)
-	var opponent_note := Label.new()
-	opponent_note.text = "La IA usa las mismas reglas y visión que tú."
-	opponent_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	opponent_card.add_child(opponent_note)
-
-	var difficulty_card := _setup_card("4  ¿QUÉ TAN BRAVO?")
-	setup_difficulty = OptionButton.new()
-	for label in ["Dominguito · práctica", "Con tráfico · normal", "Hora pico · desafío"]:
-		setup_difficulty.add_item(label)
-	setup_difficulty.select(1)
-	setup_difficulty.item_selected.connect(_choose_difficulty)
-	_setup_field(difficulty_card, "Dificultad de la IA", setup_difficulty)
-	setup_difficulty_details = Label.new()
-	setup_difficulty_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	difficulty_card.add_child(setup_difficulty_details)
-	_choose_difficulty(1)
-
-	var utility_card := _setup_card("CONTINÚA TU PARTIDA" if AlphaConfig.CHANNEL == "public" else "CONTINÚA O JUEGA EN PRIVADO")
+	setup_opponent.custom_minimum_size.y = 42
+	column.add_child(setup_opponent)
+	var regios := Button.new()
+	regios.text = "Regios — workers carry 5; fighters cost +1 Varos"
+	regios.custom_minimum_size.y = 72
+	regios.add_theme_font_size_override("font_size", 20)
+	regios.pressed.connect(_select_faction.bind(Skirmish.REGIOS))
+	regios.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	preload("res://ui/hud_skin.gd").apply_button(regios)
+	column.add_child(regios)
+	setup_regios = regios
+	var poblanos := Button.new()
+	poblanos.text = "Poblanos — buildings +20% HP; workers carry 4"
+	poblanos.custom_minimum_size.y = 72
+	poblanos.add_theme_font_size_override("font_size", 20)
+	poblanos.pressed.connect(_select_faction.bind(Skirmish.POBLANOS))
+	poblanos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	preload("res://ui/hud_skin.gd").apply_button(poblanos)
+	column.add_child(poblanos)
+	setup_poblanos = poblanos
+	var oaxaquenos := Button.new()
+	oaxaquenos.text = "Oaxaqueños — gather faster, support construction; lighter buildings"
+	oaxaquenos.custom_minimum_size.y = 60
+	oaxaquenos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	oaxaquenos.pressed.connect(_select_faction.bind(Skirmish.OAXAQUENOS))
+	preload("res://ui/hud_skin.gd").apply_button(oaxaquenos)
+	column.add_child(oaxaquenos)
+	setup_oaxaquenos = oaxaquenos
+	var veracruzanos := Button.new()
+	veracruzanos.text = "Veracruzanos — move faster, earn from trade; lighter buildings"
+	veracruzanos.custom_minimum_size.y = 60
+	veracruzanos.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	veracruzanos.pressed.connect(_select_faction.bind(Skirmish.VERACRUZANOS))
+	preload("res://ui/hud_skin.gd").apply_button(veracruzanos)
+	column.add_child(veracruzanos)
+	setup_veracruzanos = veracruzanos
 	setup_resume = Button.new()
+	setup_resume.text = "Resume saved match"
+	setup_resume.custom_minimum_size.y = 50
 	setup_resume.pressed.connect(_resume_match)
-	_setup_button(setup_resume)
-	utility_card.add_child(setup_resume)
+	preload("res://ui/hud_skin.gd").apply_button(setup_resume)
+	var recovery_label := Label.new()
+	recovery_label.text = "Continue or join privately"
+	recovery_label.add_theme_font_size_override("font_size", 18)
+	column.add_child(recovery_label)
+	column.add_child(setup_resume)
+	setup_import = Button.new()
+	setup_import.text = "Import saved solo match"
+	setup_import.custom_minimum_size.y = 50
+	setup_import.pressed.connect(_choose_save_import)
+	preload("res://ui/hud_skin.gd").apply_button(setup_import)
+	column.add_child(setup_import)
 	setup_online_code = LineEdit.new()
-	setup_online_code.placeholder_text = "Código de invitación privada"
+	setup_online_code.placeholder_text = "Private match invite code"
 	setup_online_code.secret = true
 	setup_online_code.text = invite_code
-	setup_online_code.custom_minimum_size.y = 48
-	utility_card.add_child(setup_online_code)
+	setup_online_code.custom_minimum_size.y = 42
+	column.add_child(setup_online_code)
 	setup_online_code.visible = AlphaConfig.CHANNEL != "public"
 	setup_online_button = Button.new()
-	setup_online_button.text = "Entrar a partida privada"
+	setup_online_button.text = "Join private match · invite and host required"
+	setup_online_button.custom_minimum_size.y = 50
 	setup_online_button.pressed.connect(_join_online_match)
-	_setup_button(setup_online_button)
-	utility_card.add_child(setup_online_button)
+	preload("res://ui/hud_skin.gd").apply_button(setup_online_button)
+	column.add_child(setup_online_button)
 	setup_online_button.visible = AlphaConfig.CHANNEL != "public"
 	setup_replay_button = Button.new()
-	setup_replay_button.text = "Abrir repetición" if AlphaConfig.CHANNEL == "public" else "Abrir repetición privada"
+	setup_replay_button.text = "Open saved replay" if AlphaConfig.CHANNEL == "public" else "Open saved private replay"
+	setup_replay_button.custom_minimum_size.y = 50
 	setup_replay_button.pressed.connect(_choose_replay_file)
-	_setup_button(setup_replay_button)
-	utility_card.add_child(setup_replay_button)
-	var private_note := Label.new()
-	private_note.text = "Requiere invitación y servidor compatible."
-	private_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	utility_card.add_child(private_note)
-
-	var settings_card := _setup_card("AJUSTES DE INTERFAZ")
-	setup_ui_scale = OptionButton.new()
-	for label in ["100%", "125%", "150%"]:
-		setup_ui_scale.add_item(label)
-	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5][index]))
-	setup_ui_scale.select([1.0, 1.25, 1.5].find(ui_scale))
-	_setup_field(settings_card, "Tamaño de interfaz", setup_ui_scale)
-	var settings_note := Label.new()
-	settings_note.text = "Durante la partida, Menú ofrece audio, efectos, movimiento y guardado."
-	settings_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	settings_card.add_child(settings_note)
-
-	var footer := HBoxContainer.new()
-	footer.add_theme_constant_override("separation", 12)
-	frame.add_child(footer)
-	setup_summary = Label.new()
-	setup_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	setup_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	footer.add_child(setup_summary)
-	setup_start = Button.new()
-	setup_start.text = "INICIAR BATALLA"
-	setup_start.custom_minimum_size.x = 240
-	_setup_button(setup_start, Color("087e8c"), Color("ffe0a0"))
-	setup_start.pressed.connect(func() -> void: _choose_faction(selected_setup_faction))
-	footer.add_child(setup_start)
+	preload("res://ui/hud_skin.gd").apply_button(setup_replay_button)
+	column.add_child(setup_replay_button)
+	var note := Label.new()
+	note.text = "These are fictional strategies, not descriptions of regional people."
+	note.add_theme_font_size_override("font_size", 17)
+	column.add_child(note)
+	column.move_child(note, 7)
+	setup_note = note
 	setup_save_error = Label.new()
 	setup_save_error.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_save_error.add_theme_color_override("font_color", Color("ffb49f"))
-	frame.add_child(setup_save_error)
-	_select_setup_faction(Skirmish.REGIOS)
-	_refresh_campaign_setup()
+	column.add_child(setup_save_error)
+	setup_choice_grid = GridContainer.new()
+	setup_choice_grid.columns = 2
+	setup_choice_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	setup_choice_grid.add_theme_constant_override("h_separation", 12)
+	setup_choice_grid.add_theme_constant_override("v_separation", 12)
+	column.add_child(setup_choice_grid)
+	var factions := _setup_section(setup_choice_grid, "1. ELIGE TU FACCIÓN")
+	var battle := _setup_section(setup_choice_grid, "2. DEFINE TU BATALLA")
+	var rival := _setup_section(setup_choice_grid, "3. ELIGE A TU OPONENTE")
+	var continue_section := _setup_section(setup_choice_grid, "CONTINÚA O ÚNETE")
+	for control in [regios, poblanos, oaxaquenos, veracruzanos, note]:
+		control.reparent(factions, false)
+	for control in [mode_label, setup_mode, setup_objective_label, setup_objective, setup_mission, setup_campaign_note,
+		map_label, setup_map, setup_map_details]:
+		control.reparent(battle, false)
+	for control in [opponent_label, setup_opponent, difficulty_label, setup_difficulty, setup_difficulty_details]:
+		control.reparent(rival, false)
+	for control in [recovery_label, setup_resume, setup_import, setup_online_code, setup_online_button,
+		setup_replay_button, setup_save_error]:
+		control.reparent(continue_section, false)
+	column.move_child(setup_goal, 2)
+	column.move_child(setup_choice_grid, 3)
+	setup_start = Button.new()
+	setup_start.text = "¡INICIAR BATALLA!"
+	setup_start.custom_minimum_size.y = 64
+	setup_start.pressed.connect(func() -> void: _choose_faction(selected_faction))
+	preload("res://ui/hud_skin.gd").apply_button(setup_start)
+	setup_start.add_theme_stylebox_override("normal", preload("res://ui/hud_skin.gd").button(Color("9f263e"), Color("f1cf88")))
+	setup_start.add_theme_stylebox_override("hover", preload("res://ui/hud_skin.gd").button(Color("c2364d"), Color("ffe4a4")))
+	setup_start.add_theme_font_size_override("font_size", 24)
+	var setup_root := VBoxContainer.new()
+	setup_root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(setup_root)
+	scroll.reparent(setup_root, false)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	setup_root.add_child(setup_start)
+	_select_faction(selected_faction)
+
+func _setup_navigation_action(action: String) -> void:
+	match action:
+		"quick":
+			_choose_mode(0)
+			setup_scroll.scroll_vertical = 0
+		"campaign":
+			_choose_mode(1)
+			setup_scroll.scroll_vertical = 0
+		"multiplayer":
+			setup_online_code.grab_focus()
+		"help":
+			setup_help_dialog.popup_centered(Vector2i(520, 280))
+		"settings":
+			setup_ui_scale.grab_focus()
+		"exit":
+			get_tree().quit()
+
+func _setup_section(grid: GridContainer, heading: String) -> VBoxContainer:
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", preload("res://ui/hud_skin.gd").panel(12, true))
+	grid.add_child(panel)
+	var section := VBoxContainer.new()
+	section.add_theme_constant_override("separation", 6)
+	panel.add_child(section)
+	var title := Label.new()
+	title.text = heading
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color("f1cf88"))
+	section.add_child(title)
+	return section
+
+func _select_faction(faction: String) -> void:
+	selected_faction = faction
+	for pair in [[setup_regios, Skirmish.REGIOS], [setup_poblanos, Skirmish.POBLANOS],
+		[setup_oaxaquenos, Skirmish.OAXAQUENOS], [setup_veracruzanos, Skirmish.VERACRUZANOS]]:
+		var button: Button = pair[0]
+		button.add_theme_stylebox_override("normal", preload("res://ui/hud_skin.gd").button(
+			Color("263b4e") if pair[1] == faction else Color("34383a"),
+			Color("ffe1a0") if pair[1] == faction else Color("a78451")))
 
 func _layout_setup() -> void:
-	if setup_panel == null or setup_start == null or get_viewport() == null:
+	if setup_panel == null or get_viewport() == null:
 		return
 	var view := get_viewport().get_visible_rect().size
-	var setup_factor := clampf(view.x / 1280.0, 1.0, 1.2) * ui_scale
+	setup_background.size = view
+	var setup_factor := clampf(view.x / 1280.0, 0.78, 1.2) * ui_scale
 	var layout_view := view / setup_factor
-	var mobile := layout_view.x < 650.0
+	var mobile := view.x < 1000.0 or view.y < 650.0
+	var landscape := layout_view.x > layout_view.y
+	setup_choice_grid.columns = 1 if mobile else 2
+	setup_logo.text = "BATTLE FOR LA ROMA" if mobile else "BATTLE FOR"
+	setup_logo.position = Vector2(20, 16)
+	setup_logo.size = Vector2(view.x - 36 if mobile else view.x * 0.22 - 20, 70)
+	setup_logo.add_theme_font_size_override("font_size", 30 if mobile else 37)
+	setup_logo_accent.visible = not mobile
+	setup_tagline_panel.visible = not mobile
+	setup_navigation.visible = not mobile
+	if not mobile:
+		var rail_width := minf(360.0, view.x * 0.23 - 42.0)
+		setup_logo_accent.position = Vector2(18, 75)
+		setup_logo_accent.size = Vector2(rail_width, 90)
+		setup_logo_accent.add_theme_font_size_override("font_size", 68 if view.x > 1450.0 else 52)
+		setup_tagline_panel.position = Vector2(20, 166)
+		setup_tagline_panel.size = Vector2(rail_width, 62)
+		setup_navigation.position = Vector2(20, 270)
+		setup_navigation.size = Vector2(rail_width, 370)
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
-		setup_goal.text = "Gana al destruir el puesto rival o mantener Cibeles durante %d segundos." % hold_seconds
-	elif selected_map == "la_roma_large":
-		setup_goal.text = "Explora y expándete. Gana al destruir el puesto rival o mantener el centro %d segundos." % hold_seconds
+		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+	elif selected_map in ["la_roma_medium", "la_roma_large"]:
+		setup_goal.text = ("Scout, expand, hold center for %ds." % hold_seconds) if mobile else ("Explore the larger district; destroy the opposing post or hold the center for %d seconds." % hold_seconds)
 	else:
-		setup_goal.text = "Gana al destruir el puesto rival o mantener el centro %d segundos." % hold_seconds
+		setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
 	if campaign_mode:
 		var selected := CampaignMissions.find_mission(selected_mission)
 		if selected.ok:
-			setup_goal.text = _campaign_description(selected_mission)
+			setup_goal.text = selected.data.description
+	elif team_mode:
+		setup_goal.text = "2 v 2 Conquest: destroy both opposing command posts. Your AI ally has its own economy."
 	elif selected_objective == "conquest":
-		setup_goal.text = "Conquista: destruye el puesto rival. Mantener el centro no basta."
+		setup_goal.text = "Conquest: destroy the opposing command post. Holding the center does not win."
 	elif selected_objective == "wonder":
-		setup_goal.text = "Maravilla: constrúyela en la edad Godín y defiéndela 90 segundos; destruir el puesto rival también gana."
-	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 16)
+		setup_goal.text = "Wonder: build at Godín, defend for 90 seconds, or destroy the enemy post."
+	setup_goal.add_theme_font_size_override("font_size", 14 if mobile else 18)
 	setup_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	setup_map_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
-	setup_cards.columns = 1 if mobile else 2
-	setup_lead.text = "Elige bando y reglas. Disputa Cibeles." if mobile else "Elige tu bando, las reglas y el campo de batalla. Luego disputa Cibeles."
-	setup_lore_text.text = "ROMA NORTE · CUATRO EDADES\nForánea / Universitaria / Godín / Gentrificación." if mobile else "ROMA NORTE · CUATRO EDADES\nDe cuarto de azotea a café de especialidad: Foránea / Universitaria / Godín / Gentrificación. La glorieta sigue en disputa."
-	setup_faction_grid.columns = 1 if layout_view.x < 340.0 else 2
-	setup_summary.visible = not mobile
-	setup_start.custom_minimum_size.x = 0 if mobile else 240
-	setup_start.size_flags_horizontal = Control.SIZE_EXPAND_FILL if mobile else Control.SIZE_FILL
-	for button in setup_nav.get_children():
-		var full_label := str(button.get_meta("full_label"))
-		button.text = full_label.substr(0, 1) if mobile else full_label
-		button.tooltip_text = full_label
-	setup_column.get_child(0).text = "CAPÍTULO DE CAMPAÑA" if campaign_mode else "ARMA TU CONQUISTA"
-	setup_column.get_child(0).add_theme_font_size_override("font_size", 23 if mobile else 30)
-	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos]:
-		b.add_theme_font_size_override("font_size", 12 if mobile else 15)
-	setup_note.add_theme_font_size_override("font_size", 12)
-	setup_difficulty_details.add_theme_font_size_override("font_size", 13 if mobile else 15)
+	setup_regios.text = ("REGIOS  •  carry 5" if not landscape else "REGIOS  •  carry 5; fighters cost +1 Varos") if mobile else "Regios — workers carry 5; fighters cost +1 Varos"
+	setup_poblanos.text = ("POBLANOS  •  tougher buildings" if not landscape else "POBLANOS  •  tougher buildings; carry 4") if mobile else "Poblanos — buildings +20% HP; workers carry 4"
+	setup_oaxaquenos.text = "OAXAQUEÑOS  •  gather faster; lighter buildings" if mobile else "Oaxaqueños — faster gathering and building support; lighter buildings"
+	setup_veracruzanos.text = "VERACRUZANOS  •  move faster; lighter buildings" if mobile else "Veracruzanos — faster movement and trade income; lighter buildings"
+	setup_note.text = "Fictional faction bonuses." if mobile and not landscape else "These are fictional strategies, not descriptions of regional people."
+	for b in [setup_regios, setup_poblanos, setup_oaxaquenos, setup_veracruzanos, setup_resume, setup_import, setup_online_button, setup_replay_button]:
+		b.custom_minimum_size.y = 48 if mobile else 52
+		b.add_theme_font_size_override("font_size", 15 if mobile else 20)
+	setup_note.add_theme_font_size_override("font_size", 12 if mobile else 17)
+	setup_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var column: VBoxContainer = setup_column
+	column.add_theme_constant_override("separation", 6 if mobile else 7)
+	var title: Label = column.get_child(0)
+	title.text = "CAMPAÑA" if campaign_mode else "NUEVA BATALLA"
+	title.add_theme_font_size_override("font_size", 22 if mobile else 30)
+	setup_difficulty.custom_minimum_size.y = 32 if mobile else 38
+	setup_map.custom_minimum_size.y = 32 if mobile else 38
+	setup_objective.custom_minimum_size.y = 32 if mobile else 38
+	setup_opponent.custom_minimum_size.y = 32 if mobile else 38
+	setup_difficulty_details.add_theme_font_size_override("font_size", 12 if mobile else 16)
 	setup_panel.scale = Vector2.ONE * setup_factor
-	setup_panel.size = Vector2(minf(1000, layout_view.x - 24), minf(layout_view.y - 24, 760.0))
-	setup_panel.position = (view - setup_panel.size * setup_factor) * 0.5
-	_refresh_setup_summary()
+	if mobile:
+		setup_panel.size = Vector2(layout_view.x - 24, minf(layout_view.y - 24, (view.y - 142.0) / setup_factor))
+		setup_panel.position = Vector2((view.x - setup_panel.size.x * setup_factor) * 0.5, 130)
+	else:
+		var left_space := view.x * 0.23 / setup_factor
+		setup_panel.size = Vector2(minf(1080.0, layout_view.x - left_space - 24), minf(700.0, layout_view.y - 40))
+		setup_panel.position = Vector2(left_space * setup_factor, (view.y - setup_panel.size.y * setup_factor) * 0.5)
 	if replay_button != null:
 		var objectives: Panel = hud_ui.objective_panel
 		var replay_x := objectives.position.x + objectives.size.x + 10.0
@@ -818,6 +933,10 @@ func _layout_setup() -> void:
 
 func _show_setup() -> void:
 	choosing_faction = true
+	next_map_seed = randi_range(1, 2147483647)
+	touch_points.clear()
+	touch_multifinger = false
+	touch_group_mode = false
 	sim = Skirmish.new()
 	outbox.faction = "neutral"
 	match_id = ""
@@ -840,7 +959,7 @@ func _show_setup() -> void:
 	last_district_state = "neutral"
 	_baseline_presentation()
 	setup_panel.show()
-	setup_background.show()
+	hud_ui.diagnostics.hide()
 	hud_ui.show_result("", "")
 	if online_client != null:
 		online_client.leave()
@@ -854,15 +973,15 @@ func _show_setup() -> void:
 	if replay_button != null:
 		replay_button.hide()
 	setup_resume.disabled = not FileAccess.file_exists(save_path)
-	setup_resume.text = "Continuar partida guardada" if not setup_resume.disabled else "Aún no hay partida guardada"
-	setup_resume.tooltip_text = "Guarda una partida desde Menú para continuar aquí." if setup_resume.disabled else "Continúa tu partida local."
+	setup_resume.text = "Resume saved match" if not setup_resume.disabled else "No saved match yet"
+	setup_resume.tooltip_text = "Save an active solo match from Settings to resume it here." if setup_resume.disabled else "Continue the saved solo match."
 	setup_save_error.text = ""
 	_refresh_campaign_setup()
 	_check_campaign_flag()
 	_check_wonder_flag()
 	_refresh_wonder_setup()
 	hover_hint.text = ""
-	instructions.text = "Elige facción, mapa, objetivo y dificultad. Inicia cuando todo esté listo."
+	instructions.text = "Choose a faction and battle settings, then start · Press 1–4 to choose a faction"
 	_update_hud()
 	queue_redraw()
 
@@ -878,11 +997,20 @@ func _choose_faction(faction: String) -> void:
 
 func _choose_mode(index: int) -> void:
 	campaign_mode = index == 1 and _campaign_allowed()
-	setup_mode.select(1 if campaign_mode else 0)
+	team_mode = index == 2
+	setup_mode.select(1 if campaign_mode else 2 if team_mode else 0)
+	if team_mode:
+		selected_map = "la_roma_large"
+		setup_map.select(Skirmish.MAP_IDS.find(selected_map))
+		selected_objective = "conquest"
+		setup_objective.select(Skirmish.OBJECTIVE_IDS.find(selected_objective))
+		_choose_map(Skirmish.MAP_IDS.find(selected_map))
 	_refresh_campaign_setup()
 	_layout_setup()
 
 func _choose_objective(index: int) -> void:
+	if team_mode:
+		return
 	_refresh_wonder_setup()
 	if index < 0 or index >= Skirmish.OBJECTIVE_IDS.size() or setup_objective.is_item_disabled(index):
 		return
@@ -900,17 +1028,17 @@ func _refresh_campaign_setup() -> void:
 	if setup_mission == null or setup_campaign_note == null:
 		return
 	setup_mode.set_item_disabled(1, not _campaign_allowed())
-	setup_mode.set_item_tooltip(1, "Tres misiones implementadas. Requieren acceso habilitado en esta versión privada." if not _campaign_allowed() else "Tres misiones con progreso local.")
+	if setup_campaign_nav != null:
+		setup_campaign_nav.disabled = not _campaign_allowed()
 	if campaign_mode and not _campaign_allowed():
 		campaign_mode = false
 		setup_mode.select(0)
-	setup_map.disabled = campaign_mode
-	setup_objective_label.visible = not campaign_mode
-	setup_objective.visible = not campaign_mode
+	setup_map.disabled = campaign_mode or team_mode
+	setup_objective_label.visible = not campaign_mode and not team_mode
+	setup_objective.visible = not campaign_mode and not team_mode
 	setup_mission.visible = campaign_mode
-	setup_campaign_note.visible = campaign_mode or not _campaign_allowed()
+	setup_campaign_note.visible = campaign_mode
 	if not campaign_mode:
-		setup_campaign_note.text = "Campaña: tres misiones implementadas; acceso privado aún sin habilitar." if not _campaign_allowed() else ""
 		return
 	var progress := CampaignProgress.read(campaign_progress_path)
 	if not progress.ok:
@@ -923,7 +1051,7 @@ func _refresh_campaign_setup() -> void:
 	for i in chapter.data.missions.size():
 		var mission: Dictionary = chapter.data.missions[i]
 		var available: bool = CampaignProgress.available(mission.id, progress.completed)
-		setup_mission.set_item_text(i, "%s · %s" % [_campaign_title(mission.id), "disponible" if available else "bloqueada"])
+		setup_mission.set_item_text(i, "%s · %s" % [mission.title, "available" if available else "locked"])
 	setup_mission.select(CampaignMissions.MISSION_IDS.find(selected_mission))
 	var selected := CampaignMissions.find_mission(selected_mission)
 	if not selected.ok:
@@ -932,21 +1060,23 @@ func _refresh_campaign_setup() -> void:
 	selected_map = selected.data.map_id
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
-	setup_goal.text = _campaign_description(selected_mission)
-	setup_campaign_note.text = "Disponible." if CampaignProgress.available(selected_mission, progress.completed) else "Bloqueada: termina primero la misión anterior."
+	setup_goal.text = selected.data.description
+	setup_campaign_note.text = "Available now." if CampaignProgress.available(selected_mission, progress.completed) else "Locked: finish %s first." % selected.data.prerequisite.replace("_", " ").capitalize()
 
 func _choose_map(index: int) -> void:
 	if index >= 0 and index < Skirmish.MAP_IDS.size():
 		selected_map = Skirmish.MAP_IDS[index]
 		if selected_map == "la_roma":
-			setup_map_details.text = "Roma Norte estilizada, con Cibeles en el centro. Las cuatro facciones pueden jugar aquí."
-			setup_goal.text = "Destruye el puesto rival o mantén Cibeles durante 75 segundos."
-		elif selected_map == "la_roma_large":
-			setup_map_details.text = "La Roma Grande: mapa 96×96 con explorador bicitaxi y zonas de expansión."
-			setup_goal.text = "Explora, expándete y disputa el centro."
+			var roma_copy: Dictionary = MapGeography.map_copy(selected_map)
+			setup_map_details.text = str(roma_copy.get("description", "A stylized Roma Norte battlefield. Any faction can play here."))
+			setup_goal.text = str(roma_copy.get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+		elif selected_map in ["la_roma_medium", "la_roma_large"]:
+			var board_size := 56 if selected_map == "la_roma_medium" else 96
+			setup_map_details.text = "A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match." % [board_size, board_size]
+			setup_goal.text = "Two teams, four independent economies. Destroy both opposing command posts to win." if team_mode else "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
 		else:
-			setup_map_details.text = "Mapa de escaramuza inspirado en CDMX; disponible para las cuatro facciones."
-			setup_goal.text = "Destruye el puesto rival o mantén el centro."
+			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
+			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
 		if setup_objective != null:
 			_refresh_wonder_setup()
 			_layout_setup()
@@ -958,8 +1088,8 @@ func _refresh_wonder_setup() -> void:
 	if setup_objective == null:
 		return
 	setup_objective.set_item_disabled(2, not _wonder_allowed())
-	setup_objective_label.text = "Objetivo"
-	setup_objective.set_item_tooltip(2, "Maravilla requiere acceso habilitado para esta versión." if not _wonder_allowed() else "Construye y defiende la Maravilla durante 90 segundos.")
+	setup_objective_label.text = "Solo objective" if _wonder_allowed() else "Solo objective · Wonder unavailable until enabled"
+	setup_objective.set_item_tooltip(2, "Wonder requires access enabled for this build." if not _wonder_allowed() else "Build and defend a Wonder for 90 seconds.")
 	if selected_objective == "wonder" and not _wonder_allowed():
 		selected_objective = "la_roma"
 		setup_objective.select(0)
@@ -972,11 +1102,11 @@ func _choose_difficulty(index: int) -> void:
 		return
 	selected_difficulty = Skirmish.AI_LEVELS[index]
 	var descriptions := {
-		"learner": "Dominguito: ritmo pausado para practicar.",
-		"standard": "Con tráfico: explora y responde a tus amenazas.",
-		"challenger": "Hora pico: reacciona antes y presiona tus ventajas."
+		"learner": "Learner: Builds at a measured pace so you can practice counters.",
+		"standard": "Standard: Scouts and changes plans when you show a threat.",
+		"challenger": "Challenger: Reacts sooner and presses an advantage."
 	}
-	setup_difficulty_details.text = descriptions[selected_difficulty] + " Las reglas y la visión son iguales para ambos."
+	setup_difficulty_details.text = descriptions[selected_difficulty] + " Same rules and sight."
 
 func _save_match() -> void:
 	if offline_replay:
@@ -993,6 +1123,85 @@ func _save_match() -> void:
 		hud_ui.show_notice("Match saved. Resume it from the faction screen or menu.")
 	else:
 		hud_ui.show_notice("Save failed: %s. Current match is still playable." % saved.reason.replace("_", " "), true)
+
+func _export_save() -> void:
+	if online or offline_replay:
+		hud_ui.show_notice("Only solo matches can be exported.", true)
+		return
+	if not choosing_faction:
+		var saved: Dictionary = MatchSave.write(sim, match_id, completion_queued, save_path)
+		if not saved.ok:
+			hud_ui.show_notice("Export failed: %s." % saved.reason.replace("_", " "), true)
+			return
+	var exported: Dictionary = MatchSave.export_bytes(save_path)
+	if not exported.ok:
+		hud_ui.show_notice("No compatible solo save to export: %s." % exported.reason.replace("_", " "), true)
+		return
+	if OS.has_feature("web"):
+		JavaScriptBridge.download_buffer(exported.bytes, exported.name, "application/json")
+		hud_ui.show_notice("Save download started. Keep the file for later import.")
+	else:
+		save_export_dialog.current_file = exported.name
+		save_export_dialog.popup_centered_ratio(0.7)
+
+func _export_save_file(path: String) -> void:
+	var result: Dictionary = MatchSave.export_file(path, save_path)
+	hud_ui.show_notice("Save exported." if result.ok else "Export failed: %s." % result.reason.replace("_", " "), not result.ok)
+
+func _choose_save_import() -> void:
+	if not choosing_faction:
+		hud_ui.show_notice("Return to the faction screen before importing a save.", true)
+		return
+	if not OS.has_feature("web"):
+		save_import_dialog.popup_centered_ratio(0.7)
+		return
+	if web_import_input == null:
+		var document = JavaScriptBridge.get_interface("document")
+		web_import_input = document.createElement("input")
+		web_import_input.type = "file"
+		web_import_input.accept = ".json,application/json"
+		web_import_input.style.display = "none"
+		web_import_change_callback = JavaScriptBridge.create_callback(_on_web_import_change)
+		web_import_load_callback = JavaScriptBridge.create_callback(_on_web_import_load)
+		web_import_input.onchange = web_import_change_callback
+		document.body.appendChild(web_import_input)
+	web_import_input.value = ""
+	web_import_input.click()
+
+func _on_web_import_change(_args: Array) -> void:
+	if web_import_input.files.length < 1:
+		return
+	var source = web_import_input.files[0]
+	if int(source.size) > MatchSave.MAX_SAVE_BYTES:
+		_report_import_error("save_too_large")
+		return
+	web_import_reader = JavaScriptBridge.create_object("FileReader")
+	web_import_reader.onload = web_import_load_callback
+	web_import_reader.readAsArrayBuffer(source)
+
+func _on_web_import_load(_args: Array) -> void:
+	if web_import_reader == null or not JavaScriptBridge.is_js_buffer(web_import_reader.result):
+		_report_import_error("save_corrupt")
+		return
+	var bytes: PackedByteArray = JavaScriptBridge.js_buffer_to_packed_byte_array(web_import_reader.result)
+	_handle_import_result(MatchSave.import_bytes(bytes, save_path))
+
+func _import_save_file(path: String) -> void:
+	_handle_import_result(MatchSave.import_file(path, save_path))
+
+func _handle_import_result(result: Dictionary) -> void:
+	if not result.ok:
+		_report_import_error(str(result.reason))
+		return
+	setup_save_error.text = ""
+	_resume_match()
+
+func _report_import_error(reason: String) -> void:
+	var message := "Save could not import: %s. Existing save kept." % reason.replace("_", " ")
+	if choosing_faction:
+		setup_save_error.text = message
+	else:
+		hud_ui.show_notice(message, true)
 
 func _resume_match() -> void:
 	var restored: Dictionary = MatchSave.read(save_path)
@@ -1018,9 +1227,10 @@ func _resume_match() -> void:
 	selected_objective = sim.objective_id
 	setup_objective.select(Skirmish.OBJECTIVE_IDS.find(selected_objective))
 	selected_mission = sim.mission_id if campaign_mode else "arrival_copilco"
-	setup_mode.select(1 if campaign_mode else 0)
 	selected_map = sim.map_id
 	selected_opponent = sim.factions[Skirmish.COMPUTER]
+	team_mode = sim.team_mode
+	setup_mode.select(2 if team_mode else 1 if campaign_mode else 0)
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
 	# A running saved match keeps its pinned objective even if a newer served flag is off.
@@ -1035,7 +1245,6 @@ func _resume_match() -> void:
 	outbox.content_version = sim.content.content_id
 	choosing_faction = false
 	setup_panel.hide()
-	setup_background.hide()
 	if campaign_mode or sim.objective_id == "wonder":
 		hud_ui.objective_body.show()
 		hud_ui._layout()
@@ -1062,6 +1271,7 @@ func _resume_match() -> void:
 	_baseline_presentation()
 	marker = Vector2i(-1, -1)
 	_reset_zoom()
+	_navigate_minimap(_starting_camera_tile())
 	order_flash_seconds = 0.0
 	hud_ui.show_notice("Saved match resumed")
 	_update_hud()
@@ -1127,7 +1337,6 @@ func _on_online_state(response: Dictionary) -> void:
 		if choosing_faction:
 			choosing_faction = false
 			setup_panel.hide()
-			setup_background.hide()
 			instructions.text = "Private match · host runs the game · right-click to order · R returns to setup"
 			completion_queued = false
 			selected_id = -1
@@ -1247,7 +1456,6 @@ func _open_replay_file(path: String) -> void:
 	replay_frame_count = replay_recording.frames.size()
 	choosing_faction = false
 	setup_panel.hide()
-	setup_background.hide()
 	paused = false
 	accumulator = 0.0
 	selected_id = -1
@@ -1297,7 +1505,7 @@ func _send_game_order(kind: String, actor_id: int, target: Variant) -> Dictionar
 
 func _start_match(faction: String, difficulty: String = "") -> void:
 	if not campaign_mode and selected_objective == "wonder" and not _wonder_allowed():
-		setup_save_error.text = "Maravilla no está habilitada para esta versión. Elige La Roma o Conquista."
+		setup_save_error.text = "Wonder is currently unavailable. Choose La Roma or Conquest."
 		return
 	if online_client != null:
 		online_client.leave()
@@ -1309,7 +1517,8 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	replay_frame_count = 0
 	replay_button.hide()
 	var level := selected_difficulty if difficulty.is_empty() else difficulty
-	sim = Skirmish.new(faction, {}, 1, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective)
+	var map_seed := next_map_seed if selected_map in ["la_roma_medium", "la_roma_large"] and not campaign_mode else 1
+	sim = Skirmish.new(faction, {}, map_seed, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective, team_mode)
 	outbox.content_version = sim.content.content_id
 	paused = false
 	hud_ui.pause_button.text = "II"
@@ -1317,7 +1526,6 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	outbox.faction = faction
 	choosing_faction = false
 	setup_panel.hide()
-	setup_background.hide()
 	if campaign_mode or sim.objective_id == "wonder":
 		hud_ui.objective_body.show()
 		hud_ui._layout()
@@ -1381,6 +1589,7 @@ func _process(delta: float) -> void:
 		queue_redraw()
 	if choosing_faction or paused or hud_ui.restart_scrim.visible:
 		return
+	_pan_at_screen_edge(delta)
 	_refresh_hover()
 	if order_flash_seconds > 0.0:
 		order_flash_seconds = maxf(0.0, order_flash_seconds - delta)
@@ -1505,15 +1714,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if choosing_faction:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode == KEY_1:
-				_select_setup_faction(Skirmish.REGIOS)
+				_select_faction(Skirmish.REGIOS)
 			elif event.keycode == KEY_2:
-				_select_setup_faction(Skirmish.POBLANOS)
+				_select_faction(Skirmish.POBLANOS)
 			elif event.keycode == KEY_3:
-				_select_setup_faction(Skirmish.OAXAQUENOS)
+				_select_faction(Skirmish.OAXAQUENOS)
 			elif event.keycode == KEY_4:
-				_select_setup_faction(Skirmish.VERACRUZANOS)
-			elif event.keycode in [KEY_ENTER, KEY_KP_ENTER]:
-				_choose_faction(selected_setup_faction)
+				_select_faction(Skirmish.VERACRUZANOS)
+			elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+				_choose_faction(selected_faction)
+		return
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		_handle_board_touch(event)
+		return
+	if (event is InputEventMouseButton or event is InputEventMouseMotion) and event.device == InputEvent.DEVICE_ID_EMULATION:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
@@ -1532,6 +1746,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_activate_command("move")
 			KEY_H:
 				_activate_command("gather")
+			KEY_P:
+				_activate_command("plant")
 			KEY_A:
 				_activate_command("attack")
 			KEY_SPACE:
@@ -1539,6 +1755,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_ESCAPE:
 				placing = false
 				target_mode = ""
+				touch_group_mode = false
 				hud_ui.choice_panel.hide()
 				sim.feedback = "Order canceled."
 			KEY_1:
@@ -1591,18 +1808,16 @@ func _unhandled_input(event: InputEvent) -> void:
 							selected_ids.append(id)
 					else:
 						selected_ids = [id]
-				else:
+				elif not event.shift_pressed:
 					selected_ids.clear()
 				selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
 				target_mode = ""
 				placing = false
-				if selected_id != -1:
-					_flash_order(sim.entities[selected_id].pos, "%s selected" % sim.entities[selected_id].kind.replace("_", " "), true)
-				else:
+				if selected_id == -1:
 					sim.feedback = "Select your unit or building."
 		elif event.button_index == MOUSE_BUTTON_RIGHT and selected_id != -1 and sim.entities.has(selected_id):
 			var selected: Dictionary = sim.entities[selected_id]
-			var target_id: int = _pick_visual_entity(event.position, Skirmish.COMPUTER)
+			var target_id: int = _pick_visual_entity(event.position, -1)
 			if target_id == -1:
 				target_id = sim.entity_at(tile)
 			var source_site := _source_site_at(event.position, tile)
@@ -1610,7 +1825,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_issue_order("gather", source_site.source.pos, source_site.source.pos)
 			elif selected.kind == "worker" and target_id != -1 and sim.entities[target_id].side == Skirmish.HUMAN and sim.entities[target_id].kind in sim.content.buildings:
 				_issue_order("assist" if not sim.entities[target_id].complete else "repair", target_id, sim.entities[target_id].pos)
-			elif _command_state("attack").visible and target_id != -1 and sim.entities[target_id].side == Skirmish.COMPUTER and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[target_id]):
+			elif _command_state("attack").visible and target_id != -1 and sim._is_enemy(Skirmish.HUMAN, sim.entities[target_id].side) and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[target_id]):
 				_issue_order("attack", target_id, sim.entities[target_id].pos)
 			elif _command_state("move").visible:
 				var moved: Dictionary = _issue_order("move", tile, tile)
@@ -1623,6 +1838,71 @@ func _unhandled_input(event: InputEvent) -> void:
 	_update_hud()
 	_refresh_hover()
 	queue_redraw()
+
+func _handle_board_touch(event: InputEvent) -> void:
+	# GUI controls consume their own touches. Only unhandled battlefield touches arrive here.
+	if event is InputEventScreenTouch:
+		var touch: InputEventScreenTouch = event
+		if touch.pressed:
+			if _touch_hits_ui(touch.position):
+				return
+			touch_points[touch.index] = touch.position
+			if touch_points.size() == 1:
+				touch_start = touch.position
+				touch_moved = false
+				touch_multifinger = false
+			elif touch_points.size() == 2:
+				touch_multifinger = true
+				touch_pinch_distance = _touch_distance()
+		else:
+			var tap := touch_points.has(touch.index) and touch_points.size() == 1 and not touch_moved and not touch_multifinger and touch_start.distance_to(touch.position) < 12.0
+			touch_points.erase(touch.index)
+			if tap:
+				var click := InputEventMouseButton.new()
+				click.button_index = MOUSE_BUTTON_LEFT
+				click.position = touch.position
+				click.shift_pressed = touch_group_mode
+				click.pressed = true
+				_unhandled_input(click)
+				click.pressed = false
+				_unhandled_input(click)
+			elif touch_points.is_empty():
+				touch_multifinger = false
+		return
+	var drag: InputEventScreenDrag = event
+	if not touch_points.has(drag.index):
+		return
+	var previous: Vector2 = touch_points[drag.index]
+	touch_points[drag.index] = drag.position
+	if touch_points.size() == 1:
+		if touch_start.distance_to(drag.position) >= 12.0:
+			touch_moved = true
+		if touch_moved:
+			board_pan += drag.position - previous
+			queue_redraw()
+	elif touch_points.size() == 2:
+		touch_multifinger = true
+		board_pan += (drag.position - previous) * 0.5
+		var distance := _touch_distance()
+		if touch_pinch_distance > 1.0:
+			board_zoom = clampf(board_zoom * distance / touch_pinch_distance, ZOOM_MIN, ZOOM_MAX)
+			zoom_adjustment = board_zoom - _default_board_zoom(get_viewport().get_visible_rect().size)
+		touch_pinch_distance = distance
+		queue_redraw()
+
+func _touch_distance() -> float:
+	var points := touch_points.values()
+	return (points[0] as Vector2).distance_to(points[1] as Vector2)
+
+func _touch_hits_ui(point: Vector2) -> bool:
+	if hud_ui == null:
+		return false
+	for control: Control in [hud_ui.top, hud_ui.bottom, hud_ui.objective_panel,
+		hud_ui.minimap, hud_ui.diagnostics, hud_ui.choice_panel,
+		hud_ui.result_panel, hud_ui.restart_scrim]:
+		if control.is_visible_in_tree() and control.get_global_rect().has_point(point):
+			return true
+	return false
 
 func _select_drag(rect: Rect2, additive: bool) -> void:
 	var ids: Array[int] = []
@@ -1656,15 +1936,24 @@ func _train(role: String) -> void:
 	_issue_order("train", role, sim.entities[selected_id].pos)
 
 func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
-	var result: Dictionary = _send_game_order(kind, selected_id, target)
+	var move_order := kind in ["move", "attack_move"] and target is Vector2i
+	var group_move := move_order and selected_ids.size() > 1
+	var assigned: Dictionary = {}
+	var first_target: Variant = _group_move_target(selected_id, target, assigned) if move_order else target
+	var result: Dictionary = _send_game_order(kind, selected_id, first_target)
 	var accepted := 1 if result.ok else 0
+	if group_move and result.ok:
+		assigned[first_target] = true
 	if kind in ["move", "gather", "attack", "attack_move", "stop", "hold"] and selected_ids.size() > 1:
 		for id in selected_ids:
 			if id == selected_id or not sim.entities.has(id):
 				continue
-			var next: Dictionary = _send_game_order(kind, id, target)
+			var next_target: Variant = _group_move_target(id, target, assigned) if group_move else target
+			var next: Dictionary = _send_game_order(kind, id, next_target)
 			if next.ok:
 				accepted += 1
+				if group_move:
+					assigned[next_target] = true
 		if accepted > 0:
 			result = {"ok": true, "reason": "group_order"}
 	var message := "Order sent; awaiting host." if online and result.ok else "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result)
@@ -1674,11 +1963,34 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 		_emit_cue("order-confirm", "%s:order:%d" % [match_id, cue_serial], tile)
 	return result
 
+func _group_move_target(actor_id: int, requested: Vector2i, assigned: Dictionary) -> Vector2i:
+	if not sim.entities.has(actor_id) or not sim._walkable(requested):
+		return requested
+	var actor: Dictionary = sim.entities[actor_id]
+	for radius in range(0, maxi(3, selected_ids.size()) + 1):
+		for dy in range(-radius, radius + 1):
+			for dx in range(-radius, radius + 1):
+				if absi(dx) + absi(dy) != radius:
+					continue
+				var candidate := requested + Vector2i(dx, dy)
+				if assigned.has(candidate) or not sim._walkable(candidate):
+					continue
+				if candidate == actor.pos and candidate != requested:
+					continue
+				var occupant: int = sim._unit_at(candidate)
+				if occupant != -1 and occupant != actor_id:
+					continue
+				if candidate != actor.pos and sim._route_to(actor.pos, candidate).is_empty():
+					continue
+				return candidate
+	return requested
+
 func _order_message(kind: String, target: Variant, result: Dictionary) -> String:
 	if result.ok:
 		match kind:
 			"move": return "Moving here."
 			"gather": return "Gathering resource."
+			"plant": return "Planting a food field."
 			"build": return "Building %s." % str(target.kind).replace("_", " ")
 			"repair": return "Repairing building."
 			"assist": return "Assisting construction."
@@ -1693,6 +2005,10 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 	match str(result.get("reason", "invalid_order")):
 		"insufficient_stockpile": return "Missing required resources; inspect the cost."
 		"blocked_footprint": return "This 2x2 site is blocked."
+		"field_site_unavailable": return "Choose clear ground outside the center."
+		"field_already_active": return "This field is still growing or has food."
+		"field_unreachable": return "The worker cannot reach this field."
+		"resource_not_discovered": return "Explore this resource site before gathering."
 		"blocked_or_invalid_tile": return "Cannot move onto this tile."
 		"unreachable_tile", "building_unreachable", "target_unreachable", "resource_unreachable": return "No route to target."
 		"building_incomplete": return "Wait for construction to finish."
@@ -1827,12 +2143,20 @@ func _command_state(action: String) -> Dictionary:
 	var label := action.replace("_", " ").capitalize()
 	var reason := ""
 	match action:
+		"group_select":
+			visible = mobile_group
+			label = "Finish group" if touch_group_mode else "Add to group"
 		"move", "stop", "hold": visible = mobile_group
 		"attack_move": visible = fighter_group
 		"gather":
 			visible = worker_group
-			if visible and RESOURCE_IDS.all(func(id: String) -> bool: return int(_source(id).get("amount", 0)) <= 0):
+			if visible and _source_sites(Skirmish.HUMAN).all(func(site: Dictionary) -> bool: return int(site.source.get("amount", 0)) <= 0):
 				reason = "Sources depleted; wait for renewal"
+		"plant":
+			visible = kind == "worker" and selected_ids.size() == 1
+			label = "Plant food field · %s" % _cost_text(Skirmish.FIELD_COST)
+			if visible:
+				reason = _missing_costs(Skirmish.FIELD_COST)
 		"build":
 			visible = kind == "worker" and selected_ids.size() <= 1
 			label = "Choose building"
@@ -1865,8 +2189,8 @@ func _command_state(action: String) -> Dictionary:
 					reason = _missing_costs(sim._costs(Skirmish.HUMAN, role))
 		"cancel":
 			var construction_id := _cancelable_construction_id()
-			visible = target_mode != "" or construction_id != -1 or (kind in ["command_post", "barracks", "registry"] and sim.entities.has(selected_id) and not sim.entities[selected_id].queue.is_empty())
-			label = "Leave target mode" if target_mode != "" else "Cancel paid order"
+			visible = target_mode != "" or touch_group_mode or construction_id != -1 or (kind in ["command_post", "barracks", "registry"] and sim.entities.has(selected_id) and not sim.entities[selected_id].queue.is_empty())
+			label = "Leave target mode" if target_mode != "" or touch_group_mode else "Cancel paid order"
 			if target_mode == "" and construction_id != -1 and _cancel_worker_id() == -1:
 				reason = "A worker is needed to cancel construction"
 	if visible and sim.result != "" and (action != "cancel" or target_mode == ""):
@@ -1877,6 +2201,15 @@ func _activate_command(action: String) -> void:
 	if paused:
 		hud_ui.show_notice("Resume to issue orders")
 		return
+	if action == "group_select":
+		if _command_state(action).visible:
+			touch_group_mode = not touch_group_mode
+			target_mode = ""
+			sim.feedback = "Tap units to add or remove; tap Finish group when done." if touch_group_mode else "Group ready for a command."
+			_update_hud()
+		return
+	if action != "cancel":
+		touch_group_mode = false
 	if action.begins_with("build_"):
 		build_kind = action.trim_prefix("build_")
 		if sim.result != "" or _selected_kind() != "worker" or selected_ids.size() != 1 or build_kind not in BUILD_CHOICES + (["wonder"] if sim.objective_id == "wonder" else []):
@@ -1923,8 +2256,9 @@ func _activate_command(action: String) -> void:
 		_update_hud()
 		return
 	if action == "cancel":
-		if target_mode != "":
+		if target_mode != "" or touch_group_mode:
 			target_mode = ""
+			touch_group_mode = false
 			placing = false
 			hud_ui.choice_panel.hide()
 			sim.feedback = "Order canceled."
@@ -2009,6 +2343,7 @@ func _target_prompt() -> String:
 		"move": return "Move: click a clear ground tile. Esc cancels."
 		"attack_move": return "Advance: click clear ground; fighters engage visible enemies."
 		"gather": return "Gather: click a Comida, Materiales, Varos or Terrenos source. Esc cancels."
+		"plant": return "Plant field: click clear ground or a depleted field. Costs 4 Materiales and 2 Varos."
 		"build": return "Build %s: click a clear 2×2 site. Esc cancels." % build_kind.capitalize()
 		"repair": return "Repair: click a damaged friendly building. Esc cancels."
 		"assist": return "Assist: click an unfinished friendly building. Esc cancels."
@@ -2023,6 +2358,7 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 			if result.ok:
 				marker = tile
 		"build": result = _issue_order("build", {"kind": build_kind, "pos": tile}, tile)
+		"plant": result = _issue_order("plant", tile, tile)
 		"gather":
 			var source_site := _source_site_at(screen, tile)
 			if not source_site.is_empty():
@@ -2039,10 +2375,10 @@ func _complete_target_order(screen: Vector2, tile: Vector2i) -> void:
 			else:
 				_flash_order(tile, "Click a friendly building.", false)
 		"attack":
-			var enemy_id: int = _pick_visual_entity(screen, Skirmish.COMPUTER)
+			var enemy_id: int = _pick_visual_entity(screen, -1)
 			if enemy_id == -1:
 				enemy_id = sim.entity_at(tile)
-			if enemy_id != -1 and sim.entities[enemy_id].side == Skirmish.COMPUTER and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_id]):
+			if enemy_id != -1 and sim._is_enemy(Skirmish.HUMAN, sim.entities[enemy_id].side) and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_id]):
 				result = _issue_order("attack", enemy_id, sim.entities[enemy_id].pos)
 			else:
 				_flash_order(tile, "Click an enemy unit or post.", false)
@@ -2088,7 +2424,7 @@ func _update_hud() -> void:
 	if not campaign_mode and sim.objective_id == "conquest":
 		ui.objective_progress.value = 0
 		ui.objective_progress.max_value = 1
-		ui.objective_alternative.text = "Center hold is disabled."
+		ui.objective_alternative.text = "Destroy both enemy posts." if sim.team_mode else "Center hold is disabled."
 	if not campaign_mode and sim.objective_id == "wonder":
 		ui.objective_progress.max_value = int(sim.content.objectives.wonder_hold_ticks)
 		ui.objective_progress.value = sim.wonder_progress[Skirmish.HUMAN]
@@ -2113,6 +2449,12 @@ func _update_hud() -> void:
 		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	if not campaign_mode and sim.objective_id == "conquest":
 		ui.secondary_status.text = "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s" % [own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+		if sim.team_mode:
+			var ally_post := sim._find(Skirmish.ALLY, "command_post")
+			var second_post := sim._find(Skirmish.SECOND_OPPONENT, "command_post")
+			var ally_hp: int = maxi(0, sim.entities[ally_post].hp) if ally_post != -1 else 0
+			var second_hp: int = maxi(0, sim.entities[second_post].hp) if second_post != -1 and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[second_post]) else -1
+			ui.secondary_status.text = "2 v 2 Conquest · destroy both enemy posts\nOur posts: %d / %d HP\nEnemy posts: %s / %s" % [own_hp, ally_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen", str(second_hp) + " HP" if second_hp >= 0 else "unseen"]
 	if not campaign_mode and sim.objective_id == "wonder":
 		ui.secondary_status.text = "You: %s\nAI: %s\nPosts: %d HP / %s" % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER), own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
 	var group_signature := str(selected_ids)
@@ -2128,7 +2470,8 @@ func _update_hud() -> void:
 			ui.set_group([])
 	if selected_id == -1:
 		var setup_post_id := "building_cdmx_roma_command_post" if sim.map_id == "la_roma" else "building_command_post_%s" % _faction_color(Skirmish.HUMAN)
-		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0, "Select a unit or post", "")
+		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0,
+			"" if visible_view.x < 620.0 else ("Select a unit" if visible_view.y < 720.0 else "Select a unit or post"), "")
 	else:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
@@ -2174,7 +2517,7 @@ func _update_hud() -> void:
 			if item.status == "needs_attention":
 				attention = true
 	var alert := AlphaConfig.CHANNEL != "public" and (attention or sync_note.contains("could not") or sync_note.contains("unavailable") or sync_note.contains("not accepted") or (AlphaConfig.CHANNEL != "development" and invite_code.is_empty()))
-	ui.menu_button.text = "..!" if alert else "..."
+	ui.menu_button.text = "MENU!" if alert else "MENU"
 	if alert and last_alert_state != "attention":
 		ui.show_notice("Sync needs attention • open menu", true)
 	last_alert_state = "attention" if alert else "clear"
@@ -2262,7 +2605,7 @@ func _update_secondary() -> void:
 
 func _sync_brief() -> String:
 	if AlphaConfig.CHANNEL == "public":
-		return "Partidas guardadas en este dispositivo."
+		return "Matches are saved on this device."
 	if outbox.state.is_empty():
 		return "Local storage unavailable."
 	var pending := 0
@@ -2527,7 +2870,7 @@ func _pick_visual_entity(screen: Vector2, side: int) -> int:
 		for id in ids:
 			var entity: Dictionary = sim.entities[id]
 			var is_building: bool = entity.kind in sim.content.buildings
-			if entity.side != side or is_building != want_building or (side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
+			if (not sim._is_enemy(Skirmish.HUMAN, entity.side) if side == -1 else entity.side != side) or is_building != want_building or (side == -1 and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue
 			var scale := 1.0 if is_building else UNIT_ART_SCALE
 			var delta := (board - _actor_ground(entity)) / scale
@@ -2547,13 +2890,31 @@ func _source_sites(side: int) -> Array[Dictionary]:
 		sites.append({"id": id, "source": sim.resource_sources[side][id]})
 		if sim.expansion_sources[side].has(id):
 			sites.append({"id": id, "source": sim.expansion_sources[side][id]})
+	for field in sim.food_fields[side]:
+		sites.append({"id": "comida", "source": field, "field": true})
+	if side == Skirmish.HUMAN:
+		for source in sim.map_sites:
+			sites.append({"id": source.resource_id, "source": source})
+	return sites
+
+func _pickable_source_sites() -> Array[Dictionary]:
+	var sites := _source_sites(Skirmish.HUMAN)
+	if sim.team_mode:
+		for side in [Skirmish.COMPUTER, Skirmish.ALLY, Skirmish.SECOND_OPPONENT]:
+			for site in _source_sites(side):
+				if not site.get("field", false):
+					sites.append(site)
 	return sites
 
 func _pick_visual_site(screen: Vector2) -> Dictionary:
 	var board := _screen_to_board(screen)
-	for site in _source_sites(Skirmish.HUMAN):
+	for site in _pickable_source_sites():
 		var source: Dictionary = site.source
-		if int(source.get("amount", 0)) > 0 and sim.is_visible(Skirmish.HUMAN, source.pos) and board.distance_to(_tile_to_screen(source.pos) + Vector2(0, -8)) <= 17:
+		if int(source.get("amount", 0)) <= 0 or not sim.is_visible(Skirmish.HUMAN, source.pos):
+			continue
+		var art_id := "prop_cdmx_food_field" if site.get("field", false) else "prop_cdmx_resource_" + str(site.id)
+		var rect := Rect2(_tile_to_screen(source.pos) - art.pivot(art_id), art.texture(art_id).get_size())
+		if rect.grow(2).has_point(board) and art.hit_test(art_id, board - rect.position, 2):
 			return site
 	return {}
 
@@ -2564,7 +2925,7 @@ func _source_site_at(screen: Vector2, tile: Vector2i) -> Dictionary:
 	var site := _pick_visual_site(screen)
 	if not site.is_empty():
 		return site
-	for candidate in _source_sites(Skirmish.HUMAN):
+	for candidate in _pickable_source_sites():
 		var source: Dictionary = candidate.source
 		if source.get("pos", Vector2i(-1, -1)) == tile and int(source.get("amount", 0)) > 0 and sim.is_visible(Skirmish.HUMAN, tile):
 			return candidate
@@ -2593,21 +2954,10 @@ func _refresh_hover() -> void:
 		next_site = _pick_visual_site(screen)
 	var next_source: String = str(next_site.get("id", ""))
 	if next_entity == -1 and next_site.is_empty() and _selected_kind() in Skirmish.COMBAT_KINDS:
-		next_entity = _pick_visual_entity(screen, Skirmish.COMPUTER)
-	var next_hint := ""
-	if next_entity != -1:
-		var e: Dictionary = sim.entities[next_entity]
-		if e.side == Skirmish.HUMAN:
-			next_hint = "Selected %s #%d" % [e.kind.replace("_", " ").capitalize(), next_entity] if next_entity == selected_id else "Click to select %s #%d" % [e.kind.replace("_", " ").capitalize(), next_entity]
-		else:
-			next_hint = "Right-click to attack %s #%d" % [e.kind.replace("_", " ").capitalize(), next_entity]
-	elif not next_source.is_empty():
-		next_hint = "%s source · %d left%s" % [next_source.capitalize(), int(next_site.source.amount), " · right-click to gather" if _selected_kind() == "worker" else " · select a worker"]
-	if next_entity != hovered_entity_id or next_source != hovered_source_id or next_hint != hover_hint.text:
+		next_entity = _pick_visual_entity(screen, -1)
+	if next_entity != hovered_entity_id or next_source != hovered_source_id:
 		hovered_entity_id = next_entity
 		hovered_source_id = next_source
-		hover_hint.text = next_hint
-		hover_hint.position = (screen + Vector2(14, -34)).clamp(Vector2(8, 65), get_viewport().get_visible_rect().size - Vector2(240, 25))
 		queue_redraw()
 
 func _diamond(center: Vector2) -> PackedVector2Array:
@@ -2642,22 +2992,23 @@ func _terrain_id(tile: Vector2i) -> String:
 	var kind := "grass"
 	if sim._in_district(tile):
 		kind = "plaza"
-	elif sim.map_id == "la_roma_large":
-		var avenue_x := posmod(tile.x - 16, 24)
-		var avenue_y := posmod(tile.y - 16, 24)
+	elif sim.map_id in ["la_roma_medium", "la_roma_large"]:
+		var block_size := 16 if sim.map_id == "la_roma_medium" else 24
+		var avenue_x := posmod(tile.x - 16, block_size)
+		var avenue_y := posmod(tile.y - 16, block_size)
 		if sim._wall(tile) or avenue_x in [0, 1] or avenue_y in [0, 1]:
 			kind = "asphalt"
-		elif avenue_x in [2, 23] or avenue_y in [2, 23]:
+		elif avenue_x in [2, block_size - 1] or avenue_y in [2, block_size - 1]:
 			kind = "sidewalk"
 	elif sim._wall(tile) or sim.map_id == "la_roma" and (tile.y in [4, 15] or tile.x in [5, 14]) or sim.map_id == "narvarte" and (tile.y in [4, 11, 18] or tile.x in [5, 12, 19]) or sim.map_id == "copilco" and (tile.y in [5, 12, 19] or tile.x in [4, 9, 15]):
 		kind = "asphalt"
 	elif sim.map_id == "la_roma" and (tile.x in [4, 6, 13, 15] or tile.y in [3, 5, 14, 16]) or sim.map_id == "narvarte" and (tile.x in [4, 6, 11, 13, 18, 20] or tile.y in [3, 5, 10, 12, 17, 19]) or sim.map_id == "copilco" and (tile.x in [3, 5, 8, 10, 14, 16] or tile.y in [4, 6, 11, 13, 18, 20]):
 		kind = "sidewalk"
 	var prefix := "terrain_cdmx_" if sim.map_id == "la_roma" else "terrain_"
-	return "%s%s_%d" % [prefix, kind, 0 if sim.map_id == "la_roma_large" else posmod(tile.x * 13 + tile.y * 7, 4)]
+	return "%s%s_%d" % [prefix, kind, 0 if sim.map_id in ["la_roma_medium", "la_roma_large"] else posmod(tile.x * 13 + tile.y * 7, 4)]
 
 func _faction_color(side: int) -> String:
-	return "blue" if side == Skirmish.HUMAN else "red"
+	return "blue" if sim._team(side) == 0 else "red"
 
 func _district_color() -> Color:
 	match sim.district_state:
@@ -2716,40 +3067,25 @@ func _draw() -> void:
 		draw_texture(art.texture(medallion_id), _tile_to_screen(center_tile) - art.pivot(medallion_id), landmark_tint)
 	if sim.map_id in ["narvarte", "copilco"]:
 		draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), MAP_NAMES[sim.map_id].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
-	for side in [Skirmish.HUMAN, Skirmish.COMPUTER]:
+	for side in sim._sides():
 		for site in _source_sites(side):
 			var resource_id: String = site.id
 			var source: Dictionary = site.source
 			if source.is_empty() or not sim.is_visible(Skirmish.HUMAN, source.pos):
 				continue
-			var center := _tile_to_screen(source.pos) + Vector2(0, -8)
-			if not visible_board.grow(36).has_point(center):
+			var ground := _tile_to_screen(source.pos)
+			if not visible_board.grow(48).has_point(ground):
 				continue
-			var color: Color = RESOURCE_COLORS[resource_id]
 			var active := int(source.get("amount", 0)) > 0
-			draw_circle(center, 13, color.darkened(0.45) if active else Color("60646a"))
-			draw_arc(center, 13, 0, TAU, 24, Color.WHITE if resource_id == hovered_source_id and side == Skirmish.HUMAN else color, 2.0)
-			draw_arc(center, 16, 0, TAU, 24, Color("70d5e7") if side == Skirmish.HUMAN else Color("ed796a"), 1.5)
-			if sim.map_id == "la_roma":
-				match resource_id:
-					"comida":
-						draw_circle(center + Vector2(-2, 0), 5, Color("b9e295"))
-						draw_line(center + Vector2(0, -3), center + Vector2(4, -8), Color("f3f0c6"), 2.0)
-					"materiales":
-						draw_rect(Rect2(center + Vector2(-7, -4), Vector2(7, 7)), Color("d6d5c6"))
-						draw_rect(Rect2(center + Vector2(1, -2), Vector2(7, 7)), Color("9cabb2"))
-					"varos":
-						draw_arc(center, 7, 0, TAU, 24, Color("ffe59a"), 3.0)
-					"terrenos":
-						draw_colored_polygon(PackedVector2Array([center + Vector2(0, -8), center + Vector2(8, 0), center + Vector2(0, 8), center + Vector2(-8, 0)]), Color("dcc9f4"))
-			draw_string(ThemeDB.fallback_font, center + Vector2(-9, 5), resource_id.substr(0, 1).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 18, 15, Color.WHITE)
-			if resource_id == hovered_source_id:
-				draw_string(ThemeDB.fallback_font, center + Vector2(-35, -22), "%s %d" % [resource_id.substr(0, 1).to_upper(), int(source.get("amount", 0))],
-					HORIZONTAL_ALIGNMENT_CENTER, 70, 12, Color.WHITE)
+			var art_id := "prop_cdmx_food_field" if site.get("field", false) else "prop_cdmx_resource_" + resource_id
+			var art_rect := Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size())
+			if resource_id == hovered_source_id and side == Skirmish.HUMAN:
+				_draw_sprite_outline(art_id, art_rect, Color("ffe391"))
+			draw_texture(art.texture(art_id), art_rect.position, Color.WHITE if active else Color(0.48, 0.5, 0.53, 0.8))
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
-		if e.side == Skirmish.COMPUTER and not sim.is_entity_visible(Skirmish.HUMAN, e):
+		if sim._is_enemy(Skirmish.HUMAN, e.side) and not sim.is_entity_visible(Skirmish.HUMAN, e):
 			continue
 		var is_building: bool = e.kind in sim.content.buildings
 		var ground := _actor_ground(e)
@@ -2757,10 +3093,7 @@ func _draw() -> void:
 			continue
 		var art_id := _actor_art_id(e)
 		var art_scale := 1.0 if is_building else UNIT_ART_SCALE
-		var ring_center := ground + Vector2(0, -24 if is_building else -5)
 		var selected: bool = id == selected_id or id in selected_ids
-		if selected:
-			draw_arc(ring_center, 23 if is_building else 16, 0, TAU, 32, Color("7eeaff"), 2.0)
 		var bob := 0.0
 		if not is_building and not reduced_motion:
 			bob = -3.0 if e.job in ["move", "attack", "gather", "deliver", "build"] and sim.tick_number % 4 < 2 else -1.0 if sim.tick_number % 12 < 6 else 0.0
@@ -2769,7 +3102,9 @@ func _draw() -> void:
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset() + Vector2(ground.x * 2.0 * board_zoom, 0),
 				0.0, Vector2(-board_zoom, board_zoom))
-		if id == hovered_entity_id and not selected:
+		if selected:
+			_draw_sprite_outline(art_id, sprite_rect, Color("f4d78e"))
+		elif id == hovered_entity_id:
 			_draw_sprite_outline(art_id, sprite_rect, Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)
 		if e.kind == "wonder":
@@ -2782,20 +3117,6 @@ func _draw() -> void:
 			draw_string(ThemeDB.fallback_font, label_origin + Vector2(2, 12), e.kind.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 11, Color.WHITE)
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
-		if sim.map_id == "la_roma" and (selected or id == hovered_entity_id):
-			var faction_id: String = str(sim.factions[e.side])
-			var symbol: String = {"regios": "R", "poblanos": "P", "oaxaquenos": "O", "veracruzanos": "V"}.get(faction_id, "?")
-			var mark_center := ground + Vector2(-28, -77) if is_building else ground + Vector2(-12, -29)
-			var mark_radius := 7.0 if is_building else 5.5
-			var side_color := Color("70d5e7") if e.side == Skirmish.HUMAN else Color("ed796a")
-			if faction_id in ["poblanos", "veracruzanos"]:
-				draw_circle(mark_center, mark_radius, Color("19232c"))
-				draw_arc(mark_center, mark_radius, 0, TAU, 20, side_color, 1.5)
-			else:
-				draw_rect(Rect2(mark_center - Vector2.ONE * mark_radius, Vector2.ONE * mark_radius * 2.0), Color("19232c"))
-				draw_rect(Rect2(mark_center - Vector2.ONE * mark_radius, Vector2.ONE * mark_radius * 2.0), side_color, false, 1.5)
-			if is_building or board_zoom >= 1.0:
-				draw_string(ThemeDB.fallback_font, mark_center + Vector2(-mark_radius + 1.0, 3.5), symbol, HORIZONTAL_ALIGNMENT_CENTER, (mark_radius - 1.0) * 2.0, 10, Color.WHITE)
 		if e.kind in ["armored", "siege"] and (selected or id == hovered_entity_id):
 			var badge_color := Color("79a9df") if e.kind == "armored" else Color("e9bc66")
 			var badge := Rect2(ground + Vector2(-10, -46), Vector2(20, 16))
@@ -2817,7 +3138,7 @@ func _draw() -> void:
 			var bar_y := -art.pivot(art_id).y * art_scale - 4.0
 			draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width, 4)), Color("242a2b"))
 			draw_rect(Rect2(ground + Vector2(-bar_width * 0.5, bar_y), Vector2(bar_width * clampf(float(e.hp) / max_hp, 0, 1), 4)),
-				Color("67d69a") if e.side == Skirmish.HUMAN else Color("e76b62"))
+				Color("67d69a") if sim._team(e.side) == 0 else Color("e76b62"))
 		if not is_building and e.job == "attack" and e.cooldown > Skirmish.COOLDOWN.get(e.kind, 1) - 2:
 			draw_circle(ground + Vector2(10 * art_scale * unit_facing.get(id, 1), -22 * art_scale + bob), 3.0, Color("ffe2a1"))
 		if not is_building and e.kind == "worker" and e.carry > 0:
@@ -2839,16 +3160,6 @@ func _draw() -> void:
 		draw_rect(Rect2(center + Vector2(-9, -40), Vector2(18, 18)), Color(0.06, 0.09, 0.12, tint.a * 0.8))
 		draw_string(ThemeDB.fallback_font, center + Vector2(-7, -26), "!" if critical else "+",
 			HORIZONTAL_ALIGNMENT_CENTER, 14, 17, tint)
-	if sim.entities.has(selected_id):
-		var active: Dictionary = sim.entities[selected_id]
-		var active_building: bool = active.kind in sim.content.buildings
-		var active_ground := _actor_ground(active)
-		draw_arc(active_ground + Vector2(0, -24 if active_building else -5),
-			23 if active_building else 16, 0, TAU, 24, Color("7eeaff"), 3.0)
-		if not active_building:
-			var tip := active_ground + Vector2(0, -art.pivot(_actor_art_id(active)).y * UNIT_ART_SCALE - 9)
-			draw_colored_polygon(PackedVector2Array([tip + Vector2(-6, -4), tip + Vector2(6, -4), tip + Vector2(0, 4)]),
-				Color("7eeaff"))
 	if placing:
 		var preview_tile := _screen_to_tile(get_global_mouse_position())
 		var valid: bool = sim._clear_footprint(preview_tile) and _building_reason(build_kind).is_empty()
