@@ -31,7 +31,8 @@
     "landing:build": "node scripts/build-landing.mjs",
     "landing:check": "node scripts/build-landing.mjs --check",
     "i18n:extract": "node scripts/i18n-extract.mjs && node scripts/i18n-sync.mjs",
-    "i18n:check": "node scripts/i18n-extract.mjs --check && node scripts/i18n-sync.mjs --check"
+    "i18n:check": "node scripts/i18n-extract.mjs --check && node scripts/i18n-sync.mjs --check",
+    "public:verify": "node scripts/public-verify.mjs"
   },
   "dependencies": {
     "@golden-frijoles/sdk": "1.1.0",

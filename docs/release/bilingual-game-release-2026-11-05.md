@@ -31,4 +31,6 @@ No host change was needed. The simulation hash equals the one compiled into the 
 - An owner read-through of the Spanish copy in play.
 - The itch-served Web page itself in a browser session. Its files were proven identical to the package tested locally.
 
+A rerun with the new `npm run public:verify -- --build public-36868ff112ac` passed all 14 checks: packages and manifest, host health and preflights, both channels serving and byte-identical, the downloaded macOS app, and the three public pages.
+
 Public builds send no play events, so no completion baseline by language is claimed.
