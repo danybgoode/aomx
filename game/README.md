@@ -70,6 +70,20 @@ The client writes test-tagged first-open, later-day open, match-start and match-
 
 Godot flushes a temporary JSON file and renames it into place. Its API does not expose directory fsync, so sudden power loss at that boundary remains unproven. This debug match is a complete local play loop and a contract exercise, not an eligible launch cohort.
 
+## Localization
+
+The game reads in Spanish (es-MX) and English. The first launch follows the device or browser language: Spanish speakers get Spanish, everyone else English. The Language / Idioma picker on the setup screen and in in-match Settings switches live and saves the choice in `user://ui-settings.v2.json`. For QA, `AOMX_LOCALE=es` or `AOMX_LOCALE=en` forces a language for one launch.
+
+How text gets translated:
+
+- **Plain text** assigned to a Control (`label.text = "Choose a faction"`) is translated by Godot's auto-translate, and re-translates by itself when the language changes. Write these as plain literals; no `tr()` is needed.
+- **Text built at runtime** must translate its pieces: `tr("Gathering %s.") % GameText.name(resource_id)`, never `"Gathering " + id.capitalize()`. Keep placeholders in the same order in every language, because Godot fills them positionally.
+- **Ids shown to players** (resources, factions, ages, buildings, units, techs, states) go through `GameText.name(id)` for composed text, or `GameText.source(id)` for direct Control assignment. Both read the table in `i18n/game_text.gd`.
+- Text drawn with `draw_string()` is never auto-translated, so wrap it in `tr()`.
+- Leave `skirmish.gd`, `rules_content.gd` and `content/skirmish.v1.json` alone for wording changes: they define the simulation hash that online rooms match on. Their messages are translated where they are displayed.
+
+Catalogs live in `i18n/`: `messages.pot` (generated), `es.po` and `en.po`. After changing player-facing text, run `npm run i18n:extract`, translate any new empty entries in both `.po` files (PO editors such as Poedit work), then `npm run i18n:check`. `i18n/ignore.txt` lists literals the extractor finds that players never see. `npm test` fails when the catalog is stale, a string is untranslated, or a placeholder differs; `tests/localization_test.gd` fails when English leaks into the Spanish setup screen, HUD or settings. Spanish wording follows the [voice and style guide](../docs/brand/voice.md).
+
 ## Campaign chapter
 
 The **Campaign chapter** choice in setup starts three authored missions in

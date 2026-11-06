@@ -28,7 +28,7 @@ func _draw() -> void:
 	var c: Color = HudSkin.GOLD if glyph == "gold" else (HudSkin.MUTED if disabled else (HudSkin.GOLD if active or is_hovered() else HudSkin.TEXT))
 	if size.y < 60.0:
 		if not caption.is_empty():
-			draw_string(ThemeDB.fallback_font, Vector2(2, size.y * 0.5 + 6), caption.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, roundi(16.0 * caption_scale), c)
+			draw_string(ThemeDB.fallback_font, Vector2(2, size.y * 0.5 + 6), tr(caption).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, roundi(16.0 * caption_scale), c)
 		return
 	var o := Vector2(size.x * 0.5, 24)
 	if active:
@@ -82,7 +82,7 @@ func _draw() -> void:
 		"gold":
 			poly([o + Vector2(-11, 3), o + Vector2(-6, -8), o + Vector2(8, -8), o + Vector2(13, 3), o + Vector2(6, 12), o + Vector2(-7, 12)], c)
 	if not caption.is_empty():
-		draw_string(ThemeDB.fallback_font, Vector2(2, size.y - 9), caption.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, roundi(16.0 * caption_scale), c)
+		draw_string(ThemeDB.fallback_font, Vector2(2, size.y - 9), tr(caption).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x - 4, roundi(16.0 * caption_scale), c)
 
 func poly(points: Array[Vector2], color: Color) -> void:
 	draw_colored_polygon(PackedVector2Array(points), color)

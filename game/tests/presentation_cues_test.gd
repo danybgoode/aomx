@@ -81,7 +81,7 @@ func _run() -> void:
 	client.sim.tick_number += 40
 	client.sim.entities[worker_id].carry = 0
 	client._observe_events()
-	check(client.hud_ui.event_log.has("Comida delivered"), "delivery has a text equivalent")
+	check(client.hud_ui.event_log.has("Food delivered"), "delivery has a text equivalent")
 
 	var building_id: int = client.sim._add_entity(Skirmish.HUMAN, "depot", tile + Vector2i(1, 0))
 	client.sim.entities[building_id].complete = false

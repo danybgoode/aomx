@@ -182,6 +182,9 @@ var audio_settings_path := "user://audio-settings.v1.json"
 var ui_settings_path := "user://ui-settings.v2.json"
 var legacy_ui_settings_path := "user://ui-settings.v1.json"
 var ui_scale := 1.0
+## The language the player picked; empty means follow the device or browser language.
+var chosen_locale := ""
+var setup_language: OptionButton
 var reduced_motion := false
 var reduced_effects := false
 
@@ -192,6 +195,7 @@ func _exit_tree() -> void:
 	cue_streams.clear()
 
 func _ready() -> void:
+	_apply_saved_locale()
 	if OS.has_feature("web"):
 		get_tree().root.content_scale_factor = clampf(DisplayServer.screen_get_scale(), 1.0, 4.0)
 	art.load_manifest()
@@ -297,6 +301,7 @@ func _build_match_hud(layer: CanvasLayer) -> void:
 	hud_ui.export_save_requested.connect(_export_save)
 	hud_ui.import_save_requested.connect(_choose_save_import)
 	hud_ui.ui_scale_changed.connect(_set_ui_scale)
+	hud_ui.language_changed.connect(_set_locale)
 	hud_ui.reduced_motion_changed.connect(_set_reduced_motion)
 	hud_ui.reduced_effects_changed.connect(_set_reduced_effects)
 	hud_ui.new_match_requested.connect(_show_setup)
@@ -369,7 +374,46 @@ func _set_reduced_effects(value: bool) -> void:
 func _save_ui_settings() -> void:
 	var file := FileAccess.open(ui_settings_path, FileAccess.WRITE)
 	if file != null:
-		file.store_string(JSON.stringify({"version": 2, "scale": ui_scale, "reduced_motion": reduced_motion, "reduced_effects": reduced_effects}))
+		file.store_string(JSON.stringify({"version": 2, "scale": ui_scale, "reduced_motion": reduced_motion, "reduced_effects": reduced_effects, "locale": chosen_locale}))
+
+func _apply_saved_locale() -> void:
+	if FileAccess.file_exists(ui_settings_path):
+		var settings = JSON.parse_string(FileAccess.get_file_as_string(ui_settings_path))
+		if settings is Dictionary and settings.get("locale") is String:
+			chosen_locale = settings.locale if settings.locale in GameText.SUPPORTED else ""
+	GameText.apply(GameText.initial_locale(chosen_locale))
+
+func _set_locale(locale: String) -> void:
+	if locale not in GameText.SUPPORTED:
+		return
+	chosen_locale = locale
+	GameText.apply(locale)
+	_save_ui_settings()
+	_refresh_language()
+
+## Plain Control text re-translates by itself; text composed at runtime is rebuilt here.
+func _refresh_language() -> void:
+	var index := GameText.SUPPORTED.find(GameText.current())
+	if setup_language != null:
+		setup_language.select(index)
+	if hud_ui != null:
+		hud_ui.language_choice.select(index)
+	if setup_map != null:
+		var entries := _map_entries()
+		for i in entries.size():
+			setup_map.set_item_text(i, entries[i])
+		_choose_map(Skirmish.MAP_IDS.find(selected_map))
+		_choose_difficulty(Skirmish.AI_LEVELS.find(selected_difficulty))
+		_refresh_campaign_setup()
+		_layout_setup()
+	if sim != null:
+		_update_hud()
+	queue_redraw()
+
+func _map_entries() -> Array[String]:
+	var roma_copy: Dictionary = MapGeography.map_copy("la_roma", GameText.current())
+	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
+	return [tr(roma_label) + tr(" · Small 28×28"), tr("Narvarte · Small 28×28"), tr("Copilco · Small 28×28"), tr("La Roma · Medium 56×56"), tr("La Roma · Large 96×96")]
 
 func _load_audio_settings() -> void:
 	if FileAccess.file_exists(audio_settings_path):
@@ -600,9 +644,28 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	setup_ui_scale.add_theme_font_size_override("font_size", 16)
 	setup_ui_scale.item_selected.connect(func(index: int) -> void: _set_ui_scale([1.0, 1.25, 1.5][index]))
 	scale_row.add_child(setup_ui_scale)
+	# Language sits in the interface row: the setup layout regroups the column's other children.
+	var language_row := scale_row
+	var gap := Control.new()
+	gap.custom_minimum_size.x = 24
+	language_row.add_child(gap)
+	var language_label := Label.new()
+	language_label.text = "Language"
+	language_label.add_theme_font_size_override("font_size", 18)
+	language_row.add_child(language_label)
+	setup_language = OptionButton.new()
+	for code in GameText.SUPPORTED:
+		setup_language.add_item(GameText.LABELS[code])
+	# Each language name stays in its own language, whatever the current locale.
+	setup_language.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	setup_language.select(GameText.SUPPORTED.find(GameText.current()))
+	setup_language.custom_minimum_size = Vector2(150, 44)
+	setup_language.add_theme_font_size_override("font_size", 16)
+	setup_language.item_selected.connect(func(index: int) -> void: _set_locale(GameText.SUPPORTED[index]))
+	language_row.add_child(setup_language)
 	setup_ui_scale.select([1.0, 1.25, 1.5].find(ui_scale))
 	setup_goal = Label.new()
-	setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
+	setup_goal.text = tr("Win by destroying the opposing command post or holding the center for %d seconds.") % int(sim.content.objectives.district_hold_ticks / 10)
 	setup_goal.add_theme_font_size_override("font_size", 18)
 	column.add_child(setup_goal)
 	var difficulty_label := Label.new()
@@ -611,7 +674,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	column.add_child(difficulty_label)
 	setup_difficulty = OptionButton.new()
 	for level in Skirmish.AI_LEVELS:
-		setup_difficulty.add_item(level.capitalize())
+		setup_difficulty.add_item(GameText.source(level))
 	setup_difficulty.select(1)
 	setup_difficulty.item_selected.connect(_choose_difficulty)
 	setup_difficulty.custom_minimum_size.y = 42
@@ -625,9 +688,7 @@ func _build_faction_setup(layer: CanvasLayer) -> void:
 	map_label.add_theme_font_size_override("font_size", 18)
 	column.add_child(map_label)
 	setup_map = OptionButton.new()
-	var roma_copy: Dictionary = MapGeography.map_copy("la_roma")
-	var roma_label := str(roma_copy.get("label", "La Roma — Roma Norte / Cibeles"))
-	for entry in [roma_label + " · Small 28×28", "Narvarte · Small 28×28", "Copilco · Small 28×28", "La Roma · Medium 56×56", "La Roma · Large 96×96"]:
+	for entry in _map_entries():
 		setup_map.add_item(entry)
 	setup_map.item_selected.connect(_choose_map)
 	setup_map.custom_minimum_size.y = 42
@@ -891,11 +952,11 @@ func _layout_setup() -> void:
 		setup_navigation.size = Vector2(rail_width, 370)
 	var hold_seconds := int(sim.content.objectives.district_hold_ticks / 10)
 	if selected_map == "la_roma":
-		setup_goal.text = ("Destroy enemy post or hold Cibeles for %ds." % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma").get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
+		setup_goal.text = (tr("Destroy enemy post or hold Cibeles for %ds.") % hold_seconds) if mobile else str(MapGeography.map_copy("la_roma", GameText.current()).get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
 	elif selected_map in ["la_roma_medium", "la_roma_large"]:
-		setup_goal.text = ("Scout, expand, hold center for %ds." % hold_seconds) if mobile else ("Explore the larger district; destroy the opposing post or hold the center for %d seconds." % hold_seconds)
+		setup_goal.text = (tr("Scout, expand, hold center for %ds.") % hold_seconds) if mobile else (tr("Explore the larger district; destroy the opposing post or hold the center for %d seconds.") % hold_seconds)
 	else:
-		setup_goal.text = ("Destroy enemy post or hold the center for %ds." % hold_seconds) if mobile else ("Win by destroying the opposing command post or holding the center for %d seconds." % hold_seconds)
+		setup_goal.text = (tr("Destroy enemy post or hold the center for %ds.") % hold_seconds) if mobile else (tr("Win by destroying the opposing command post or holding the center for %d seconds.") % hold_seconds)
 	if campaign_mode:
 		var selected := CampaignMissions.find_mission(selected_mission)
 		if selected.ok:
@@ -1069,7 +1130,7 @@ func _refresh_campaign_setup() -> void:
 		return
 	var progress := CampaignProgress.read(campaign_progress_path)
 	if not progress.ok:
-		setup_campaign_note.text = "Chapter progress could not be read: %s. The file and saved match are kept; contact alpha support for recovery." % str(progress.reason).replace("_", " ")
+		setup_campaign_note.text = tr("Chapter progress could not be read: %s. The file and saved match are kept; contact alpha support for recovery.") % str(progress.reason).replace("_", " ")
 		return
 	var chapter := CampaignMissions.load_manifest()
 	if not chapter.ok:
@@ -1078,7 +1139,7 @@ func _refresh_campaign_setup() -> void:
 	for i in chapter.data.missions.size():
 		var mission: Dictionary = chapter.data.missions[i]
 		var available: bool = CampaignProgress.available(mission.id, progress.completed)
-		setup_mission.set_item_text(i, "%s · %s" % [mission.title, "available" if available else "locked"])
+		setup_mission.set_item_text(i, tr("%s · %s") % [tr(mission.title), tr("available") if available else tr("locked")])
 	setup_mission.select(CampaignMissions.MISSION_IDS.find(selected_mission))
 	var selected := CampaignMissions.find_mission(selected_mission)
 	if not selected.ok:
@@ -1089,25 +1150,29 @@ func _refresh_campaign_setup() -> void:
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
 	setup_goal.text = _campaign_description(selected.data)
-	setup_campaign_note.text = "Available now." if CampaignProgress.available(selected_mission, progress.completed) else "Locked: finish %s first." % selected.data.prerequisite.replace("_", " ").capitalize()
+	setup_campaign_note.text = "Available now." if CampaignProgress.available(selected_mission, progress.completed) else tr("Locked: finish %s first.") % tr(_mission_title(selected.data.prerequisite))
 
 func _campaign_description(mission: Dictionary) -> String:
-	return str(mission.description).replace("La Roma Large", MAP_NAMES[selected_map])
+	return tr(str(mission.description)).replace(tr("La Roma Large"), tr(MAP_NAMES[selected_map]))
+
+func _mission_title(id: String) -> String:
+	var found := CampaignMissions.find_mission(id)
+	return str(found.data.title) if found.ok else id.replace("_", " ").capitalize()
 
 func _choose_map(index: int) -> void:
 	if index >= 0 and index < Skirmish.MAP_IDS.size():
 		selected_map = Skirmish.MAP_IDS[index]
 		if selected_map == "la_roma":
-			var roma_copy: Dictionary = MapGeography.map_copy(selected_map)
+			var roma_copy: Dictionary = MapGeography.map_copy(selected_map, GameText.current())
 			setup_map_details.text = str(roma_copy.get("description", "A stylized Roma Norte battlefield. Any faction can play here."))
 			setup_goal.text = str(roma_copy.get("wins", "Destroy the opposing command post or hold Cibeles for 75 seconds."))
 		elif selected_map in ["la_roma_medium", "la_roma_large"]:
 			var board_size := 56 if selected_map == "la_roma_medium" else 96
-			setup_map_details.text = "A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match." % [board_size, board_size]
+			setup_map_details.text = tr("A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match.") % [board_size, board_size]
 			setup_goal.text = "Two teams, four independent economies. Destroy both opposing command posts to win." if team_mode else "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
 		else:
 			setup_map_details.text = "An authored CDMX-inspired skirmish. Any faction can play here."
-			setup_goal.text = "Win by destroying the opposing command post or holding the center for %d seconds." % int(sim.content.objectives.district_hold_ticks / 10)
+			setup_goal.text = tr("Win by destroying the opposing command post or holding the center for %d seconds.") % int(sim.content.objectives.district_hold_ticks / 10)
 		if setup_objective != null:
 			_refresh_wonder_setup()
 			_layout_setup()
@@ -1137,7 +1202,7 @@ func _choose_difficulty(index: int) -> void:
 		"standard": "Standard: Scouts and changes plans when you show a threat.",
 		"challenger": "Challenger: Reacts sooner and presses an advantage."
 	}
-	setup_difficulty_details.text = descriptions[selected_difficulty] + " Same rules and sight."
+	setup_difficulty_details.text = tr(descriptions[selected_difficulty]) + tr(" Same rules and sight.")
 
 func _save_match() -> void:
 	if offline_replay:
@@ -1153,7 +1218,7 @@ func _save_match() -> void:
 	if saved.ok:
 		hud_ui.show_notice("Match saved. Resume it from the faction screen or menu.")
 	else:
-		hud_ui.show_notice("Save failed: %s. Current match is still playable." % saved.reason.replace("_", " "), true)
+		hud_ui.show_notice(tr("Save failed: %s. Current match is still playable.") % saved.reason.replace("_", " "), true)
 
 func _export_save() -> void:
 	if online or offline_replay:
@@ -1162,11 +1227,11 @@ func _export_save() -> void:
 	if not choosing_faction:
 		var saved: Dictionary = MatchSave.write(sim, match_id, completion_queued, save_path)
 		if not saved.ok:
-			hud_ui.show_notice("Export failed: %s." % saved.reason.replace("_", " "), true)
+			hud_ui.show_notice(tr("Export failed: %s.") % saved.reason.replace("_", " "), true)
 			return
 	var exported: Dictionary = MatchSave.export_bytes(save_path)
 	if not exported.ok:
-		hud_ui.show_notice("No compatible solo save to export: %s." % exported.reason.replace("_", " "), true)
+		hud_ui.show_notice(tr("No compatible solo save to export: %s.") % exported.reason.replace("_", " "), true)
 		return
 	if OS.has_feature("web"):
 		JavaScriptBridge.download_buffer(exported.bytes, exported.name, "application/json")
@@ -1177,7 +1242,7 @@ func _export_save() -> void:
 
 func _export_save_file(path: String) -> void:
 	var result: Dictionary = MatchSave.export_file(path, save_path)
-	hud_ui.show_notice("Save exported." if result.ok else "Export failed: %s." % result.reason.replace("_", " "), not result.ok)
+	hud_ui.show_notice("Save exported." if result.ok else tr("Export failed: %s.") % result.reason.replace("_", " "), not result.ok)
 
 func _choose_save_import() -> void:
 	if not choosing_faction:
@@ -1228,7 +1293,7 @@ func _handle_import_result(result: Dictionary) -> void:
 	_resume_match()
 
 func _report_import_error(reason: String) -> void:
-	var message := "Save could not import: %s. Existing save kept." % reason.replace("_", " ")
+	var message := tr("Save could not import: %s. Existing save kept.") % reason.replace("_", " ")
 	if choosing_faction:
 		setup_save_error.text = message
 	else:
@@ -1237,7 +1302,7 @@ func _report_import_error(reason: String) -> void:
 func _resume_match() -> void:
 	var restored: Dictionary = MatchSave.read(save_path)
 	if not restored.ok:
-		var message := "Saved match could not load: %s. File kept." % restored.reason.replace("_", " ")
+		var message := tr("Saved match could not load: %s. File kept.") % restored.reason.replace("_", " ")
 		if choosing_faction:
 			setup_save_error.text = message
 		else:
@@ -1357,7 +1422,7 @@ func _on_online_joined(info: Dictionary) -> void:
 	online_side = int(info.side)
 	match_id = str(info.match_id)
 	if info.status == "waiting":
-		setup_save_error.text = "Share this room code with one friend: " + invite_code if AlphaConfig.CHANNEL == "public" else "Waiting for the second invited player. Both players need separate codes."
+		setup_save_error.text = tr("Share this room code with one friend: ") + invite_code if AlphaConfig.CHANNEL == "public" else "Waiting for the second invited player. Both players need separate codes."
 	elif info.status == "playing":
 		setup_save_error.text = "Both players joined. Loading match…"
 	if online_side == 0:
@@ -1371,14 +1436,14 @@ func _on_online_state(response: Dictionary) -> void:
 	if response.status == "no_result":
 		var terminal: Dictionary = response.get("terminal", {})
 		var reason := str(terminal.get("reason", "host_unavailable"))
-		var message := "The 60-second reconnect window expired. No result was recorded." if reason == "reconnect_expired" else "The match host ended this match (%s). No result was recorded." % reason.replace("_", " ")
+		var message := "The 60-second reconnect window expired. No result was recorded." if reason == "reconnect_expired" else tr("The match host ended this match (%s). No result was recorded.") % reason.replace("_", " ")
 		setup_save_error.text = message
 		hud_ui.show_notice(message, true)
 		return
 	if response.get("state") is Dictionary:
 		var loaded: Dictionary = MultiplayerState.restore_for_side(response.state, match_id, online_side)
 		if not loaded.ok:
-			_on_online_problem("Match state failed validation: " + str(loaded.reason))
+			_on_online_problem(tr("Match state failed validation: ") + str(loaded.reason))
 			return
 		sim = loaded.game as Skirmish
 		if choosing_faction:
@@ -1422,7 +1487,7 @@ func _on_online_order_ack(response: Dictionary) -> void:
 	var pending: Dictionary = pending_online_cues.pop_front() if not pending_online_cues.is_empty() else {}
 	var at: Vector2i = pending.get("tile", Vector2i(-1, -1))
 	var accepted: bool = bool(response.get("ok", false))
-	_flash_order(at, "Order accepted by host." if accepted else "Order rejected: " + str(response.get("reason", "unknown")).replace("_", " "), accepted)
+	_flash_order(at, "Order accepted by host." if accepted else tr("Order rejected: ") + str(response.get("reason", "unknown")).replace("_", " "), accepted)
 	if accepted:
 		cue_serial += 1
 		_emit_cue("order-confirm", "%s:ack:%d" % [match_id, cue_serial], at)
@@ -1463,7 +1528,7 @@ func _on_online_replay_frame(response: Dictionary) -> void:
 	var loaded: Dictionary = MultiplayerState.restore_for_side(response.state, match_id, online_side)
 	if not loaded.ok:
 		paused = true
-		_on_online_problem("Replay state failed validation: " + str(loaded.reason))
+		_on_online_problem(tr("Replay state failed validation: ") + str(loaded.reason))
 		return
 	replay_frame_index = int(response.frame_index)
 	if replay_recording.has("frames"):
@@ -1479,7 +1544,7 @@ func _on_online_replay_frame(response: Dictionary) -> void:
 		if saved.ok:
 			hud_ui.show_notice("Private replay saved. Open it from the faction screen.")
 		else:
-			hud_ui.show_notice("Replay could not be saved: %s." % str(saved.reason).replace("_", " "), true)
+			hud_ui.show_notice(tr("Replay could not be saved: %s.") % str(saved.reason).replace("_", " "), true)
 
 func _choose_replay_file() -> void:
 	var directory := ProjectSettings.globalize_path("user://replays")
@@ -1490,7 +1555,7 @@ func _choose_replay_file() -> void:
 func _open_replay_file(path: String) -> void:
 	var opened := ParticipantReplay.read(path)
 	if not opened.ok:
-		setup_save_error.text = "Replay could not load: %s. File kept." % str(opened.reason).replace("_", " ")
+		setup_save_error.text = tr("Replay could not load: %s. File kept.") % str(opened.reason).replace("_", " ")
 		return
 	if online_client != null:
 		online_client.leave()
@@ -1705,10 +1770,10 @@ func _observe_events() -> void:
 			continue
 		if not last_event_entities.has(id):
 			if entity.kind in ["worker", "melee", "ranged", "armored", "siege"]:
-				hud_ui.show_notice("%s ready" % entity.kind.capitalize())
+				hud_ui.show_notice(tr("%s ready") % GameText.name(str(entity.kind)))
 				_emit_cue("construction", "%s:ready:%d" % [match_id, id], entity.pos)
 		elif not last_event_entities[id].complete and entity.complete:
-			hud_ui.show_notice("%s complete" % entity.kind.replace("_", " ").capitalize())
+			hud_ui.show_notice(tr("%s complete") % GameText.name(str(entity.kind)))
 			_emit_cue("construction", "%s:complete:%d" % [match_id, id], entity.pos)
 		else:
 			var before: Dictionary = last_event_entities[id]
@@ -1717,7 +1782,7 @@ func _observe_events() -> void:
 					_emit_cue("economy", "%s:gather:%d:%d" % [match_id, id, sim.tick_number], entity.pos)
 				elif int(before.carry) > 0 and int(entity.carry) == 0:
 					if _emit_cue("economy", "%s:deliver:%d:%d" % [match_id, id, sim.tick_number], entity.pos):
-						hud_ui.show_notice("%s delivered" % str(before.carry_resource).capitalize())
+						hud_ui.show_notice(tr("%s delivered") % GameText.name(str(before.carry_resource)))
 			if entity.hp < before.hp:
 				_emit_cue("threat", "%s:hit:%d:%d" % [match_id, id, sim.tick_number], entity.pos)
 				if sim.tick_number - last_attack_notice_tick > 50:
@@ -1733,7 +1798,7 @@ func _observe_events() -> void:
 			_emit_cue("destruction", "%s:lost:%d" % [match_id, id], visible_tile)
 	if sim.district_state != last_district_state:
 		if sim.district_state == "human_hold":
-			hud_ui.show_notice("Center captured • hold for %d seconds" % int(sim.content.objectives.district_hold_ticks / 10))
+			hud_ui.show_notice(tr("Center captured • hold for %d seconds") % int(sim.content.objectives.district_hold_ticks / 10))
 		elif sim.district_state == "computer_hold":
 			hud_ui.show_notice("Enemy holds center • contest it", true)
 		elif sim.district_state == "contested":
@@ -2008,7 +2073,7 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 					assigned[next_target] = true
 		if accepted > 0:
 			result = {"ok": true, "reason": "group_order"}
-	var group_message := "%d workers assigned to %s." % [accepted, sim._resource_at(Skirmish.HUMAN, target).capitalize()] if kind == "gather" and target is Vector2i else "%d units ordered." % accepted
+	var group_message := tr("%d workers assigned to %s.") % [accepted, GameText.name(sim._resource_at(Skirmish.HUMAN, target))] if kind == "gather" and target is Vector2i else tr("%d units ordered.") % accepted
 	var message := "Order sent; awaiting host." if online and result.ok else group_message if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result)
 	_flash_order(tile, message, result.ok, online and result.ok)
 	if result.ok and not online:
@@ -2048,14 +2113,14 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 			"move": return "Moving here."
 			"gather":
 				var resource_id := sim._resource_at(Skirmish.HUMAN, target) if target is Vector2i else ""
-				return ("Delivering cargo, then gathering %s." if str(result.get("reason")) == "delivering_then_gathering" else "Gathering %s.") % resource_id.capitalize()
+				return (tr("Delivering cargo, then gathering %s.") if str(result.get("reason")) == "delivering_then_gathering" else tr("Gathering %s.")) % GameText.name(resource_id)
 			"plant": return "Planting a food field."
-			"build": return "Building %s." % str(target.kind).replace("_", " ")
+			"build": return tr("Building %s.") % GameText.name(str(target.kind)).to_lower()
 			"repair": return "Repairing building."
 			"assist": return "Assisting construction."
-			"research": return "Research started: %s." % str(target).replace("_", " ")
-			"advance": return "Advancing to %s." % _age_display(str(target))
-			"train": return "%s queued." % str(target).capitalize()
+			"research": return tr("Research started: %s.") % GameText.name(str(target))
+			"advance": return tr("Advancing to %s.") % _age_display(str(target))
+			"train": return tr("%s queued.") % GameText.name(str(target))
 			"cancel": return "Paid order canceled; refund returned."
 			"attack": return "Attacking target."
 			"attack_move": return "Advancing and engaging visible enemies."
@@ -2091,7 +2156,7 @@ func _flash_order(tile: Vector2i, message: String, ok: bool, pending: bool = fal
 func _change_zoom(delta: float) -> void:
 	board_zoom = clampf(snappedf(board_zoom + delta, 0.05), ZOOM_MIN, ZOOM_MAX)
 	zoom_adjustment = board_zoom - _default_board_zoom(get_viewport().get_visible_rect().size)
-	sim.feedback = "Board zoom: %d%%. Resize window or press 0 to fit." % roundi(board_zoom * 100.0)
+	sim.feedback = tr("Board zoom: %d%%. Resize window or press 0 to fit.") % roundi(board_zoom * 100.0)
 
 func _default_board_zoom(view: Vector2) -> float:
 	# Keep the touch board legible; its minimap handles navigation in narrow layouts.
@@ -2120,22 +2185,22 @@ func _cost_text(costs: Dictionary) -> String:
 	var parts: Array[String] = []
 	for id in RESOURCE_IDS:
 		if int(costs.get(id, 0)) > 0:
-			parts.append("%s %d" % [id.substr(0, 1).to_upper(), int(costs[id])])
-	return ", ".join(parts) if not parts.is_empty() else "free"
+			parts.append("%s %d" % [GameText.name(id).substr(0, 1).to_upper(), int(costs[id])])
+	return ", ".join(parts) if not parts.is_empty() else tr("free")
 
 func _missing_costs(costs: Dictionary) -> String:
 	var missing: Array[String] = []
 	for id in RESOURCE_IDS:
 		var need := int(costs.get(id, 0)) - sim.balance(Skirmish.HUMAN, id)
 		if need > 0:
-			missing.append("%s %d" % [id.capitalize(), need])
-	return "Need " + ", ".join(missing) if not missing.is_empty() else ""
+			missing.append("%s %d" % [GameText.name(id), need])
+	return tr("Need ") + ", ".join(missing) if not missing.is_empty() else ""
 
 func _age_id() -> String:
 	return str(sim.content.ages.order[int(sim.age_index[Skirmish.HUMAN])])
 
 func _age_display(id: String) -> String:
-	return str(AGE_NAMES.get(id, id.capitalize()))
+	return GameText.name(id)
 
 func _next_age_id() -> String:
 	var index := int(sim.age_index[Skirmish.HUMAN]) + 1
@@ -2144,7 +2209,7 @@ func _next_age_id() -> String:
 func _age_gate(id: String) -> String:
 	var data: Dictionary = sim.content.buildings[id] if id in sim.content.buildings else sim.content.units[id]
 	var age := str(data.get("min_age", "foranea"))
-	return "Requires %s age" % _age_display(age) if sim.content.ages.order.find(age) > int(sim.age_index[Skirmish.HUMAN]) else ""
+	return tr("Requires %s age") % _age_display(age) if sim.content.ages.order.find(age) > int(sim.age_index[Skirmish.HUMAN]) else ""
 
 func _building_reason(id: String) -> String:
 	if id == "wonder" and sim._find(Skirmish.HUMAN, "wonder") != -1:
@@ -2157,7 +2222,7 @@ func _building_reason(id: String) -> String:
 func _research_reason(id: String) -> String:
 	var tech: Dictionary = sim.content.techs[id]
 	if tech.get("requires_faction", "") not in ["", sim.factions[Skirmish.HUMAN]]:
-		return "Available to %s only" % str(tech.requires_faction).capitalize()
+		return tr("Available to %s only") % GameText.name(str(tech.requires_faction))
 	if id in sim.researched[Skirmish.HUMAN]:
 		return "Already researched"
 	if sim._queued(Skirmish.HUMAN, "tech", id):
@@ -2165,10 +2230,10 @@ func _research_reason(id: String) -> String:
 	if sim.entities[selected_id].queue.size() >= 3:
 		return "Queue full"
 	if sim.content.ages.order.find(str(tech.age)) > int(sim.age_index[Skirmish.HUMAN]):
-		return "Requires %s age" % _age_display(str(tech.age))
+		return tr("Requires %s age") % _age_display(str(tech.age))
 	for prerequisite in tech.get("requires_techs", []):
 		if prerequisite not in sim.researched[Skirmish.HUMAN]:
-			return "Requires " + str(prerequisite).replace("_", " ")
+			return tr("Requires %s") % GameText.name(str(prerequisite))
 	return _missing_costs(tech.costs)
 
 func _advance_reason(id: String) -> String:
@@ -2182,10 +2247,10 @@ func _advance_reason(id: String) -> String:
 	for building in transition.get("requires_buildings", []):
 		var building_id: int = sim._find(Skirmish.HUMAN, str(building))
 		if building_id == -1 or not sim.entities[building_id].complete:
-			return "Requires completed " + str(building).replace("_", " ")
+			return tr("Requires a completed %s") % GameText.name(str(building)).to_lower()
 	for tech in transition.get("requires_techs", []):
 		if tech not in sim.researched[Skirmish.HUMAN]:
-			return "Requires " + str(tech).replace("_", " ")
+			return tr("Requires %s") % GameText.name(str(tech))
 	return _missing_costs(transition.costs)
 
 func _command_state(action: String) -> Dictionary:
@@ -2215,7 +2280,7 @@ func _command_state(action: String) -> Dictionary:
 				reason = "Sources depleted; wait for renewal"
 		"plant":
 			visible = kind == "worker" and selected_ids.size() == 1
-			label = "Plant food field · %s" % _cost_text(Skirmish.FIELD_COST)
+			label = tr("Plant food field · %s") % _cost_text(Skirmish.FIELD_COST)
 			if visible:
 				reason = _missing_costs(Skirmish.FIELD_COST)
 		"build":
@@ -2232,12 +2297,12 @@ func _command_state(action: String) -> Dictionary:
 				reason = "Construction in progress"
 		"advance":
 			visible = kind == "command_post" and selected_ids.size() <= 1
-			label = "Advance to " + _age_display(_next_age_id()) if not _next_age_id().is_empty() else "Final age"
+			label = tr("Advance to %s") % _age_display(_next_age_id()) if not _next_age_id().is_empty() else "Final age"
 			if visible:
 				reason = _advance_reason(_next_age_id())
 		"train_worker", "train_melee", "train_ranged", "train_armored", "train_siege":
 			visible = (kind == "command_post" and role == "worker") or (kind == "barracks" and role in Skirmish.COMBAT_KINDS)
-			label = "Recruit %s · %s" % [role, _cost_text(sim._costs(Skirmish.HUMAN, role))]
+			label = tr("Recruit %s · %s") % [GameText.name(role), _cost_text(sim._costs(Skirmish.HUMAN, role))]
 			if visible and not sim.entities[selected_id].complete:
 				reason = "Construction in progress"
 			elif visible and sim.entities[selected_id].queue.size() >= 3:
@@ -2336,13 +2401,13 @@ func _activate_command(action: String) -> void:
 			var choices: Array[Dictionary] = []
 			for id in BUILD_CHOICES + (["wonder"] if sim.objective_id == "wonder" else []):
 				var reason := _building_reason(id)
-				choices.append({"id": "build_" + id, "label": "%s · %s%s" % [id.capitalize(), _cost_text(sim._costs(Skirmish.HUMAN, id)), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
+				choices.append({"id": "build_" + id, "label": tr("%s · %s%s") % [GameText.name(id), _cost_text(sim._costs(Skirmish.HUMAN, id)), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
 			hud_ui.show_choices("CHOOSE BUILDING", choices)
 		elif action == "research":
 			var choices: Array[Dictionary] = []
 			for id in sim.content.techs:
 				var reason := _research_reason(id)
-				choices.append({"id": "research_" + id, "label": "%s · %s%s" % [str(id).replace("_i", "").replace("_", " ").capitalize(), _cost_text(sim.content.techs[id].costs), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
+				choices.append({"id": "research_" + id, "label": tr("%s · %s%s") % [GameText.name(str(id)), _cost_text(sim.content.techs[id].costs), " — " + reason if not reason.is_empty() else ""], "enabled": reason.is_empty(), "reason": reason})
 			hud_ui.show_choices("CHOOSE RESEARCH", choices)
 		elif action == "advance":
 			_issue_order("advance", _next_age_id(), sim.entities[selected_id].pos)
@@ -2386,7 +2451,7 @@ func _show_cancel_choices() -> void:
 	if construction_id != -1:
 		var building: Dictionary = sim.entities[construction_id]
 		choices.append({"id": "cancel_build_%d" % construction_id,
-			"label": "Cancel %s · refund %s" % [building.kind.replace("_", " ").capitalize(), _refund_text(sim._costs(Skirmish.HUMAN, building.kind), 50)],
+			"label": tr("Cancel %s · refund %s") % [GameText.name(building.kind), _refund_text(sim._costs(Skirmish.HUMAN, building.kind), 50)],
 			"enabled": _cancel_worker_id() != -1, "reason": "A worker is needed to cancel construction"})
 	elif sim.entities.has(selected_id) and sim.entities[selected_id].kind in sim.content.buildings:
 		var queue: Array = sim.entities[selected_id].queue
@@ -2394,7 +2459,7 @@ func _show_cancel_choices() -> void:
 			var order: Dictionary = queue[index]
 			var percent := 50 if index == 0 else 100
 			choices.append({"id": "cancel_queue_%d" % index,
-				"label": "Cancel %s · refund %s" % [str(order.role).replace("_", " ").capitalize(), _refund_text(sim._order_costs(Skirmish.HUMAN, order), percent)],
+				"label": tr("Cancel %s · refund %s") % [GameText.name(str(order.role)), _refund_text(sim._order_costs(Skirmish.HUMAN, order), percent)],
 				"enabled": true, "reason": ""})
 	if not choices.is_empty():
 		hud_ui.show_choices("CANCEL PAID ORDER", choices)
@@ -2405,7 +2470,7 @@ func _target_prompt() -> String:
 		"attack_move": return "Advance: click clear ground; fighters engage visible enemies."
 		"gather": return "Gather: click a Comida, Materiales, Varos or Terrenos source. Esc cancels."
 		"plant": return "Plant field: click clear ground or a depleted field. Costs 4 Materiales and 2 Varos."
-		"build": return "Build %s: click a clear 2×2 site. Esc cancels." % build_kind.capitalize()
+		"build": return tr("Build %s: click a clear 2×2 site. Esc cancels.") % GameText.name(build_kind).to_lower()
 		"repair": return "Repair: click a damaged friendly building. Esc cancels."
 		"assist": return "Assist: click an unfinished friendly building. Esc cancels."
 		"attack": return "Attack: click an enemy unit or post. Esc cancels."
@@ -2459,17 +2524,17 @@ func _update_hud() -> void:
 		selected_ids.clear()
 	var seconds := floori(float(sim.tick_number) / 10.0)
 	ui.timer_label.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	ui.faction_label.text = "YOU · " + FACTION_NAMES[sim.factions[Skirmish.HUMAN]].to_upper()
+	ui.faction_label.text = tr("YOU · %s") % GameText.name(sim.factions[Skirmish.HUMAN]).to_upper()
 	ui.faction_icon.texture = _faction_portrait(sim.factions[Skirmish.HUMAN])
 	ui.age_icon.texture = art.texture(["building_command_post_blue", "building_barracks_blue", "building_cdmx_registry", "building_cdmx_roma_command_post"][sim.age_index[Skirmish.HUMAN]])
-	ui.faction_label.tooltip_text = "%s · %s" % [FACTION_NAMES[sim.factions[Skirmish.HUMAN]], MAP_NAMES[sim.map_id]]
-	ui.minimap.tooltip_text = "%s map • click to center view" % MAP_NAMES[sim.map_id]
+	ui.faction_label.tooltip_text = tr("%s · %s") % [GameText.name(sim.factions[Skirmish.HUMAN]), tr(MAP_NAMES[sim.map_id])]
+	ui.minimap.tooltip_text = tr("%s map • click to center view") % tr(MAP_NAMES[sim.map_id])
 	var stockpiles := {}
 	var source_notes := {}
 	for resource_id in RESOURCE_IDS:
 		stockpiles[resource_id] = sim.balance(Skirmish.HUMAN, resource_id)
 		var source: Dictionary = _source(resource_id)
-		source_notes[resource_id] = "%d at source; %d refreshes left" % [int(source.get("amount", 0)), int(source.get("refreshes_left", 0))]
+		source_notes[resource_id] = tr("%d at source; %d refreshes left") % [int(source.get("amount", 0)), int(source.get("refreshes_left", 0))]
 	ui.set_economy(stockpiles, _age_display(_age_id()), sim._population_used(Skirmish.HUMAN), sim._population_cap(Skirmish.HUMAN), source_notes)
 	ui.set_objective_caption(not campaign_mode and sim.objective_id == "wonder")
 	ui.objective_title.text = _district_note()
@@ -2507,18 +2572,18 @@ func _update_hud() -> void:
 	var own_hp: int = maxi(0, sim.entities[own_post].hp) if own_post != -1 else 0
 	var enemy_hp: int = maxi(0, sim.entities[enemy_post].hp) if enemy_post != -1 and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[enemy_post]) else -1
 	var hold_seconds: int = int(sim.content.objectives.district_hold_ticks) / 10
-	ui.secondary_status.text = "%s %s\nHold %02d:%02d / %02d:%02d\nPosts: %d HP / %s" % ["Cibeles" if sim.map_id == "la_roma" else "Center", sim.district_state.replace("_", " ").capitalize(),
-		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+	ui.secondary_status.text = tr("%s %s\nHold %02d:%02d / %02d:%02d\nPosts: %d HP / %s") % ["Cibeles" if sim.map_id == "la_roma" else tr("Center"), GameText.name(sim.district_state),
+		int(sim.district_progress / 600), int(sim.district_progress / 10) % 60, int(hold_seconds / 60), hold_seconds % 60, own_hp, tr("%d HP") % enemy_hp if enemy_hp >= 0 else tr("unseen")]
 	if not campaign_mode and sim.objective_id == "conquest":
-		ui.secondary_status.text = "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s" % [own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+		ui.secondary_status.text = tr("Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s") % [own_hp, tr("%d HP") % enemy_hp if enemy_hp >= 0 else tr("unseen")]
 		if sim.team_mode:
 			var ally_post := sim._find(Skirmish.ALLY, "command_post")
 			var second_post := sim._find(Skirmish.SECOND_OPPONENT, "command_post")
 			var ally_hp: int = maxi(0, sim.entities[ally_post].hp) if ally_post != -1 else 0
 			var second_hp: int = maxi(0, sim.entities[second_post].hp) if second_post != -1 and sim.is_entity_visible(Skirmish.HUMAN, sim.entities[second_post]) else -1
-			ui.secondary_status.text = "2 v 2 Conquest · destroy both enemy posts\nOur posts: %d / %d HP\nEnemy posts: %s / %s" % [own_hp, ally_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen", str(second_hp) + " HP" if second_hp >= 0 else "unseen"]
+			ui.secondary_status.text = tr("2 v 2 Conquest · destroy both enemy posts\nOur posts: %d / %d HP\nEnemy posts: %s / %s") % [own_hp, ally_hp, tr("%d HP") % enemy_hp if enemy_hp >= 0 else tr("unseen"), tr("%d HP") % second_hp if second_hp >= 0 else tr("unseen")]
 	if not campaign_mode and sim.objective_id == "wonder":
-		ui.secondary_status.text = "You: %s\nAI: %s\nPosts: %d HP / %s" % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER), own_hp, str(enemy_hp) + " HP" if enemy_hp >= 0 else "unseen"]
+		ui.secondary_status.text = tr("You: %s\nAI: %s\nPosts: %d HP / %s") % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER), own_hp, tr("%d HP") % enemy_hp if enemy_hp >= 0 else tr("unseen")]
 	var group_signature := str(selected_ids)
 	if group_signature != last_group_signature:
 		last_group_signature = group_signature
@@ -2541,48 +2606,48 @@ func _update_hud() -> void:
 			var amount := int(source.get("amount", 0))
 			var refreshes := int(source.get("refreshes_left", 0))
 			var max_amount := int(sim.content.resources[resource_id].amount)
-			var state := "Full" if amount >= max_amount / 2 else "Half" if amount > 0 else "Refreshing" if refreshes > 0 and not is_field else "Depleted"
+			var state := tr("Full") if amount >= max_amount / 2 else tr("Half") if amount > 0 else tr("Refreshing") if refreshes > 0 and not is_field else tr("Depleted")
 			var refresh_ticks := int(source.get("refresh_remaining", 0))
 			if refresh_ticks <= 0:
 				refresh_ticks = int(sim.content.resources[resource_id].refresh_ticks)
-			var next_refresh := " • next refresh in %ds" % ceili(float(refresh_ticks) / 10.0) if amount == 0 and refreshes > 0 and not is_field else ""
-			ui.set_selection(art.texture("prop_cdmx_food_field" if is_field else "prop_cdmx_resource_" + resource_id), "%s SOURCE" % resource_id.to_upper(), "Food field" if is_field else "Resource site", 0, 0,
-				"%s • %d remaining%s" % [state, amount, next_refresh], "Replant to renew this field" if is_field else "%d refreshes left • finite site" % refreshes)
+			var next_refresh := tr(" • next refresh in %ds") % ceili(float(refresh_ticks) / 10.0) if amount == 0 and refreshes > 0 and not is_field else ""
+			ui.set_selection(art.texture("prop_cdmx_food_field" if is_field else "prop_cdmx_resource_" + resource_id), tr("%s SOURCE") % GameText.name(resource_id).to_upper(), "Food field" if is_field else "Resource site", 0, 0,
+				tr("%s • %d remaining%s") % [state, amount, next_refresh], "Replant to renew this field" if is_field else tr("%d refreshes left • finite site") % refreshes)
 		else:
 			selected_source_tile = Vector2i(-1, -1)
 	if selected_id == -1 and selected_source_tile.x < 0:
 		var setup_post_id := "building_cdmx_roma_command_post" if sim.map_id == "la_roma" else "building_command_post_%s" % _faction_color(Skirmish.HUMAN)
-		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0,
+		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", GameText.name(sim.factions[Skirmish.HUMAN]), 0, 0,
 			"" if visible_view.x < 620.0 else ("Select a unit" if visible_view.y < 720.0 else "Select a unit or post"), "")
 	elif selected_id != -1:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
-		var activity: String = actor.job.capitalize()
+		var activity: String = GameText.name(str(actor.job))
 		if int(actor.blocked_ticks) >= 90:
-			activity = "Route blocked • rechecking"
+			activity = tr("Route blocked • rechecking")
 		if actor.kind == "worker":
 			if actor.carry > 0:
-				activity += "  •  carrying %d %s" % [actor.carry, str(actor.get("carry_resource", "resource")).capitalize()]
+				activity += tr("  •  carrying %d %s") % [actor.carry, GameText.name(str(actor.get("carry_resource", "resource")))]
 			elif not str(actor.get("source_resource", "")).is_empty():
-				activity += "  •  %s source" % str(actor.source_resource).capitalize()
+				activity += tr("  •  %s source") % GameText.name(str(actor.source_resource))
 		var stats := ""
 		if actor.kind in Skirmish.COMBAT_KINDS:
 			var rule: Dictionary = sim.content.units[actor.kind]
-			stats = "Attack %d • range %d • armor %d • %s" % [sim._unit_damage(Skirmish.HUMAN, actor.kind), int(rule.range), int(rule.armor), str(rule.attack_class)]
+			stats = tr("Attack %d • range %d • armor %d • %s") % [sim._unit_damage(Skirmish.HUMAN, actor.kind), int(rule.range), int(rule.armor), GameText.name(str(rule.attack_class)).to_lower()]
 			if not rule.bonuses.is_empty():
-				stats += " • counter: " + ", ".join(rule.bonuses.keys())
+				stats += tr(" • counter: %s") % ", ".join(rule.bonuses.keys().map(func(k: String) -> String: return GameText.name(k).to_lower()))
 		elif actor.kind == "worker":
-			stats = "Carry cap %d" % sim._carry_limit(Skirmish.HUMAN)
+			stats = tr("Carry cap %d") % sim._carry_limit(Skirmish.HUMAN)
 		elif actor.kind == "bicitaxi":
-			stats = "Scout • sight %d • fast movement" % int(sim.content.units.bicitaxi.sight)
+			stats = tr("Scout • sight %d • fast movement") % int(sim.content.units.bicitaxi.sight)
 		else:
-			stats = "Construction %d%%" % roundi(100.0 * actor.progress / maxi(1, int(sim.content.buildings[actor.kind].build_ticks))) if not actor.complete else "Ready"
+			stats = tr("Construction %d%%") % roundi(100.0 * actor.progress / maxi(1, int(sim.content.buildings[actor.kind].build_ticks))) if not actor.complete else tr("Ready")
 			if not actor.queue.is_empty():
 				var first: Dictionary = actor.queue[0]
-				stats += "  •  Queue %d: %s %ds" % [actor.queue.size(), first.role, ceili(float(first.remaining) / 10.0)]
-		ui.set_selection(_actor_texture(actor), "%d UNITS" % selected_ids.size() if selected_ids.size() > 1 else "%s #%d" % [actor.kind.replace("_", " ").capitalize(), selected_id],
-			sim.factions[Skirmish.HUMAN].capitalize(), actor.hp if selected_ids.size() <= 1 else 0, max_hp if selected_ids.size() <= 1 else 0,
-			"Group selected" if selected_ids.size() > 1 else activity, "%d selected • tap a portrait for one" % selected_ids.size() if selected_ids.size() > 1 else stats)
+				stats += tr("  •  Queue %d: %s %ds") % [actor.queue.size(), GameText.name(str(first.role)), ceili(float(first.remaining) / 10.0)]
+		ui.set_selection(_actor_texture(actor), tr("%d UNITS") % selected_ids.size() if selected_ids.size() > 1 else tr("%s #%d") % [GameText.name(str(actor.kind)), selected_id],
+			GameText.name(sim.factions[Skirmish.HUMAN]), actor.hp if selected_ids.size() <= 1 else 0, max_hp if selected_ids.size() <= 1 else 0,
+			"Group selected" if selected_ids.size() > 1 else activity, tr("%d selected • tap a portrait for one") % selected_ids.size() if selected_ids.size() > 1 else stats)
 	for action in command_buttons:
 		var state := _command_state(action)
 		ui.set_action(action, state, 0, target_mode == action)
@@ -2591,7 +2656,7 @@ func _update_hud() -> void:
 	_update_secondary()
 	var queue: Array = sim.entities[selected_id].queue if sim.entities.has(selected_id) and _selected_kind() in ["command_post", "barracks", "registry"] else []
 	ui.set_queue(queue)
-	var support := "%s · %s\n%s\n%s" % [AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID, _sync_brief(), sync_note]
+	var support := "%s · %s\n%s\n%s" % [AlphaConfig.CHANNEL, AlphaConfig.BUILD_ID, _sync_brief(), tr(sync_note)]
 	ui.diagnostics_label.text = support
 	var attention := false
 	if not outbox.state.is_empty():
@@ -2608,7 +2673,7 @@ func _update_hud() -> void:
 	elif sim.result != "":
 		ui.show_result(sim.result, sim.result_reason)
 		if sim.objective_id == "conquest":
-			ui.result_reason.text = "Conquest • " + ui.result_reason.text
+			ui.result_reason.text = tr("Conquest • %s") % tr(ui.result_reason.text)
 		elif sim.objective_id == "wonder":
 			var wonder_result := "Project defended for 90 seconds." if sim.result == "win" else "Enemy project held for 90 seconds."
 			if sim.result_reason == "command_post":
@@ -2617,8 +2682,8 @@ func _update_hud() -> void:
 				wonder_result = "Both projects finished together."
 			elif sim.result_reason != "wonder":
 				wonder_result = ui.result_reason.text
-			ui.result_reason.text = "Wonder • " + wonder_result
-		ui.show_notice("%s • %s" % [sim.result.to_upper(), sim.result_reason.replace("_", " ")], true)
+			ui.result_reason.text = tr("Wonder • %s") % tr(wonder_result)
+		ui.show_notice(tr("%s • %s") % [GameText.name(sim.result).to_upper(), sim.result_reason.replace("_", " ")], true)
 	else:
 		ui.show_result("", "")
 		if order_flash_seconds > 0 and not order_flash_text.is_empty():
@@ -2644,7 +2709,7 @@ func _update_secondary() -> void:
 	var cards: Array[Dictionary] = []
 	var title := "TACTICAL VIEW"
 	if selected_ids.size() > 1:
-		title = "GROUP • %d" % selected_ids.size()
+		title = tr("GROUP • %d") % selected_ids.size()
 	elif kind == "worker":
 		title = "CONSTRUCTION"
 		var state := _command_state("build")
@@ -2654,11 +2719,11 @@ func _update_secondary() -> void:
 		for role: String in (["worker"] if kind == "command_post" else ["melee", "ranged", "armored", "siege"]):
 			var action: String = "train_" + role
 			var state := _command_state(action)
-			cards.append({"texture": art.texture("unit_%s_blue" % role) if art.records.has("unit_%s_blue" % role) else art.texture("unit_melee_blue"), "label": "%s\n%s" % [role.to_upper(), _cost_text(sim._costs(Skirmish.HUMAN, role))],
-				"enabled": state.enabled, "reason": state.reason, "tooltip": "%s • %s\n%s" % [role.capitalize(), _cost_text(sim._costs(Skirmish.HUMAN, role)), state.reason if not state.reason.is_empty() else "Recruit here"], "action": action})
+			cards.append({"texture": art.texture("unit_%s_blue" % role) if art.records.has("unit_%s_blue" % role) else art.texture("unit_melee_blue"), "label": "%s\n%s" % [GameText.name(role).to_upper(), _cost_text(sim._costs(Skirmish.HUMAN, role))],
+				"enabled": state.enabled, "reason": state.reason, "tooltip": tr("%s • %s\n%s") % [GameText.name(role), _cost_text(sim._costs(Skirmish.HUMAN, role)), tr(state.reason) if not state.reason.is_empty() else tr("Recruit here")], "action": action})
 		if kind == "command_post" and not _next_age_id().is_empty():
 			var age_state := _command_state("advance")
-			cards.append({"label": "AGE\nUP", "enabled": age_state.enabled, "reason": age_state.reason, "tooltip": "%s • %s" % [age_state.label, _cost_text(sim.content.ages.transitions[_next_age_id()].costs)], "action": "advance"})
+			cards.append({"label": "AGE\nUP", "enabled": age_state.enabled, "reason": age_state.reason, "tooltip": tr("%s • %s") % [age_state.label, _cost_text(sim.content.ages.transitions[_next_age_id()].costs)], "action": "advance"})
 	elif kind == "registry":
 		title = "RESEARCH"
 		var research_state := _command_state("research")
@@ -2670,7 +2735,7 @@ func _update_secondary() -> void:
 		cards.append({"label": "HOLD", "enabled": true, "tooltip": "Stay and defend this position", "action": "hold"})
 		cards.append({"label": "STOP", "enabled": true, "tooltip": "Cancel current order", "action": "stop"})
 	else:
-		title = MAP_NAMES[sim.map_id].to_upper()
+		title = tr(MAP_NAMES[sim.map_id]).to_upper()
 	ui.set_secondary(title, cards)
 	if kind == "worker":
 		ui.secondary_details.text = "EXPAND\nBuild, assist or repair"
@@ -2681,7 +2746,7 @@ func _update_secondary() -> void:
 	elif kind == "registry":
 		ui.secondary_details.text = "RESEARCH\nInspect costs and prerequisites"
 	elif kind in Skirmish.COMBAT_KINDS:
-		ui.secondary_details.text = "COMBAT • armor %d\n%s" % [int(sim.content.units[kind].armor), "Siege targets structures" if kind == "siege" else "Armor absorbs damage" if kind == "armored" else "Choose an enemy target"]
+		ui.secondary_details.text = tr("COMBAT • armor %d\n%s") % [int(sim.content.units[kind].armor), tr("Siege targets structures") if kind == "siege" else tr("Armor absorbs damage") if kind == "armored" else tr("Choose an enemy target")]
 	else:
 		ui.secondary_details.text = ""
 
@@ -2703,28 +2768,28 @@ func _sync_brief() -> String:
 				else:
 					synced += 1
 			"needs_attention": attention += 1
-	return "%d pending · %d synced · %d excluded · %d need attention." % [pending, synced, excluded, attention]
+	return tr("%d pending · %d synced · %d excluded · %d need attention.") % [pending, synced, excluded, attention]
 
 func _district_note() -> String:
 	if sim.objective_id == "conquest":
 		return "Conquest — destroy enemy command post"
 	if sim.objective_id == "wonder":
-		return "You: %s\nAI: %s" % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER)]
+		return tr("You: %s\nAI: %s") % [_wonder_status(Skirmish.HUMAN), _wonder_status(Skirmish.COMPUTER)]
 	match sim.district_state:
-		"human_hold": return "Your hold %d / %d seconds" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
-		"computer_hold": return "Enemy hold %d / %d seconds — contest it" % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
+		"human_hold": return tr("Your hold %d / %d seconds") % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
+		"computer_hold": return tr("Enemy hold %d / %d seconds — contest it") % [int(sim.district_progress / 10), int(sim.content.objectives.district_hold_ticks / 10)]
 		"contested": return "Contested — hold reset"
 		"reset": return "Empty — hold reset"
-		"terminal": return "Complete: %s (%s)." % [sim.result, sim.result_reason.replace("_", " ")]
+		"terminal": return tr("Complete: %s (%s).") % [GameText.name(sim.result), sim.result_reason.replace("_", " ")]
 	return "Neutral — bring a fighter to center"
 
 func _wonder_status(side: int) -> String:
 	var id := sim._find(side, "wonder")
 	if id == -1:
-		return "none" if side == Skirmish.HUMAN else "not holding"
+		return tr("none") if side == Skirmish.HUMAN else tr("not holding")
 	if not sim.entities[id].complete:
-		return "building %d%%" % int(100.0 * float(sim.entities[id].progress) / float(sim.content.buildings.wonder.build_ticks)) if side == Skirmish.HUMAN else "not holding"
-	return "built · %ds left" % ceili(float(maxi(0, int(sim.content.objectives.wonder_hold_ticks) - sim.wonder_progress[side])) / 10.0)
+		return tr("building %d%%") % int(100.0 * float(sim.entities[id].progress) / float(sim.content.buildings.wonder.build_ticks)) if side == Skirmish.HUMAN else tr("not holding")
+	return tr("built · %ds left") % ceili(float(maxi(0, int(sim.content.objectives.wonder_hold_ticks) - sim.wonder_progress[side])) / 10.0)
 
 func _send_next() -> void:
 	if AlphaConfig.CHANNEL == "public":
@@ -2737,7 +2802,7 @@ func _send_next() -> void:
 		return
 	var event: Dictionary = outbox.first_pending()
 	if event.is_empty():
-		sync_note = "" if outbox.summary().contains("need attention") else "Nothing pending."
+		sync_note = "" if outbox.attention_count() > 0 else "Nothing pending."
 		_update_hud()
 		return
 	syncing = true
@@ -2777,7 +2842,7 @@ func _on_request_completed(result_code: int, response_code: int, _headers: Packe
 			_check_campaign_flag()
 		_send_next()
 	else:
-		sync_note = "Needs attention: %s. Local copy retained." % receipt.get("reason", "rejected")
+		sync_note = tr("Needs attention: %s. Local copy retained.") % receipt.get("reason", "rejected")
 		_send_next()
 	_update_hud()
 
@@ -3165,7 +3230,7 @@ func _draw() -> void:
 		var landmark_tint := Color.WHITE if sim.is_visible(Skirmish.HUMAN, center_tile) else Color(0.45, 0.5, 0.55, 0.75)
 		draw_texture(art.texture(medallion_id), _tile_to_screen(center_tile) - art.pivot(medallion_id), landmark_tint)
 	if sim.map_id in ["narvarte", "copilco"]:
-		draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), MAP_NAMES[sim.map_id].to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
+		draw_string(ThemeDB.fallback_font, _tile_to_screen(Vector2i(10, 9)) + Vector2(-58, -30), tr(MAP_NAMES[sim.map_id]).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 116, 15, Color.WHITE)
 	for side in sim._sides():
 		for site in _source_sites(side):
 			var resource_id: String = site.id
@@ -3222,11 +3287,11 @@ func _draw() -> void:
 		if e.kind == "wonder":
 			var crest := ground + Vector2(0, -67)
 			draw_arc(crest, 19, 0, TAU, 24, Color("f7cf67"), 3.0)
-			draw_string(ThemeDB.fallback_font, crest + Vector2(-11, 7), "W", HORIZONTAL_ALIGNMENT_CENTER, 22, 22, Color("fff2ae"))
+			draw_string(ThemeDB.fallback_font, crest + Vector2(-11, 7), GameText.name("wonder").substr(0, 1), HORIZONTAL_ALIGNMENT_CENTER, 22, 22, Color("fff2ae"))
 		if is_building and (selected or id == hovered_entity_id) and e.kind not in ["command_post", "barracks"]:
 			var label_origin := ground + (Vector2(-35, 3) if sim.map_id == "la_roma" else Vector2(-35, -54))
 			draw_rect(Rect2(label_origin, Vector2(70, 16)), Color("1b2430"))
-			draw_string(ThemeDB.fallback_font, label_origin + Vector2(2, 12), e.kind.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 11, Color.WHITE)
+			draw_string(ThemeDB.fallback_font, label_origin + Vector2(2, 12), GameText.name(str(e.kind)).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, 66, 11, Color.WHITE)
 		if not is_building and unit_facing.get(id, 1) < 0:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
 		if e.kind in ["armored", "siege"] and (selected or id == hovered_entity_id):
@@ -3234,7 +3299,7 @@ func _draw() -> void:
 			var badge := Rect2(ground + Vector2(-10, -46), Vector2(20, 16))
 			draw_rect(badge, Color("1b2430"))
 			draw_rect(badge, badge_color, false, 2.0)
-			draw_string(ThemeDB.fallback_font, badge.position + Vector2(5, 12), "A" if e.kind == "armored" else "S", HORIZONTAL_ALIGNMENT_CENTER, 10, 12, Color.WHITE)
+			draw_string(ThemeDB.fallback_font, badge.position + Vector2(5, 12), GameText.name(str(e.kind)).substr(0, 1), HORIZONTAL_ALIGNMENT_CENTER, 10, 12, Color.WHITE)
 		if is_building and not e.complete:
 			draw_rect(Rect2(ground + Vector2(-47, -27), Vector2(94, 26)), Color(0.63, 0.46, 0.28, 0.35))
 			draw_rect(Rect2(ground + Vector2(-22, -33), Vector2(44, 4)), Color("3b3029"))
@@ -3283,7 +3348,7 @@ func _draw() -> void:
 		var flash_center := _tile_to_screen(order_flash_tile)
 		var flash_color := Color("f0cb84") if order_flash_pending else Color("82e7d0") if order_flash_ok else Color("ff8b7e")
 		draw_arc(flash_center, 22, 0, TAU, 32, flash_color, 3.0)
-		draw_string(ThemeDB.fallback_font, flash_center + Vector2(-100, -26), order_flash_text,
+		draw_string(ThemeDB.fallback_font, flash_center + Vector2(-100, -26), tr(order_flash_text),
 			HORIZONTAL_ALIGNMENT_CENTER, 200, 18, flash_color)
 	if drag_active and drag_start.distance_to(drag_current) > 12:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

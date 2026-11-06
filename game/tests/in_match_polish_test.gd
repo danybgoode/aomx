@@ -45,7 +45,7 @@ func _run() -> void:
 	client.selected_id = -1
 	client.selected_ids.clear()
 	client._update_hud()
-	check(client.hud_ui.selection_title.text == "COMIDA SOURCE" and client.hud_ui.selection_details.text.contains("remaining"),
+	check(client.hud_ui.selection_title.text == "FOOD SOURCE" and client.hud_ui.selection_details.text.contains("remaining"),
 		"selected resource shows type and remaining stock")
 	source.amount = 0
 	source.refreshes_left = 0

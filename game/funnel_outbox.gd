@@ -135,6 +135,11 @@ func apply_receipt(receipt: Dictionary) -> bool:
 			return false
 	return false
 
+func attention_count() -> int:
+	if state.is_empty():
+		return 0
+	return state.events.filter(func(item: Dictionary) -> bool: return item.status == "needs_attention").size()
+
 func summary() -> String:
 	if state.is_empty():
 		return "Could not save local play data. Check device storage."
@@ -151,11 +156,11 @@ func summary() -> String:
 				if attention_reason.is_empty():
 					attention_reason = item.receipt.get("reason", "sync error")
 	if attention > 0:
-		var action := "Correct your device clock, then restart the app" if attention_reason in ["clock_ahead", "clock_reversal"] else "Check the local audit or contact support"
-		return "%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync." % [attention, attention_reason, action, pending]
+		var action := tr("Correct your device clock, then restart the app") if attention_reason in ["clock_ahead", "clock_reversal"] else tr("Check the local audit or contact support")
+		return tr("%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync.") % [attention, attention_reason, action, pending]
 	if pending > 0:
-		return "%d event(s) saved on this device. Pending sync." % pending
-	return "%d event(s) synced. %s" % [accepted, "Test play is not counted." if test_account else "Accepted play will appear after cohort review."]
+		return tr("%d event(s) saved on this device. Pending sync.") % pending
+	return tr("%d event(s) synced. %s") % [accepted, tr("Test play is not counted.") if test_account else tr("Accepted play will appear after cohort review.")]
 
 func _save(next: Dictionary) -> bool:
 	var absolute := ProjectSettings.globalize_path(filename)

@@ -18,7 +18,14 @@ const run = (command, args, options = {}) => {
   if (result.status !== 0) throw new Error(`${command} exited ${result.status ?? result.error?.message}`);
 };
 const sha = spawnSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
-const buildId = `public-${sha}`;
+// The build ID names a commit, so the exported files must be exactly that commit. Untracked
+// files count too: everything under game/ is copied into the export. Godot regenerates .uid
+// files on import and many are not tracked here, so they are not treated as changes.
+const dirty = spawnSync('git', ['status', '--porcelain', '--', 'game', 'src', ':(exclude)game/tests', ':(exclude,glob)**/*.uid'], { cwd: root, encoding: 'utf8' }).stdout.trim();
+if (dirty && process.env.AOMX_ALLOW_DIRTY !== '1') {
+  throw new Error(`Refusing to export ${sha} with uncommitted game or source changes:\n${dirty}\nCommit them, or set AOMX_ALLOW_DIRTY=1 for a throwaway local build.`);
+}
+const buildId = `public-${sha}${dirty ? '-dirty' : ''}`;
 const work = fs.mkdtempSync(path.join(os.tmpdir(), 'aomx-public-'));
 const game = path.join(work, 'game');
 const output = path.join(root, 'dist', 'public');
@@ -51,6 +58,10 @@ func verify() -> void:
   assert(scene.setup_map.get_item_count() == 5, "Public setup must include all five solo maps")
   assert(not scene.setup_mode.is_item_disabled(2), "Public team skirmish must be available")
   assert(scene.setup_online_button.visible, "Public room join must be visible")
+  TranslationServer.set_locale("es")
+  assert(scene.tr("Worker") == "Obrero", "Spanish translation must load")
+  TranslationServer.set_locale("en")
+  assert(scene.tr("PARTIDA RÁPIDA") == "QUICK MATCH", "English translation must load")
   var has_multiplayer := false
   for button in scene.setup_navigation.get_children():
     if button.text == "MULTIJUGADOR":
@@ -75,6 +86,16 @@ func verify() -> void:
   run(godot, ['--headless', '--path', game, '--export-release', 'Web', path.join(web, 'index.html')]);
   const webZip = path.join(output, `battle-for-la-roma-${buildId}-web.zip`);
   run('zip', ['-X', '-q', '-r', webZip, '.'], { cwd: web });
+  // Both packages must carry the translation catalogs, not just the source checkout.
+  const packHas = (zip, pattern, text) => {
+    const pack = spawnSync('unzip', ['-p', zip, pattern], { maxBuffer: 1 << 30 });
+    if (pack.status !== 0 || !pack.stdout.includes(Buffer.from(text))) throw new Error(`${path.basename(zip)} is missing the "${text}" translation`);
+  };
+  for (const zip of [macZip, webZip]) {
+    const pattern = zip === macZip ? '*.app/Contents/Resources/*.pck' : 'index.pck';
+    packHas(zip, pattern, 'Obrero');
+    packHas(zip, pattern, 'QUICK MATCH');
+  }
   const manifest = {
     build_id: buildId,
     commit: sha,
@@ -82,6 +103,9 @@ func verify() -> void:
     game_version: gameVersion,
     content_version: currentContentVersion,
     scope: 'five solo maps, campaign, Wonder, solo 2v2, player-created private online rooms',
+    locales: ['es', 'en'],
+    simulation_hash: SkirmishVersions.simulationHash,
+    source_clean: !dirty,
     match_endpoint: matchEndpoint,
     macos: { file: path.basename(macZip), sha256: createHash('sha256').update(fs.readFileSync(macZip)).digest('hex') },
     web: { file: path.basename(webZip), sha256: createHash('sha256').update(fs.readFileSync(webZip)).digest('hex') },
