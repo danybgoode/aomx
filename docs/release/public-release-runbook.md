@@ -7,6 +7,8 @@ This is how a merged change reaches players on the [public itch.io page](https:/
 | Web (HTML5) | `danybgoode/battle-for-la-roma-play:html5-public` | `battle-for-la-roma-public-<sha>-web.zip` |
 | macOS | `danybgoode/battle-for-la-roma-play:mac-public` | `battle-for-la-roma-public-<sha>-macos.zip` (ad-hoc signed) |
 
+**Public match origin:** `https://alpha-api.159.54.158.4.sslip.io`, which is the value of `AOMX_PUBLIC_MATCH_URL`. The host allows the Web origin `https://html-classic.itch.zone`. On Apple Silicon, install butler from the `darwin-arm64` channel (`https://broth.itch.zone/butler/darwin-arm64/LATEST/archive/default`); the `darwin-amd64` build needs Rosetta.
+
 ## 1 · Before exporting
 
 1. The change is merged to `master` through a PR, and **Project checks** (`verify`) and **CodeQL** passed on the merge commit.
@@ -65,7 +67,6 @@ Keep the previous release's ZIPs in `dist/public/`. Push them back to both chann
 
 ## Known gaps (2026-11-05 review)
 
-- **The public match origin is not recorded in the repo.** The value every export needs lives only in operator environments and in the built Web package. Record it here once confirmed.
 - **macOS builds are ad-hoc signed and not notarized** (`codesign/codesign=1`, `notarization=0`). Players who download the ZIP in a browser get Gatekeeper's "cannot verify the developer" prompt and must right-click → Open. The itch app does not quarantine downloads. Fixing this needs an Apple Developer ID and notarization in the export.
 - **The macOS bundle version never changes** (`0.1.0`, build `1`), so Finder and crash reports can't tell releases apart. Set it from the build ID at export.
 - **Steps 3 and 5 are manual.** A script that fetches both channels, compares hashes and runs the codesign and start checks would make every release verifiable the same way.
