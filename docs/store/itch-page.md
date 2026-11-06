@@ -42,3 +42,7 @@ Page: <https://danybgoode.itch.io/battle-for-la-roma-play>. butler only uploads 
 ## Measuring it
 
 itch analytics (views → plays → comments) is the only signal, since public builds send no play events. Compare the week after the change with the week before, and read every comment, tagging it *onboarding*, *bug*, *balance* or *copy*.
+
+## Applied 2026-11-06
+
+Applied in the dashboard: title, short description, the bilingual description (without the four inline art strips), ten tags (real-time-strategy, base-building, isometric, pixel-art, mexico, satire, multiplayer, spanish, cdmx, drm-free; "strategy" was dropped because it duplicates the genre), the new cover, and the five new screenshots. Owner to-do: delete the three old screenshots, upload `banner-960.png` under Edit theme → Banner, and optionally insert the four art strips through the editor's image button at the `Cómo se juega`, factions, units and landmarks paragraphs.
