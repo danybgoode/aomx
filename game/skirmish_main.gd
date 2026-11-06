@@ -35,6 +35,7 @@ const MAP_NAMES := {"la_roma": "La Roma Small", "narvarte": "Narvarte Small", "c
 
 var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
+var faction_portraits: Dictionary = {}
 var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_background: TextureRect
@@ -2459,8 +2460,7 @@ func _update_hud() -> void:
 	var seconds := floori(float(sim.tick_number) / 10.0)
 	ui.timer_label.text = "%02d:%02d" % [seconds / 60, seconds % 60]
 	ui.faction_label.text = "YOU · " + FACTION_NAMES[sim.factions[Skirmish.HUMAN]].to_upper()
-	ui.faction_icon.texture = art.texture("unit_worker_blue")
-	ui.faction_icon.modulate = {"regios": Color("91c5ec"), "poblanos": Color("f4bb90"), "oaxaquenos": Color("d5a8e9"), "veracruzanos": Color("92d7b0")}.get(sim.factions[Skirmish.HUMAN], Color.WHITE)
+	ui.faction_icon.texture = _faction_portrait(sim.factions[Skirmish.HUMAN])
 	ui.age_icon.texture = art.texture(["building_command_post_blue", "building_barracks_blue", "building_cdmx_registry", "building_cdmx_roma_command_post"][sim.age_index[Skirmish.HUMAN]])
 	ui.faction_label.tooltip_text = "%s · %s" % [FACTION_NAMES[sim.factions[Skirmish.HUMAN]], MAP_NAMES[sim.map_id]]
 	ui.minimap.tooltip_text = "%s map • click to center view" % MAP_NAMES[sim.map_id]
@@ -2473,7 +2473,6 @@ func _update_hud() -> void:
 	ui.set_economy(stockpiles, _age_display(_age_id()), sim._population_used(Skirmish.HUMAN), sim._population_cap(Skirmish.HUMAN), source_notes)
 	ui.set_objective_caption(not campaign_mode and sim.objective_id == "wonder")
 	ui.objective_title.text = _district_note()
-	if not campaign_mode and sim.objective_id == "wonder":
 	if campaign_mode:
 		var mission := CampaignMissions.find_mission(sim.mission_id)
 		if mission.ok:
@@ -2538,16 +2537,17 @@ func _update_hud() -> void:
 		if not chosen_site.is_empty():
 			var source: Dictionary = chosen_site.source
 			var resource_id: String = chosen_site.id
+			var is_field := bool(chosen_site.get("field", false))
 			var amount := int(source.get("amount", 0))
 			var refreshes := int(source.get("refreshes_left", 0))
 			var max_amount := int(sim.content.resources[resource_id].amount)
-			var state := "Full" if amount >= max_amount / 2 else "Half" if amount > 0 else "Refreshing" if refreshes > 0 else "Depleted"
+			var state := "Full" if amount >= max_amount / 2 else "Half" if amount > 0 else "Refreshing" if refreshes > 0 and not is_field else "Depleted"
 			var refresh_ticks := int(source.get("refresh_remaining", 0))
 			if refresh_ticks <= 0:
 				refresh_ticks = int(sim.content.resources[resource_id].refresh_ticks)
-			var next_refresh := " • next refresh in %ds" % ceili(float(refresh_ticks) / 10.0) if amount == 0 and refreshes > 0 else ""
-			ui.set_selection(art.texture("prop_cdmx_resource_" + resource_id), "%s SOURCE" % resource_id.to_upper(), "Resource site", 0, 0,
-				"%s • %d remaining%s" % [state, amount, next_refresh], "%d refreshes left • finite site" % refreshes)
+			var next_refresh := " • next refresh in %ds" % ceili(float(refresh_ticks) / 10.0) if amount == 0 and refreshes > 0 and not is_field else ""
+			ui.set_selection(art.texture("prop_cdmx_food_field" if is_field else "prop_cdmx_resource_" + resource_id), "%s SOURCE" % resource_id.to_upper(), "Food field" if is_field else "Resource site", 0, 0,
+				"%s • %d remaining%s" % [state, amount, next_refresh], "Replant to renew this field" if is_field else "%d refreshes left • finite site" % refreshes)
 		else:
 			selected_source_tile = Vector2i(-1, -1)
 	if selected_id == -1 and selected_source_tile.x < 0:
@@ -2944,6 +2944,14 @@ func _actor_texture(entity: Dictionary) -> Texture2D:
 		return art.texture(id)
 	return art.texture("building_barracks_" + _faction_color(entity.side))
 
+func _faction_portrait(faction: String) -> Texture2D:
+	if not faction_portraits.has(faction):
+		var portrait := AtlasTexture.new()
+		portrait.atlas = load("res://assets/ui/faction-%s.webp" % faction)
+		portrait.region = Rect2(15, 0, 155, 145)
+		faction_portraits[faction] = portrait
+	return faction_portraits[faction]
+
 func _pick_visual_entity(screen: Vector2, side: int) -> int:
 	var board := _screen_to_board(screen)
 	var ids := _sorted_entity_ids()
@@ -3180,10 +3188,12 @@ func _draw() -> void:
 				_draw_sprite_outline(art_id, art_rect, Color("ffe391"))
 			draw_texture(art.texture(art_id), art_rect.position, Color.WHITE if visible and state == 2 else resource_tint.darkened(0.2) if visible and state == 1 else Color(0.43, 0.47, 0.5, 0.8) if visible else Color(0.3, 0.35, 0.4, 0.65))
 			if visible:
-				var badge := ground + Vector2(14, -26)
-				draw_circle(badge, 8, Color("17212a"))
-				draw_circle(badge, 6, resource_tint if state > 0 else Color("78818a"))
-				draw_string(ThemeDB.fallback_font, badge + Vector2(-4, 4), "F" if state == 2 else "H" if state == 1 else "0", HORIZONTAL_ALIGNMENT_CENTER, 8, 11, Color("17212a"))
+				var gauge := Rect2(ground + Vector2(-14, -35), Vector2(28, 5))
+				draw_rect(gauge, Color("17212a"))
+				if amount > 0:
+					draw_rect(Rect2(gauge.position, Vector2(gauge.size.x * clampf(float(amount) / maxi(1, capacity), 0, 1), gauge.size.y)), resource_tint)
+				else:
+					draw_line(gauge.position, gauge.end, Color("a3a9ae"), 1.5)
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]

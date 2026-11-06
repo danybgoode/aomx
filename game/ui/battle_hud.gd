@@ -222,7 +222,7 @@ func _build() -> void:
 	top_row.add_child(faction_badge)
 	faction_icon = TextureRect.new()
 	faction_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	faction_icon.custom_minimum_size = Vector2(38, 32)
+	faction_icon.custom_minimum_size = Vector2(50, 37)
 	faction_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	faction_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	faction_badge.add_child(faction_icon)
@@ -243,8 +243,7 @@ func _build() -> void:
 		resource_row.add_child(badge)
 		var icon := TextureRect.new()
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.texture = load("res://assets/render/cdmx/prop_cdmx_resource_%s.png" % id)
-		icon.modulate = RESOURCE_TINTS[id]
+		icon.texture = load("res://assets/ui/res-%s.webp" % id)
 		icon.custom_minimum_size = Vector2(28, 28)
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST

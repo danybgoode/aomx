@@ -25,8 +25,9 @@ func _run() -> void:
 	client._choose_faction(Skirmish.REGIOS)
 	check(client.choosing_faction and client.match_id.is_empty(), "locked mission cannot start")
 	client._choose_mission(0)
+	client._choose_map(4)
 	client._choose_faction(Skirmish.REGIOS)
-	check(client.sim.mission_id == "arrival_copilco" and not client.choosing_faction, "available mission starts on its map")
+	check(client.sim.mission_id == "arrival_copilco" and client.sim.map_id == "la_roma_large" and not client.choosing_faction, "available mission starts on the player's chosen size")
 	check(client.outbox.state.events.size() == 1, "tutorial does not enter match funnel")
 	client.sim.mission_steps = ["gather", "build", "recruit"]
 	client.sim.mission_result = "win"
@@ -46,7 +47,9 @@ func _run() -> void:
 	client._refresh_campaign_setup()
 	client._choose_mission(2)
 	check(client.selected_map == "la_roma_large" and "available" in client.setup_mission.get_item_text(2), "finale uses the large map")
+	client._choose_map(0)
 	client._choose_faction(Skirmish.REGIOS)
+	check(client.sim.map_id == "la_roma", "finale can start on a small map")
 	check(client.outbox.state.events[2].event.type == "match_started" and client.outbox.state.events[2].event.mode == "campaign", "finale queues an eligible candidate start")
 	var enemy_post: int = client.sim._find(Skirmish.COMPUTER, "command_post")
 	client.sim.entities[enemy_post].hp = 0

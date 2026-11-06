@@ -114,3 +114,7 @@ Acceptance checks: render the native setup at 1280×800 and 390×844; confirm re
 ## Owner home-screen follow-up · 2026-11-04
 
 The owner made the entry screen a priority and supplied `references/homescreenart/homescreen.jpg`. The new [local review](../../../docs/interface-review/home-screen-followup.md) records the live logo/tagline/navigation layout, desktop and narrow captures, and focused client checks. The player outcome is a clear route from opening the game to a new solo match, available campaign, controls and settings. This is builder evidence only; the signed downloaded owner acceptance gate above remains open.
+
+## Owner in-match follow-up · 2026-11-05
+
+The owner supplied `regios-worker-build.png` and requested 100% layout, HUD, resource, fog and worker-order polish for both public builds. The [builder review](../../../docs/interface-review/in-match-polish-2026-11-05.md) records the home-screen reference comparison, implemented behavior and local checks. This is builder evidence; the owner and uncoached readability acceptance in the Definition of Done remains open.
