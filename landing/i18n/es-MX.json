@@ -1,0 +1,378 @@
+{
+  "meta": {
+    "lang": "es-MX",
+    "path": "",
+    "url": "https://battle-for-la-roma.pages.dev/",
+    "ogLocale": "es_MX",
+    "title": "Battle for La Roma — Un RTS por la Ciudad de México",
+    "description": "RTS clásico y gratuito en una CDMX de ficción. Junta recursos, levanta tu base, avanza cuatro edades y quédate con La Roma. Navegador y macOS.",
+    "ogAlt": "Batalla por la Glorieta de Cibeles en Battle for La Roma",
+    "skip": "Saltar al contenido",
+    "currentShort": "ES",
+    "otherShort": "EN",
+    "otherLang": "en",
+    "otherLabel": "English",
+    "otherUrl": "/en/",
+    "switchAria": "Read this page in English"
+  },
+  "links": {
+    "web": "https://danybgoode.itch.io/battle-for-la-roma-play",
+    "mac": "https://danybgoode.itch.io/battle-for-la-roma-play#download"
+  },
+  "suggest": {
+    "text": "This page is also available in English.",
+    "action": "Read in English",
+    "dismiss": "Seguir en español"
+  },
+  "nav": {
+    "label": "Principal",
+    "items": [
+      {
+        "href": "#jugar",
+        "label": "Cómo se juega"
+      },
+      {
+        "href": "#edades",
+        "label": "Edades"
+      },
+      {
+        "href": "#bandos",
+        "label": "Bandos"
+      },
+      {
+        "href": "#modos",
+        "label": "Modos"
+      },
+      {
+        "href": "#ciudad",
+        "label": "La ciudad"
+      },
+      {
+        "href": "#preguntas",
+        "label": "Preguntas"
+      }
+    ],
+    "cta": "Jugar gratis",
+    "menu": "Menú",
+    "close": "Cerrar menú"
+  },
+  "hero": {
+    "kicker": "Alerta vecinal · Roma Norte",
+    "title": "Del cuarto de azotea <span>al rooftop</span> con reservación.",
+    "lede": "Un RTS clásico en una Ciudad de México de ficción. Junta recursos, levanta tu base, recluta a tu banda y avanza cuatro edades hasta quedarte con La Roma. <strong>La renta sube sola. Tú vas a tener que ganártela.</strong>",
+    "ctaWeb": "Jugar gratis en el navegador",
+    "ctaMac": "Descargar para macOS",
+    "facts": "Gratis · Navegador y macOS · Campaña, escaramuzas y salas privadas en línea",
+    "artAlt": "Arte conceptual: los cuatro bandos se pelean la Glorieta de Cibeles en Roma Norte"
+  },
+  "ticker": {
+    "aria": "Noticias de la colonia",
+    "pause": "Pausar noticias",
+    "play": "Reanudar noticias",
+    "items": [
+      "Última hora: mirrey pide valet para su tanque",
+      "La asamblea de CU entra a su día 47",
+      "Café de especialidad ya cobra por olerlo",
+      "Godín pide home office en plena batalla",
+      "Insurgentes reporta tráfico normal (o sea, horrible)"
+    ]
+  },
+  "play": {
+    "eyebrow": "01 · Manual de supervivencia",
+    "title": "Esto no es un <span>brunch.</span><br>Es un RTS.",
+    "intro": "Construye, junta recursos, recluta y conquista en tiempo real, como en los clásicos con los que creciste. Nomás que aquí el mapa tiene baches y una glorieta vale más que tu depa.",
+    "features": [
+      {
+        "tag": "Construye",
+        "title": "De lote baldío a imperio",
+        "body": "Levanta tu puesto de mando, vivienda y cuarteles. Expándete antes de que llegue alguien con un render de usos mixtos y una lona de «Próximamente»."
+      },
+      {
+        "tag": "Recolecta",
+        "title": "El dinero no crece en jacarandas",
+        "body": "Comida, Materiales, Varos y Terrenos. Pon a chambear a tu gente y cuida los viajes: cada vuelta cuenta, como en el Metrobús a la hora pico."
+      },
+      {
+        "tag": "Conquista",
+        "title": "El que controla el centro, manda",
+        "body": "Entrena tropas, explora el mapa y gana tumbando el puesto de mando rival o aguantando en el centro hasta que se acabe el reloj. El enemigo no se va a desalojar solo."
+      }
+    ],
+    "shotAlt": "Captura de partida: dos ejércitos chocan junto al centro del mapa de La Roma",
+    "shotCaption": "Captura real · Mapa de La Roma",
+    "resourcesTitle": "Los cuatro recursos",
+    "resources": [
+      {
+        "img": "res-comida",
+        "name": "Comida",
+        "body": "Tacos, mercados y huertos urbanos. Nadie conquista nada con hambre."
+      },
+      {
+        "img": "res-materiales",
+        "name": "Materiales",
+        "body": "Ladrillo, varilla y lo que sobró de la obra de enfrente."
+      },
+      {
+        "img": "res-varos",
+        "name": "Varos",
+        "body": "La lana. Sin varos no hay tropas, y sin tropas no hay colonia."
+      },
+      {
+        "img": "res-terrenos",
+        "name": "Terrenos",
+        "body": "El recurso más disputado de la ciudad. Pregúntale a cualquier casero."
+      }
+    ]
+  },
+  "ages": {
+    "eyebrow": "02 · Ascenso social no solicitado",
+    "title": "Cuatro edades.<br><span>Un solo código postal</span><br>que no te alcanza.",
+    "intro": "Aquí no se avanza de la Edad de Piedra a la de Bronce: se avanza de foráneo con maletas a gente que dice «terroir» sin ironía. Cada edad desbloquea edificios, tecnologías y tropas nuevas. <strong>El personaje no cambió. Su colonia sí.</strong>",
+    "from": "Dos maletas",
+    "to": "Menú degustación",
+    "track": "Las cuatro edades del juego",
+    "cards": [
+      {
+        "img": "age-foranea",
+        "title": "Edad<br>Foránea",
+        "stamp": "$1,800/mes*",
+        "quote": "«Está chiquito, pero tiene mucha luz natural».",
+        "who": "El casero, sobre un cuarto de azotea en la Doctores.",
+        "body": "Dos maletas, una bocina con más kilómetros que tú y la firme convicción de que el metro queda «cerquita». Llegaste a conquistar la capital. Primero hay que conseguir garrafón.",
+        "alt": "Captura de partida en la primera edad: un puesto de mando y pocos trabajadores",
+        "numeral": "I · El origen"
+      },
+      {
+        "img": "age-universitaria",
+        "title": "Edad<br>Universitaria",
+        "stamp": "CU · 3:47 a. m.",
+        "quote": "«Es plan tranqui, nomás traje tres litros de aguas locas».",
+        "who": "El que nunca trae nada tranqui.",
+        "body": "Ya sabes transbordar en Centro Médico, discutes el futuro del país sentado sobre lava volcánica y entregas el ensayo a las 11:59. La revolución empieza mañana. Hoy hay fiesta.",
+        "alt": "Captura de partida: la base crece con depósito, vivienda y registro",
+        "numeral": "II · El despertar"
+      },
+      {
+        "img": "age-godin",
+        "title": "Edad<br>Godín",
+        "stamp": "Junta 8:00 a. m.",
+        "quote": "«¿Lo alineamos en un quick call?».",
+        "who": "Tu jefe, desde una junta que pudo ser correo.",
+        "body": "Cambiaste la mochila por un gafete y la revolución por vales de despensa. Dominas Excel, los tacos de canasta y el noble arte de verte ocupado en Teams.",
+        "alt": "Captura de partida: tropas toman la Glorieta de Cibeles",
+        "numeral": "III · La caída"
+      },
+      {
+        "img": "age-gentrificacion",
+        "title": "Edad de la<br>Gentrificación",
+        "stamp": "Menú degustación",
+        "quote": "«Es un mezcal de autor con notas de nostalgia».",
+        "who": "Tú. Tú dijiste eso. En voz alta.",
+        "body": "Vistes de lino, preguntas de dónde viene el hielo y tu café tiene biografía. Tu contrato de arrendamiento, cláusulas en inglés. Felicidades: ahora el problema eres tú.",
+        "alt": "Captura de partida: dos ejércitos grandes chocan en el centro de La Roma",
+        "numeral": "IV · El jefe final"
+      }
+    ],
+    "footnote": "*No incluye agua, luz, gas ni dignidad.",
+    "epilogueTitle": "De aguas locas en CU a cocteles de autor en Polanco.",
+    "epilogueBody": "Cuatro edades de progreso. Ninguna incluye recuperar el depósito del cuarto de azotea.",
+    "epilogueCta": "Empieza tu ascenso",
+    "caption": "Las imágenes de las edades son capturas reales del juego."
+  },
+  "factions": {
+    "eyebrow": "03 · Elige con quién te vas a pelear",
+    "title": "Cuatro bandos.<br><span>Cero acuerdos</span><br>de condominio.",
+    "intro": "Todos llegaron con un plan. Ninguno contempló el tráfico de Insurgentes. Cada bando juega distinto: elige uno para ver su estrategia.",
+    "groupLabel": "Elige un bando",
+    "list": [
+      {
+        "id": "regios",
+        "name": "Regios",
+        "short": "Inversión agresiva: cargan más, pagan más.",
+        "quote": "«¿Cómo que aquí no aceptan dólares?»",
+        "detail": "Sus trabajadores cargan más en cada viaje, así que la economía despega rápido. A cambio, cada combatiente cuesta un Varo extra. Aquí el presupuesto manda… y se nota.",
+        "alt": "Retrato conceptual del bando Regios",
+        "unitName": "Mirrey (Tarjetazo)",
+        "unitBody": "Llega en camioneta blindada y resuelve todo con tarjeta corporativa. Élite carísima: su tarjetazo deja al enemigo sin saber qué pasó."
+      },
+      {
+        "id": "poblanos",
+        "name": "Poblanos",
+        "short": "Defensa terca: edificios que no se caen.",
+        "quote": "«El mole no se negocia»",
+        "detail": "Sus edificios aguantan 20 % más. Sus trabajadores cargan menos, así que conviene planear bien los viajes. Lentos, pero de aquí no los mueve nadie.",
+        "alt": "Retrato conceptual del bando Poblanos",
+        "unitName": "Cocinera de Batalla",
+        "unitBody": "Cura a los suyos y sube la producción de Comida. Ningún ejército pelea bien sin desayunar."
+      },
+      {
+        "id": "oaxaquenos",
+        "name": "Oaxaqueños",
+        "short": "Economía veloz: juntan y construyen más rápido.",
+        "quote": "«Tranquilos, esto ya está organizado. Desde hace tres generaciones»",
+        "detail": "Recolectan más rápido y le echan la mano a la construcción. Sus edificios son más ligeros: una economía veloz necesita a alguien que la cuide.",
+        "alt": "Retrato conceptual del bando Oaxaqueños",
+        "unitName": "Catapulta de Alebrije",
+        "unitBody": "Asedio de largo alcance con forma de criatura fantástica. Artesanía pesada, en el sentido más literal."
+      },
+      {
+        "id": "veracruzanos",
+        "name": "Veracruzanos",
+        "short": "Velocidad y comercio: siempre llegan primero.",
+        "quote": "«¡Súbele, que no se oye hasta Cibeles!»",
+        "detail": "Se mueven más rápido y le sacan más al comercio, ideales para abrir rutas. Sus edificios son ligeros, así que no descuides la base mientras andas conquistando calles.",
+        "alt": "Retrato conceptual del bando Veracruzanos",
+        "unitName": "Trajinera de Asalto",
+        "unitBody": "Unidad anfibia para mapas con canales. Llega por el agua, con todo y toldo de colores."
+      }
+    ],
+    "note": "Bandos ficticios con estrategias de juego, no retratos de nadie. Ningún regio salió lastimado en la elaboración de esta página (bueno, quizá uno, pero ya pidió el reembolso).",
+    "unitLabel": "Unidad única · en desarrollo",
+    "unitAltPrefix": "Arte conceptual de la unidad única"
+  },
+  "modes": {
+    "eyebrow": "04 · Lo que ya puedes jugar",
+    "title": "Cinco formas<br>de <span>armarla.</span>",
+    "intro": "Todo esto ya viene en las versiones gratuitas para navegador y macOS. Sin invitación, sin lista de espera, sin cover.",
+    "list": [
+      {
+        "tag": "Escaramuza",
+        "title": "Tú contra la IA",
+        "body": "Cinco mapas y tres niveles de dificultad: desde la IA que apenas va aprendiendo hasta la que te lee la jugada.",
+        "icon": "prop-barrier"
+      },
+      {
+        "tag": "Campaña",
+        "title": "Tres capítulos",
+        "body": "De Copilco a Narvarte y de ahí a la batalla por La Roma. Tu avance se guarda en tu equipo.",
+        "icon": "prop-metro"
+      },
+      {
+        "tag": "Maravilla",
+        "title": "Obra monumental",
+        "body": "Constrúyela en la Edad Godín y defiéndela 90 segundos. Como toda obra en la CDMX, lo difícil es que no te la clausuren.",
+        "icon": "prop-kiosk"
+      },
+      {
+        "tag": "2 contra 2",
+        "title": "Con IA aliada",
+        "body": "Tú y una IA con economía propia contra otras dos. Como un trabajo en equipo, pero aquí tu compa sí hace su parte.",
+        "icon": "prop-couple"
+      },
+      {
+        "tag": "Sala privada",
+        "title": "En línea con un amigo",
+        "body": "Crea una sala, comparte el código y juega contra quien tú quieras. La amistad que sobreviva es la de verdad.",
+        "icon": "prop-phone"
+      }
+    ]
+  },
+  "city": {
+    "eyebrow": "05 · Te damos la bienvenida a la ciudad donde todo queda a 40 minutos",
+    "title": "La CDMX es el<br><span>campo de batalla.</span>",
+    "intro": "Calles, colonias y glorietas que reconoces, o que por lo menos te suenan de algún reel.",
+    "playableTitle": "Jugable hoy",
+    "playable": [
+      {
+        "name": "La Roma · tres tamaños",
+        "body": "La Glorieta de Cibeles, en disputa desde antes de que abriera el primer café de especialidad."
+      },
+      {
+        "name": "Narvarte",
+        "body": "Cuadras parejitas, ejes viales y nadie que sepa dónde estacionarse."
+      },
+      {
+        "name": "Copilco",
+        "body": "A un paso de CU. Aquí empieza la campaña (y el insomnio)."
+      }
+    ],
+    "visionTitle": "Próximamente (o eso dice el render)",
+    "vision": [
+      {
+        "img": "lm-bellas",
+        "name": "Centro Histórico",
+        "body": "Mármol, cúpulas y cuatro siglos de marchas. Aquí hasta las palomas tienen historia."
+      },
+      {
+        "img": "lm-cu",
+        "name": "Ciudad Universitaria",
+        "body": "La investigación nunca termina. El semestre tampoco."
+      },
+      {
+        "img": "lm-chapultepec",
+        "name": "Chapultepec",
+        "body": "Un castillo en un cerro: la ventaja de altura que todo general (y todo influencer) quiere."
+      },
+      {
+        "img": "lm-coyoacan",
+        "name": "Coyoacán",
+        "body": "La revolución será artesanal. Se aceptan trueques y opiniones no solicitadas."
+      },
+      {
+        "img": "lm-xochimilco",
+        "name": "Xochimilco",
+        "body": "Batallas en trajinera. Los mariachis cuentan como refuerzos."
+      },
+      {
+        "img": "lm-santafe",
+        "name": "Santa Fe",
+        "body": "Refuerzos corporativos. Hora estimada de llegada: después de la hora pico."
+      }
+    ],
+    "caption": "Imágenes de la ciudad y los monumentos: arte conceptual. Hoy se juega en La Roma, Narvarte y Copilco.",
+    "battlefieldAlt": "Arte conceptual: el campo de batalla de Roma Norte alrededor de la Glorieta de Cibeles",
+    "battlefieldCaption": "Así planeamos la Roma: avenidas, azoteas, taquerías y Cibeles al centro."
+  },
+  "poster": {
+    "eyebrow": "Comunicado urgente de la asamblea vecinal",
+    "title": "La Roma no se<br><em>conquista sola.</em>",
+    "body": "Es gratis y corre en tu navegador. Ya no hay pretexto: aquí ni el tráfico te detiene.",
+    "top": "Volver arriba"
+  },
+  "faq": {
+    "eyebrow": "06 · Preguntas que haría tu tía en el grupo de la familia",
+    "title": "Antes de que se arme.",
+    "items": [
+      {
+        "q": "¿Es un juego de estrategia de verdad?",
+        "a": "Sí. Economía, construcción, cuatro edades, combate y control de territorio, todo en tiempo real. Si te gustan los RTS clásicos, aquí estás en tu casa (y sin aval)."
+      },
+      {
+        "q": "¿Cuánto cuesta?",
+        "a": "Nada. Es gratis en el navegador y en macOS. Las únicas cuotas son las del mantenimiento del condominio, y esas no son nuestras."
+      },
+      {
+        "q": "¿Necesito ser de la CDMX para entenderle?",
+        "a": "No. Las reglas y los objetivos se entienden solos; las referencias son el pilón. Si no agarras un chiste, igual puedes ganar la partida."
+      },
+      {
+        "q": "¿En qué idioma está?",
+        "a": "Esta página está en español e inglés. El juego, por ahora, tiene la interfaz en inglés con nombres en español. La versión completa en español ya viene en camino."
+      },
+      {
+        "q": "¿Cómo juego en línea con alguien?",
+        "a": "En el menú, crea una sala privada y comparte el código con la persona que quieras retar. Es uno contra uno y no necesitas invitación de nadie."
+      },
+      {
+        "q": "¿Funciona en Windows o en el celular?",
+        "a": "La versión para navegador corre en computadoras con Windows, Linux o Mac, y también hay descarga para macOS. Tiene controles táctiles, pero todavía no garantizamos la experiencia en celular: mejor una pantalla grande."
+      },
+      {
+        "q": "¿Se guarda mi progreso?",
+        "a": "Sí, en tu dispositivo, sin cuentas ni nube. Si borras los datos del navegador, se va tu avance; para llevarte una partida a otro lado, expórtala desde Ajustes."
+      },
+      {
+        "q": "¿La Glorieta de Cibeles sí sale?",
+        "a": "Sí: es el corazón del mapa de La Roma y el punto que todos quieren controlar. Ya sabías que la bronca iba a ser ahí."
+      }
+    ],
+    "tiaAlt": "Una vecina con su bolsa del mandado, lista para preguntar"
+  },
+  "footer": {
+    "tagline": "Hecho con amor a la CDMX y una sospecha razonable hacia los cafés que describen el agua.",
+    "play": "Jugar en itch.io",
+    "mac": "Descargar para macOS",
+    "disclaimer": "Proyecto independiente de ficción y sátira. Los barrios, instituciones y culturas que aparecen inspiran un mundo imaginario; las bromas van contra situaciones y costumbres, nunca contra la dignidad de nadie. La portada, los bandos, las unidades únicas, la ciudad y los monumentos son arte conceptual; las edades y la sección de juego muestran capturas reales.",
+    "font": "Tipografía Anton, bajo licencia SIL Open Font License."
+  }
+}
