@@ -39,5 +39,5 @@ See [game/README.md § Localization](../../../game/README.md#localization). In s
 - [x] Spanish and English catalogs cover every extracted string, with placeholders in order
 - [x] Godot `localization_test.gd` proves no English leaks into the Spanish setup, HUD or settings, and that live switching works
 - [x] The public export refuses dirty trees and verifies both catalogs inside the Web and macOS packages
-- [ ] Public Web and macOS builds from the merged commit are uploaded and verified in both languages
+- [x] Public Web and macOS builds from the merged commit are uploaded and verified in both languages ([release record](../../../docs/release/bilingual-game-release-2026-11-05.md))
 - [ ] Owner read-through of the Spanish copy in a real match
