@@ -33,9 +33,13 @@ This writes both ZIPs and `public-<sha>.json` (commit, versions, locales, simula
 
 ## 3 · Check the packages locally
 
-- macOS: unzip into an empty folder, then run `codesign --verify --deep --strict` on the `.app` and a bounded headless start of its binary.
-- Web: unzip and serve the folder (`python3 -m http.server`), open it in a browser, start a quick match, and switch the language under Settings.
-- Look at the home screen once in each language (`AOMX_LOCALE=es` / `en`).
+```sh
+npm run public:verify -- --before-upload
+```
+
+This checks that both ZIPs match the manifest and the manifest came from a clean tree. It runs the local macOS app's codesign and a bounded headless start, and confirms the match host is healthy, allows the itch Web origin (204) and rejects others (403). The report is written to `dist/public/<build>-verify-before-upload.json`.
+
+By hand: unzip and serve the Web package (`python3 -m http.server`), open it in a browser, start a quick match, and switch the language under Settings.
 
 ## 4 · Publish
 
@@ -50,11 +54,13 @@ Wait until both channels show the new version as processed.
 
 ## 5 · Verify what players get
 
-1. `butler fetch` each channel into an empty folder and compare every file with the local package (SHA-256). Do not rely on the upload having succeeded.
-2. Fetched macOS app: `codesign --verify --deep --strict` and a bounded headless start.
-3. The anonymous game page returns HTTP 200, and the Web build opens a match in a fresh headless Chrome session.
-4. If the host changed: health 200, origin preflight 204, foreign origin 403.
-5. The landing page play links still land on the game.
+```sh
+npm run public:verify
+```
+
+Don't rely on the upload having succeeded; this checks what players actually download. It checks that both channels report the build as processed at the right version. It then fetches each channel into an empty folder and compares every file with the local package (SHA-256). The downloaded macOS app gets a codesign and headless start check, the host is checked again, and the itch page and both landing pages must return 200. It exits 1 if anything fails. Attach `dist/public/<build>-verify-after-upload.json` to the release record. Use `--build public-<sha>` to check a release other than HEAD.
+
+By hand: open the itch-served Web build in a browser and start a match. The script proves its files are identical to the package you tested in step 3, but it doesn't play it.
 
 ## 6 · Record and sync
 
@@ -69,5 +75,4 @@ Keep the previous release's ZIPs in `dist/public/`. Push them back to both chann
 
 - **macOS builds are ad-hoc signed and not notarized** (`codesign/codesign=1`, `notarization=0`). Players who download the ZIP in a browser get Gatekeeper's "cannot verify the developer" prompt and must right-click → Open. The itch app does not quarantine downloads. Fixing this needs an Apple Developer ID and notarization in the export.
 - **The macOS bundle version never changes** (`0.1.0`, build `1`), so Finder and crash reports can't tell releases apart. Set it from the build ID at export.
-- **Steps 3 and 5 are manual.** A script that fetches both channels, compares hashes and runs the codesign and start checks would make every release verifiable the same way.
-- Before 2026-11-05 the export accepted a dirty working tree under a clean commit ID, and did not check that translations shipped. Both are now enforced.
+- Before 2026-11-05 the export accepted a dirty working tree under a clean commit ID, did not check that translations shipped, and checks after the upload were manual. All three are now scripted.
