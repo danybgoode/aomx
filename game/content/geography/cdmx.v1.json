@@ -110,8 +110,8 @@
     },
     "es": {
       "map.la_roma.label": "La Roma — Roma Norte / Cibeles",
-      "map.la_roma.description": "Un campo de batalla inspirado en Roma Norte; no es un plano exacto. Cualquier facción puede jugar aquí.",
-      "map.la_roma.wins": "Destruye el puesto de mando rival o controla Cibeles durante 75 segundos."
+      "map.la_roma.description": "Un campo de batalla inspirado en Roma Norte; no es un plano exacto. Aquí puede jugar cualquier bando.",
+      "map.la_roma.wins": "Tumba el puesto de mando rival o aguanta la Glorieta de Cibeles 75 segundos."
     }
   }
 }

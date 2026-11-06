@@ -77,7 +77,7 @@ func _run() -> void:
 		client.sim.tick()
 	check(client.sim.age_index[Skirmish.HUMAN] == 1 and client.hud_ui != null, "queued transition reaches Universitaria after resume")
 	client._update_hud()
-	check(client.hud_ui.age_label.text == "AGE · UNIVERSITARIA", "HUD displays the resumed age")
+	check(client.hud_ui.age_label.text == "AGE · UNIVERSITY", "HUD displays the resumed age")
 	check(client.sim.issue(Skirmish.HUMAN, "build", worker, {"kind": "registry", "pos": Vector2i(5, 8)}).ok,
 		"Universitaria unlocks registry construction")
 	for i in 100:

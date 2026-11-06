@@ -106,7 +106,7 @@ func _on_create(result: int, response_code: int, _headers: PackedStringArray, bo
 	var response := _decode(body)
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not response.get("ok", false):
 		status = "error"
-		problem.emit("Room: " + str(response.get("reason", "connection_failed")).replace("_", " "))
+		problem.emit(tr("Room: ") + str(response.get("reason", "connection_failed")).replace("_", " "))
 		return
 	invite_code = str(response.room_code)
 	room_created.emit(invite_code)
@@ -217,7 +217,7 @@ func _on_order(result: int, response_code: int, _headers: PackedStringArray, bod
 		_reconnect()
 		return
 	if response.get("reason") == "sequence_mismatch" or response.get("reason") == "unauthorized":
-		problem.emit("Orders need a fresh session: " + str(response.reason).replace("_", " "))
+		problem.emit(tr("Orders need a fresh session: ") + str(response.reason).replace("_", " "))
 		_reconnect()
 		return
 	if not pending_orders.is_empty():
@@ -261,7 +261,7 @@ func _on_replay(result: int, response_code: int, _headers: PackedStringArray, bo
 		return
 	var response := _decode(body)
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not response.get("ok", false):
-		problem.emit("Replay unavailable: " + str(response.get("reason", "connection_failed")).replace("_", " "))
+		problem.emit(tr("Replay unavailable: ") + str(response.get("reason", "connection_failed")).replace("_", " "))
 		return
 	replay_token = str(response.replay_token)
 	replay_received.emit(response)
@@ -283,7 +283,7 @@ func _on_replay_frame(result: int, response_code: int, _headers: PackedStringArr
 	replay_frame_loading = false
 	var response := _decode(body)
 	if result != HTTPRequest.RESULT_SUCCESS or response_code != 200 or not response.get("ok", false):
-		problem.emit("Replay unavailable: " + str(response.get("reason", "connection_failed")).replace("_", " "))
+		problem.emit(tr("Replay unavailable: ") + str(response.get("reason", "connection_failed")).replace("_", " "))
 		return
 	replay_frame_received.emit(response)
 

@@ -1,0 +1,2467 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: content/campaign.v1.json (description)
+msgid "Gather resources, build a recruitment post, and train a fighter. Each task uses the normal match rules."
+msgstr "Gather resources, build a recruitment post, and train a fighter. Each task uses the normal match rules."
+
+#: content/campaign.v1.json (description)
+msgid "Place a resource depot, then hold the marked center while your opponent can contest it."
+msgstr "Place a resource depot, then hold the marked center while your opponent can contest it."
+
+#: content/campaign.v1.json (description)
+msgid "Win a full La Roma Large match by destroying the rival command post or holding the center."
+msgstr "Win a full La Roma Large match by destroying the rival command post or holding the center."
+
+#: content/campaign.v1.json (label)
+msgid "Build a recruitment post"
+msgstr "Build a recruitment post"
+
+#: content/campaign.v1.json (label)
+msgid "Build a resource depot"
+msgstr "Build a resource depot"
+
+#: content/campaign.v1.json (label)
+msgid "Collect 4 Varos"
+msgstr "Collect 4 Varos"
+
+#: content/campaign.v1.json (label)
+msgid "Hold the center for 10 seconds"
+msgstr "Hold the center for 10 seconds"
+
+#: content/campaign.v1.json (label)
+msgid "Train a melee fighter"
+msgstr "Train a melee fighter"
+
+#: content/campaign.v1.json (label)
+msgid "Win the full battle"
+msgstr "Win the full battle"
+
+#: content/campaign.v1.json (title)
+msgid "Arrival in Copilco"
+msgstr "Arrival in Copilco"
+
+#: content/campaign.v1.json (title)
+msgid "Battle for La Roma"
+msgstr "Battle for La Roma"
+
+#: content/campaign.v1.json (title)
+msgid "Foothold in Narvarte"
+msgstr "Foothold in Narvarte"
+
+#: funnel_outbox.gd
+#, c-format
+msgid "%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync."
+msgstr "%d event(s) need attention: %s. %s; local copy retained. %d later event(s) pending sync."
+
+#: funnel_outbox.gd
+#, c-format
+msgid "%d event(s) saved on this device. Pending sync."
+msgstr "%d event(s) saved on this device. Pending sync."
+
+#: funnel_outbox.gd
+#, c-format
+msgid "%d event(s) synced. %s"
+msgstr "%d event(s) synced. %s"
+
+#: funnel_outbox.gd
+msgid "Accepted play will appear after cohort review."
+msgstr "Accepted play will appear after cohort review."
+
+#: funnel_outbox.gd
+msgid "Check the local audit or contact support"
+msgstr "Check the local audit or contact support"
+
+#: funnel_outbox.gd
+msgid "Correct your device clock, then restart the app"
+msgstr "Correct your device clock, then restart the app"
+
+#: funnel_outbox.gd
+msgid "Could not save local play data. Check device storage."
+msgstr "Could not save local play data. Check device storage."
+
+#: funnel_outbox.gd
+msgid "sync error"
+msgstr "sync error"
+
+#: funnel_outbox.gd
+msgid "Test play is not counted."
+msgstr "Test play is not counted."
+
+#: i18n/game_text.gd
+msgid "Advancing"
+msgstr "Advancing"
+
+#: i18n/game_text.gd
+msgid "Armored fighter"
+msgstr "Armored fighter"
+
+#: i18n/game_text.gd
+msgid "Assisting"
+msgstr "Assisting"
+
+#: i18n/game_text.gd
+msgid "Attacking"
+msgstr "Attacking"
+
+#: i18n/game_text.gd
+msgid "Bicitaxi scout"
+msgstr "Bicitaxi scout"
+
+#: i18n/game_text.gd
+msgid "Blunt"
+msgstr "Blunt"
+
+#: i18n/game_text.gd
+msgid "Building"
+msgstr "Building"
+
+#: i18n/game_text.gd
+msgid "Carry capacity"
+msgstr "Carry capacity"
+
+#: i18n/game_text.gd
+msgid "Challenger"
+msgstr "Challenger"
+
+#: i18n/game_text.gd
+msgid "Combat training"
+msgstr "Combat training"
+
+#: i18n/game_text.gd
+msgid "Comida"
+msgstr "Food"
+
+#: i18n/game_text.gd
+msgid "Command post"
+msgstr "Command post"
+
+#: i18n/game_text.gd
+msgid "Construction rate"
+msgstr "Construction rate"
+
+#: i18n/game_text.gd
+msgid "Contested"
+msgstr "Contested"
+
+#: i18n/game_text.gd
+msgid "Cooperative build"
+msgstr "Cooperative build"
+
+#: i18n/game_text.gd
+msgid "Defeat"
+msgstr "Defeat"
+
+#: i18n/game_text.gd
+msgid "Delivering"
+msgstr "Delivering"
+
+#: i18n/game_text.gd
+msgid "Depot"
+msgstr "Depot"
+
+#: i18n/game_text.gd
+msgid "Draw"
+msgstr "Draw"
+
+#: i18n/game_text.gd
+msgid "Empty"
+msgstr "Empty"
+
+#: i18n/game_text.gd
+msgid "Enemy hold"
+msgstr "Enemy hold"
+
+#: i18n/game_text.gd
+msgid "Finished"
+msgstr "Finished"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Foránea"
+msgstr "Out-of-Towner"
+
+#: i18n/game_text.gd
+msgid "Gathering"
+msgstr "Gathering"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Gentrificación"
+msgstr "Gentrification"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Godín"
+msgstr "Godín"
+
+#: i18n/game_text.gd
+msgid "Holding"
+msgstr "Holding"
+
+#: i18n/game_text.gd
+msgid "Housing"
+msgstr "Housing"
+
+#: i18n/game_text.gd
+msgid "Idle"
+msgstr "Idle"
+
+#: i18n/game_text.gd
+msgid "Learner"
+msgstr "Learner"
+
+#: i18n/game_text.gd
+msgid "Materiales"
+msgstr "Materials"
+
+#: i18n/game_text.gd
+msgid "Melee fighter"
+msgstr "Melee fighter"
+
+#: i18n/game_text.gd
+msgid "Moving"
+msgstr "Moving"
+
+#: i18n/game_text.gd
+msgid "Neutral"
+msgstr "Neutral"
+
+#: i18n/game_text.gd
+msgid "None"
+msgstr "None"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Oaxaqueños"
+msgstr "Oaxaqueños"
+
+#: i18n/game_text.gd
+msgid "Piercing"
+msgstr "Piercing"
+
+#: i18n/game_text.gd
+msgid "Planting"
+msgstr "Planting"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Poblanos"
+msgstr "Poblanos"
+
+#: i18n/game_text.gd
+msgid "Ranged fighter"
+msgstr "Ranged fighter"
+
+#: i18n/game_text.gd
+msgid "Recruitment post"
+msgstr "Recruitment post"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Regios"
+msgstr "Regios"
+
+#: i18n/game_text.gd
+msgid "Registry"
+msgstr "Registry"
+
+#: i18n/game_text.gd
+msgid "Repairing"
+msgstr "Repairing"
+
+#: i18n/game_text.gd
+msgid "Reset"
+msgstr "Reset"
+
+#: i18n/game_text.gd
+msgid "Scout"
+msgstr "Scout"
+
+#: i18n/game_text.gd
+msgid "Siege unit"
+msgstr "Siege unit"
+
+#: i18n/game_text.gd
+msgid "Standard"
+msgstr "Standard"
+
+#: i18n/game_text.gd
+msgid "Street exchange"
+msgstr "Street exchange"
+
+#: i18n/game_text.gd
+msgid "Terrenos"
+msgstr "Land"
+
+#: i18n/game_text.gd
+msgid "Training"
+msgstr "Training"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Universitaria"
+msgstr "University"
+
+#: i18n/game_text.gd
+msgid "Varos"
+msgstr "Varos"
+
+#: i18n/game_text.gd skirmish_main.gd
+msgid "Veracruzanos"
+msgstr "Veracruzanos"
+
+#: i18n/game_text.gd
+msgid "Victory"
+msgstr "Victory"
+
+#: i18n/game_text.gd
+msgid "Wonder"
+msgstr "Wonder"
+
+#: i18n/game_text.gd
+msgid "Worker"
+msgstr "Worker"
+
+#: i18n/game_text.gd
+msgid "Your hold"
+msgstr "Your hold"
+
+#: multiplayer_client.gd
+msgid "Connection interrupted. Rejoining your slot…"
+msgstr "Connection interrupted. Rejoining your slot…"
+
+#: multiplayer_client.gd
+msgid "Could not create a room. Check your connection."
+msgstr "Could not create a room. Check your connection."
+
+#: multiplayer_client.gd
+msgid "Could not join the room."
+msgstr "Could not join the room."
+
+#: multiplayer_client.gd
+msgid "Could not request replay frame."
+msgstr "Could not request replay frame."
+
+#: multiplayer_client.gd
+msgid "Could not request this replay."
+msgstr "Could not request this replay."
+
+#: multiplayer_client.gd
+msgid "Could not start the private connection."
+msgstr "Could not start the private connection."
+
+#: multiplayer_client.gd
+msgid "Enter a room code and check your connection."
+msgstr "Enter a room code and check your connection."
+
+#: multiplayer_client.gd
+msgid "Enter an invite code and check your connection."
+msgstr "Enter an invite code and check your connection."
+
+#: multiplayer_client.gd
+msgid "Finish a private match before opening its replay."
+msgstr "Finish a private match before opening its replay."
+
+#: multiplayer_client.gd
+msgid "Orders need a fresh session: "
+msgstr "Orders need a fresh session: "
+
+#: multiplayer_client.gd
+msgid "Private match: "
+msgstr "Private match: "
+
+#: multiplayer_client.gd
+msgid "Replay unavailable: "
+msgstr "Replay unavailable: "
+
+#: multiplayer_client.gd
+msgid "Room: "
+msgstr "Room: "
+
+#: multiplayer_client.gd
+msgid "The reconnect window expired. No result was recorded."
+msgstr "The reconnect window expired. No result was recorded."
+
+#: multiplayer_client.gd
+msgid "This build needs an updated match host. Solo play is available."
+msgstr "This build needs an updated match host. Solo play is available."
+
+#: skirmish_main.gd
+#, c-format
+msgid "  •  %s source"
+msgstr "  •  %s source"
+
+#: skirmish_main.gd
+#, c-format
+msgid "  •  carrying %d %s"
+msgstr "  •  carrying %d %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "  •  Queue %d: %s %ds"
+msgstr "  •  Queue %d: %s %ds"
+
+#: skirmish_main.gd
+msgid " · Small 28×28"
+msgstr " · Small 28×28"
+
+#: skirmish_main.gd
+#, c-format
+msgid " • counter: %s"
+msgstr " • counter: %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid " • next refresh in %ds"
+msgstr " • next refresh in %ds"
+
+#: skirmish_main.gd
+msgid " Same rules and sight."
+msgstr " Same rules and sight."
+
+#: skirmish_main.gd
+msgid "¡INICIAR BATALLA!"
+msgstr "START BATTLE!"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d at source; %d refreshes left"
+msgstr "%d at source; %d refreshes left"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d HP"
+msgstr "%d HP"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d pending · %d synced · %d excluded · %d need attention."
+msgstr "%d pending · %d synced · %d excluded · %d need attention."
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d refreshes left • finite site"
+msgstr "%d refreshes left • finite site"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d selected • tap a portrait for one"
+msgstr "%d selected • tap a portrait for one"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d UNITS"
+msgstr "%d UNITS"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d units ordered."
+msgstr "%d units ordered."
+
+#: skirmish_main.gd
+#, c-format
+msgid "%d workers assigned to %s."
+msgstr "%d workers assigned to %s."
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s %s\nHold %02d:%02d / %02d:%02d\nPosts: %d HP / %s"
+msgstr "%s %s\nHold %02d:%02d / %02d:%02d\nPosts: %d HP / %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s • %d remaining%s"
+msgstr "%s • %d remaining%s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s complete"
+msgstr "%s complete"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s delivered"
+msgstr "%s delivered"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s map • click to center view"
+msgstr "%s map • click to center view"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s queued."
+msgstr "%s queued."
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s ready"
+msgstr "%s ready"
+
+#: skirmish_main.gd
+#, c-format
+msgid "%s SOURCE"
+msgstr "%s SOURCE"
+
+#: skirmish_main.gd
+msgid "1. ELIGE TU FACCIÓN"
+msgstr "1. CHOOSE YOUR FACTION"
+
+#: skirmish_main.gd
+msgid "2 v 2 · You + AI ally vs two AI opponents"
+msgstr "2 v 2 · You + AI ally vs two AI opponents"
+
+#: skirmish_main.gd
+#, c-format
+msgid "2 v 2 Conquest · destroy both enemy posts\nOur posts: %d / %d HP\nEnemy posts: %s / %s"
+msgstr "2 v 2 Conquest · destroy both enemy posts\nOur posts: %d / %d HP\nEnemy posts: %s / %s"
+
+#: skirmish_main.gd
+msgid "2 v 2 Conquest: destroy both opposing command posts. Your AI ally has its own economy."
+msgstr "2 v 2 Conquest: destroy both opposing command posts. Your AI ally has its own economy."
+
+#: skirmish_main.gd
+msgid "2. DEFINE TU BATALLA"
+msgstr "2. SET UP YOUR BATTLE"
+
+#: skirmish_main.gd
+msgid "3. ELIGE A TU OPONENTE"
+msgstr "3. CHOOSE YOUR OPPONENT"
+
+#: skirmish_main.gd
+#, c-format
+msgid "A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match."
+msgstr "A %d×%d La Roma battlefield with a bicitaxi scout, distant expansions and discoverable resource sites. Site locations vary each new match."
+
+#: skirmish_main.gd
+msgid "A replay is read-only."
+msgstr "A replay is read-only."
+
+#: skirmish_main.gd
+msgid "A shared match keeps running for both players."
+msgstr "A shared match keeps running for both players."
+
+#: skirmish_main.gd
+msgid "A stylized Roma Norte battlefield. Any faction can play here."
+msgstr "A stylized Roma Norte battlefield. Any faction can play here."
+
+#: skirmish_main.gd
+msgid "A worker is needed to cancel construction"
+msgstr "A worker is needed to cancel construction"
+
+#: skirmish_main.gd
+msgid "Add to group"
+msgstr "Add to group"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "ADVANCE"
+msgstr "ADVANCE"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Advance to %s"
+msgstr "Advance to %s"
+
+#: skirmish_main.gd
+msgid "Advance: click clear ground; fighters engage visible enemies."
+msgstr "Advance: click clear ground; fighters engage visible enemies."
+
+#: skirmish_main.gd
+msgid "Advancing and engaging visible enemies."
+msgstr "Advancing and engaging visible enemies."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Advancing to %s."
+msgstr "Advancing to %s."
+
+#: skirmish_main.gd
+msgid "AGE\nUP"
+msgstr "AGE\nUP"
+
+#: skirmish_main.gd
+msgid "AJUSTES"
+msgstr "SETTINGS"
+
+#: skirmish_main.gd
+msgid "Already in queue"
+msgstr "Already in queue"
+
+#: skirmish_main.gd
+msgid "Already researched"
+msgstr "Already researched"
+
+#: skirmish_main.gd
+msgid "An authored CDMX-inspired skirmish. Any faction can play here."
+msgstr "An authored CDMX-inspired skirmish. Any faction can play here."
+
+#: skirmish_main.gd
+msgid "Armor absorbs damage"
+msgstr "Armor absorbs damage"
+
+#: skirmish_main.gd
+msgid "Assist: click an unfinished friendly building. Esc cancels."
+msgstr "Assist: click an unfinished friendly building. Esc cancels."
+
+#: skirmish_main.gd
+msgid "Assisting construction."
+msgstr "Assisting construction."
+
+#: skirmish_main.gd
+msgid "ATTACK\nA"
+msgstr "ATTACK\nA"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Attack %d • range %d • armor %d • %s"
+msgstr "Attack %d • range %d • armor %d • %s"
+
+#: skirmish_main.gd
+msgid "Attack: click an enemy unit or post. Esc cancels."
+msgstr "Attack: click an enemy unit or post. Esc cancels."
+
+#: skirmish_main.gd
+msgid "Attacking target."
+msgstr "Attacking target."
+
+#: skirmish_main.gd
+msgid "available"
+msgstr "available"
+
+#: skirmish_main.gd
+msgid "Available now."
+msgstr "Available now."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Available to %s only"
+msgstr "Available to %s only"
+
+#: skirmish_main.gd
+msgid "BATTLE FOR"
+msgstr "BATTLE FOR"
+
+#: skirmish_main.gd
+msgid "BATTLE FOR LA ROMA"
+msgstr "BATTLE FOR LA ROMA"
+
+#: skirmish_main.gd
+msgid "Battle for La Roma replay"
+msgstr "Battle for La Roma replay"
+
+#: skirmish_main.gd
+msgid "Battle for La Roma save"
+msgstr "Battle for La Roma save"
+
+#: skirmish_main.gd
+msgid "Battle result could not be saved; check device storage."
+msgstr "Battle result could not be saved; check device storage."
+
+#: skirmish_main.gd
+msgid "Battle start could not be saved; check device storage."
+msgstr "Battle start could not be saved; check device storage."
+
+#: skirmish_main.gd
+msgid "Battlefield / map size"
+msgstr "Battlefield / map size"
+
+#: skirmish_main.gd
+msgid "Board zoom fit to window."
+msgstr "Board zoom fit to window."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Board zoom: %d%%. Resize window or press 0 to fit."
+msgstr "Board zoom: %d%%. Resize window or press 0 to fit."
+
+#: skirmish_main.gd
+msgid "Both players joined. Loading match…"
+msgstr "Both players joined. Loading match…"
+
+#: skirmish_main.gd
+msgid "Both projects finished together."
+msgstr "Both projects finished together."
+
+#: skirmish_main.gd
+msgid "BUILD\nB"
+msgstr "BUILD\nB"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Build %s: click a clear 2×2 site. Esc cancels."
+msgstr "Build %s: click a clear 2×2 site. Esc cancels."
+
+#: skirmish_main.gd
+msgid "Build and defend a Wonder for 90 seconds."
+msgstr "Build and defend a Wonder for 90 seconds."
+
+#: skirmish_main.gd
+#, c-format
+msgid "building %d%%"
+msgstr "building %d%%"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Building %s."
+msgstr "Building %s."
+
+#: skirmish_main.gd
+#, c-format
+msgid "built · %ds left"
+msgstr "built · %ds left"
+
+#: skirmish_main.gd
+msgid "Campaign chapter"
+msgstr "Campaign chapter"
+
+#: skirmish_main.gd
+msgid "Campaign content could not be read."
+msgstr "Campaign content could not be read."
+
+#: skirmish_main.gd
+msgid "Campaign is currently unavailable. Saved progress is kept."
+msgstr "Campaign is currently unavailable. Saved progress is kept."
+
+#: skirmish_main.gd
+msgid "Campaign is currently unavailable. The saved mission is kept."
+msgstr "Campaign is currently unavailable. The saved mission is kept."
+
+#: skirmish_main.gd
+msgid "Campaign opens when its private alpha flag is enabled."
+msgstr "Campaign opens when its private alpha flag is enabled."
+
+#: skirmish_main.gd
+msgid "CAMPAÑA"
+msgstr "CAMPAIGN"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Cancel %s · refund %s"
+msgstr "Cancel %s · refund %s"
+
+#: skirmish_main.gd
+msgid "Cancel current order"
+msgstr "Cancel current order"
+
+#: skirmish_main.gd
+msgid "Cancel paid order"
+msgstr "Cancel paid order"
+
+#: skirmish_main.gd
+msgid "CANCEL PAID ORDER"
+msgstr "CANCEL PAID ORDER"
+
+#: skirmish_main.gd
+msgid "Cannot move onto this tile."
+msgstr "Cannot move onto this tile."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Carry cap %d"
+msgstr "Carry cap %d"
+
+#: skirmish_main.gd
+msgid "Center"
+msgstr "Center"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Center captured • hold for %d seconds"
+msgstr "Center captured • hold for %d seconds"
+
+#: skirmish_main.gd
+msgid "Center contested"
+msgstr "Center contested"
+
+#: skirmish_main.gd
+msgid "Center hold is disabled."
+msgstr "Center hold is disabled."
+
+#: skirmish_main.gd
+msgid "Challenger: Reacts sooner and presses an advantage."
+msgstr "Challenger: Reacts sooner and presses an advantage."
+
+#: skirmish_main.gd
+msgid "Chapter mission started. Progress saves after a verified win."
+msgstr "Chapter mission started. Progress saves after a verified win."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Chapter progress could not be read: %s. The file and saved match are kept; contact alpha support for recovery."
+msgstr "Chapter progress could not be read: %s. The file and saved match are kept; contact alpha support for recovery."
+
+#: skirmish_main.gd
+msgid "Check the invite code and try again."
+msgstr "Check the invite code and try again."
+
+#: skirmish_main.gd
+msgid "Choose a faction"
+msgstr "Choose a faction"
+
+#: skirmish_main.gd
+msgid "Choose a faction and battle settings, then start · Press 1–4 to choose a faction"
+msgstr "Choose a faction and battle settings, then start · Press 1–4 to choose a faction"
+
+#: skirmish_main.gd
+msgid "Choose an available technology"
+msgstr "Choose an available technology"
+
+#: skirmish_main.gd
+msgid "Choose an enemy target"
+msgstr "Choose an enemy target"
+
+#: skirmish_main.gd
+msgid "Choose an enemy target • A"
+msgstr "Choose an enemy target • A"
+
+#: skirmish_main.gd
+msgid "Choose building"
+msgstr "Choose building"
+
+#: skirmish_main.gd
+msgid "CHOOSE BUILDING"
+msgstr "CHOOSE BUILDING"
+
+#: skirmish_main.gd
+msgid "Choose clear ground outside the center."
+msgstr "Choose clear ground outside the center."
+
+#: skirmish_main.gd
+msgid "Choose depot, housing, registry or recruitment post"
+msgstr "Choose depot, housing, registry or recruitment post"
+
+#: skirmish_main.gd
+msgid "Choose friendly building"
+msgstr "Choose friendly building"
+
+#: skirmish_main.gd
+msgid "CHOOSE RESEARCH"
+msgstr "CHOOSE RESEARCH"
+
+#: skirmish_main.gd
+msgid "Choose technology"
+msgstr "Choose technology"
+
+#: skirmish_main.gd
+msgid "Cibeles"
+msgstr "Cibeles"
+
+#: skirmish_main.gd
+msgid "Click a friendly building."
+msgstr "Click a friendly building."
+
+#: skirmish_main.gd
+msgid "Click a labeled resource source."
+msgstr "Click a labeled resource source."
+
+#: skirmish_main.gd
+msgid "Click an enemy unit or post."
+msgstr "Click an enemy unit or post."
+
+#: skirmish_main.gd
+msgid "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
+msgstr "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
+
+#: skirmish_main.gd
+#, c-format
+msgid "COMBAT • armor %d\n%s"
+msgstr "COMBAT • armor %d\n%s"
+
+#: skirmish_main.gd
+msgid "CÓMO JUGAR"
+msgstr "HOW TO PLAY"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Complete: %s (%s)."
+msgstr "Complete: %s (%s)."
+
+#: skirmish_main.gd
+msgid "Connecting to the private host…"
+msgstr "Connecting to the private host…"
+
+#: skirmish_main.gd
+msgid "Conquest — destroy enemy command post"
+msgstr "Conquest — destroy enemy command post"
+
+#: skirmish_main.gd
+msgid "Conquest — post only"
+msgstr "Conquest — post only"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Conquest • %s"
+msgstr "Conquest • %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s"
+msgstr "Conquest: destroy enemy post\nCenter hold disabled\nPosts: %d HP / %s"
+
+#: skirmish_main.gd
+msgid "Conquest: destroy the opposing command post. Holding the center does not win."
+msgstr "Conquest: destroy the opposing command post. Holding the center does not win."
+
+#: skirmish_main.gd
+msgid "CONQUISTA LA CIUDAD\nSOBREVIVE A LA GENTRIFICACIÓN"
+msgstr "CONQUER THE CITY\nSURVIVE GENTRIFICATION"
+
+#: skirmish_main.gd
+msgid "CONSTRUCTION"
+msgstr "CONSTRUCTION"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Construction %d%%"
+msgstr "Construction %d%%"
+
+#: skirmish_main.gd
+msgid "Construction in progress"
+msgstr "Construction in progress"
+
+#: skirmish_main.gd
+msgid "Contested — hold reset"
+msgstr "Contested — hold reset"
+
+#: skirmish_main.gd
+msgid "CONTINÚA O ÚNETE"
+msgstr "CONTINUE OR JOIN"
+
+#: skirmish_main.gd
+msgid "Continue or join privately"
+msgstr "Continue or join privately"
+
+#: skirmish_main.gd
+msgid "Continue the saved solo match."
+msgstr "Continue the saved solo match."
+
+#: skirmish_main.gd
+msgid "Copilco · Small 28×28"
+msgstr "Copilco · Small 28×28"
+
+#: skirmish_main.gd
+msgid "Copilco Small"
+msgstr "Copilco Small"
+
+#: skirmish_main.gd
+msgid "Copy room code"
+msgstr "Copy room code"
+
+#: skirmish_main.gd
+msgid "Could not save the invite code. Check device storage."
+msgstr "Could not save the invite code. Check device storage."
+
+#: skirmish_main.gd
+msgid "Create private room"
+msgstr "Create private room"
+
+#: skirmish_main.gd
+msgid "Creating room…"
+msgstr "Creating room…"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Delivering cargo, then gathering %s."
+msgstr "Delivering cargo, then gathering %s."
+
+#: skirmish_main.gd
+msgid "Depleted"
+msgstr "Depleted"
+
+#: skirmish_main.gd
+msgid "Destroy both enemy posts."
+msgstr "Destroy both enemy posts."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Destroy enemy post or hold Cibeles for %ds."
+msgstr "Destroy enemy post or hold Cibeles for %ds."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Destroy enemy post or hold the center for %ds."
+msgstr "Destroy enemy post or hold the center for %ds."
+
+#: skirmish_main.gd
+msgid "Destroy the opposing command post or hold Cibeles for 75 seconds."
+msgstr "Destroy the opposing command post or hold Cibeles for 75 seconds."
+
+#: skirmish_main.gd
+msgid "Empty — hold reset"
+msgstr "Empty — hold reset"
+
+#: skirmish_main.gd
+msgid "Enemy command post destroyed."
+msgstr "Enemy command post destroyed."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Enemy hold %d / %d seconds — contest it"
+msgstr "Enemy hold %d / %d seconds — contest it"
+
+#: skirmish_main.gd
+msgid "Enemy holds center • contest it"
+msgstr "Enemy holds center • contest it"
+
+#: skirmish_main.gd
+msgid "Enemy project held for 90 seconds."
+msgstr "Enemy project held for 90 seconds."
+
+#: skirmish_main.gd
+msgid "Enter the private alpha invite code to sync saved play."
+msgstr "Enter the private alpha invite code to sync saved play."
+
+#: skirmish_main.gd
+msgid "Enter the room code your friend shared."
+msgstr "Enter the room code your friend shared."
+
+#: skirmish_main.gd
+msgid "Enter your private invite code. Each player needs their own code."
+msgstr "Enter your private invite code. Each player needs their own code."
+
+#: skirmish_main.gd
+msgid "Event synced to the audit."
+msgstr "Event synced to the audit."
+
+#: skirmish_main.gd
+msgid "EXPAND\nBuild, assist or repair"
+msgstr "EXPAND\nBuild, assist or repair"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Explore the larger district; destroy the opposing post or hold the center for %d seconds."
+msgstr "Explore the larger district; destroy the opposing post or hold the center for %d seconds."
+
+#: skirmish_main.gd
+msgid "Explore this resource site before gathering."
+msgstr "Explore this resource site before gathering."
+
+#: skirmish_main.gd
+msgid "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
+msgstr "Explore, expand, then destroy the opposing post or hold the central district for 75 seconds."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Export failed: %s."
+msgstr "Export failed: %s."
+
+#: skirmish_main.gd
+msgid "Fictional faction bonuses."
+msgstr "Fictional faction bonuses."
+
+#: skirmish_main.gd
+msgid "FIELD ORDERS"
+msgstr "FIELD ORDERS"
+
+#: skirmish_main.gd
+msgid "Final age"
+msgstr "Final age"
+
+#: skirmish_main.gd
+msgid "Final age reached"
+msgstr "Final age reached"
+
+#: skirmish_main.gd
+msgid "Final battle start saved."
+msgstr "Final battle start saved."
+
+#: skirmish_main.gd
+msgid "Finish all tasks."
+msgstr "Finish all tasks."
+
+#: skirmish_main.gd
+msgid "Finish group"
+msgstr "Finish group"
+
+#: skirmish_main.gd
+msgid "Food field"
+msgstr "Food field"
+
+#: skirmish_main.gd
+msgid "free"
+msgstr "free"
+
+#: skirmish_main.gd
+msgid "Friendly unit lost"
+msgstr "Friendly unit lost"
+
+#: skirmish_main.gd
+msgid "Full"
+msgstr "Full"
+
+#: skirmish_main.gd
+msgid "Gather: click a Comida, Materiales, Varos or Terrenos source. Esc cancels."
+msgstr "Gather: click a Food, Materials, Varos or Land source. Esc cancels."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Gathering %s."
+msgstr "Gathering %s."
+
+#: skirmish_main.gd
+#, c-format
+msgid "GROUP • %d"
+msgstr "GROUP • %d"
+
+#: skirmish_main.gd
+msgid "Group ready for a command."
+msgstr "Group ready for a command."
+
+#: skirmish_main.gd
+msgid "Group selected"
+msgstr "Group selected"
+
+#: skirmish_main.gd
+msgid "Half"
+msgstr "Half"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "HOLD"
+msgstr "HOLD"
+
+#: skirmish_main.gd
+msgid "Holding this position."
+msgstr "Holding this position."
+
+#: skirmish_main.gd
+msgid "Import saved solo match"
+msgstr "Import saved solo match"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "Interface size"
+msgstr "Interface size"
+
+#: skirmish_main.gd
+msgid "Invite code saved. Saved play will sync when online."
+msgstr "Invite code saved. Saved play will sync when online."
+
+#: skirmish_main.gd
+msgid "Invite code was not accepted for this campaign. Saved progress is kept."
+msgstr "Invite code was not accepted for this campaign. Saved progress is kept."
+
+#: skirmish_main.gd
+msgid "Invite code was not accepted. Re-enter it; saved play is still pending."
+msgstr "Invite code was not accepted. Re-enter it; saved play is still pending."
+
+#: skirmish_main.gd
+msgid "Join private match · invite and host required"
+msgstr "Join private match · invite and host required"
+
+#: skirmish_main.gd
+msgid "Join room"
+msgstr "Join room"
+
+#: skirmish_main.gd
+msgid "Joining room…"
+msgstr "Joining room…"
+
+#: skirmish_main.gd
+msgid "LA ROMA"
+msgstr "LA ROMA"
+
+#: skirmish_main.gd
+msgid "La Roma — post or center"
+msgstr "La Roma — post or center"
+
+#: skirmish_main.gd
+msgid "La Roma — Roma Norte / Cibeles"
+msgstr "La Roma — Roma Norte / Cibeles"
+
+#: skirmish_main.gd
+msgid "La Roma · Large 96×96"
+msgstr "La Roma · Large 96×96"
+
+#: skirmish_main.gd
+msgid "La Roma · Medium 56×56"
+msgstr "La Roma · Medium 56×56"
+
+#: skirmish_main.gd
+msgid "La Roma Large"
+msgstr "La Roma Large"
+
+#: skirmish_main.gd
+msgid "La Roma Medium"
+msgstr "La Roma Medium"
+
+#: skirmish_main.gd
+msgid "La Roma Small"
+msgstr "La Roma Small"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "Language"
+msgstr "Language"
+
+#: skirmish_main.gd
+msgid "Learner: Builds at a measured pace so you can practice counters."
+msgstr "Learner: Builds at a measured pace so you can practice counters."
+
+#: skirmish_main.gd
+msgid "Leave target mode"
+msgstr "Leave target mode"
+
+#: skirmish_main.gd
+msgid "Local player ID is unavailable. Check device storage."
+msgstr "Local player ID is unavailable. Check device storage."
+
+#: skirmish_main.gd
+msgid "Local storage unavailable."
+msgstr "Local storage unavailable."
+
+#: skirmish_main.gd
+msgid "locked"
+msgstr "locked"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Locked: finish %s first."
+msgstr "Locked: finish %s first."
+
+#: skirmish_main.gd
+msgid "Match finished"
+msgstr "Match finished"
+
+#: skirmish_main.gd
+msgid "Match finished. Press R to restart."
+msgstr "Match finished. Press R to restart."
+
+#: skirmish_main.gd
+msgid "Match saved. Resume it from the faction screen or menu."
+msgstr "Match saved. Resume it from the faction screen or menu."
+
+#: skirmish_main.gd
+msgid "Match start could not be saved locally."
+msgstr "Match start could not be saved locally."
+
+#: skirmish_main.gd
+msgid "Match start could not be saved; check device storage."
+msgstr "Match start could not be saved; check device storage."
+
+#: skirmish_main.gd
+msgid "Match start saved."
+msgstr "Match start saved."
+
+#: skirmish_main.gd
+msgid "Match state failed validation: "
+msgstr "Match state failed validation: "
+
+#: skirmish_main.gd
+msgid "Matches are saved on this device."
+msgstr "Matches are saved on this device."
+
+#: skirmish_main.gd
+msgid "Missing required resources; inspect the cost."
+msgstr "Missing required resources; inspect the cost."
+
+#: skirmish_main.gd
+msgid "Mission complete"
+msgstr "Mission complete"
+
+#: skirmish_main.gd
+msgid "Mission complete. Next mission unlocked."
+msgstr "Mission complete. Next mission unlocked."
+
+#: skirmish_main.gd
+msgid "Mission completion could not be saved; check device storage."
+msgstr "Mission completion could not be saved; check device storage."
+
+#: skirmish_main.gd
+msgid "Mission content unavailable."
+msgstr "Mission content unavailable."
+
+#: skirmish_main.gd
+msgid "Mission ended. You can retry from the chapter menu."
+msgstr "Mission ended. You can retry from the chapter menu."
+
+#: skirmish_main.gd
+msgid "Mission failed"
+msgstr "Mission failed"
+
+#: skirmish_main.gd
+msgid "Mission is locked or chapter progress could not be read. Your saved match is unchanged."
+msgstr "Mission is locked or chapter progress could not be read. Your saved match is unchanged."
+
+#: skirmish_main.gd
+msgid "Move and engage visible enemies"
+msgstr "Move and engage visible enemies"
+
+#: skirmish_main.gd
+msgid "Move: click a clear ground tile. Esc cancels."
+msgstr "Move: click a clear ground tile. Esc cancels."
+
+#: skirmish_main.gd
+msgid "Moving here."
+msgstr "Moving here."
+
+#: skirmish_main.gd
+msgid "MULTIJUGADOR"
+msgstr "MULTIPLAYER"
+
+#: skirmish_main.gd
+msgid "Narvarte · Small 28×28"
+msgstr "Narvarte · Small 28×28"
+
+#: skirmish_main.gd
+msgid "Narvarte Small"
+msgstr "Narvarte Small"
+
+#: skirmish_main.gd
+msgid "Need "
+msgstr "Need "
+
+#: skirmish_main.gd
+#, c-format
+msgid "Needs attention: %s. Local copy retained."
+msgstr "Needs attention: %s. Local copy retained."
+
+#: skirmish_main.gd
+msgid "Neutral — bring a fighter to center"
+msgstr "Neutral — bring a fighter to center"
+
+#: skirmish_main.gd
+msgid "New match started"
+msgstr "New match started"
+
+#: skirmish_main.gd
+#, c-format
+msgid "No compatible solo save to export: %s."
+msgstr "No compatible solo save to export: %s."
+
+#: skirmish_main.gd
+msgid "No reachable drop-off for current cargo."
+msgstr "No reachable drop-off for current cargo."
+
+#: skirmish_main.gd
+msgid "No route to target."
+msgstr "No route to target."
+
+#: skirmish_main.gd
+msgid "No saved match yet"
+msgstr "No saved match yet"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "NO SELECTION"
+msgstr "NO SELECTION"
+
+#: skirmish_main.gd
+msgid "none"
+msgstr "none"
+
+#: skirmish_main.gd
+msgid "not holding"
+msgstr "not holding"
+
+#: skirmish_main.gd
+msgid "Nothing pending."
+msgstr "Nothing pending."
+
+#: skirmish_main.gd
+msgid "NUEVA BATALLA"
+msgstr "NEW BATTLE"
+
+#: skirmish_main.gd
+msgid "OAXAQUEÑOS  •  gather faster; lighter buildings"
+msgstr "OAXAQUEÑOS  •  gather faster; lighter buildings"
+
+#: skirmish_main.gd
+msgid "Oaxaqueños — faster gathering and building support; lighter buildings"
+msgstr "Oaxaqueños — faster gathering and building support; lighter buildings"
+
+#: skirmish_main.gd
+msgid "Oaxaqueños — gather faster, support construction; lighter buildings"
+msgstr "Oaxaqueños — gather faster, support construction; lighter buildings"
+
+#: skirmish_main.gd
+msgid "One active Wonder per side"
+msgstr "One active Wonder per side"
+
+#: skirmish_main.gd
+msgid "Online match · host runs the game · right-click to order · R returns to setup"
+msgstr "Online match · host runs the game · right-click to order · R returns to setup"
+
+#: skirmish_main.gd
+msgid "Only solo matches can be exported."
+msgstr "Only solo matches can be exported."
+
+#: skirmish_main.gd
+msgid "Open saved private replay"
+msgstr "Open saved private replay"
+
+#: skirmish_main.gd
+msgid "Open saved replay"
+msgstr "Open saved replay"
+
+#: skirmish_main.gd
+msgid "Open the campaign chapter."
+msgstr "Open the campaign chapter."
+
+#: skirmish_main.gd
+msgid "Opponent difficulty"
+msgstr "Opponent difficulty"
+
+#: skirmish_main.gd
+msgid "Opponent faction"
+msgstr "Opponent faction"
+
+#: skirmish_main.gd
+msgid "Opponent: Classic rival"
+msgstr "Opponent: Classic rival"
+
+#: skirmish_main.gd
+msgid "Opponent: Oaxaqueños"
+msgstr "Opponent: Oaxaqueños"
+
+#: skirmish_main.gd
+msgid "Opponent: Poblanos"
+msgstr "Opponent: Poblanos"
+
+#: skirmish_main.gd
+msgid "Opponent: Regios"
+msgstr "Opponent: Regios"
+
+#: skirmish_main.gd
+msgid "Opponent: Veracruzanos"
+msgstr "Opponent: Veracruzanos"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "or destroy enemy command post"
+msgstr "or destroy enemy command post"
+
+#: skirmish_main.gd
+msgid "or destroy enemy post"
+msgstr "or destroy enemy post"
+
+#: skirmish_main.gd
+msgid "Order accepted by host."
+msgstr "Order accepted by host."
+
+#: skirmish_main.gd
+msgid "Order canceled."
+msgstr "Order canceled."
+
+#: skirmish_main.gd
+msgid "Order failed."
+msgstr "Order failed."
+
+#: skirmish_main.gd
+msgid "Order rejected: "
+msgstr "Order rejected: "
+
+#: skirmish_main.gd
+msgid "Order sent; awaiting host."
+msgstr "Order sent; awaiting host."
+
+#: skirmish_main.gd
+msgid "Order stopped."
+msgstr "Order stopped."
+
+#: skirmish_main.gd
+msgid "Paid order canceled; refund returned."
+msgstr "Paid order canceled; refund returned."
+
+#: skirmish_main.gd
+msgid "PARTIDA RÁPIDA"
+msgstr "QUICK MATCH"
+
+#: skirmish_main.gd
+msgid "Pause replay"
+msgstr "Pause replay"
+
+#: skirmish_main.gd
+msgid "Paused"
+msgstr "Paused"
+
+#: skirmish_main.gd
+msgid "Plant field: click clear ground or a depleted field. Costs 4 Materiales and 2 Varos."
+msgstr "Plant field: click clear ground or a depleted field. Costs 4 Materials and 2 Varos."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Plant food field · %s"
+msgstr "Plant food field · %s"
+
+#: skirmish_main.gd
+msgid "Planting a food field."
+msgstr "Planting a food field."
+
+#: skirmish_main.gd
+msgid "Play mode"
+msgstr "Play mode"
+
+#: skirmish_main.gd
+msgid "Play replay"
+msgstr "Play replay"
+
+#: skirmish_main.gd
+msgid "POBLANOS  •  tougher buildings"
+msgstr "POBLANOS  •  tougher buildings"
+
+#: skirmish_main.gd
+msgid "POBLANOS  •  tougher buildings; carry 4"
+msgstr "POBLANOS  •  tougher buildings; carry 4"
+
+#: skirmish_main.gd
+msgid "Poblanos — buildings +20% HP; workers carry 4"
+msgstr "Poblanos — buildings +20% HP; workers carry 4"
+
+#: skirmish_main.gd
+msgid "Population cap; build housing"
+msgstr "Population cap; build housing"
+
+#: skirmish_main.gd
+msgid "Private match invite code"
+msgstr "Private match invite code"
+
+#: skirmish_main.gd
+msgid "Private matches save on the host. Open the replay after the result."
+msgstr "Private matches save on the host. Open the replay after the result."
+
+#: skirmish_main.gd
+msgid "Private replay saved. Open it from the faction screen."
+msgstr "Private replay saved. Open it from the faction screen."
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "PRODUCTION"
+msgstr "PRODUCTION"
+
+#: skirmish_main.gd
+msgid "Production queue is full."
+msgstr "Production queue is full."
+
+#: skirmish_main.gd
+msgid "Project defended for 90 seconds."
+msgstr "Project defended for 90 seconds."
+
+#: skirmish_main.gd
+msgid "Queue full"
+msgstr "Queue full"
+
+#: skirmish_main.gd
+msgid "Ready"
+msgstr "Ready"
+
+#: skirmish_main.gd
+msgid "Receipt could not be saved. Retry later."
+msgstr "Receipt could not be saved. Retry later."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Recruit %s · %s"
+msgstr "Recruit %s · %s"
+
+#: skirmish_main.gd
+msgid "Recruit here"
+msgstr "Recruit here"
+
+#: skirmish_main.gd
+msgid "RECRUIT UNITS\nOr advance the age"
+msgstr "RECRUIT UNITS\nOr advance the age"
+
+#: skirmish_main.gd
+msgid "Refreshing"
+msgstr "Refreshing"
+
+#: skirmish_main.gd
+msgid "REGIOS  •  carry 5"
+msgstr "REGIOS  •  carry 5"
+
+#: skirmish_main.gd
+msgid "REGIOS  •  carry 5; fighters cost +1 Varos"
+msgstr "REGIOS  •  carry 5; fighters cost +1 Varos"
+
+#: skirmish_main.gd
+msgid "Regios — workers carry 5; fighters cost +1 Varos"
+msgstr "Regios — workers carry 5; fighters cost +1 Varos"
+
+#: skirmish_main.gd
+msgid "Repair: click a damaged friendly building. Esc cancels."
+msgstr "Repair: click a damaged friendly building. Esc cancels."
+
+#: skirmish_main.gd
+msgid "Repairing building."
+msgstr "Repairing building."
+
+#: skirmish_main.gd
+msgid "Replant to renew this field"
+msgstr "Replant to renew this field"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Replay could not be saved: %s."
+msgstr "Replay could not be saved: %s."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Replay could not load: %s. File kept."
+msgstr "Replay could not load: %s. File kept."
+
+#: skirmish_main.gd
+msgid "Replay finished"
+msgstr "Replay finished"
+
+#: skirmish_main.gd
+msgid "Replay frame failed validation. File kept."
+msgstr "Replay frame failed validation. File kept."
+
+#: skirmish_main.gd
+msgid "Replay state failed validation: "
+msgstr "Replay state failed validation: "
+
+#: skirmish_main.gd
+#, c-format
+msgid "Requires %s"
+msgstr "Requires %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Requires %s age"
+msgstr "Requires the %s Age"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Requires a completed %s"
+msgstr "Requires a completed %s"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "RESEARCH"
+msgstr "RESEARCH"
+
+#: skirmish_main.gd
+msgid "RESEARCH\nInspect costs and prerequisites"
+msgstr "RESEARCH\nInspect costs and prerequisites"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Research started: %s."
+msgstr "Research started: %s."
+
+#: skirmish_main.gd
+msgid "Resource site"
+msgstr "Resource site"
+
+#: skirmish_main.gd
+msgid "Result could not be saved locally."
+msgstr "Result could not be saved locally."
+
+#: skirmish_main.gd
+msgid "Result could not be saved; check device storage."
+msgstr "Result could not be saved; check device storage."
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "Resume saved match"
+msgstr "Resume saved match"
+
+#: skirmish_main.gd
+msgid "Resume to issue orders"
+msgstr "Resume to issue orders"
+
+#: skirmish_main.gd
+msgid "Resumed"
+msgstr "Resumed"
+
+#: skirmish_main.gd
+msgid "Return to the faction screen before importing a save."
+msgstr "Return to the faction screen before importing a save."
+
+#: skirmish_main.gd
+msgid "Room code from a friend"
+msgstr "Room code from a friend"
+
+#: skirmish_main.gd
+msgid "Route blocked • rechecking"
+msgstr "Route blocked • rechecking"
+
+#: skirmish_main.gd
+msgid "SALIR"
+msgstr "QUIT"
+
+#: skirmish_main.gd
+msgid "Save an active solo match from Settings to resume it here."
+msgstr "Save an active solo match from Settings to resume it here."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Save could not import: %s. Existing save kept."
+msgstr "Save could not import: %s. Existing save kept."
+
+#: skirmish_main.gd
+msgid "Save download started. Keep the file for later import."
+msgstr "Save download started. Keep the file for later import."
+
+#: skirmish_main.gd
+msgid "Save exported."
+msgstr "Save exported."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Save failed: %s. Current match is still playable."
+msgstr "Save failed: %s. Current match is still playable."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Saved match could not load: %s. File kept."
+msgstr "Saved match could not load: %s. File kept."
+
+#: skirmish_main.gd
+msgid "Saved match resumed"
+msgstr "Saved match resumed"
+
+#: skirmish_main.gd
+msgid "SCOUT\nFast sight and movement · move only"
+msgstr "SCOUT\nFast sight and movement · move only"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Scout • sight %d • fast movement"
+msgstr "Scout • sight %d • fast movement"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Scout, expand, hold center for %ds."
+msgstr "Scout, expand, hold center for %ds."
+
+#: skirmish_main.gd
+msgid "Select a completed registry to research."
+msgstr "Select a completed registry to research."
+
+#: skirmish_main.gd
+msgid "Select a living worker to build."
+msgstr "Select a living worker to build."
+
+#: skirmish_main.gd
+msgid "Select a production building."
+msgstr "Select a production building."
+
+#: skirmish_main.gd
+msgid "Select a unit"
+msgstr "Select a unit"
+
+#: skirmish_main.gd
+msgid "Select a unit or post"
+msgstr "Select a unit or post"
+
+#: skirmish_main.gd
+msgid "Select a unit to give an order."
+msgstr "Select a unit to give an order."
+
+#: skirmish_main.gd
+msgid "Select a worker with left click. Right click a resource to gather it. Build a post to recruit units. Use the minimap or move the pointer to any screen edge to pan the camera. Win by meeting the selected objective."
+msgstr "Select a worker with left click. Right click a resource to gather it. Build a post to recruit units. Use the minimap or move the pointer to any screen edge to pan the camera. Win by meeting the selected objective."
+
+#: skirmish_main.gd
+msgid "Select an actor for that order."
+msgstr "Select an actor for that order."
+
+#: skirmish_main.gd
+msgid "Select your unit or building."
+msgstr "Select your unit or building."
+
+#: skirmish_main.gd
+msgid "Service unavailable. Events remain saved on this device."
+msgstr "Service unavailable. Events remain saved on this device."
+
+#: skirmish_main.gd
+msgid "Share this room code with one friend: "
+msgstr "Share this room code with one friend: "
+
+#: skirmish_main.gd
+msgid "Siege targets structures"
+msgstr "Siege targets structures"
+
+#: skirmish_main.gd
+msgid "Solo objective"
+msgstr "Solo objective"
+
+#: skirmish_main.gd
+msgid "Solo objective · Wonder unavailable until enabled"
+msgstr "Solo objective · Wonder unavailable until enabled"
+
+#: skirmish_main.gd
+msgid "Solo skirmish"
+msgstr "Solo skirmish"
+
+#: skirmish_main.gd
+msgid "Sources depleted; wait for renewal"
+msgstr "Sources depleted; wait for renewal"
+
+#: skirmish_main.gd
+msgid "Standard: Scouts and changes plans when you show a threat."
+msgstr "Standard: Scouts and changes plans when you show a threat."
+
+#: skirmish_main.gd
+msgid "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
+msgstr "Standard: Scouts and changes plans when you show a threat. Same rules and sight."
+
+#: skirmish_main.gd
+msgid "Start an active match before saving"
+msgstr "Start an active match before saving"
+
+#: skirmish_main.gd
+msgid "Stay and defend this position"
+msgstr "Stay and defend this position"
+
+#: skirmish_main.gd ui/battle_hud.gd
+msgid "STOP"
+msgstr "STOP"
+
+#: skirmish_main.gd
+msgid "Support ID copied. Share it only with the alpha operator for help or deletion."
+msgstr "Support ID copied. Share it only with the alpha operator for help or deletion."
+
+#: skirmish_main.gd
+msgid "Sync needs attention • open menu"
+msgstr "Sync needs attention • open menu"
+
+#: skirmish_main.gd
+msgid "TACTICAL VIEW"
+msgstr "TACTICAL VIEW"
+
+#: skirmish_main.gd
+msgid "Tap units to add or remove; tap Finish group when done."
+msgstr "Tap units to add or remove; tap Finish group when done."
+
+#: skirmish_main.gd
+msgid "TECH\nTREE"
+msgstr "TECH\nTREE"
+
+#: skirmish_main.gd
+msgid "That saved match already finished. Start a new match; the save file is kept."
+msgstr "That saved match already finished. Start a new match; the save file is kept."
+
+#: skirmish_main.gd
+msgid "The 60-second reconnect window expired. No result was recorded."
+msgstr "The 60-second reconnect window expired. No result was recorded."
+
+#: skirmish_main.gd
+#, c-format
+msgid "The match host ended this match (%s). No result was recorded."
+msgstr "The match host ended this match (%s). No result was recorded."
+
+#: skirmish_main.gd
+msgid "The worker cannot reach this field."
+msgstr "The worker cannot reach this field."
+
+#: skirmish_main.gd
+msgid "These are fictional strategies, not descriptions of regional people."
+msgstr "These are fictional strategies, not descriptions of regional people."
+
+#: skirmish_main.gd
+msgid "This 2x2 site is blocked."
+msgstr "This 2x2 site is blocked."
+
+#: skirmish_main.gd
+msgid "This field is still growing or has food."
+msgstr "This field is still growing or has food."
+
+#: skirmish_main.gd
+msgid "This resource site is depleted. Check its refresh status."
+msgstr "This resource site is depleted. Check its refresh status."
+
+#: skirmish_main.gd
+msgid "Two teams, four independent economies. Destroy both opposing command posts to win."
+msgstr "Two teams, four independent economies. Destroy both opposing command posts to win."
+
+#: skirmish_main.gd
+msgid "Unit under attack"
+msgstr "Unit under attack"
+
+#: skirmish_main.gd
+msgid "unseen"
+msgstr "unseen"
+
+#: skirmish_main.gd
+msgid "VERACRUZANOS  •  move faster; lighter buildings"
+msgstr "VERACRUZANOS  •  move faster; lighter buildings"
+
+#: skirmish_main.gd
+msgid "Veracruzanos — faster movement and trade income; lighter buildings"
+msgstr "Veracruzanos — faster movement and trade income; lighter buildings"
+
+#: skirmish_main.gd
+msgid "Veracruzanos — move faster, earn from trade; lighter buildings"
+msgstr "Veracruzanos — move faster, earn from trade; lighter buildings"
+
+#: skirmish_main.gd
+msgid "Wait for construction to finish."
+msgstr "Wait for construction to finish."
+
+#: skirmish_main.gd
+msgid "Waiting for the second invited player. Both players need separate codes."
+msgstr "Waiting for the second invited player. Both players need separate codes."
+
+#: skirmish_main.gd
+msgid "Watch replay"
+msgstr "Watch replay"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Win by destroying the opposing command post or holding the center for %d seconds."
+msgstr "Win by destroying the opposing command post or holding the center for %d seconds."
+
+#: skirmish_main.gd
+msgid "Wonder — build and defend"
+msgstr "Wonder — build and defend"
+
+#: skirmish_main.gd
+#, c-format
+msgid "Wonder • %s"
+msgstr "Wonder • %s"
+
+#: skirmish_main.gd
+msgid "Wonder is currently unavailable. Choose La Roma or Conquest."
+msgstr "Wonder is currently unavailable. Choose La Roma or Conquest."
+
+#: skirmish_main.gd
+msgid "Wonder is off until a served alpha decision enables it on La Roma."
+msgstr "Wonder is off until a served alpha decision enables it on La Roma."
+
+#: skirmish_main.gd
+msgid "Wonder requires access enabled for this build."
+msgstr "Wonder requires access enabled for this build."
+
+#: skirmish_main.gd
+msgid "Wonder: build at Godín, defend for 90 seconds, or destroy the enemy post."
+msgstr "Wonder: build it in the Godín Age and defend it for 90 seconds, or destroy the enemy post."
+
+#: skirmish_main.gd
+#, c-format
+msgid "YOU · %s"
+msgstr "YOU · %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "You: %s\nAI: %s"
+msgstr "You: %s\nAI: %s"
+
+#: skirmish_main.gd
+#, c-format
+msgid "You: %s\nAI: %s\nPosts: %d HP / %s"
+msgstr "You: %s\nAI: %s\nPosts: %d HP / %s"
+
+#: skirmish_main.gd
+msgid "Your command post fell."
+msgstr "Your command post fell."
+
+#: skirmish_main.gd
+#, c-format
+msgid "Your hold %d / %d seconds"
+msgstr "Your hold %d / %d seconds"
+
+#: skirmish.gd
+#, c-format
+msgid "%s complete."
+msgstr "%s complete."
+
+#: skirmish.gd
+msgid "2v2 requires a large solo Conquest map."
+msgstr "2v2 requires a large solo Conquest map."
+
+#: skirmish.gd
+msgid "Center held. Victory!"
+msgstr "Center held. Victory!"
+
+#: skirmish.gd
+msgid "Center lost. Defeat."
+msgstr "Center lost. Defeat."
+
+#: skirmish.gd
+msgid "Choose a supported faction."
+msgstr "Choose a supported faction."
+
+#: skirmish.gd
+msgid "Choose a supported objective."
+msgstr "Choose a supported objective."
+
+#: skirmish.gd
+msgid "Choose a supported opponent level."
+msgstr "Choose a supported opponent level."
+
+#: skirmish.gd
+msgid "Choose a supported opponent."
+msgstr "Choose a supported opponent."
+
+#: skirmish.gd
+msgid "Could not load validated skirmish content: "
+msgstr "Could not load validated skirmish content: "
+
+#: skirmish.gd
+msgid "Crowded route; unit looking for a free tile."
+msgstr "Crowded route; unit looking for a free tile."
+
+#: skirmish.gd
+msgid "Defeat."
+msgstr "Defeat."
+
+#: skirmish.gd
+msgid "Draw."
+msgstr "Draw."
+
+#: skirmish.gd
+msgid "Food field ready."
+msgstr "Food field ready."
+
+#: skirmish.gd
+msgid "Gather resource, build a recruitment post, then train an army."
+msgstr "Gather resource, build a recruitment post, then train an army."
+
+#: skirmish.gd
+msgid "Invalid skirmish content: "
+msgstr "Invalid skirmish content: "
+
+#: skirmish.gd
+msgid "Mission and map must both be valid before play."
+msgstr "Mission and map must both be valid before play."
+
+#: skirmish.gd
+msgid "Missions pin their own objective."
+msgstr "Missions pin their own objective."
+
+#: skirmish.gd
+msgid "Objective and content must match."
+msgstr "Objective and content must match."
+
+#: skirmish.gd
+msgid "Route blocked; unit will retry or accept a new order."
+msgstr "Route blocked; unit will retry or accept a new order."
+
+#: skirmish.gd
+msgid "Target lost from sight. Scout before attacking again."
+msgstr "Target lost from sight. Scout before attacking again."
+
+#: skirmish.gd
+msgid "Unknown content ID: "
+msgstr "Unknown content ID: "
+
+#: skirmish.gd
+msgid "Victory!"
+msgstr "Victory!"
+
+#: skirmish.gd
+msgid "Wonder requires a supported map."
+msgstr "Wonder requires a supported map."
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "\nCost: %d varos"
+msgstr "\nCost: %d Varos"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "\nShortcut: %s"
+msgstr "\nShortcut: %s"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "\nUnavailable: %s"
+msgstr "\nUnavailable: %s"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "%d / %d HP"
+msgstr "%d / %d HP"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "%s Choose a new match when ready."
+msgstr "%s Choose a new match when ready."
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "%s in stockpile"
+msgstr "%s in stockpile"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "%s: %d in stockpile. %s"
+msgstr "%s: %d in stockpile. %s"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "AGE · %s"
+msgstr "AGE · %s"
+
+#: ui/battle_hud.gd
+msgid "AGE · FORÁNEA"
+msgstr "AGE · OUT-OF-TOWNER"
+
+#: ui/battle_hud.gd
+msgid "AGE UP"
+msgstr "AGE UP"
+
+#: ui/battle_hud.gd
+msgid "ARMORED"
+msgstr "ARMORED"
+
+#: ui/battle_hud.gd
+msgid "ASSIST"
+msgstr "ASSIST"
+
+#: ui/battle_hud.gd
+msgid "ATTACK"
+msgstr "ATTACK"
+
+#: ui/battle_hud.gd
+msgid "Both command posts were destroyed."
+msgstr "Both command posts were destroyed."
+
+#: ui/battle_hud.gd
+msgid "BUILD"
+msgstr "BUILD"
+
+#: ui/battle_hud.gd
+msgid "CANCEL"
+msgstr "CANCEL"
+
+#: ui/battle_hud.gd
+msgid "Cancel this unit's current order."
+msgstr "Cancel this unit's current order."
+
+#: ui/battle_hud.gd
+msgid "Capture La Roma"
+msgstr "Capture La Roma"
+
+#: ui/battle_hud.gd
+msgid "CHOOSE"
+msgstr "CHOOSE"
+
+#: ui/battle_hud.gd
+msgid "Choose a building and place it on clear ground."
+msgstr "Choose a building and place it on clear ground."
+
+#: ui/battle_hud.gd
+msgid "Choose a damaged friendly building."
+msgstr "Choose a damaged friendly building."
+
+#: ui/battle_hud.gd
+msgid "Choose a new match"
+msgstr "Choose a new match"
+
+#: ui/battle_hud.gd
+msgid "Choose a resource source for this worker."
+msgstr "Choose a resource source for this worker."
+
+#: ui/battle_hud.gd
+msgid "Choose an available technology at the registry."
+msgstr "Choose an available technology at the registry."
+
+#: ui/battle_hud.gd
+msgid "Choose an enemy unit or building."
+msgstr "Choose an enemy unit or building."
+
+#: ui/battle_hud.gd
+msgid "Choose an unfinished friendly building."
+msgstr "Choose an unfinished friendly building."
+
+#: ui/battle_hud.gd
+msgid "Choose clear ground for this unit."
+msgstr "Choose clear ground for this unit."
+
+#: ui/battle_hud.gd
+msgid "Close"
+msgstr "Close"
+
+#: ui/battle_hud.gd
+msgid "COMMANDS"
+msgstr "COMMANDS"
+
+#: ui/battle_hud.gd
+msgid "COMMANDS  •  SCROLL DOWN"
+msgstr "COMMANDS  •  SCROLL DOWN"
+
+#: ui/battle_hud.gd
+msgid "COMMANDS  •  SCROLL FOR MORE →"
+msgstr "COMMANDS  •  SCROLL FOR MORE →"
+
+#: ui/battle_hud.gd
+msgid "COMMANDS  •  SCROLL RIGHT"
+msgstr "COMMANDS  •  SCROLL RIGHT"
+
+#: ui/battle_hud.gd
+msgid "CONTEXT"
+msgstr "CONTEXT"
+
+#: ui/battle_hud.gd
+msgid "Copy support ID"
+msgstr "Copy support ID"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "Cost %d gold"
+msgstr "Cost %d Varos"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "Current age: %s"
+msgstr "Current age: %s"
+
+#: ui/battle_hud.gd
+msgid "DEFEAT"
+msgstr "DEFEAT"
+
+#: ui/battle_hud.gd
+msgid "DRAW"
+msgstr "DRAW"
+
+#: ui/battle_hud.gd
+msgid "End current match and return to main menu"
+msgstr "End current match and return to main menu"
+
+#: ui/battle_hud.gd
+msgid "EVENTS"
+msgstr "EVENTS"
+
+#: ui/battle_hud.gd
+msgid "EVENTS\n"
+msgstr "EVENTS\n"
+
+#: ui/battle_hud.gd
+msgid "Expand selection details"
+msgstr "Expand selection details"
+
+#: ui/battle_hud.gd
+msgid "Export save"
+msgstr "Export save"
+
+#: ui/battle_hud.gd
+msgid "FIGHTER"
+msgstr "FIGHTER"
+
+#: ui/battle_hud.gd
+msgid "Gameplay cue volume"
+msgstr "Gameplay cue volume"
+
+#: ui/battle_hud.gd
+msgid "Gameplay cues also appear as text and shapes."
+msgstr "Gameplay cues also appear as text and shapes."
+
+#: ui/battle_hud.gd
+msgid "GATHER"
+msgstr "GATHER"
+
+#: ui/battle_hud.gd
+msgid "GOALS"
+msgstr "GOALS"
+
+#: ui/battle_hud.gd
+msgid "GROUP +"
+msgstr "GROUP +"
+
+#: ui/battle_hud.gd
+msgid "Import save"
+msgstr "Import save"
+
+#: ui/battle_hud.gd
+msgid "Leave target mode or choose a paid order to cancel with its shown refund."
+msgstr "Leave target mode or choose a paid order to cancel with its shown refund."
+
+#: ui/battle_hud.gd
+msgid "MENU"
+msgstr "MENU"
+
+#: ui/battle_hud.gd
+msgid "MENU !"
+msgstr "MENU !"
+
+#: ui/battle_hud.gd
+msgid "MOVE"
+msgstr "MOVE"
+
+#: ui/battle_hud.gd
+msgid "Move and engage visible enemies in range."
+msgstr "Move and engage visible enemies in range."
+
+#: ui/battle_hud.gd
+msgid "Mute cues"
+msgstr "Mute cues"
+
+#: ui/battle_hud.gd
+msgid "OBJECTIVES"
+msgstr "OBJECTIVES"
+
+#: ui/battle_hud.gd
+msgid "OPTIONS ^"
+msgstr "OPTIONS ^"
+
+#: ui/battle_hud.gd
+msgid "PAUSE"
+msgstr "PAUSE"
+
+#: ui/battle_hud.gd
+msgid "Pause / resume • Space"
+msgstr "Pause / resume • Space"
+
+#: ui/battle_hud.gd
+msgid "Place a renewable food field for this worker."
+msgstr "Place a renewable food field for this worker."
+
+#: ui/battle_hud.gd
+msgid "PLANT FIELD"
+msgstr "PLANT FIELD"
+
+#: ui/battle_hud.gd
+msgid "PLAY"
+msgstr "PLAY"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "Population used / capacity: %d / %d"
+msgstr "Population used / capacity: %d / %d"
+
+#: ui/battle_hud.gd
+msgid "Population used / housing capacity"
+msgstr "Population used / housing capacity"
+
+#: ui/battle_hud.gd
+msgid "Private alpha invite code"
+msgstr "Private alpha invite code"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "QUEUE  %d / 3"
+msgstr "QUEUE  %d / 3"
+
+#: ui/battle_hud.gd
+msgid "QUEUE  0 / 3"
+msgstr "QUEUE  0 / 3"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "Queue %d / 3"
+msgstr "Queue %d / 3"
+
+#: ui/battle_hud.gd
+msgid "RANGED"
+msgstr "RANGED"
+
+#: ui/battle_hud.gd
+msgid "Recruit a costly structure attacker."
+msgstr "Recruit a costly structure attacker."
+
+#: ui/battle_hud.gd
+msgid "Recruit a durable armored counter."
+msgstr "Recruit a durable armored counter."
+
+#: ui/battle_hud.gd
+msgid "Recruit a melee fighter at the recruitment post."
+msgstr "Recruit a melee fighter at the recruitment post."
+
+#: ui/battle_hud.gd
+msgid "Recruit a ranged fighter at the recruitment post."
+msgstr "Recruit a ranged fighter at the recruitment post."
+
+#: ui/battle_hud.gd
+msgid "Recruit a worker at the command post."
+msgstr "Recruit a worker at the command post."
+
+#: ui/battle_hud.gd
+msgid "Reduce effects"
+msgstr "Reduce effects"
+
+#: ui/battle_hud.gd
+msgid "Reduce unit motion"
+msgstr "Reduce unit motion"
+
+#: ui/battle_hud.gd
+msgid "REPAIR"
+msgstr "REPAIR"
+
+#: ui/battle_hud.gd
+msgid "RESET"
+msgstr "RESET"
+
+#: ui/battle_hud.gd
+msgid "RESET MATCH"
+msgstr "RESET MATCH"
+
+#: ui/battle_hud.gd
+msgid "RESET MATCH?"
+msgstr "RESET MATCH?"
+
+#: ui/battle_hud.gd
+msgid "Save current match"
+msgstr "Save current match"
+
+#: ui/battle_hud.gd
+msgid "Save invite code"
+msgstr "Save invite code"
+
+#: ui/battle_hud.gd
+msgid "SELECT AN ACTOR"
+msgstr "SELECT AN ACTOR"
+
+#: ui/battle_hud.gd
+#, c-format
+msgid "Select unit #%d"
+msgstr "Select unit #%d"
+
+#: ui/battle_hud.gd
+msgid "SETTINGS / ALPHA SUPPORT"
+msgstr "SETTINGS / ALPHA SUPPORT"
+
+#: ui/battle_hud.gd
+msgid "Settings and return to the main menu"
+msgstr "Settings and return to the main menu"
+
+#: ui/battle_hud.gd
+msgid "Show or hide match objectives"
+msgstr "Show or hide match objectives"
+
+#: ui/battle_hud.gd
+msgid "SIEGE"
+msgstr "SIEGE"
+
+#: ui/battle_hud.gd
+msgid "Start a fresh match as the same faction • R opens faction choice"
+msgstr "Start a fresh match as the same faction • R opens faction choice"
+
+#: ui/battle_hud.gd
+msgid "Start over with the same faction?\nCurrent match progress will be lost."
+msgstr "Start over with the same faction?\nCurrent match progress will be lost."
+
+#: ui/battle_hud.gd
+msgid "Start the next age at the command post."
+msgstr "Start the next age at the command post."
+
+#: ui/battle_hud.gd
+msgid "Stay here and attack enemies in range."
+msgstr "Stay here and attack enemies in range."
+
+#: ui/battle_hud.gd
+msgid "Tap more units to add or remove them, then finish the group."
+msgstr "Tap more units to add or remove them, then finish the group."
+
+#: ui/battle_hud.gd
+msgid "The enemy command post was destroyed."
+msgstr "The enemy command post was destroyed."
+
+#: ui/battle_hud.gd
+msgid "The enemy held the center long enough."
+msgstr "The enemy held the center long enough."
+
+#: ui/battle_hud.gd
+msgid "The match reached its time limit."
+msgstr "The match reached its time limit."
+
+#: ui/battle_hud.gd
+msgid "VICTORY"
+msgstr "VICTORY"
+
+#: ui/battle_hud.gd
+msgid "WONDER"
+msgstr "WONDER"
+
+#: ui/battle_hud.gd
+msgid "WORKER"
+msgstr "WORKER"
+
+#: ui/battle_hud.gd
+msgid "YOU · LA ROMA"
+msgstr "YOU · LA ROMA"
+
+#: ui/battle_hud.gd
+msgid "Your command post was destroyed."
+msgstr "Your command post was destroyed."
+
+#: ui/battle_hud.gd
+msgid "Your side held the center long enough."
+msgstr "Your side held the center long enough."
+
+#: ui/minimap_panel.gd
+msgid "LA ROMA MAP • click to center view"
+msgstr "LA ROMA MAP • click to center view"

@@ -14,6 +14,7 @@ signal ui_scale_changed(value: float)
 signal reduced_motion_changed(value: bool)
 signal reduced_effects_changed(value: bool)
 signal new_match_requested
+signal language_changed(locale: String)
 
 const HudSkin = preload("res://ui/hud_skin.gd")
 const CommandButton = preload("res://ui/command_button.gd")
@@ -121,6 +122,7 @@ var choice_title: Label
 var choice_list: VBoxContainer
 var choice_scroll: ScrollContainer
 var ui_scale_choice: OptionButton
+var language_choice: OptionButton
 var reduced_motion_choice: CheckButton
 var reduced_effects_choice: CheckButton
 var user_scale := 1.0
@@ -248,8 +250,8 @@ func _build() -> void:
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		badge.add_child(icon)
-		var label := _label(badge, "%s 0" % id.capitalize(), 16, RESOURCE_TINTS[id])
-		label.tooltip_text = "%s in stockpile" % id.capitalize()
+		var label := _label(badge, tr("%s 0") % GameText.name(id), 16, RESOURCE_TINTS[id])
+		label.tooltip_text = tr("%s in stockpile") % GameText.name(id)
 		resource_labels[id] = label
 	gold_label = resource_labels["varos"]
 	age_badge = VBoxContainer.new()
@@ -427,6 +429,18 @@ func _build() -> void:
 	ui_scale_choice.add_theme_font_size_override("font_size", 16)
 	ui_scale_choice.item_selected.connect(func(index: int) -> void: ui_scale_changed.emit([1.0, 1.25, 1.5][index]))
 	scale_row.add_child(ui_scale_choice)
+	var language_row := HBoxContainer.new()
+	diag_col.add_child(language_row)
+	_label(language_row, "Language", 16)
+	language_choice = OptionButton.new()
+	for code in GameText.SUPPORTED:
+		language_choice.add_item(GameText.LABELS[code])
+	language_choice.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	language_choice.select(GameText.SUPPORTED.find(GameText.current()))
+	language_choice.custom_minimum_size = Vector2(150, 44)
+	language_choice.add_theme_font_size_override("font_size", 16)
+	language_choice.item_selected.connect(func(index: int) -> void: language_changed.emit(GameText.SUPPORTED[index]))
+	language_row.add_child(language_choice)
 	reduced_motion_choice = CheckButton.new()
 	reduced_motion_choice.text = "Reduce unit motion"
 	reduced_motion_choice.add_theme_font_size_override("font_size", 16)
@@ -759,25 +773,25 @@ func set_action(action: String, state: Dictionary, cost: int, active: bool) -> v
 	b.set("active", active)
 	var meta: Dictionary = ACTIONS[action]
 	b.set("caption", meta.name)
-	var tip := "%s\n%s" % [meta.name, meta.description]
+	var tip := "%s\n%s" % [tr(meta.name), tr(meta.description)]
 	if cost > 0:
-		tip += "\nCost: %d varos" % cost
+		tip += tr("\nCost: %d varos") % cost
 	if not state.reason.is_empty():
-		tip += "\nUnavailable: %s" % state.reason
+		tip += tr("\nUnavailable: %s") % tr(state.reason)
 	else:
 		if not meta.key.is_empty():
-			tip += "\nShortcut: %s" % meta.key
+			tip += tr("\nShortcut: %s") % meta.key
 	b.tooltip_text = tip
 
 func set_economy(stockpiles: Dictionary, age_name: String, population: int, capacity: int, source_notes: Dictionary) -> void:
 	for id in resource_labels:
 		var label: Label = resource_labels[id]
-		label.text = "%s %d" % [id.capitalize(), int(stockpiles.get(id, 0))]
-		label.tooltip_text = "%s: %d in stockpile. %s" % [id.capitalize(), int(stockpiles.get(id, 0)), str(source_notes.get(id, ""))]
-	age_label.text = "AGE · " + age_name.to_upper()
-	age_label.tooltip_text = "Current age: " + age_name
+		label.text = "%s %d" % [GameText.name(id), int(stockpiles.get(id, 0))]
+		label.tooltip_text = tr("%s: %d in stockpile. %s") % [GameText.name(id), int(stockpiles.get(id, 0)), str(source_notes.get(id, ""))]
+	age_label.text = tr("AGE · %s") % age_name.to_upper()
+	age_label.tooltip_text = tr("Current age: %s") % age_name
 	population_label.text = "%d/%d" % [population, capacity]
-	population_label.tooltip_text = "Population used / capacity: %d / %d" % [population, capacity]
+	population_label.tooltip_text = tr("Population used / capacity: %d / %d") % [population, capacity]
 
 func show_choices(title: String, entries: Array[Dictionary]) -> void:
 	choice_title.text = title
@@ -827,7 +841,7 @@ func set_selection(portrait: Texture2D, title: String, faction: String, hp: int,
 	selection_hp.max_value = max_hp
 	selection_hp.value = hp
 	selection_hp.visible = max_hp > 0
-	selection_hp_label.text = "%d / %d HP" % [hp, max_hp] if max_hp > 0 else ""
+	selection_hp_label.text = tr("%d / %d HP") % [hp, max_hp] if max_hp > 0 else ""
 	selection_details.text = activity
 	selection_details.tooltip_text = activity
 	selection_stats.text = stats
@@ -843,7 +857,7 @@ func set_group(items: Array) -> void:
 		b.custom_minimum_size = Vector2(44, 44)
 		b.icon = item.texture
 		b.expand_icon = true
-		b.tooltip_text = "Select unit #%d" % item.id
+		b.tooltip_text = tr("Select unit #%d") % item.id
 		b.pressed.connect(func() -> void: subset_requested.emit(item.id))
 		group_grid.add_child(b)
 
@@ -864,7 +878,7 @@ func set_secondary(title: String, cards: Array[Dictionary]) -> void:
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 		b.expand_icon = true
-		b.text = str(card.get("label", "")).get_slice("\n", 0) if size.x < 1200 else card.get("label", "")
+		b.text = tr(str(card.get("label", ""))).get_slice("\n", 0) if size.x < 1200 else card.get("label", "")
 		b.add_theme_font_size_override("font_size", 12)
 		b.disabled = not card.get("enabled", false)
 		b.tooltip_text = card.get("tooltip", "")
@@ -872,24 +886,24 @@ func set_secondary(title: String, cards: Array[Dictionary]) -> void:
 			b.pressed.connect(func() -> void: command.emit(card.action))
 		secondary_cards.add_child(b)
 		if secondary_reason.text.is_empty():
-			secondary_reason.text = str(card.get("reason", "")) if not card.get("enabled", true) else ("Cost %d gold" % int(card.get("cost", 0)) if card.get("cost", 0) > 0 else "")
+			secondary_reason.text = tr(str(card.get("reason", ""))) if not card.get("enabled", true) else (tr("Cost %d gold") % int(card.get("cost", 0)) if card.get("cost", 0) > 0 else "")
 	_refresh_text_scale()
 	_layout()
 
 func set_queue(entries: Array) -> void:
 	var show_queue := not entries.is_empty() or secondary_title.text in ["PRODUCTION", "RESEARCH"]
 	queue_title.visible = show_queue and size.x >= 950
-	queue_title.text = "QUEUE  %d / 3" % entries.size()
+	queue_title.text = tr("QUEUE  %d / 3") % entries.size()
 	for i in 3:
 		var slot: Panel = queue_slots[i]
 		slot.visible = show_queue and size.x >= 950
 		var label: Label = slot.get_child(0)
 		if i < entries.size():
-			label.text = "%s\n%ds" % [entries[i].role.substr(0, 3).to_upper(), ceili(float(entries[i].remaining) / 10.0)]
+			label.text = "%s\n%ds" % [GameText.name(str(entries[i].role)).substr(0, 3).to_upper(), ceili(float(entries[i].remaining) / 10.0)]
 		else:
 			label.text = "—"
 	if size.x < 950 and show_queue:
-		secondary_reason.text = "Queue %d / 3" % entries.size()
+		secondary_reason.text = tr("Queue %d / 3") % entries.size()
 	_layout()
 
 func show_notice(message: String, important: bool = false) -> void:
@@ -901,7 +915,7 @@ func show_notice(message: String, important: bool = false) -> void:
 	event_log.push_front(message)
 	if event_log.size() > 8:
 		event_log.pop_back()
-	event_log_label.text = "EVENTS\n" + "\n".join(event_log)
+	event_log_label.text = tr("EVENTS\n") + "\n".join(event_log)
 	notification_age = 5.0 if important else 3.0
 
 func show_result(outcome: String, reason: String) -> void:
@@ -915,7 +929,7 @@ func show_result(outcome: String, reason: String) -> void:
 		"district": "Your side held the center long enough." if outcome == "win" else "The enemy held the center long enough.",
 		"time_limit": "The match reached its time limit."
 	}.get(reason, reason.replace("_", " ").capitalize() + ".")
-	result_reason.text = "%s Choose a new match when ready." % cause
+	result_reason.text = tr("%s Choose a new match when ready.") % tr(cause)
 
 func _process(delta: float) -> void:
 	if notification_age > 0:

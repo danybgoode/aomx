@@ -29,7 +29,9 @@
     "alpha:wonder-publish": "node scripts/alpha-wonder-publish.mjs",
     "public:export": "node scripts/public-export.mjs",
     "landing:build": "node scripts/build-landing.mjs",
-    "landing:check": "node scripts/build-landing.mjs --check"
+    "landing:check": "node scripts/build-landing.mjs --check",
+    "i18n:extract": "node scripts/i18n-extract.mjs && node scripts/i18n-sync.mjs",
+    "i18n:check": "node scripts/i18n-extract.mjs --check && node scripts/i18n-sync.mjs --check"
   },
   "dependencies": {
     "@golden-frijoles/sdk": "1.1.0",

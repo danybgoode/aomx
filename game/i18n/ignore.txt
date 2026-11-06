@@ -1,0 +1,36 @@
+# Strings the extractor finds that players never see (one per line, exact match).
+Español
+English
+# Timestamps, HTTP headers and keyboard shortcut keys
+.000Z
+Z
+Content-Type: application/json
+X-Aomx-Match-Token: 
+X-Aomx-Replay-Token: 
+X-Aomx-Invite-Code: 
+M
+H
+P
+B
+A
+# Pure layout formats with no words
+%s\n%s
+%s\n%ds
+# Developer diagnostics for a broken art manifest (never shown in a healthy build)
+Art manifest is missing: 
+Art manifest schema mismatch.
+Duplicate art asset: 
+Missing art texture: 
+Unknown art asset: 
+# Layout formats with only placeholders and separators
+%s %d
+%s 0
+%s · %s
+%s · %s%s
+%s • %s
+%s #%d
+%s · %s\n%s\n%s
+%s • %s\n%s
+# Fragments the game searches for internally, never shown on their own
+could not
+not accepted

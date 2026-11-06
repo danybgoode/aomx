@@ -212,7 +212,7 @@ func _run() -> void:
 		"selection panel follows the active board actor")
 	check(client.command_buttons["gather"].visible and client.command_buttons["plant"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
 		"worker sees only relevant commands")
-	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "AGE · FORÁNEA" and client.hud_ui.population_label.text == "1/4",
+	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "AGE · OUT-OF-TOWNER" and client.hud_ui.population_label.text == "1/4",
 		"HUD shows four resource counters, age and population")
 	var before_hud: String = client.sim.state_hash()
 	client._update_hud()
@@ -261,7 +261,7 @@ func _run() -> void:
 	check(client.sim.entities[worker_id].job == "gather" and client.order_flash_tile == comida_tile,
 		"right-clicking the source marker orders the selected worker to gather")
 	var gather: Dictionary = client._issue_order("gather", comida_tile, comida_tile)
-	check(gather.ok and client.order_flash_ok and client.order_flash_tile == comida_tile and client.sim.feedback == "Gathering Comida.",
+	check(gather.ok and client.order_flash_ok and client.order_flash_tile == comida_tile and client.sim.feedback == "Gathering Food.",
 		"accepted gather has visible target feedback")
 	var rejected: Dictionary = client._issue_order("build", {"kind": "depot", "pos": Vector2i(10, 2)}, Vector2i(10, 2))
 	check(not rejected.ok and not client.order_flash_ok and client.sim.feedback != "", "rejected build has distinct readable feedback")
@@ -272,8 +272,8 @@ func _run() -> void:
 	for resource_id in Skirmish.RESOURCE_IDS:
 		client.sim._add_balance(Skirmish.HUMAN, resource_id, 100)
 	client._update_hud()
-	check(client.hud_ui.resource_labels["terrenos"].text == "Terrenos 100", "Terrenos stockpile updates with its full name in the HUD")
-	check(client._building_reason("registry").contains("age"), "registry explains its age gate")
+	check(client.hud_ui.resource_labels["terrenos"].text == "Land 100", "Terrenos stockpile updates with its full English name in the HUD")
+	check(client._building_reason("registry").to_lower().contains("age"), "registry explains its age gate")
 	var post_id: int = client.sim._find(Skirmish.HUMAN, "command_post")
 	client.selected_id = post_id
 	client.selected_ids.clear()
