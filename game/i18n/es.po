@@ -463,7 +463,7 @@ msgstr "%d obreros a juntar %s."
 #: skirmish_main.gd
 #, c-format
 msgid "%s %s\nHold %02d:%02d / %02d:%02d\nPosts: %d HP / %s"
-msgstr "%s %s\nAguante %02d:%02d / %02d:%02d\nPuestos: %d de vida / %s"
+msgstr "%s · %s\nAguante %02d:%02d / %02d:%02d\nPuestos: %d de vida / %s"
 
 #: skirmish_main.gd
 #, c-format
