@@ -27,7 +27,9 @@
     "alpha:publish": "node scripts/alpha-publish.mjs",
     "alpha:campaign-publish": "node scripts/alpha-campaign-publish.mjs",
     "alpha:wonder-publish": "node scripts/alpha-wonder-publish.mjs",
-    "public:export": "node scripts/public-export.mjs"
+    "public:export": "node scripts/public-export.mjs",
+    "landing:build": "node scripts/build-landing.mjs",
+    "landing:check": "node scripts/build-landing.mjs --check"
   },
   "dependencies": {
     "@golden-frijoles/sdk": "1.1.0",

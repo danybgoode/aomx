@@ -1,0 +1,378 @@
+{
+  "meta": {
+    "lang": "en",
+    "path": "en",
+    "url": "https://battle-for-la-roma.pages.dev/en/",
+    "ogLocale": "en_US",
+    "title": "Battle for La Roma — A real-time strategy game for Mexico City",
+    "description": "A free classic RTS set in a satirical Mexico City. Gather, build, climb four ages and take La Roma. Play in your browser or on macOS.",
+    "ogAlt": "Four factions fight over the Cibeles roundabout in Battle for La Roma",
+    "skip": "Skip to content",
+    "currentShort": "EN",
+    "otherShort": "ES",
+    "otherLang": "es-MX",
+    "otherLabel": "Español",
+    "otherUrl": "/",
+    "switchAria": "Ver esta página en español"
+  },
+  "links": {
+    "web": "https://danybgoode.itch.io/battle-for-la-roma-play",
+    "mac": "https://danybgoode.itch.io/battle-for-la-roma-play#download"
+  },
+  "suggest": {
+    "text": "Esta página también está en español.",
+    "action": "Ver en español",
+    "dismiss": "Stay in English"
+  },
+  "nav": {
+    "label": "Main",
+    "items": [
+      {
+        "href": "#jugar",
+        "label": "How it plays"
+      },
+      {
+        "href": "#edades",
+        "label": "Ages"
+      },
+      {
+        "href": "#bandos",
+        "label": "Factions"
+      },
+      {
+        "href": "#modos",
+        "label": "Modes"
+      },
+      {
+        "href": "#ciudad",
+        "label": "The city"
+      },
+      {
+        "href": "#preguntas",
+        "label": "FAQ"
+      }
+    ],
+    "cta": "Play free",
+    "menu": "Menu",
+    "close": "Close menu"
+  },
+  "hero": {
+    "kicker": "Neighborhood alert · Roma Norte",
+    "title": "From rooftop room <span>to rooftop bar,</span> reservations only.",
+    "lede": "A classic real-time strategy game set in a satirical Mexico City. Gather resources, build your base, raise your crew and climb four ages until La Roma is yours. <strong>The rent goes up on its own. You'll have to earn it.</strong>",
+    "ctaWeb": "Play free in your browser",
+    "ctaMac": "Download for macOS",
+    "facts": "Free · Browser and macOS · Campaign, skirmish and private online rooms",
+    "artAlt": "Concept art: four factions fight over the Cibeles roundabout in Roma Norte"
+  },
+  "ticker": {
+    "aria": "Neighborhood news",
+    "pause": "Pause news",
+    "play": "Resume news",
+    "items": [
+      "Breaking: rich kid asks for valet parking for his tank",
+      "University assembly enters day 47",
+      "Specialty café now charges you to smell the coffee",
+      "Office drone requests to work from home mid-battle",
+      "Insurgentes traffic reported normal (meaning awful)"
+    ]
+  },
+  "play": {
+    "eyebrow": "01 · Survival manual",
+    "title": "This is not a <span>brunch.</span><br>It's an RTS.",
+    "intro": "Build, gather, recruit and conquer in real time, just like the classics you grew up on. Except here the map has potholes and a single roundabout is worth more than your apartment.",
+    "features": [
+      {
+        "tag": "Build",
+        "title": "From empty lot to empire",
+        "body": "Put up a command post, housing and barracks. Expand before somebody shows up with a mixed-use render and a “Coming soon” banner."
+      },
+      {
+        "tag": "Gather",
+        "title": "Money doesn't grow on jacarandas",
+        "body": "Food, Materials, Varos (cash) and Land. Put your people to work and plan every trip: each run counts, like the bus at rush hour."
+      },
+      {
+        "tag": "Conquer",
+        "title": "Whoever holds the center, rules",
+        "body": "Train troops, scout the map and win by razing the rival command post or holding the center until the clock runs out. Nobody gets evicted on their own."
+      }
+    ],
+    "shotAlt": "Gameplay capture: two armies clash next to the center of the La Roma map",
+    "shotCaption": "Real gameplay · La Roma map",
+    "resourcesTitle": "The four resources",
+    "resources": [
+      {
+        "img": "res-comida",
+        "name": "Food",
+        "body": "Tacos, markets and urban gardens. Nobody conquers anything hungry."
+      },
+      {
+        "img": "res-materiales",
+        "name": "Materials",
+        "body": "Bricks, rebar and whatever was left over from the build across the street."
+      },
+      {
+        "img": "res-varos",
+        "name": "Varos",
+        "body": "Slang for cash. No varos, no troops; no troops, no neighborhood."
+      },
+      {
+        "img": "res-terrenos",
+        "name": "Land",
+        "body": "The most contested resource in the city. Just ask any landlord."
+      }
+    ]
+  },
+  "ages": {
+    "eyebrow": "02 · Unrequested upward mobility",
+    "title": "Four ages.<br><span>One zip code</span><br>you can't afford.",
+    "intro": "You don't advance from Stone Age to Bronze Age here. You advance from out-of-towner with two suitcases to someone who says “terroir” without irony. Each age unlocks new buildings, technologies and troops. <strong>The character never changed. The neighborhood did.</strong>",
+    "from": "Two suitcases",
+    "to": "Tasting menu",
+    "track": "The game's four ages",
+    "cards": [
+      {
+        "img": "age-foranea",
+        "title": "Out-of-Towner<br>Age",
+        "stamp": "$1,800 pesos/mo*",
+        "quote": "“It's cozy, but it gets lots of natural light.”",
+        "who": "The landlord, about a rooftop room in Doctores.",
+        "body": "Two suitcases, a speaker with more miles on it than you and the unshakable belief that the metro is “super close.” You came to conquer the capital. First you need a water jug.",
+        "alt": "Gameplay capture in the first age: one command post and a few workers",
+        "numeral": "I · Origins"
+      },
+      {
+        "img": "age-universitaria",
+        "title": "University<br>Age",
+        "stamp": "Campus · 3:47 a.m.",
+        "quote": "“It's a chill plan, I only brought three liters of jungle juice.”",
+        "who": "The guy who never brings anything chill.",
+        "body": "You've mastered changing metro lines, you debate the nation's future sitting on volcanic rock and you submit the essay at 11:59. The revolution starts tomorrow. Tonight there's a party.",
+        "alt": "Gameplay capture: the base grows with a depot, housing and a registry",
+        "numeral": "II · Awakening"
+      },
+      {
+        "img": "age-godin",
+        "title": "Godín<br>Age",
+        "stamp": "Meeting 8:00 a.m.",
+        "quote": "“Can we align on a quick call?”",
+        "who": "Your boss, from a meeting that could have been an email.",
+        "body": "A godín is an office drone, and now that's you. Backpack swapped for a badge, revolution for grocery vouchers. You've mastered Excel, basket tacos and looking busy on Teams.",
+        "alt": "Gameplay capture: troops take the Cibeles roundabout",
+        "numeral": "III · The fall"
+      },
+      {
+        "img": "age-gentrificacion",
+        "title": "Gentrification<br>Age",
+        "stamp": "Tasting menu",
+        "quote": "“It's a small-batch mezcal with notes of nostalgia.”",
+        "who": "You. You said that. Out loud.",
+        "body": "You wear linen, ask where the ice comes from and your coffee has a biography. Your lease comes with clauses in English. Congratulations: you're the problem now.",
+        "alt": "Gameplay capture: two large armies clash in the center of La Roma",
+        "numeral": "IV · Final boss"
+      }
+    ],
+    "footnote": "*Water, power, gas and dignity not included.",
+    "epilogueTitle": "From campus jungle juice to signature cocktails in Polanco.",
+    "epilogueBody": "Four ages of progress. None of them gets your rooftop-room deposit back.",
+    "epilogueCta": "Start climbing",
+    "caption": "The age images are real in-game captures."
+  },
+  "factions": {
+    "eyebrow": "03 · Pick who you're fighting with",
+    "title": "Four factions.<br><span>Zero HOA</span><br>agreements.",
+    "intro": "They all arrived with a plan. None of them planned for traffic on Insurgentes. Each faction plays differently: pick one to see its strategy.",
+    "groupLabel": "Choose a faction",
+    "list": [
+      {
+        "id": "regios",
+        "name": "Regios",
+        "short": "Aggressive investors: carry more, pay more.",
+        "quote": "“What do you mean you don't take dollars?”",
+        "detail": "From Monterrey, the industrial north. Their workers carry more per trip, so the economy takes off fast. In exchange, every fighter costs one extra Varo. The budget is in charge… and it shows.",
+        "alt": "Concept portrait of the Regios faction",
+        "unitName": "Mirrey (The Card Swipe)",
+        "unitBody": "A mirrey is a flashy rich kid. He arrives in an armored SUV and settles everything with the company card. Very expensive elite: his card swipe leaves enemies wondering what just happened."
+      },
+      {
+        "id": "poblanos",
+        "name": "Poblanos",
+        "short": "Stubborn defense: buildings that won't fall.",
+        "quote": "“The mole is not up for negotiation.”",
+        "detail": "From Puebla. Their buildings take 20% more punishment. Their workers carry less, so plan your trips. Slow, but nobody moves them off their block.",
+        "alt": "Concept portrait of the Poblanos faction",
+        "unitName": "Battle Cook",
+        "unitBody": "Heals nearby allies and boosts Food production. No army fights well before breakfast."
+      },
+      {
+        "id": "oaxaquenos",
+        "name": "Oaxaqueños",
+        "short": "Fast economy: gather and build quicker.",
+        "quote": "“Relax, this is already organized. For three generations now.”",
+        "detail": "From Oaxaca. They gather faster and lend a hand with construction. Their buildings are lighter: a fast economy needs someone watching its back.",
+        "alt": "Concept portrait of the Oaxaqueños faction",
+        "unitName": "Alebrije Catapult",
+        "unitBody": "Long-range siege shaped like an alebrije, a brightly painted folk-art creature. Heavy craftsmanship, quite literally."
+      },
+      {
+        "id": "veracruzanos",
+        "name": "Veracruzanos",
+        "short": "Speed and trade: always first to arrive.",
+        "quote": "“Turn it up, they can't hear it all the way to Cibeles!”",
+        "detail": "From the Gulf coast. They move faster and squeeze more out of trade, ideal for opening routes. Their buildings are light, so don't leave the base alone while you're out claiming streets.",
+        "alt": "Concept portrait of the Veracruzanos faction",
+        "unitName": "Assault Trajinera",
+        "unitBody": "An amphibious unit for canal maps, built from Xochimilco's flower boats. It arrives by water, colorful awning and all."
+      }
+    ],
+    "note": "Fictional factions with game strategies, not portraits of real people. No Regio was harmed in the making of this page (okay, maybe one, but he already asked for a refund).",
+    "unitLabel": "Unique unit · in development",
+    "unitAltPrefix": "Concept art of the unique unit"
+  },
+  "modes": {
+    "eyebrow": "04 · What you can play today",
+    "title": "Five ways<br>to <span>start a fight.</span>",
+    "intro": "All of this ships in the free browser and macOS builds. No invite, no waitlist, no cover charge.",
+    "list": [
+      {
+        "tag": "Skirmish",
+        "title": "You vs. the AI",
+        "body": "Five maps and three difficulty levels, from an AI that's still learning to one that reads your every move.",
+        "icon": "prop-barrier"
+      },
+      {
+        "tag": "Campaign",
+        "title": "Three chapters",
+        "body": "From Copilco to Narvarte, then on to the battle for La Roma. Your progress saves on your device.",
+        "icon": "prop-metro"
+      },
+      {
+        "tag": "Wonder",
+        "title": "A monumental build",
+        "body": "Build it in the Godín Age and defend it for 90 seconds. Like any construction project in Mexico City, the hard part is not getting shut down.",
+        "icon": "prop-kiosk"
+      },
+      {
+        "tag": "2 v 2",
+        "title": "With an AI ally",
+        "body": "You and an AI with its own economy against two more. Like a group project, except your partner actually pulls their weight.",
+        "icon": "prop-couple"
+      },
+      {
+        "tag": "Private room",
+        "title": "Online with a friend",
+        "body": "Create a room, share the code and play whoever you like. Any friendship that survives is the real thing.",
+        "icon": "prop-phone"
+      }
+    ]
+  },
+  "city": {
+    "eyebrow": "05 · Welcome to the city where everything is 40 minutes away",
+    "title": "Mexico City is the<br><span>battlefield.</span>",
+    "intro": "Streets, neighborhoods and roundabouts you'll recognize, or at least remember from somebody's travel reel.",
+    "playableTitle": "Playable today",
+    "playable": [
+      {
+        "name": "La Roma · three sizes",
+        "body": "The Cibeles roundabout, contested since before the first specialty café opened."
+      },
+      {
+        "name": "Narvarte",
+        "body": "Neat grid blocks, wide avenues and nobody who knows where to park."
+      },
+      {
+        "name": "Copilco",
+        "body": "Next door to the main campus. The campaign starts here (so does the insomnia)."
+      }
+    ],
+    "visionTitle": "Coming soon (or so says the render)",
+    "vision": [
+      {
+        "img": "lm-bellas",
+        "name": "Historic Center",
+        "body": "Marble, domes and four centuries of protest marches. Even the pigeons have a backstory."
+      },
+      {
+        "img": "lm-cu",
+        "name": "Ciudad Universitaria",
+        "body": "The main campus. The research never ends. Neither does the semester."
+      },
+      {
+        "img": "lm-chapultepec",
+        "name": "Chapultepec",
+        "body": "A castle on a hill: the high ground every general (and every influencer) wants."
+      },
+      {
+        "img": "lm-coyoacan",
+        "name": "Coyoacán",
+        "body": "The revolution will be artisanal. Barter and unsolicited opinions accepted."
+      },
+      {
+        "img": "lm-xochimilco",
+        "name": "Xochimilco",
+        "body": "Battles on flower boats. Mariachis count as reinforcements."
+      },
+      {
+        "img": "lm-santafe",
+        "name": "Santa Fe",
+        "body": "Corporate reinforcements. Estimated arrival: after rush hour."
+      }
+    ],
+    "caption": "City and landmark images are concept art. Today you can play La Roma, Narvarte and Copilco.",
+    "battlefieldAlt": "Concept art: the Roma Norte battlefield around the Cibeles roundabout",
+    "battlefieldCaption": "How we picture La Roma: avenues, rooftops, taco stands and Cibeles at the center."
+  },
+  "poster": {
+    "eyebrow": "Urgent notice from the neighborhood assembly",
+    "title": "La Roma won't<br><em>conquer itself.</em>",
+    "body": "It's free and it runs in your browser. No more excuses: not even traffic can stop you here.",
+    "top": "Back to top"
+  },
+  "faq": {
+    "eyebrow": "06 · Questions your aunt would ask in the family group chat",
+    "title": "Before it kicks off.",
+    "items": [
+      {
+        "q": "Is it a real strategy game?",
+        "a": "Yes. Economy, construction, four ages, combat and territory control, all in real time. If you love classic RTS games, you'll feel right at home (no co-signer required)."
+      },
+      {
+        "q": "How much does it cost?",
+        "a": "Nothing. It's free in your browser and on macOS. The only fees are the building maintenance dues, and those aren't ours."
+      },
+      {
+        "q": "Do I need to know Mexico City to get it?",
+        "a": "No. The rules and objectives explain themselves; the references are a bonus. Miss a joke and you can still win the match."
+      },
+      {
+        "q": "What language is the game in?",
+        "a": "The game interface is currently in English, with Spanish names for factions, ages and resources. A full Spanish version is on the way."
+      },
+      {
+        "q": "How do I play online with someone?",
+        "a": "From the menu, create a private room and share the code with whoever you want to challenge. It's one on one, and you don't need anyone's invitation."
+      },
+      {
+        "q": "Does it work on Windows or my phone?",
+        "a": "The browser version runs on Windows, Linux and Mac computers, and there's also a macOS download. It has touch controls, but we can't vouch for phones yet: a bigger screen is better."
+      },
+      {
+        "q": "Is my progress saved?",
+        "a": "Yes, on your device, with no accounts or cloud. Clear your browser data and your progress goes with it; to move a match elsewhere, export it from Settings."
+      },
+      {
+        "q": "Is the Cibeles roundabout really in it?",
+        "a": "Yes: it's the heart of the La Roma map and the spot everyone wants to control. Of course the fight happens there."
+      }
+    ],
+    "tiaAlt": "A neighborhood auntie with her shopping bag, ready with questions"
+  },
+  "footer": {
+    "tagline": "Made with love for Mexico City and a reasonable suspicion of cafés that describe their water.",
+    "play": "Play on itch.io",
+    "mac": "Download for macOS",
+    "disclaimer": "An independent work of fiction and satire. The neighborhoods, institutions and cultures shown inspire an imaginary world; the jokes target situations and habits, never anyone's dignity. The cover, factions, unique units, city and landmarks are concept art; the ages and gameplay section show real in-game captures.",
+    "font": "Set in Anton, licensed under the SIL Open Font License."
+  }
+}
