@@ -281,7 +281,7 @@ static func _validate_state(s: Dictionary, content: Dictionary, hash: String) ->
 		if not s.get("mission_id") is String or not s.get("mission_hash") is String or not s.get("mission_steps") is Array or s.get("mission_result") not in ["", "win", "loss"]:
 			return _bad("state_mission_invalid")
 		var mission := CampaignMissions.find_mission(s.mission_id)
-		if not mission.ok or mission.data.map_id != content.map_id or mission.hash != s.mission_hash or s.mission_steps.size() > mission.data.steps.size():
+		if not mission.ok or content.map_id not in Skirmish.MAP_IDS or mission.hash != s.mission_hash or s.mission_steps.size() > mission.data.steps.size():
 			return _bad("state_mission_invalid")
 		for i in s.mission_steps.size():
 			if s.mission_steps[i] != mission.data.steps[i].id:

@@ -18,6 +18,7 @@ signal new_match_requested
 const HudSkin = preload("res://ui/hud_skin.gd")
 const CommandButton = preload("res://ui/command_button.gd")
 const MinimapPanel = preload("res://ui/minimap_panel.gd")
+const RESOURCE_TINTS := {"comida": Color("9bdc89"), "materiales": Color("d1d8e0"), "varos": Color("ffd06f"), "terrenos": Color("c8a4ee")}
 const ACTIONS := {
 	"group_select": {"name": "GROUP +", "key": "", "description": "Tap more units to add or remove them, then finish the group."},
 	"move": {"name": "MOVE", "key": "M", "description": "Choose clear ground for this unit."},
@@ -43,6 +44,7 @@ const ACTIONS := {
 var top: Panel
 var bottom: Panel
 var objective_panel: Panel
+var objective_wonder := false
 var objective_button: Button
 var objective_body: VBoxContainer
 var objective_title: Label
@@ -66,13 +68,17 @@ var export_save_button: Button
 var import_save_button: Button
 var close_diagnostics: Button
 var gold_label: Label
-var resource_row: HBoxContainer
+var resource_row: GridContainer
 var top_actions: HBoxContainer
 var top_divider: VSeparator
 var resource_labels: Dictionary = {}
 var age_label: Label
 var population_label: Label
 var faction_label: Label
+var faction_badge: VBoxContainer
+var faction_icon: TextureRect
+var age_badge: VBoxContainer
+var age_icon: TextureRect
 var timer_label: Label
 var pause_button: Button
 var restart_button: Button
@@ -139,9 +145,9 @@ func _resize_for_viewport() -> void:
 	_layout()
 
 func _desired_scale(view: Vector2) -> float:
-	# The former 200% presentation is the readable desktop baseline. Small
-	# viewports retain a usable compact mode with the same saved preference.
-	return user_scale * clampf(view.x / 680.0, 1.0, 2.0)
+	# Fit type to both viewport dimensions so short desktop windows retain the
+	# commands and selection details at the player's 100% preference.
+	return user_scale * clampf(minf(view.x / 850.0, view.y / 700.0), 1.0, 1.55)
 
 func _refresh_text_scale() -> void:
 	var boost := _desired_scale(get_viewport().get_visible_rect().size) / scale.x
@@ -186,27 +192,78 @@ func _button(parent: Node, value: String) -> Button:
 	parent.add_child(b)
 	return b
 
+func _icon_button(parent: Node, glyph: String, caption: String) -> Button:
+	var b := CommandButton.new()
+	b.glyph = glyph
+	b.caption = caption
+	b.custom_minimum_size = Vector2(68, 56)
+	parent.add_child(b)
+	return b
+
+func set_play_state(is_paused: bool) -> void:
+	(pause_button as CommandButton).glyph = "play" if is_paused else "pause"
+	(pause_button as CommandButton).caption = "PLAY" if is_paused else "PAUSE"
+
+func set_menu_alert(alert: bool) -> void:
+	(menu_button as CommandButton).caption = "MENU !" if alert else "MENU"
+
+func set_objective_caption(wonder: bool) -> void:
+	objective_wonder = wonder
+	(objective_button as CommandButton).caption = "WONDER" if wonder else "GOALS" if size.x < 1200 else "OBJECTIVES"
+
 func _build() -> void:
 	top = _panel(self, 5, true)
 	var top_row := HBoxContainer.new()
 	top_row.name = "TopRow"
 	top_row.add_theme_constant_override("separation", 12)
 	top.add_child(top_row)
-	faction_label = _label(top_row, "LA ROMA", 16, HudSkin.GOLD)
-	faction_label.custom_minimum_size.x = 160
-	resource_row = HBoxContainer.new()
-	resource_row.add_theme_constant_override("separation", 10)
+	faction_badge = VBoxContainer.new()
+	faction_badge.add_theme_constant_override("separation", 0)
+	top_row.add_child(faction_badge)
+	faction_icon = TextureRect.new()
+	faction_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	faction_icon.custom_minimum_size = Vector2(38, 32)
+	faction_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	faction_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	faction_badge.add_child(faction_icon)
+	faction_label = _label(faction_badge, "YOU · LA ROMA", 13, HudSkin.GOLD)
+	faction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	resource_row = GridContainer.new()
+	resource_row.columns = 4
+	resource_row.add_theme_constant_override("h_separation", 10)
+	resource_row.add_theme_constant_override("v_separation", 2)
 	top_row.add_child(resource_row)
 	top_actions = HBoxContainer.new()
 	top_actions.add_theme_constant_override("separation", 6)
 	top.add_child(top_actions)
 	top_actions.hide()
 	for id in ["comida", "materiales", "varos", "terrenos"]:
-		var label := _label(resource_row, "%s 0" % id.substr(0, 1).to_upper(), 18, HudSkin.GOLD)
+		var badge := HBoxContainer.new()
+		badge.add_theme_constant_override("separation", 3)
+		resource_row.add_child(badge)
+		var icon := TextureRect.new()
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.texture = load("res://assets/render/cdmx/prop_cdmx_resource_%s.png" % id)
+		icon.modulate = RESOURCE_TINTS[id]
+		icon.custom_minimum_size = Vector2(28, 28)
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		badge.add_child(icon)
+		var label := _label(badge, "%s 0" % id.capitalize(), 16, RESOURCE_TINTS[id])
 		label.tooltip_text = "%s in stockpile" % id.capitalize()
 		resource_labels[id] = label
 	gold_label = resource_labels["varos"]
-	age_label = _label(top_row, "FORÁNEA", 18, HudSkin.GOLD)
+	age_badge = VBoxContainer.new()
+	age_badge.add_theme_constant_override("separation", 0)
+	top_row.add_child(age_badge)
+	age_icon = TextureRect.new()
+	age_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	age_icon.custom_minimum_size = Vector2(38, 32)
+	age_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	age_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	age_badge.add_child(age_icon)
+	age_label = _label(age_badge, "AGE · FORÁNEA", 13, HudSkin.GOLD)
+	age_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	population_label = _label(top_row, "0/0", 18, HudSkin.TEXT)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -216,13 +273,13 @@ func _build() -> void:
 	top_row.add_child(top_divider)
 	timer_label = _label(top_row, "00:00", 18)
 	timer_label.custom_minimum_size.x = 58
-	pause_button = _button(top_row, "II")
+	pause_button = _icon_button(top_row, "pause", "PAUSE")
 	pause_button.tooltip_text = "Pause / resume • Space"
 	pause_button.pressed.connect(func() -> void: pause_requested.emit())
-	restart_button = _button(top_row, "RESET")
+	restart_button = _icon_button(top_row, "reset", "RESET")
 	restart_button.tooltip_text = "Start a fresh match as the same faction • R opens faction choice"
 	restart_button.pressed.connect(func() -> void: restart_scrim.show())
-	menu_button = _button(top_row, "MENU")
+	menu_button = _icon_button(top_row, "menu", "MENU")
 	menu_button.tooltip_text = "Settings and return to the main menu"
 	menu_button.pressed.connect(func() -> void: menu_requested.emit())
 
@@ -315,7 +372,8 @@ func _build() -> void:
 	var objectives := VBoxContainer.new()
 	objectives.add_theme_constant_override("separation", 4)
 	objective_panel.add_child(objectives)
-	objective_button = _button(objectives, "OBJECTIVES v")
+	objective_button = _icon_button(objectives, "objective", "OBJECTIVES")
+	objective_button.tooltip_text = "Show or hide match objectives"
 	objective_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	objective_button.pressed.connect(func() -> void:
 		objective_body.visible = not objective_body.visible
@@ -470,7 +528,7 @@ func _layout() -> void:
 	var compact_top := w < 1750 or text_scale > 1.6
 	var tight_landscape := w >= 620 and w < 1000 and h < 500
 	var margin := 8.0 if stacked else 12.0
-	var top_h := 136.0 if narrow_top else (maxf(100.0, 38.0 * text_scale + 24.0) if compact_top else 72.0)
+	var top_h := 232.0 if narrow_top else (maxf(100.0, 38.0 * text_scale + 24.0) if compact_top else 84.0)
 	if tight_landscape:
 		top_h = 82.0
 	top.position = Vector2(margin, margin)
@@ -489,26 +547,27 @@ func _layout() -> void:
 			control.reparent(top_row)
 	top_actions.visible = narrow_top
 	top_divider.visible = not narrow_top
-	top_actions.position = Vector2(6, 49)
-	top_actions.size = Vector2(top.size.x - 12, 46)
+	top_actions.position = Vector2(6, 65 if narrow_top else 49)
+	top_actions.size = Vector2(top.size.x - 12, 64 if narrow_top else 46)
 	top_row.position = Vector2(10, 6)
 	top_row.size = Vector2(top.size.x - 20, 50.0 if compact_top else 58.0)
 	top_row.add_theme_constant_override("separation", 4 if narrow_top else (18 if compact_top else 9))
-	resource_row.position = Vector2(10, 100 if narrow_top else 53) if compact_top else Vector2.ZERO
-	resource_row.size = Vector2(top.size.x - 20, top_h - (105 if narrow_top else 58)) if compact_top else Vector2.ZERO
-	resource_row.add_theme_constant_override("separation", 3 if narrow_top else (12 if compact_top else 10))
-	faction_label.custom_minimum_size.x = 95 if narrow_top else (190 if compact_top else 145)
+	resource_row.columns = 2 if narrow_top else 4
+	resource_row.position = Vector2(10, 139 if narrow_top else 53) if compact_top else Vector2.ZERO
+	resource_row.size = Vector2(top.size.x - 20, 86 if narrow_top else top_h - 58) if compact_top else Vector2.ZERO
+	resource_row.add_theme_constant_override("h_separation", 3 if narrow_top else (12 if compact_top else 10))
+	faction_badge.custom_minimum_size.x = 120 if narrow_top else (160 if compact_top else 130)
 	faction_label.clip_text = true
-	faction_label.add_theme_font_size_override("font_size", 18)
+	faction_label.add_theme_font_size_override("font_size", 13)
 	for id in resource_labels:
 		(resource_labels[id] as Label).add_theme_font_size_override("font_size", 16 if narrow_top else 18)
-	age_label.add_theme_font_size_override("font_size", 18)
-	age_label.custom_minimum_size.x = 0 if narrow_top else (175 if compact_top else 0)
+	age_label.add_theme_font_size_override("font_size", 13)
+	age_badge.custom_minimum_size.x = 125 if narrow_top else (165 if compact_top else 130)
 	population_label.add_theme_font_size_override("font_size", 18)
 	timer_label.add_theme_font_size_override("font_size", 18)
 	timer_label.custom_minimum_size.x = 58
 	var selection_h := maxf(88.0, 53.0 * text_scale)
-	var bottom_h := selection_h + 170.0 if stacked else clampf(135.0 * text_scale, 235.0, minf(390.0, h * 0.4))
+	var bottom_h := selection_h + 170.0 if stacked else clampf(maxf(275.0, h * 0.33), 235.0, minf(350.0, h * 0.42))
 	if tight_landscape:
 		selection_h = 48.0
 		bottom_h = 150.0
@@ -583,9 +642,9 @@ func _layout() -> void:
 		objective_body.hide()
 		objective_panel.set_meta("initially_collapsed", true)
 	objective_panel.size = Vector2(minf(560.0, w - map_w - 3.0 * margin - 12.0) if not stacked else minf(300.0, w - map_w - 3.0 * margin - 12.0),
-		clampf(120.0 * text_scale + 20.0, 190.0, minf(365.0, h * 0.5)) if objective_body.visible else maxf(44.0, 28.0 * text_scale))
+		clampf(120.0 * text_scale + 20.0, 190.0, minf(365.0, h * 0.5)) if objective_body.visible else 74.0)
 	objective_panel.clip_contents = false
-	objective_button.text = ("GOALS " if stacked else "OBJECTIVES ") + ("v" if objective_body.visible else ">")
+	set_objective_caption(objective_wonder)
 	var objective_content: VBoxContainer = objective_panel.get_child(0)
 	objective_content.position = Vector2(6, 5)
 	objective_content.size = objective_panel.size - Vector2(12, 10)
@@ -668,8 +727,9 @@ func _layout_selection(stacked: bool) -> void:
 	selection_details.clip_text = stacked
 	selection_details.visible = not (size.x >= 620 and size.x < 1000 and size.y < 500)
 	selection_stats.position = Vector2(8, selection_details.position.y + selection_details.size.y + 6.0)
-	selection_stats.size = Vector2(s.x - 16, maxf(68.0, 24.0 * text_scale))
+	selection_stats.size = Vector2(s.x - 16, maxf(0.0, s.y - selection_stats.position.y - 7.0))
 	selection_stats.visible = not stacked
+	selection_stats.clip_text = true
 	compact_details.visible = false
 
 func _layout_commands(stacked: bool) -> void:
@@ -685,6 +745,7 @@ func _layout_commands(stacked: bool) -> void:
 	command_scroll.position = Vector2(5, heading_h + 5.0)
 	command_scroll.size = Vector2(s.x - 10, s.y - command_scroll.position.y - (2.0 if stacked else 39.0))
 	command_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO if stacked else ScrollContainer.SCROLL_MODE_DISABLED
+	command_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED if stacked else ScrollContainer.SCROLL_MODE_AUTO
 	command_help.position = Vector2(5, s.y - 37)
 	command_help.size = Vector2(s.x - 10, 34)
 	command_help.visible = not stacked
@@ -714,7 +775,7 @@ func set_economy(stockpiles: Dictionary, age_name: String, population: int, capa
 		var label: Label = resource_labels[id]
 		label.text = "%s %d" % [id.capitalize(), int(stockpiles.get(id, 0))]
 		label.tooltip_text = "%s: %d in stockpile. %s" % [id.capitalize(), int(stockpiles.get(id, 0)), str(source_notes.get(id, ""))]
-	age_label.text = age_name.to_upper()
+	age_label.text = "AGE · " + age_name.to_upper()
 	age_label.tooltip_text = "Current age: " + age_name
 	population_label.text = "%d/%d" % [population, capacity]
 	population_label.tooltip_text = "Population used / capacity: %d / %d" % [population, capacity]
@@ -745,7 +806,7 @@ func _choose_entry(id: String) -> void:
 func reflow_commands() -> void:
 	var stacked := size.x < 1200 or size.y < 720 or (_desired_scale(size) > 2.2 and size.x < 1750)
 	var item_w := 112.0 if stacked else minf(128.0, (command_scroll.size.x - 20.0) / 4.0)
-	var item_h := (72.0 if size.x < 620 else (44.0 if size.x < 1000 and size.y < 500 else 82.0)) if stacked else 94.0
+	var item_h := (72.0 if size.x < 620 else (44.0 if size.x < 1000 and size.y < 500 else 82.0)) if stacked else 64.0
 	var i := 0
 	for action in ACTIONS:
 		var b: Button = command_buttons[action]
@@ -756,6 +817,8 @@ func reflow_commands() -> void:
 		b.size = Vector2(item_w, item_h)
 		i += 1
 	command_strip.custom_minimum_size = Vector2(maxf(command_scroll.size.x, float(i) * (item_w + 6)) if stacked else command_scroll.size.x, item_h if stacked else maxf(item_h, float(ceili(float(i) / 4.0)) * (item_h + 6)))
+	var heading: Label = command_panel.get_node("Heading")
+	heading.text = "COMMANDS  •  SCROLL RIGHT" if stacked else "COMMANDS  •  SCROLL DOWN" if command_strip.custom_minimum_size.y > command_scroll.size.y else "COMMANDS"
 	command_empty.visible = i == 0
 
 func set_selection(portrait: Texture2D, title: String, faction: String, hp: int, max_hp: int, activity: String, stats: String) -> void:

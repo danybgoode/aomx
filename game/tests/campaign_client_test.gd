@@ -18,7 +18,7 @@ func _run() -> void:
 	client.campaign_progress_path = progress_path
 	root.add_child(client)
 	client._choose_mode(1)
-	check(client.campaign_mode and client.setup_mission.visible and client.setup_map.disabled, "campaign has its own setup")
+	check(client.campaign_mode and client.setup_mission.visible and not client.setup_map.disabled, "campaign exposes all map sizes")
 	check("available" in client.setup_mission.get_item_text(0) and "locked" in client.setup_mission.get_item_text(1), "chapter shows locks")
 	client._choose_mission(1)
 	check("Locked" in client.setup_campaign_note.text, "mission explains prerequisite")
