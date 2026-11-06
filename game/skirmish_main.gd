@@ -35,6 +35,7 @@ const MAP_NAMES := {"la_roma": "La Roma Small", "narvarte": "Narvarte Small", "c
 
 var sim: Skirmish = Skirmish.new()
 var art = ArtCatalog.new()
+var faction_portraits: Dictionary = {}
 var outbox = FunnelOutbox.new()
 var choosing_faction := true
 var setup_background: TextureRect
@@ -62,6 +63,7 @@ var setup_objective_label: Label
 var campaign_mode := false
 var team_mode := false
 var selected_mission := "arrival_copilco"
+var selected_source_tile := Vector2i(-1, -1)
 var campaign_progress_path := CampaignProgress.PATH
 var campaign_flag_path := CampaignFlagCache.PATH
 var campaign_flag: Dictionary = {"enabled": false, "served": false}
@@ -440,7 +442,7 @@ func _toggle_pause() -> void:
 			hud_ui.show_notice("A shared match keeps running for both players.")
 		return
 	paused = not paused
-	hud_ui.pause_button.text = ">" if paused else "II"
+	hud_ui.set_play_state(paused)
 	hud_ui.show_notice("Paused" if paused else "Resumed")
 
 func _restart_match() -> void:
@@ -504,11 +506,9 @@ func _starting_camera_tile() -> Vector2i:
 	if sim.map_id in ["la_roma_medium", "la_roma_large"]:
 		var worker: Array = sim.content.map.workers[Skirmish.HUMAN]
 		return Vector2i(int(worker[0]), int(worker[1]))
-	var view := get_viewport().get_visible_rect().size
-	if view.x >= 620.0 and view.x < 1000.0 and view.y < 500.0:
-		var home_post: int = sim._find(Skirmish.HUMAN, "command_post")
-		if home_post != -1:
-			return sim.entities[home_post].pos
+	var home_post: int = sim._find(Skirmish.HUMAN, "command_post")
+	if home_post != -1:
+		return sim.entities[home_post].pos
 	return Vector2i(7, 7)
 
 func _build_faction_setup(layer: CanvasLayer) -> void:
@@ -899,7 +899,7 @@ func _layout_setup() -> void:
 	if campaign_mode:
 		var selected := CampaignMissions.find_mission(selected_mission)
 		if selected.ok:
-			setup_goal.text = selected.data.description
+			setup_goal.text = _campaign_description(selected.data)
 	elif team_mode:
 		setup_goal.text = "2 v 2 Conquest: destroy both opposing command posts. Your AI ally has its own economy."
 	elif selected_objective == "conquest":
@@ -1013,9 +1013,15 @@ func _choose_faction(faction: String) -> void:
 	_start_match(faction)
 
 func _choose_mode(index: int) -> void:
+	var entering_campaign := index == 1 and not campaign_mode
 	campaign_mode = index == 1 and _campaign_allowed()
 	team_mode = index == 2
 	setup_mode.select(1 if campaign_mode else 2 if team_mode else 0)
+	if entering_campaign and campaign_mode:
+		var chapter := CampaignMissions.find_mission(selected_mission)
+		if chapter.ok:
+			selected_map = chapter.data.map_id
+			setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	if team_mode:
 		selected_map = "la_roma_large"
 		setup_map.select(Skirmish.MAP_IDS.find(selected_map))
@@ -1039,6 +1045,10 @@ func _choose_mission(index: int) -> void:
 	if index < 0 or index >= CampaignMissions.MISSION_IDS.size():
 		return
 	selected_mission = CampaignMissions.MISSION_IDS[index]
+	var chapter := CampaignMissions.find_mission(selected_mission)
+	if chapter.ok:
+		selected_map = chapter.data.map_id
+		setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_refresh_campaign_setup()
 
 func _refresh_campaign_setup() -> void:
@@ -1050,7 +1060,7 @@ func _refresh_campaign_setup() -> void:
 	if campaign_mode and not _campaign_allowed():
 		campaign_mode = false
 		setup_mode.select(0)
-	setup_map.disabled = campaign_mode or team_mode
+	setup_map.disabled = team_mode
 	setup_objective_label.visible = not campaign_mode and not team_mode
 	setup_objective.visible = not campaign_mode and not team_mode
 	setup_mission.visible = campaign_mode
@@ -1074,11 +1084,15 @@ func _refresh_campaign_setup() -> void:
 	if not selected.ok:
 		setup_campaign_note.text = "Mission content unavailable."
 		return
-	selected_map = selected.data.map_id
+	if selected_map not in Skirmish.MAP_IDS:
+		selected_map = selected.data.map_id
 	setup_map.select(Skirmish.MAP_IDS.find(selected_map))
 	_choose_map(Skirmish.MAP_IDS.find(selected_map))
-	setup_goal.text = selected.data.description
+	setup_goal.text = _campaign_description(selected.data)
 	setup_campaign_note.text = "Available now." if CampaignProgress.available(selected_mission, progress.completed) else "Locked: finish %s first." % selected.data.prerequisite.replace("_", " ").capitalize()
+
+func _campaign_description(mission: Dictionary) -> String:
+	return str(mission.description).replace("La Roma Large", MAP_NAMES[selected_map])
 
 func _choose_map(index: int) -> void:
 	if index >= 0 and index < Skirmish.MAP_IDS.size():
@@ -1267,7 +1281,7 @@ func _resume_match() -> void:
 		hud_ui._layout()
 	instructions.text = "Click to select · Right-click to order · B choose building · HQ age up · Registry research · 1/2/3 recruit · Esc cancel · +/- zoom · G fullscreen · R factions · F sync"
 	paused = false
-	hud_ui.pause_button.text = "II"
+	hud_ui.set_play_state(false)
 	hud_ui.diagnostics.hide()
 	accumulator = 0.0
 	selected_id = -1
@@ -1555,7 +1569,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	sim = Skirmish.new(faction, {}, map_seed, level, selected_map, selected_opponent, selected_mission if campaign_mode else "", "la_roma" if campaign_mode else selected_objective, team_mode)
 	outbox.content_version = sim.content.content_id
 	paused = false
-	hud_ui.pause_button.text = "II"
+	hud_ui.set_play_state(false)
 	hud_ui.diagnostics.hide()
 	outbox.faction = faction
 	choosing_faction = false
@@ -1568,6 +1582,7 @@ func _start_match(faction: String, difficulty: String = "") -> void:
 	completion_queued = false
 	selected_id = -1
 	selected_ids.clear()
+	selected_source_tile = Vector2i(-1, -1)
 	last_group_signature = ""
 	last_ui_signature = ""
 	hovered_entity_id = -1
@@ -1831,6 +1846,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if target_mode != "" and selected_id != -1:
 				_complete_target_order(event.position, tile)
 			else:
+				var clicked_source := _source_site_at(event.position, tile)
 				var id: int = _pick_visual_entity(event.position, Skirmish.HUMAN)
 				if id == -1:
 					id = sim.entity_at(tile)
@@ -1845,6 +1861,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif not event.shift_pressed:
 					selected_ids.clear()
 				selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
+				selected_source_tile = clicked_source.source.pos if selected_id == -1 and not clicked_source.is_empty() else Vector2i(-1, -1)
 				target_mode = ""
 				placing = false
 				if selected_id == -1:
@@ -1950,6 +1967,7 @@ func _select_drag(rect: Rect2, additive: bool) -> void:
 		if rect.has_point(screen) and id not in ids:
 			ids.append(id)
 	selected_ids = ids
+	selected_source_tile = Vector2i(-1, -1)
 	selected_id = selected_ids[0] if not selected_ids.is_empty() else -1
 	target_mode = ""
 	placing = false
@@ -1990,7 +2008,8 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 					assigned[next_target] = true
 		if accepted > 0:
 			result = {"ok": true, "reason": "group_order"}
-	var message := "Order sent; awaiting host." if online and result.ok else "%d units ordered." % accepted if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result)
+	var group_message := "%d workers assigned to %s." % [accepted, sim._resource_at(Skirmish.HUMAN, target).capitalize()] if kind == "gather" and target is Vector2i else "%d units ordered." % accepted
+	var message := "Order sent; awaiting host." if online and result.ok else group_message if selected_ids.size() > 1 and accepted > 0 else _order_message(kind, target, result)
 	_flash_order(tile, message, result.ok, online and result.ok)
 	if result.ok and not online:
 		cue_serial += 1
@@ -1998,16 +2017,20 @@ func _issue_order(kind: String, target: Variant, tile: Vector2i) -> Dictionary:
 	return result
 
 func _group_move_target(actor_id: int, requested: Vector2i, assigned: Dictionary) -> Vector2i:
-	if not sim.entities.has(actor_id) or not sim._walkable(requested):
+	if not sim.entities.has(actor_id):
+		return requested
+	if requested.x < 0 or requested.y < 0 or requested.x >= sim.map_width or requested.y >= sim.map_height:
 		return requested
 	var actor: Dictionary = sim.entities[actor_id]
-	for radius in range(0, maxi(3, selected_ids.size()) + 1):
+	for radius in range(0, maxi(5, selected_ids.size()) + 1):
 		for dy in range(-radius, radius + 1):
 			for dx in range(-radius, radius + 1):
 				if absi(dx) + absi(dy) != radius:
 					continue
 				var candidate := requested + Vector2i(dx, dy)
 				if assigned.has(candidate) or not sim._walkable(candidate):
+					continue
+				if sim.is_explored(Skirmish.HUMAN, requested) and not sim.is_explored(Skirmish.HUMAN, candidate):
 					continue
 				if candidate == actor.pos and candidate != requested:
 					continue
@@ -2023,7 +2046,9 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 	if result.ok:
 		match kind:
 			"move": return "Moving here."
-			"gather": return "Gathering resource."
+			"gather":
+				var resource_id := sim._resource_at(Skirmish.HUMAN, target) if target is Vector2i else ""
+				return ("Delivering cargo, then gathering %s." if str(result.get("reason")) == "delivering_then_gathering" else "Gathering %s.") % resource_id.capitalize()
 			"plant": return "Planting a food field."
 			"build": return "Building %s." % str(target.kind).replace("_", " ")
 			"repair": return "Repairing building."
@@ -2043,6 +2068,8 @@ func _order_message(kind: String, target: Variant, result: Dictionary) -> String
 		"field_already_active": return "This field is still growing or has food."
 		"field_unreachable": return "The worker cannot reach this field."
 		"resource_not_discovered": return "Explore this resource site before gathering."
+		"resource_depleted": return "This resource site is depleted. Check its refresh status."
+		"dropoff_unreachable": return "No reachable drop-off for current cargo."
 		"blocked_or_invalid_tile": return "Cannot move onto this tile."
 		"unreachable_tile", "building_unreachable", "target_unreachable", "resource_unreachable": return "No route to target."
 		"building_incomplete": return "Wait for construction to finish."
@@ -2432,7 +2459,9 @@ func _update_hud() -> void:
 		selected_ids.clear()
 	var seconds := floori(float(sim.tick_number) / 10.0)
 	ui.timer_label.text = "%02d:%02d" % [seconds / 60, seconds % 60]
-	ui.faction_label.text = FACTION_NAMES[sim.factions[Skirmish.HUMAN]].to_upper()
+	ui.faction_label.text = "YOU · " + FACTION_NAMES[sim.factions[Skirmish.HUMAN]].to_upper()
+	ui.faction_icon.texture = _faction_portrait(sim.factions[Skirmish.HUMAN])
+	ui.age_icon.texture = art.texture(["building_command_post_blue", "building_barracks_blue", "building_cdmx_registry", "building_cdmx_roma_command_post"][sim.age_index[Skirmish.HUMAN]])
 	ui.faction_label.tooltip_text = "%s · %s" % [FACTION_NAMES[sim.factions[Skirmish.HUMAN]], MAP_NAMES[sim.map_id]]
 	ui.minimap.tooltip_text = "%s map • click to center view" % MAP_NAMES[sim.map_id]
 	var stockpiles := {}
@@ -2442,9 +2471,8 @@ func _update_hud() -> void:
 		var source: Dictionary = _source(resource_id)
 		source_notes[resource_id] = "%d at source; %d refreshes left" % [int(source.get("amount", 0)), int(source.get("refreshes_left", 0))]
 	ui.set_economy(stockpiles, _age_display(_age_id()), sim._population_used(Skirmish.HUMAN), sim._population_cap(Skirmish.HUMAN), source_notes)
+	ui.set_objective_caption(not campaign_mode and sim.objective_id == "wonder")
 	ui.objective_title.text = _district_note()
-	if not campaign_mode and sim.objective_id == "wonder":
-		ui.objective_button.text = "WONDER " + ("v" if ui.objective_body.visible else ">")
 	if campaign_mode:
 		var mission := CampaignMissions.find_mission(sim.mission_id)
 		if mission.ok:
@@ -2502,11 +2530,31 @@ func _update_hud() -> void:
 			ui.set_group(portraits)
 		else:
 			ui.set_group([])
-	if selected_id == -1:
+	if selected_source_tile.x >= 0 and not sim.is_visible(Skirmish.HUMAN, selected_source_tile):
+		selected_source_tile = Vector2i(-1, -1)
+	if selected_id == -1 and selected_source_tile.x >= 0:
+		var chosen_site := _source_site_at(Vector2(-999, -999), selected_source_tile)
+		if not chosen_site.is_empty():
+			var source: Dictionary = chosen_site.source
+			var resource_id: String = chosen_site.id
+			var is_field := bool(chosen_site.get("field", false))
+			var amount := int(source.get("amount", 0))
+			var refreshes := int(source.get("refreshes_left", 0))
+			var max_amount := int(sim.content.resources[resource_id].amount)
+			var state := "Full" if amount >= max_amount / 2 else "Half" if amount > 0 else "Refreshing" if refreshes > 0 and not is_field else "Depleted"
+			var refresh_ticks := int(source.get("refresh_remaining", 0))
+			if refresh_ticks <= 0:
+				refresh_ticks = int(sim.content.resources[resource_id].refresh_ticks)
+			var next_refresh := " • next refresh in %ds" % ceili(float(refresh_ticks) / 10.0) if amount == 0 and refreshes > 0 and not is_field else ""
+			ui.set_selection(art.texture("prop_cdmx_food_field" if is_field else "prop_cdmx_resource_" + resource_id), "%s SOURCE" % resource_id.to_upper(), "Food field" if is_field else "Resource site", 0, 0,
+				"%s • %d remaining%s" % [state, amount, next_refresh], "Replant to renew this field" if is_field else "%d refreshes left • finite site" % refreshes)
+		else:
+			selected_source_tile = Vector2i(-1, -1)
+	if selected_id == -1 and selected_source_tile.x < 0:
 		var setup_post_id := "building_cdmx_roma_command_post" if sim.map_id == "la_roma" else "building_command_post_%s" % _faction_color(Skirmish.HUMAN)
 		ui.set_selection(art.texture(setup_post_id), "NO SELECTION", FACTION_NAMES[sim.factions[Skirmish.HUMAN]], 0, 0,
 			"" if visible_view.x < 620.0 else ("Select a unit" if visible_view.y < 720.0 else "Select a unit or post"), "")
-	else:
+	elif selected_id != -1:
 		var actor: Dictionary = sim.entities[selected_id]
 		var max_hp: int = sim._starting_health(Skirmish.HUMAN, actor.kind)
 		var activity: String = actor.job.capitalize()
@@ -2551,7 +2599,7 @@ func _update_hud() -> void:
 			if item.status == "needs_attention":
 				attention = true
 	var alert := AlphaConfig.CHANNEL != "public" and (attention or sync_note.contains("could not") or sync_note.contains("unavailable") or sync_note.contains("not accepted") or (AlphaConfig.CHANNEL != "development" and invite_code.is_empty()))
-	ui.menu_button.text = "MENU!" if alert else "MENU"
+	ui.set_menu_alert(alert)
 	if alert and last_alert_state != "attention":
 		ui.show_notice("Sync needs attention • open menu", true)
 	last_alert_state = "attention" if alert else "clear"
@@ -2825,8 +2873,9 @@ func _board_view_offset() -> Vector2:
 	var view := get_viewport().get_visible_rect().size
 	if view.x >= 1000.0 and view.y >= 700.0:
 		return (view - Vector2(1280, 800)) * 0.5
+	var playable_top: float = (hud_ui.get_global_transform() * (hud_ui.top.position + Vector2(0, hud_ui.top.size.y))).y if hud_ui != null else 0.0
 	var playable_bottom: float = (hud_ui.get_global_transform() * hud_ui.bottom.position).y if hud_ui != null else view.y - 180.0
-	return Vector2(view.x * 0.5 - BOARD_CENTER.x, (playable_bottom + 55.0) * 0.5 - BOARD_CENTER.y)
+	return Vector2(view.x * 0.5 - BOARD_CENTER.x, (playable_top + playable_bottom) * 0.5 - BOARD_CENTER.y)
 
 func _screen_to_board(screen: Vector2) -> Vector2:
 	return BOARD_CENTER + (screen - BOARD_CENTER - board_pan - _board_view_offset()) / board_zoom
@@ -2895,6 +2944,14 @@ func _actor_texture(entity: Dictionary) -> Texture2D:
 		return art.texture(id)
 	return art.texture("building_barracks_" + _faction_color(entity.side))
 
+func _faction_portrait(faction: String) -> Texture2D:
+	if not faction_portraits.has(faction):
+		var portrait := AtlasTexture.new()
+		portrait.atlas = load("res://assets/ui/faction-%s.webp" % faction)
+		portrait.region = Rect2(15, 0, 155, 145)
+		faction_portraits[faction] = portrait
+	return faction_portraits[faction]
+
 func _pick_visual_entity(screen: Vector2, side: int) -> int:
 	var board := _screen_to_board(screen)
 	var ids := _sorted_entity_ids()
@@ -2944,7 +3001,7 @@ func _pick_visual_site(screen: Vector2) -> Dictionary:
 	var board := _screen_to_board(screen)
 	for site in _pickable_source_sites():
 		var source: Dictionary = site.source
-		if int(source.get("amount", 0)) <= 0 or not sim.is_visible(Skirmish.HUMAN, source.pos):
+		if not sim.is_visible(Skirmish.HUMAN, source.pos):
 			continue
 		var art_id := "prop_cdmx_food_field" if site.get("field", false) else "prop_cdmx_resource_" + str(site.id)
 		var rect := Rect2(_tile_to_screen(source.pos) - art.pivot(art_id), art.texture(art_id).get_size())
@@ -2961,7 +3018,7 @@ func _source_site_at(screen: Vector2, tile: Vector2i) -> Dictionary:
 		return site
 	for candidate in _pickable_source_sites():
 		var source: Dictionary = candidate.source
-		if source.get("pos", Vector2i(-1, -1)) == tile and int(source.get("amount", 0)) > 0 and sim.is_visible(Skirmish.HUMAN, tile):
+		if source.get("pos", Vector2i(-1, -1)) == tile and sim.is_visible(Skirmish.HUMAN, tile):
 			return candidate
 	return {}
 
@@ -3056,6 +3113,14 @@ func _draw_sprite_outline(art_id: String, rect: Rect2, color: Color) -> void:
 	for offset in [Vector2(-2, 0), Vector2(2, 0), Vector2(0, -2), Vector2(0, 2)]:
 		draw_texture_rect(texture, Rect2(rect.position + offset, rect.size), false, color)
 
+func _draw_resource_backplate(ground: Vector2, id: String, tint: Color) -> void:
+	var center := ground + Vector2(0, -5)
+	match id:
+		"comida": draw_circle(center, 17, tint)
+		"materiales": draw_rect(Rect2(center - Vector2(15, 11), Vector2(30, 22)), tint)
+		"varos": draw_colored_polygon(PackedVector2Array([center + Vector2(0, -18), center + Vector2(18, 0), center + Vector2(0, 18), center + Vector2(-18, 0)]), tint)
+		"terrenos": draw_colored_polygon(PackedVector2Array([center + Vector2(0, -19), center + Vector2(18, 14), center + Vector2(-18, 14)]), tint)
+
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, get_viewport_rect().size), Color("17212a"))
 	draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset(), 0.0, Vector2.ONE * board_zoom)
@@ -3105,17 +3170,30 @@ func _draw() -> void:
 		for site in _source_sites(side):
 			var resource_id: String = site.id
 			var source: Dictionary = site.source
-			if source.is_empty() or not sim.is_visible(Skirmish.HUMAN, source.pos):
+			if source.is_empty() or not sim.is_explored(Skirmish.HUMAN, source.pos):
 				continue
 			var ground := _tile_to_screen(source.pos)
 			if not visible_board.grow(48).has_point(ground):
 				continue
-			var active := int(source.get("amount", 0)) > 0
+			var visible := sim.is_visible(Skirmish.HUMAN, source.pos)
+			var amount := int(source.get("amount", 0))
+			var capacity := int(sim.content.resources[resource_id].amount)
+			var state := 2 if amount >= capacity / 2 else 1 if amount > 0 else 0
 			var art_id := "prop_cdmx_food_field" if site.get("field", false) else "prop_cdmx_resource_" + resource_id
 			var art_rect := Rect2(ground - art.pivot(art_id), art.texture(art_id).get_size())
-			if resource_id == hovered_source_id and side == Skirmish.HUMAN:
+			var resource_tint: Color = RESOURCE_COLORS[resource_id]
+			if visible:
+				_draw_resource_backplate(ground, resource_id, Color(resource_tint, 0.32))
+			if visible and (resource_id == hovered_source_id or source.pos == selected_source_tile):
 				_draw_sprite_outline(art_id, art_rect, Color("ffe391"))
-			draw_texture(art.texture(art_id), art_rect.position, Color.WHITE if active else Color(0.48, 0.5, 0.53, 0.8))
+			draw_texture(art.texture(art_id), art_rect.position, Color.WHITE if visible and state == 2 else resource_tint.darkened(0.2) if visible and state == 1 else Color(0.43, 0.47, 0.5, 0.8) if visible else Color(0.3, 0.35, 0.4, 0.65))
+			if visible:
+				var gauge := Rect2(ground + Vector2(-14, -35), Vector2(28, 5))
+				draw_rect(gauge, Color("17212a"))
+				if amount > 0:
+					draw_rect(Rect2(gauge.position, Vector2(gauge.size.x * clampf(float(amount) / maxi(1, capacity), 0, 1), gauge.size.y)), resource_tint)
+				else:
+					draw_line(gauge.position, gauge.end, Color("a3a9ae"), 1.5)
 	var ids := _sorted_entity_ids()
 	for id in ids:
 		var e: Dictionary = sim.entities[id]
@@ -3137,7 +3215,7 @@ func _draw() -> void:
 			draw_set_transform(BOARD_CENTER * (1.0 - board_zoom) + board_pan + _board_view_offset() + Vector2(ground.x * 2.0 * board_zoom, 0),
 				0.0, Vector2(-board_zoom, board_zoom))
 		if selected:
-			_draw_sprite_outline(art_id, sprite_rect, Color("f4d78e"))
+			draw_arc(ground + Vector2(0, 2), 16 if not is_building else 30, 0, TAU, 32, Color("f4d78e"), 2.5)
 		elif id == hovered_entity_id:
 			_draw_sprite_outline(art_id, sprite_rect, Color("ffe391"))
 		draw_texture_rect(art.texture(art_id), sprite_rect, false)

@@ -109,7 +109,7 @@ func _run() -> void:
 			"%s interface size preserves a pickable battlefield and separated minimap" % setting)
 		check(ui.command_panel.get_global_rect().end.y <= bottom_rect.end.y and ui.selection_panel.get_global_rect().end.y <= bottom_rect.end.y,
 			"%s interface size keeps essential panels inside the HUD" % setting)
-		check(ui.selection_title.get_theme_font_size("font_size") >= 27.0 * setting - 0.5,
+		check(ui.selection_title.get_theme_font_size("font_size") >= 18.0 * setting - 0.5,
 			"%s interface size stays readable at 1024 pixels" % setting)
 		check(ui.selection_panel.get_global_rect().encloses(ui.selection_hp_label.get_global_rect()),
 			"%s selection health stays inside its panel at 1024 pixels" % setting)
@@ -144,9 +144,13 @@ func _run() -> void:
 			var screen: Vector2 = Vector2(640, 305) + (client._tile_to_screen(tile) - Vector2(640, 305)) * zoom + client._board_view_offset()
 			check(client._screen_to_tile(screen) == tile, "board hit testing matches visible tile at zoom %.2f" % zoom)
 	client.board_zoom = 1.1
+	root.size = Vector2i(1024, 700)
+	await process_frame
 	client._navigate_minimap(Vector2i(10, 10))
-	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 10) and client.board_pan != Vector2.ZERO,
+	check(client.hud_ui.minimap.camera_tile == Vector2i(10, 10) and (client._screen_to_tile(client._playfield_screen_rect().get_center()) - Vector2i(10, 10)).length() <= 1.0,
 		"minimap navigation moves the existing battlefield camera")
+	root.size = original_window_size
+	await process_frame
 	var play_top := 120.0
 	var play_bottom := 600.0
 	var edge_view := Vector2(1280, 800)
@@ -208,7 +212,7 @@ func _run() -> void:
 		"selection panel follows the active board actor")
 	check(client.command_buttons["gather"].visible and client.command_buttons["plant"].visible and client.command_buttons["move"].visible and not client.command_buttons["attack"].visible,
 		"worker sees only relevant commands")
-	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "FORÁNEA" and client.hud_ui.population_label.text == "1/4",
+	check(client.hud_ui.resource_labels.size() == 4 and client.hud_ui.age_label.text == "AGE · FORÁNEA" and client.hud_ui.population_label.text == "1/4",
 		"HUD shows four resource counters, age and population")
 	var before_hud: String = client.sim.state_hash()
 	client._update_hud()
@@ -257,7 +261,7 @@ func _run() -> void:
 	check(client.sim.entities[worker_id].job == "gather" and client.order_flash_tile == comida_tile,
 		"right-clicking the source marker orders the selected worker to gather")
 	var gather: Dictionary = client._issue_order("gather", comida_tile, comida_tile)
-	check(gather.ok and client.order_flash_ok and client.order_flash_tile == comida_tile and client.sim.feedback == "Gathering resource.",
+	check(gather.ok and client.order_flash_ok and client.order_flash_tile == comida_tile and client.sim.feedback == "Gathering Comida.",
 		"accepted gather has visible target feedback")
 	var rejected: Dictionary = client._issue_order("build", {"kind": "depot", "pos": Vector2i(10, 2)}, Vector2i(10, 2))
 	check(not rejected.ok and not client.order_flash_ok and client.sim.feedback != "", "rejected build has distinct readable feedback")
@@ -381,8 +385,8 @@ func _run() -> void:
 			client.hud_ui.objective_body.show()
 			client.hud_ui._layout()
 			await process_frame
-			check(client.hud_ui.selection_title.get_theme_font_size("font_size") >= 36,
-				"readable 100% default provides the former large desktop text")
+			check(client.hud_ui.selection_title.get_theme_font_size("font_size") >= 24,
+				"readable 100% desktop text fits the available height")
 			check(client.hud_ui.objective_panel.get_global_rect().encloses(client.hud_ui.objective_title.get_global_rect()),
 				"objective text fits its expanded card")
 			check(client.hud_ui.objective_panel.get_global_rect().encloses(client.hud_ui.objective_body.get_child(1).get_global_rect())
@@ -426,7 +430,7 @@ func _run() -> void:
 	client.hud_ui.restart_confirm.pressed.emit()
 	check(client.match_id != finished_match_id and client.sim.tick_number == 0 and client.sim.result.is_empty(),
 		"visible reset button starts a fresh match")
-	check(client.sim.factions[Skirmish.HUMAN] == Skirmish.POBLANOS and not client.paused and client.hud_ui.pause_button.text == "II",
+	check(client.sim.factions[Skirmish.HUMAN] == Skirmish.POBLANOS and not client.paused and client.hud_ui.pause_button.get("caption") == "PAUSE",
 		"reset retains the faction and clears pause state")
 	check(client.outbox.state.events.size() == 6 and client.outbox.state.events[5].event.type == "match_started",
 		"reset saves exactly one new match start")

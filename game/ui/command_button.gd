@@ -66,6 +66,16 @@ func _draw() -> void:
 		"pause":
 			draw_rect(Rect2(o + Vector2(-9, -13), Vector2(6, 26)), c)
 			draw_rect(Rect2(o + Vector2(3, -13), Vector2(6, 26)), c)
+		"play":
+			poly([o + Vector2(-8, -14), o + Vector2(12, 0), o + Vector2(-8, 14)], c)
+		"reset":
+			draw_arc(o, 13, -1.9, 3.7, 25, c, 3)
+			poly([o + Vector2(-14, -12), o + Vector2(-3, -13), o + Vector2(-9, -3)], c)
+		"objective":
+			draw_arc(o, 13, 0, TAU, 28, c, 2)
+			draw_arc(o, 5, 0, TAU, 20, c, 2)
+			draw_line(o + Vector2(-18, 0), o + Vector2(-11, 0), c, 2)
+			draw_line(o + Vector2(11, 0), o + Vector2(18, 0), c, 2)
 		"menu":
 			for y in [-9, 0, 9]:
 				draw_line(o + Vector2(-13, y), o + Vector2(13, y), c, 3)

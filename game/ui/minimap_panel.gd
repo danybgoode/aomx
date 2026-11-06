@@ -52,14 +52,16 @@ func _draw() -> void:
 					sites.append(sim.expansion_sources[side][id])
 				for source in sites:
 					if sim.is_explored(Skirmish.HUMAN, source.pos):
-						var tint: Color = resource_colors[id] if sim.is_visible(Skirmish.HUMAN, source.pos) else resource_colors[id].darkened(0.55)
-						draw_circle(_point(inner, source.pos), 2.5, tint)
+						var visible: bool = sim.is_visible(Skirmish.HUMAN, source.pos)
+						var tint: Color = resource_colors[id] if visible else resource_colors[id].darkened(0.55)
+						_draw_resource_marker(_point(inner, source.pos), id, tint if not visible or int(source.amount) > 0 else Color("7d8489"), visible and int(source.amount) <= 0)
 		for source in sim.map_sites:
 			if sim.is_explored(Skirmish.HUMAN, source.pos):
-				var tint: Color = resource_colors[source.resource_id] if sim.is_visible(Skirmish.HUMAN, source.pos) else resource_colors[source.resource_id].darkened(0.55)
-				draw_circle(_point(inner, source.pos), 2.5, tint)
+				var visible: bool = sim.is_visible(Skirmish.HUMAN, source.pos)
+				var tint: Color = resource_colors[source.resource_id] if visible else resource_colors[source.resource_id].darkened(0.55)
+				_draw_resource_marker(_point(inner, source.pos), source.resource_id, tint if not visible or int(source.amount) > 0 else Color("7d8489"), visible and int(source.amount) <= 0)
 		for field in sim.food_fields[Skirmish.HUMAN]:
-			draw_circle(_point(inner, field.pos), 2.5, resource_colors.comida)
+			_draw_resource_marker(_point(inner, field.pos), "comida", resource_colors.comida, int(field.amount) <= 0)
 		for entity in sim.entities.values():
 			if entity.hp <= 0 or (sim._is_enemy(Skirmish.HUMAN, entity.side) and not sim.is_entity_visible(Skirmish.HUMAN, entity)):
 				continue
@@ -74,6 +76,15 @@ func _draw() -> void:
 	var camera_rect := Rect2(camera_p - view_size * 0.5, view_size).intersection(inner)
 	draw_rect(camera_rect, HudSkin.TEXT, false, 1.5)
 	draw_rect(Rect2(Vector2.ZERO, size), HudSkin.BRONZE, false, 2)
+
+func _draw_resource_marker(at: Vector2, id: String, tint: Color, depleted: bool) -> void:
+	match id:
+		"comida": draw_circle(at, 3.5, tint)
+		"materiales": draw_rect(Rect2(at - Vector2(3, 3), Vector2(6, 6)), tint)
+		"varos": draw_colored_polygon(PackedVector2Array([at + Vector2(0, -4), at + Vector2(4, 0), at + Vector2(0, 4), at + Vector2(-4, 0)]), tint)
+		"terrenos": draw_colored_polygon(PackedVector2Array([at + Vector2(0, -4), at + Vector2(4, 3), at + Vector2(-4, 3)]), tint)
+	if depleted:
+		draw_line(at + Vector2(-4, -4), at + Vector2(4, 4), HudSkin.INK, 1.5)
 
 func _point(inner: Rect2, tile: Vector2i) -> Vector2:
 	var width: int = sim.map_width if sim != null else Skirmish.WIDTH

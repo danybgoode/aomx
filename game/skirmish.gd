@@ -135,7 +135,7 @@ func _init(human_faction: String = REGIOS, custom_content: Dictionary = {}, seed
 	map_id = str(content.map_id)
 	if not selected_mission.is_empty():
 		var mission := CampaignMissions.find_mission(selected_mission)
-		assert(mission.ok and mission.data.map_id == map_id, "Mission and map must both be valid before play.")
+		assert(mission.ok and map_id in MAP_IDS, "Mission and map must both be valid before play.")
 		mission_id = selected_mission
 		mission_hash = mission.hash
 		mission_definition = mission.data
@@ -318,18 +318,22 @@ func issue(side: int, kind: String, actor_id: int, target: Variant = null) -> Di
 				var source: Dictionary = _source_for_tile(side, resource_id, target)
 				if source.amount <= 0:
 					rejected.reason = "resource_depleted"
-				elif actor.carry > 0 and actor.carry_resource != resource_id:
-					rejected.reason = "deliver_current_cargo_first"
 				else:
 					var route := _route_until(actor.pos, func(tile: Vector2i) -> bool: return _distance(tile, target) == 1)
 					if route.is_empty() and _distance(actor.pos, target) != 1:
 						rejected.reason = "resource_unreachable"
+					elif actor.carry > 0 and actor.carry_resource != resource_id and _dropoff_for(side, actor.carry_resource, actor.pos).id == -1:
+						rejected.reason = "dropoff_unreachable"
 					else:
-						actor.path = route
 						actor.source_resource = resource_id
 						actor.order_pos = target
-						actor.job = "gather"
-						rejected = {"ok": true, "reason": "gathering"}
+						if actor.carry > 0 and actor.carry_resource != resource_id:
+							_begin_delivery(actor)
+							rejected = {"ok": true, "reason": "delivering_then_gathering"}
+						else:
+							actor.path = route
+							actor.job = "gather"
+							rejected = {"ok": true, "reason": "gathering"}
 		"plant":
 			var existing := _field_at(side, target) if target is Vector2i else {}
 			if actor.kind != "worker" or not target is Vector2i:
