@@ -32,4 +32,4 @@ Needs #29, plus at least two pocket modes shipped. The paid pass track waits for
 
 ## Done means
 
-Merged to `master`; shipped in every client it touches (Pocket Web, and the RTS builds where noted) from the merged commit and verified live; host redeployed when the server changed; ES and EN; owner read-through. Then set `status: shipped` here and sync the board.
+Merged to `main`; shipped in every client it touches (Pocket Web, and the RTS builds where noted) from the merged commit and verified live; host redeployed when the server changed; ES and EN; owner read-through. Then set `status: shipped` here and sync the board.

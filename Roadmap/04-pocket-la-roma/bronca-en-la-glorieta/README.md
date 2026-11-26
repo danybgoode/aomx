@@ -33,4 +33,4 @@ Needs #27, and reuses battle code from #28. Server cost and player numbers are w
 
 ## Done means
 
-Merged to `master`; La Roma Pocket Web built from the merged commit, uploaded and verified live on iPhone Safari and Android Chrome; the match host redeployed when `src/pocket/` or migrations changed; ES and EN; every run emits `match_started` / `match_completed` with its `mode`; owner read-through (D3). Then set `status: shipped` here and sync the board. Ranked play runs on the public host with reconnect verified on two physical phones.
+Merged to `main`; La Roma Pocket Web built from the merged commit, uploaded and verified live on iPhone Safari and Android Chrome; the match host redeployed when `src/pocket/` or migrations changed; ES and EN; every run emits `match_started` / `match_completed` with its `mode`; owner read-through (D3). Then set `status: shipped` here and sync the board. Ranked play runs on the public host with reconnect verified on two physical phones.
