@@ -28,7 +28,7 @@ Each language has its own crawlable URL with `hreflang` alternates; `/` is canon
 
 ## Publishing
 
-The site is a Cloudflare Pages Direct Upload project (`battle-for-la-roma`, production branch `master`) at <https://battle-for-la-roma.pages.dev/>. Build first, then deploy the build output:
+The site is a Cloudflare Pages Direct Upload project (`battle-for-la-roma`, production branch `master`) at <https://battle-for-la-roma.pages.dev/>. That `master` is the Pages project's production label, not the git branch (git uses `main` since 2026-11-26); keep `--branch master` or deploys land as previews. Build first, then deploy the build output:
 
 ```sh
 npm run landing:build

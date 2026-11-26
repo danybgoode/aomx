@@ -124,7 +124,7 @@ Escalate anything else that changes core rules, audience, cultural portrayal, pr
 
 ## Done means (every epic)
 
-Merged to `master` and shipped in a real build:
+Merged to `main` and shipped in a real build:
 
 - **RTS:** public Web and macOS builds through the release runbook, with `npm run public:verify` passing.
 - **Pocket:** Pocket Web on its itch page, verified on iPhone Safari and Android Chrome.

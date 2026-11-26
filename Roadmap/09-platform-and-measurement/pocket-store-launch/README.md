@@ -32,4 +32,4 @@ Owner gates: D8 (money), D9 (accounts and signing) and D5 (counting pocket runs)
 
 ## Done means
 
-Merged to `master`; Android and iOS store builds from the merged commit live in their stores and verified on physical phones; receipts verified server-side; privacy labels and data-safety forms filed; public pocket events accepted by ingest and reconciling in the funnel report per mode; owner sign-off on D5, D8 and D9. Then set `status: shipped` here and sync the board.
+Merged to `main`; Android and iOS store builds from the merged commit live in their stores and verified on physical phones; receipts verified server-side; privacy labels and data-safety forms filed; public pocket events accepted by ingest and reconciling in the funnel report per mode; owner sign-off on D5, D8 and D9. Then set `status: shipped` here and sync the board.

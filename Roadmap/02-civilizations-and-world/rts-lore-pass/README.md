@@ -33,4 +33,4 @@ Needs #25 and #26. Bumps the content version again (D1). Branch: `feat/rts-lore-
 
 ## Done means
 
-Merged to `master`; public Web and macOS builds from the merged commit uploaded through the [public release runbook](../../../docs/release/public-release-runbook.md) and `npm run public:verify` passing; the match host redeployed on the same content version when rules changed; ES and EN; owner read-through in a real match. Then set `status: shipped` here and sync the board.
+Merged to `main`; public Web and macOS builds from the merged commit uploaded through the [public release runbook](../../../docs/release/public-release-runbook.md) and `npm run public:verify` passing; the match host redeployed on the same content version when rules changed; ES and EN; owner read-through in a real match. Then set `status: shipped` here and sync the board.

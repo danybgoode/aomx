@@ -32,4 +32,4 @@ Prerequisite for #28 onward. The art sprint can start once the S1.1 roster is fr
 
 ## Done means
 
-Merged to `master`; canon validator in `npm test`; the RTS and the Pocket shell both load the canon in a released build (#25 or #27, whichever ships first); ES and EN; owner cultural read-through of the roster and barks (D3). Then set `status: shipped` here and sync the board.
+Merged to `main`; canon validator in `npm test`; the RTS and the Pocket shell both load the canon in a released build (#25 or #27, whichever ships first); ES and EN; owner cultural read-through of the roster and barks (D3). Then set `status: shipped` here and sync the board.

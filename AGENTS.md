@@ -7,5 +7,5 @@ Battle for La Roma is a Godot RTS game with one public Web build and one public 
 - Treat `Roadmap/00-strategy/north-star.md` as the agreed measurement definition. The 15% later-day match completion target is provisional; there is no observed baseline yet.
 - Keep cultural humor understandable to players unfamiliar with Mexico. Avoid treating regional stereotypes as gameplay facts.
 - Never commit `.env.local`, API keys, tokens, or `.golden-frijoles/` local state. Commit shared config and `skills-lock.json`.
-- This repo uses `master` today. A merge is not a game deployment; record the matching Web/macOS artifacts, host image and live verification separately.
+- The default branch is `main` (renamed from `master` on 2026-11-26). A merge is not a game deployment; record the matching Web/macOS artifacts, host image and live verification separately.
 - Golden Frijoles recognizes work branches named `feat/<epic-slug>` (also `fix/`, `chore/`, `spike/`, `bug/`, `docs/`), optionally with `-sN`; `codex/` branches do not move the live board to Building. Follow [the roadmap sync runbook](Roadmap/WAYS-OF-WORKING.md#golden-frijoles-roadmap-sync) after changing status or PR state.

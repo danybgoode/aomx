@@ -11,7 +11,7 @@ This is how a merged change reaches players on the [public itch.io page](https:/
 
 ## 1 · Before exporting
 
-1. The change is merged to `master` through a PR, and **Project checks** (`verify`) and **CodeQL** passed on the merge commit.
+1. The change is merged to `main` through a PR, and **Project checks** (`verify`) and **CodeQL** passed on the merge commit.
 2. Check out exactly that commit. The export refuses uncommitted or untracked files under `game/` or `src/`, because the build ID names the commit.
 3. **Decide whether the match host must change first.** Online rooms admit a client only when its `game_version`, `content_version`, schema versions, `simulation_hash` and `content_hash` match the host (`src/multiplayer/versions.mjs`). The simulation hash covers `game/skirmish.gd` and `game/rules_content.gd`; the content hash covers `game/content/skirmish.v1.json`. Run `git diff <live-commit> -- game/skirmish.gd game/rules_content.gd game/content/skirmish.v1.json src/multiplayer/versions.mjs`:
    - **Empty:** the live host stays compatible. Publish only the clients.

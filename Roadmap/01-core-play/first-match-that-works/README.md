@@ -31,4 +31,4 @@ Changes rules and content, so it bumps the content version (D1). It is independe
 
 ## Done means
 
-Merged to `master`; public Web and macOS builds from the merged commit uploaded through the [public release runbook](../../../docs/release/public-release-runbook.md) and `npm run public:verify` passing; the match host redeployed on the same content version when rules changed; ES and EN; owner read-through in a real match. Then set `status: shipped` here and sync the board. Two uncoached newcomers each reach a first fight before minute 4.
+Merged to `main`; public Web and macOS builds from the merged commit uploaded through the [public release runbook](../../../docs/release/public-release-runbook.md) and `npm run public:verify` passing; the match host redeployed on the same content version when rules changed; ES and EN; owner read-through in a real match. Then set `status: shipped` here and sync the board. Two uncoached newcomers each reach a first fight before minute 4.

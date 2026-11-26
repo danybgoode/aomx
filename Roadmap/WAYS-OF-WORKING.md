@@ -8,7 +8,7 @@ The product owner sets direction and approves product bets. The agent drafts and
 
 ## The cadence
 
-Capture idea → refine scope → approve a bet → build a slice → verify behavior → review → merge → record the result. A merged document is not a shipped game feature. This repo currently uses `master`; no deployment rail exists yet.
+Capture idea → refine scope → approve a bet → build a slice → verify behavior → review → merge → record the result. A merged document is not a shipped game feature. The default branch is `main`; a merge is not a deployment.
 
 ## Epic-mode builds
 
@@ -39,16 +39,16 @@ The owner approves scope and what it displaces. A raw backlog seed is not funded
 
 ## Review & merge
 
-Review code, game behavior, and measurements against the approved acceptance checks. Use a second reviewer for changes that affect player data, security, payments, or the integrity of North Star reporting. Verify the working tree and tests before merge. A merge to `master` does not imply a deployment until a deploy process is established.
+Review code, game behavior, and measurements against the approved acceptance checks. Use a second reviewer for changes that affect player data, security, payments, or the integrity of North Star reporting. Verify the working tree and tests before merge. A merge to `main` does not imply a deployment until a deploy process is established.
 
 ### Landing stacked PRs
 
 A PR merged into another feature branch has only joined that branch. It has not
-landed on `master`, even if GitHub labels the PR **Merged**. For a stack, merge
-the bottom PR into `master`, retarget the next PR to `master`, verify its diff and
+landed on `main`, even if GitHub labels the PR **Merged**. For a stack, merge
+the bottom PR into `main`, retarget the next PR to `main`, verify its diff and
 required checks, then merge it; repeat upward. A single integration PR from the
-fully assembled top tree to `master` is also acceptable when its full diff is
-reviewed and checked. Confirm the final commit is reachable from `origin/master`
+fully assembled top tree to `main` is also acceptable when its full diff is
+reviewed and checked. Confirm the final commit is reachable from `origin/main`
 before recording the stack as landed. Neither path deploys a game build.
 
 ## Escalate, don't guess
@@ -96,7 +96,7 @@ This repo has no automatic roadmap-push workflow. After a seed or epic status ch
 
 ## Conventions
 
-Use English for planning and technical documentation. The game's copy and localization policy will be chosen with the first playable slice. Keep cultural references legible to players who do not know the jokes. Use the actual `master` branch name in commands until the repository changes it.
+Use English for planning and technical documentation. The game's copy and localization policy will be chosen with the first playable slice. Keep cultural references legible to players who do not know the jokes. The default branch is `main` (renamed from `master` on 2026-11-26); older records that say `master` mean the same branch.
 
 ## Tooling
 

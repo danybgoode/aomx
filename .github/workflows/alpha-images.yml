@@ -7,7 +7,7 @@ name: Alpha images
 # To build an older reviewed commit (a rollback target): Actions → Alpha images → Run workflow → ref.
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - 'src/funnel/**'
       - 'src/alpha/**'

@@ -279,4 +279,4 @@ so check page restriction before uploading.
 
 The restricted download page, owner-Mac download QA, participant notice, La Roma
 objective, data review, production flag decision and owner-approved first
-invitation are separate required evidence. A merge to `master` is not a deploy.
+invitation are separate required evidence. A merge to `main` is not a deploy.
