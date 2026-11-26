@@ -14,6 +14,17 @@ Capture idea → refine scope → approve a bet → build a slice → verify beh
 
 Before code, record the intended player outcome, scope, key decisions, acceptance checks, and verification method in the epic README and sprint file. Keep each sprint small enough to review and test. Use a separate branch for substantial changes. The `refine` skill scaffolds approved work.
 
+## Light epics
+
+Since 2026-11-26, new work uses the light shape (as in horroroftoday), because epics get built quickly:
+
+1. **Fund it:** add a row to `bets/wave-YYYY-MM.md`. A plan or umbrella seed in `00-ideas/seeds/` holds the pitch, the decisions and their defaults; no `refine` pitch is needed.
+2. **Scaffold:** `<NN-area>/<slug>/README.md` with the light frontmatter (`status`, `phase`, `slug`, `title`, `area`, `destination`, `type`, `risk`, `sprints_total`, `stories_total`, `underwritten_by`, `build_order`), a `## Why`, the links, the `## Notes` and the `## Done means`. Add one `sprint-N.md` per sprint, each with a `**Status:**` line and chunky stories (`### S1.1 Title`, then one paragraph that ends in what "done" means).
+3. **Build:** branch `feat/<slug>`, one sprint at a time. Tick stories with `✅` in the heading and set the sprint `**Status:**` to 🏗 In progress, 🟦 In review or ✅ Shipped. Re-cut later sprints freely once an earlier one ships, and record the re-cut in the README.
+4. **Done means a real build,** as each README states. Then set `status: shipped` and sync the board (below).
+
+Older epics keep their full frontmatter; don't migrate them.
+
 ## Betting & appetite
 
 Use a session-sized appetite when refining work:

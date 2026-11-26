@@ -14,6 +14,7 @@ persona: "Mexican and other Spanish-speaking RTS players, plus English-speaking 
 grounded: false
 grounded_reason: "Public builds send no play events, so no language-specific completion baseline exists to set a numeric target."
 flag_key: null
+underwritten_by: wave-2026-11
 ---
 
 # Play the game in Spanish or English

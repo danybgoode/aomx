@@ -5,7 +5,7 @@
 
 # Build order — the six stages
 
-> **Generated 2026-10-28 — do not hand-edit.** One stage per initiative, decided in one place
+> **Generated 2026-11-26 — do not hand-edit.** One stage per initiative, decided in one place
 > (`scripts/lib/stage.mjs`): Backlog · Refining · Ready · Building · QA · Shipped.
 > This committed file reads the docs alone, so **Building and QA are not here** — they are facts git
 > and GitHub hold. For the live board run `node scripts/build-order.mjs --live`, or open the Hub board.
@@ -22,7 +22,7 @@ _a pitch is waiting at the approval gate._
 
 _None._
 
-## Ready (21)
+## Ready (35)
 
 _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 
@@ -47,6 +47,20 @@ _scaffolded (or a fixed-scope seed), in build order — pull from the top._
 - [Create the first campaign chapter](../03-multiplayer-and-retention/create-campaigns-and-scenarios/README.md) — #21 · 03 Multiplayer And Retention · 1/7 stories · risk: High · appetite M · _docs: status in-progress_
 - [Prove cross-platform play](../09-platform-and-measurement/prove-cross-platform-play/README.md) — #22 · 09 Platform And Measurement · 0/7 stories · risk: High · appetite L · _docs: status in-progress_
 - [Add more ways to play](../03-multiplayer-and-retention/add-more-ways-to-play/README.md) — #24 · 03 Multiplayer And Retention · 4/5 stories · risk: High · appetite M · _docs: status in-progress_
+- [A first match that works](../01-core-play/first-match-that-works/README.md) — #25 · 01 Core Play · 0/4 stories · risk: Low · _docs: status scaffolded_
+- [The La Roma canon: archetypes, traits, events and voice](../02-civilizations-and-world/la-roma-canon/README.md) — #26 · 02 Civilizations And World · 0/5 stories · risk: Low · _docs: status scaffolded_
+- [La Roma Pocket: the shell and its services](../04-pocket-la-roma/pocket-shell/README.md) — #27 · 04 Pocket La Roma · 0/5 stories · risk: High · _docs: status scaffolded_
+- [Pleito de Vecindad: the auto-battler](../04-pocket-la-roma/pleito-de-vecindad/README.md) — #28 · 04 Pocket La Roma · 0/7 stories · risk: High · _docs: status scaffolded_
+- [Del cuarto de azotea al rooftop: the meta and the idle layer](../03-multiplayer-and-retention/del-cuarto-al-rooftop/README.md) — #29 · 03 Multiplayer And Retention · 0/5 stories · risk: Low · _docs: status scaffolded_
+- [RTS lore pass: archetypes, the city economy and the four-act campaign](../02-civilizations-and-world/rts-lore-pass/README.md) — #30 · 02 Civilizations And World · 0/7 stories · risk: High · _docs: status scaffolded_
+- [Hora Pico: defend your flat (roguelite tower defense)](../04-pocket-la-roma/hora-pico-td/README.md) — #31 · 04 Pocket La Roma · 0/5 stories · risk: Low · _docs: status scaffolded_
+- [RTS city depth: faction verbs, city events and a contested Cibeles](../01-core-play/rts-city-depth/README.md) — #32 · 01 Core Play · 0/4 stories · risk: High · _docs: status scaffolded_
+- [Bronca en la Glorieta: the real-time lane duel](../04-pocket-la-roma/bronca-en-la-glorieta/README.md) — #33 · 04 Pocket La Roma · 0/8 stories · risk: High · _docs: status scaffolded_
+- [La Roma en 30 Turnos: the micro turn-based 4X](../04-pocket-la-roma/la-roma-en-30-turnos/README.md) — #34 · 04 Pocket La Roma · 0/5 stories · risk: Low · _docs: status scaffolded_
+- [La Mudanza: the packing puzzle with a renovation meta](../04-pocket-la-roma/la-mudanza/README.md) — #35 · 04 Pocket La Roma · 0/5 stories · risk: Low · _docs: status scaffolded_
+- [Semestres y colonias: seasons, clans and sharing](../03-multiplayer-and-retention/semestres-y-colonias/README.md) — #36 · 03 Multiplayer And Retention · 0/6 stories · risk: High · _docs: status scaffolded_
+- [La Roma Pocket in the stores, measured and fair](../09-platform-and-measurement/pocket-store-launch/README.md) — #37 · 09 Platform And Measurement · 0/5 stories · risk: High · _docs: status scaffolded_
+- [Play the game in Spanish or English](../09-platform-and-measurement/game-localization/README.md) — 09 Platform And Measurement · 4/4 stories · risk: Low · _docs: status in-progress_
 
 ## Building — live only
 
@@ -64,4 +78,4 @@ _merged, deployed and closed._
 - [Harden the RTS simulation](../01-core-play/harden-rts-simulation/README.md) — #8 · 01 Core Play · 3/3 stories · risk: High · appetite L · _docs: status shipped_
 
 ---
-_24 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._
+_38 initiatives on the board. Regenerate with `node scripts/build-order.mjs`._

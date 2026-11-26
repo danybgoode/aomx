@@ -19,3 +19,9 @@ Players can complete reliable shared matches, alternate victory modes and author
 
 ## accessible-cross-platform-release — One game across supported devices
 Players can install, learn, control, save and finish the same game on each explicitly supported desktop, browser or mobile target, with device-specific presentation and verified performance.
+
+## pocket-la-roma — La Roma in your pocket
+A phone player can start and finish a satisfying La Roma game in minutes with one thumb, in any pocket mode, on mobile Web or a store build, with the same canon, jokes and plain rules as the RTS.
+
+## reasons-to-return — A reason to come back tomorrow
+Players have a persistent home, a daily and a season that make returning on a later day the obvious next move, so returning commanders can grow and be read.

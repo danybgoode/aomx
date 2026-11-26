@@ -34,11 +34,16 @@ The areas below are provisional until the first epics are shaped.
 | 01 · Core play | Gathering, settlements, economy, ages, units, and battles. |
 | 02 · Civilizations and world | Regional factions, Mexico City neighborhoods, art, writing, and accessibility of cultural references. |
 | 03 · Multiplayer and retention | Matchmaking, completed matches, return play, and social play. |
+| 04 · Pocket La Roma | The portrait mobile hub and its five games on the shared canon. |
 | 09 · Platform and measurement | Build tooling, delivery, telemetry, and the launch funnel. |
 
 ## Feature map
 
 The solo skirmish, three campaign chapters and Wonder are publicly playable in the separate offline build; this release does not satisfy the measured funnel or private multiplayer acceptance gates. The funnel has 2/7 locally verified stories; RTS core and solo skirmish each have 4/4. La Roma has 3/4 builder-verified stories, a Restricted owner preview and staging receipt/exclusion evidence; its eight-player test is unrun. The HUD has 6/6 builder-verified stories across native and Web checks, with human and downloaded-build QA still open. The measured private alpha is funded at #4, with its owner QA and invitation gates still open. The live board may show merged PRs as complete even when a game build has not been released. The simulation foundation at #8 has 3/3 stories complete and a Restricted owner preview. Strategic play at #10 has three implemented stories and a Restricted preview, with downloaded gameplay and ingest QA still open. Later ideas remain raw until `refine` shapes and funds them. The generated board shows their proposed order.
+
+## Wave 2026-11 · La Roma, reimagined
+
+After the [2026-11-25 player review](00-ideas/sketches/mobile-reimagined/index.html), the owner funded the whole [La Roma, reimagined plan](00-ideas/seeds/la-roma-reimagined.md): 13 light epics, #25 to #37, in [wave 2026-11](bets/wave-2026-11.md). The RTS track fixes the first match (#25), adds the shared canon (#26), then runs the lore pass (#30) and city depth (#32). La Roma Pocket adds a portrait shell (#27) and five games: Pleito de Vecindad (#28), Hora Pico (#31), Bronca en la Glorieta (#33), La Roma en 30 Turnos (#34) and La Mudanza (#35). The return loop is the apartment meta (#29), then seasons and colonias (#36), then the store launch (#37). Start with #25 and #26 in parallel.
 
 ## Suggested next work · 2026-10-22
 
