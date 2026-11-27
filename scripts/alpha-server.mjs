@@ -49,6 +49,7 @@ const growthForPlayer = growthKeyVerified ? playerId => createGrowthEngineClient
   fetchImpl: (url, options) => fetch(url, { ...options, signal: AbortSignal.timeout(2000) })
 }) : null;
 const server = serve(funnel, { host: '0.0.0.0', port: Number(process.env.AOMX_PORT ?? 8787), publicMode: true,
+  tallyKey: process.env.AOMX_TALLY_KEY || null,
   campaignDecision: campaignDecision({ provider, growthForPlayer, environment }),
   wonderDecision: wonderDecision({ provider, growthForPlayer, environment,
     signingKey: growthKeyVerified ? growthKey : null }) });

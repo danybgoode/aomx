@@ -1,9 +1,10 @@
 import http from 'node:http';
 import { createHash } from 'node:crypto';
 import { makeReport } from './report.mjs';
+import { tallyAnswer, tallyAuthorized } from './tally.mjs';
 
 export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = false,
-  requestsPerMinute = 30, globalRequestsPerMinute = 300, campaignDecision = null, wonderDecision = null } = {}) {
+  requestsPerMinute = 30, globalRequestsPerMinute = 300, campaignDecision = null, wonderDecision = null, tallyKey = null } = {}) {
   const traffic = new Map();
   const server = http.createServer(async (req, res) => {
     res.setHeader('content-type', 'application/json');
@@ -15,6 +16,19 @@ export function serve(ingest, { host = '127.0.0.1', port = 8787, publicMode = fa
       } catch {
         res.statusCode = 503;
         res.end(JSON.stringify({ ok: false }));
+      }
+      return;
+    }
+    if (req.method === 'GET' && req.url.startsWith('/v1/tally/') && tallyKey && ingest.pool &&
+      tallyAuthorized(req.headers.authorization, tallyKey)) {
+      const url = new URL(req.url, 'http://local');
+      try {
+        const body = await tallyAnswer(ingest.pool, url.pathname.slice('/v1/tally/'.length), url.searchParams);
+        res.statusCode = body ? 200 : 404;
+        res.end(JSON.stringify(body ?? { error: 'not_found' }));
+      } catch {
+        res.statusCode = 503;
+        res.end(JSON.stringify({ error: 'service_unavailable' }));
       }
       return;
     }
